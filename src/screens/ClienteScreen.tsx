@@ -16,6 +16,7 @@ import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
+import { guardarCliente, leerCliente } from "../offline/cache";
 import { useSession } from "../session/session-context";
 import type {
   ClienteTarjetaPublic,
@@ -61,9 +62,18 @@ export function ClienteScreen({ route }: Props) {
       ]);
       setTarjeta(t);
       setPrestamos(p);
+      await guardarCliente(rutaId, clienteId, { tarjeta: t, prestamos: p });
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
+      } else if (esErrorDeRed(err)) {
+        const cache = await leerCliente(rutaId, clienteId);
+        if (cache) {
+          setTarjeta(cache.tarjeta);
+          setPrestamos(cache.prestamos);
+        } else {
+          setError("No se pudo cargar el cliente.");
+        }
       } else {
         setError("No se pudo cargar el cliente.");
       }
