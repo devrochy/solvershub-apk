@@ -12,6 +12,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { ColorBadge } from "../components/ColorBadge";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
+import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import type {
@@ -42,6 +43,9 @@ export function ClienteScreen({ route }: Props) {
   const [motivoNoPago, setMotivoNoPago] = useState<
     (typeof MOTIVOS_NO_PAGO)[number]
   >("no_esta");
+  const [tipoPago, setTipoPago] = useState<"cuota" | "abono">("cuota");
+  const [fechaPrometida, setFechaPrometida] = useState("");
+  const [valorPrometido, setValorPrometido] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
 
@@ -87,8 +91,9 @@ export function ClienteScreen({ route }: Props) {
     }
     if (modo === "pago") {
       const monto = Number(valor);
-      if (!Number.isFinite(monto) || monto <= 0) {
-        setMensaje("Ingresa un valor válido.");
+      const errorMonto = validarMonto(monto);
+      if (errorMonto) {
+        setMensaje(errorMonto);
         return;
       }
       setEnviando(true);
@@ -98,8 +103,8 @@ export function ClienteScreen({ route }: Props) {
           prestamoId: prestamoVigente.id,
           clienteId,
           resultado: "pago",
-          tipoPago: "cuota",
-          cuotaId: cuotaPorPagar?.id,
+          tipoPago,
+          cuotaId: tipoPago === "cuota" ? cuotaPorPagar?.id : undefined,
           valor: monto,
           metodoPago,
         });
@@ -113,6 +118,19 @@ export function ClienteScreen({ route }: Props) {
         setEnviando(false);
       }
     } else {
+      const errorFecha = validarFechaPrometida(fechaPrometida);
+      if (errorFecha) {
+        setMensaje(errorFecha);
+        return;
+      }
+      const montoPrometido = valorPrometido.trim() ? Number(valorPrometido) : null;
+      if (montoPrometido !== null) {
+        const errorMonto = validarMonto(montoPrometido);
+        if (errorMonto) {
+          setMensaje(errorMonto);
+          return;
+        }
+      }
       setEnviando(true);
       setMensaje(null);
       try {
@@ -121,8 +139,12 @@ export function ClienteScreen({ route }: Props) {
           clienteId,
           resultado: "no_pago",
           motivoNoPago,
+          fechaPrometida: fechaPrometida.trim() || undefined,
+          valorPrometido: montoPrometido ?? undefined,
         });
         setModo(null);
+        setFechaPrometida("");
+        setValorPrometido("");
         setMensaje("Visita registrada.");
       } catch {
         setMensaje("No se pudo registrar la visita.");
@@ -203,7 +225,41 @@ export function ClienteScreen({ route }: Props) {
 
       {modo === "pago" ? (
         <View testID="form-pago" style={styles.form}>
-          <Text style={styles.formTitulo}>Pago de cuota</Text>
+          <Text style={styles.formTitulo}>Registro de pago</Text>
+          <Text style={styles.label}>Tipo</Text>
+          <View style={styles.chips}>
+            <Pressable
+              testID="tipo-cuota"
+              style={[styles.chip, tipoPago === "cuota" && styles.chipActivo]}
+              onPress={() => setTipoPago("cuota")}
+            >
+              <Text
+                style={
+                  tipoPago === "cuota" ? styles.chipTextoActivo : styles.chipTexto
+                }
+              >
+                Pago de cuota
+              </Text>
+            </Pressable>
+            <Pressable
+              testID="tipo-abono"
+              style={[styles.chip, tipoPago === "abono" && styles.chipActivo]}
+              onPress={() => setTipoPago("abono")}
+            >
+              <Text
+                style={
+                  tipoPago === "abono" ? styles.chipTextoActivo : styles.chipTexto
+                }
+              >
+                Abono parcial
+              </Text>
+            </Pressable>
+          </View>
+          {tipoPago === "cuota" && cuotaPorPagar ? (
+            <Text style={styles.detalle}>
+              Cuota {cuotaPorPagar.numeroCuota} — {cuotaPorPagar.valorEsperado}
+            </Text>
+          ) : null}
           <TextInput
             testID="pago-valor"
             style={styles.input}
@@ -253,6 +309,23 @@ export function ClienteScreen({ route }: Props) {
               </Pressable>
             ))}
           </View>
+          <Text style={styles.label}>Promesa de pago (opcional)</Text>
+          <TextInput
+            testID="fecha-prometida"
+            style={styles.input}
+            placeholder="Fecha prometida (AAAA-MM-DD)"
+            autoCapitalize="none"
+            value={fechaPrometida}
+            onChangeText={setFechaPrometida}
+          />
+          <TextInput
+            testID="valor-prometido"
+            style={styles.input}
+            placeholder="Valor prometido"
+            keyboardType="decimal-pad"
+            value={valorPrometido}
+            onChangeText={setValorPrometido}
+          />
         </View>
       ) : null}
 
