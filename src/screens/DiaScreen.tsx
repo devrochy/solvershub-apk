@@ -13,6 +13,7 @@ import { apiErrorStatus } from "../api/client";
 import { ColorBadge } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
 import { MAX_EVIDENCIAS, useEvidencias } from "../features/gastos/use-evidencias";
+import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import type { ClienteDiaPublic } from "../types/cobrador";
@@ -38,6 +39,9 @@ export function DiaScreen({ navigation, route }: Props) {
     agregarDesdeCamara,
     quitar,
   } = useEvidencias();
+  const trayectoria = useTrayectoria();
+  const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
+  const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -84,6 +88,24 @@ export function DiaScreen({ navigation, route }: Props) {
     }
   }
 
+  async function detenerYEnviarTrayectoria() {
+    const puntos = trayectoria.detener();
+    if (puntos.length < 2) {
+      setTrayectoriaMensaje("Se necesitan al menos 2 puntos de ubicación.");
+      return;
+    }
+    setTrayectoriaEnviando(true);
+    setTrayectoriaMensaje(null);
+    try {
+      await api.registrarTrayectoriaReal(rutaId, { puntos });
+      setTrayectoriaMensaje("Trayectoria enviada.");
+    } catch {
+      setTrayectoriaMensaje("No se pudo enviar la trayectoria.");
+    } finally {
+      setTrayectoriaEnviando(false);
+    }
+  }
+
   if (!clientes) {
     return (
       <View style={styles.centro}>
@@ -109,6 +131,39 @@ export function DiaScreen({ navigation, route }: Props) {
         contentContainerStyle={styles.lista}
         ListHeaderComponent={
           <View style={styles.acciones}>
+            {trayectoria.activa ? (
+              <View style={styles.trayectoriaActiva}>
+                <View style={styles.puntoRojo} />
+                <Text style={styles.trayectoriaTexto}>
+                  Grabando · {trayectoria.puntos.length} puntos
+                </Text>
+                <Pressable
+                  testID="detener-trayectoria"
+                  style={[styles.botonPrimario, trayectoriaEnviando && styles.deshabilitado]}
+                  disabled={trayectoriaEnviando}
+                  onPress={detenerYEnviarTrayectoria}
+                >
+                  {trayectoriaEnviando ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text style={styles.botonPrimarioTexto}>Detener y enviar</Text>
+                  )}
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable
+                testID="iniciar-trayectoria"
+                style={styles.botonSecundario}
+                onPress={trayectoria.iniciar}
+              >
+                <Text style={styles.botonSecundarioTexto}>Iniciar GPS</Text>
+              </Pressable>
+            )}
+            {trayectoria.error || trayectoriaMensaje ? (
+              <Text style={styles.mensajeTrayectoria}>
+                {trayectoria.error ?? trayectoriaMensaje}
+              </Text>
+            ) : null}
             <Pressable
               testID="nuevo-gasto"
               style={styles.botonPrimario}
@@ -199,7 +254,7 @@ const styles = StyleSheet.create({
   error: { color: "#dc2626", fontSize: 15 },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
-  acciones: { marginBottom: 8 },
+  acciones: { marginBottom: 8, gap: 8 },
   botonPrimario: {
     backgroundColor: "#2563eb",
     borderRadius: 8,
@@ -208,6 +263,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   botonPrimarioTexto: { color: "#ffffff", fontWeight: "600" },
+  botonSecundario: {
+    backgroundColor: "#dc2626",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  botonSecundarioTexto: { color: "#ffffff", fontWeight: "600" },
+  trayectoriaActiva: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#fee2e2",
+    borderRadius: 8,
+    padding: 10,
+  },
+  puntoRojo: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#dc2626",
+  },
+  trayectoriaTexto: { color: "#7f1d1d", fontWeight: "600", flex: 1 },
+  mensajeTrayectoria: { color: "#475569", fontSize: 13 },
   deshabilitado: { backgroundColor: "#93c5fd" },
   tarjeta: {
     flexDirection: "row",
