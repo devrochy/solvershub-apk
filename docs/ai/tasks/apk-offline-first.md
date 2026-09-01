@@ -20,7 +20,7 @@ Que la APK opere sin conexión: las operaciones de campo (visita pago/no-pago, g
 - [x] Bloque 3: `offline-context.tsx` — netinfo (isOnline), `sinSubir`, `encolar`, `sincronizar()` (flush); auto-sync al reconectar. Envuelve la app en `App.tsx`.
   - Test(s): `src/offline/offline-context.test.tsx` (4)
 - [x] Bloque 4: wiring — ClienteScreen (visita pago/no-pago encola en error de red), DiaScreen (gasto offline), badge "N sin subir" en RutasScreen.
-  - Test(s): `ClienteScreen.test.tsx` (+1), `RutasScreen.test.tsx` (+1), jest.setup mocks AsyncStorage/netinfo.
+  - Test(s): `ClienteScreen.test.tsx` (+1), `RutasScreen.test.tsx` (+1), `DiaScreen.test.tsx` (nuevo, 2: encola en red / no encola en ApiError), `client.test.ts` (+2 esErrorDeRed), jest.setup mocks AsyncStorage/netinfo.
 
 ## Decisiones tomadas durante la implementación
 - Error de red = cualquier error que NO sea `ApiError`.
@@ -32,6 +32,7 @@ Que la APK opere sin conexión: las operaciones de campo (visita pago/no-pago, g
 - Mecanismo A; evidencias base64; provisioning por device key.
 
 ## Resultado final
-- Comandos ejecutados para verificar: `scripts/check.sh` verde (64 tests, 14 suites); bundle web 200; flujo offline real verificado (cuota aplicada vía sync).
-- Archivos modificados: `src/offline/cola.ts` (+test), `src/api/offline-sync.ts` (+test), `src/offline/offline-context.tsx` (+test), `src/api/client.ts` (+`esErrorDeRed`), `src/config.ts` (+`DEVICE_API_KEY`), `src/screens/ClienteScreen.tsx`/`DiaScreen.tsx`/`RutasScreen.tsx` (+tests), `App.tsx` (OfflineProvider), `jest.setup.ts`, `.env.example`, `docs/ai/tasks/apk-offline-first.md`.
-- Pendientes/seguimiento: trayectoria GPS offline (agregar tipo al catálogo backend), cache del snapshot del día, cambio de cliente offline.
+- Comandos ejecutados para verificar: `scripts/check.sh` verde (68 tests, 15 suites); bundle web 200; flujo offline real verificado (cuota aplicada vía sync).
+- Archivos modificados: `src/offline/cola.ts` (+test), `src/api/offline-sync.ts` (+test), `src/offline/offline-context.tsx` (+test), `src/api/client.ts` (+`esErrorDeRed` y test), `src/config.ts` (+`DEVICE_API_KEY`), `src/screens/ClienteScreen.tsx`/`DiaScreen.tsx`/`RutasScreen.tsx` (+tests), `App.tsx` (OfflineProvider), `jest.setup.ts`, `.env.example`, `docs/ai/tasks/apk-offline-first.md`, `docs/ai/tasks/backlog.md`.
+- Revisión code-reviewer APROBADA tras agregar `DiaScreen.test.tsx` (bloqueante) y test directo de `esErrorDeRed`. Notas no bloqueantes en backlog (evidencias offline, device key inválida).
+- Pendientes/seguimiento: trayectoria GPS offline, cache del snapshot del día, cambio de cliente offline.

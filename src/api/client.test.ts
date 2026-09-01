@@ -1,4 +1,4 @@
-import { ApiClient, SessionGateway } from "./client";
+import { ApiClient, ApiError, SessionGateway, esErrorDeRed } from "./client";
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -131,5 +131,14 @@ describe("ApiClient", () => {
       status: 401,
     });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+describe("esErrorDeRed", () => {
+  it("devuelve true para un error que no es ApiError (fallo de red)", () => {
+    expect(esErrorDeRed(new Error("Network request failed"))).toBe(true);
+  });
+
+  it("devuelve false para un ApiError (respuesta HTTP del backend)", () => {
+    expect(esErrorDeRed(new ApiError(401, "No autorizado"))).toBe(false);
   });
 });
