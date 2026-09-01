@@ -23,7 +23,15 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La app usa tus fotos como evidencia de gastos.",
+          "cameraPermission": "La app usa la cámara para tomar evidencias de gastos.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }
