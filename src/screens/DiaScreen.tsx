@@ -10,13 +10,14 @@ import {
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { apiErrorStatus } from "../api/client";
+import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
 import { MAX_EVIDENCIAS, useEvidencias } from "../features/gastos/use-evidencias";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import type { RootStackParamList } from "../navigation/types";
+import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import type { ClienteDiaPublic } from "../types/cobrador";
 
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Dia">;
 export function DiaScreen({ navigation, route }: Props) {
   const { rutaId } = route.params;
   const { api, logout } = useSession();
+  const offline = useOffline();
   const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
@@ -73,19 +75,24 @@ export function DiaScreen({ navigation, route }: Props) {
     }
     setGastoEnviando(true);
     setGastoMensaje(null);
+    const input = { descripcion: gastoDescripcion.trim(), valor };
     try {
-      await api.registrarGasto(
-        rutaId,
-        { descripcion: gastoDescripcion.trim(), valor },
-        evidencias,
-      );
+      await api.registrarGasto(rutaId, input, evidencias);
       setGastoDescripcion("");
       setGastoValor("");
       evidencias.forEach((e) => quitar(e.uri));
       setGastoAbierto(false);
       setGastoMensaje("Gasto registrado.");
-    } catch {
-      setGastoMensaje("No se pudo registrar el gasto.");
+    } catch (err) {
+      if (esErrorDeRed(err)) {
+        await offline.encolar("gasto", input);
+        setGastoDescripcion("");
+        setGastoValor("");
+        setGastoAbierto(false);
+        setGastoMensaje("Guardado sin conexión (se sincronizará).");
+      } else {
+        setGastoMensaje("No se pudo registrar el gasto.");
+      }
     } finally {
       setGastoEnviando(false);
     }

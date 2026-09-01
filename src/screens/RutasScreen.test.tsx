@@ -1,5 +1,6 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { RutasScreen } from "./RutasScreen";
+import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 
 const ruta = {
@@ -16,6 +17,12 @@ const ruta = {
 async function renderConRutas(
   api: Partial<SessionValue["api"]>,
   navigate: jest.Mock = jest.fn(),
+  offline: OfflineValue = {
+    isOnline: true,
+    sinSubir: 0,
+    encolar: jest.fn(),
+    sincronizar: jest.fn(),
+  },
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López" },
@@ -26,9 +33,11 @@ async function renderConRutas(
   };
   const navigation = { navigate } as never;
   return render(
-    <SessionContext.Provider value={valor}>
-      <RutasScreen navigation={navigation} route={{ key: "rutas", name: "Rutas" }} />
-    </SessionContext.Provider>,
+    <OfflineContext.Provider value={offline}>
+      <SessionContext.Provider value={valor}>
+        <RutasScreen navigation={navigation} route={{ key: "rutas", name: "Rutas" }} />
+      </SessionContext.Provider>
+    </OfflineContext.Provider>,
   );
 }
 
@@ -60,5 +69,15 @@ describe("RutasScreen", () => {
     await waitFor(() =>
       expect(getByText("No tienes rutas asignadas.")).toBeTruthy(),
     );
+  });
+
+  it("muestra el badge de eventos sin subir", async () => {
+    const { getByTestId } = await renderConRutas(
+      { misRutas: jest.fn().mockResolvedValue([ruta]) },
+      jest.fn(),
+      { isOnline: false, sinSubir: 2, encolar: jest.fn(), sincronizar: jest.fn() },
+    );
+
+    await waitFor(() => expect(getByTestId("badge-sin-subir")).toBeTruthy());
   });
 });

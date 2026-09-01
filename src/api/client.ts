@@ -120,4 +120,9 @@ export function apiErrorStatus(err: unknown): number | null {
   return err instanceof ApiError ? err.status : null;
 }
 
+/** Un error de red es cualquier fallo que NO sea una respuesta HTTP del backend. */
+export function esErrorDeRed(err: unknown): boolean {
+  return !(err instanceof ApiError);
+}
+
 export { isAccessTokenExpired };
