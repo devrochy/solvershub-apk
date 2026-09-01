@@ -1,6 +1,14 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ClienteScreen } from "./ClienteScreen";
+import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+
+const offlineValor: OfflineValue = {
+  isOnline: true,
+  sinSubir: 0,
+  encolar: jest.fn().mockResolvedValue(undefined),
+  sincronizar: jest.fn().mockResolvedValue(undefined),
+};
 
 const prestamo = {
   id: 1,
@@ -36,7 +44,10 @@ const tarjeta = {
   diasMora: 0,
 };
 
-async function renderConApi(api: Partial<SessionValue["api"]>) {
+async function renderConApi(
+  api: Partial<SessionValue["api"]>,
+  offline = offlineValor,
+) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L" },
     loading: false,
@@ -50,16 +61,18 @@ async function renderConApi(api: Partial<SessionValue["api"]>) {
   };
   const navigation = { navigate: jest.fn() } as never;
   return render(
-    <SessionContext.Provider value={valor}>
-      <ClienteScreen
-        navigation={navigation}
-        route={{
-          key: "cliente",
-          name: "Cliente",
-          params: { rutaId: 6, clienteId: 2, nombre: "Juan" },
-        }}
-      />
-    </SessionContext.Provider>,
+    <OfflineContext.Provider value={offline}>
+      <SessionContext.Provider value={valor}>
+        <ClienteScreen
+          navigation={navigation}
+          route={{
+            key: "cliente",
+            name: "Cliente",
+            params: { rutaId: 6, clienteId: 2, nombre: "Juan" },
+          }}
+        />
+      </SessionContext.Provider>
+    </OfflineContext.Provider>,
   );
 }
 
@@ -127,5 +140,36 @@ describe("ClienteScreen", () => {
       expect(getByText("Para compromiso de pago se requiere la fecha prometida.")).toBeTruthy(),
     );
     expect(registrarVisitaNoPago).not.toHaveBeenCalled();
+  });
+
+  it("encola la visita en la cola offline cuando hay error de red", async () => {
+    const errorRed = new Error("Network request failed");
+    const encolar = jest.fn().mockResolvedValue(undefined);
+    const offlineConError: OfflineValue = {
+      ...offlineValor,
+      encolar,
+    };
+    const registrarVisitaPago = jest.fn().mockRejectedValue(errorRed);
+    const { getByTestId } = await renderConApi(
+      { registrarVisitaPago },
+      offlineConError,
+    );
+
+    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-pago"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "300");
+    await fireEvent.press(getByTestId("guardar-visita"));
+
+    await waitFor(() =>
+      expect(encolar).toHaveBeenCalledWith("visita", {
+        prestamoId: 1,
+        clienteId: 2,
+        resultado: "pago",
+        tipoPago: "cuota",
+        cuotaId: 10,
+        valor: 300,
+        metodoPago: "efectivo",
+      }),
+    );
   });
 });

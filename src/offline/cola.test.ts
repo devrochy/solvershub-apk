@@ -1,0 +1,77 @@
+jest.mock("@react-native-async-storage/async-storage", () => {
+  let almacen = new Map<string, string>();
+  return {
+    __esModule: true,
+    default: {
+      getItem: jest.fn(async (k: string) => almacen.get(k) ?? null),
+      setItem: jest.fn(async (k: string, v: string) => {
+        almacen.set(k, v);
+      }),
+      removeItem: jest.fn(async (k: string) => {
+        almacen.delete(k);
+      }),
+      clear: jest.fn(async () => {
+        almacen.clear();
+      }),
+      _almacen: almacen,
+    },
+  };
+});
+
+jest.mock("expo-crypto", () => {
+  let secuencia = 0;
+  return {
+    randomUUID: jest.fn(
+      () => `11111111-2222-4333-8444-${String(++secuencia).padStart(12, "0")}`,
+    ),
+  };
+});
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  contarCola,
+  encolar,
+  limpiarCola,
+  listarCola,
+  removerDeCola,
+} from "./cola";
+
+describe("cola offline", () => {
+  beforeEach(async () => {
+    await (AsyncStorage as unknown as { clear: () => Promise<void> }).clear();
+  });
+
+  it("encola un evento con eventoIdCliente generado", async () => {
+    const evento = await encolar("visita", { clienteId: 2 });
+
+    expect(evento.eventoIdCliente).toBe("11111111-2222-4333-8444-000000000001");
+    expect(evento.tipoEvento).toBe("visita");
+    expect(evento.payload).toEqual({ clienteId: 2 });
+    await expect(contarCola()).resolves.toBe(1);
+  });
+
+  it("listarCola devuelve los eventos en orden", async () => {
+    await encolar("visita", { a: 1 });
+    await encolar("gasto", { b: 2 });
+
+    const cola = await listarCola();
+
+    expect(cola.map((e) => e.tipoEvento)).toEqual(["visita", "gasto"]);
+  });
+
+  it("removerDeCola quita solo el evento indicado", async () => {
+    await encolar("visita", {});
+    const segundo = await encolar("gasto", {});
+    await removerDeCola(segundo.eventoIdCliente);
+
+    const cola = await listarCola();
+    expect(cola.map((e) => e.tipoEvento)).toEqual(["visita"]);
+  });
+
+  it("limpiarCola vacía la cola", async () => {
+    await encolar("visita", {});
+    await limpiarCola();
+
+    await expect(contarCola()).resolves.toBe(0);
+  });
+});
