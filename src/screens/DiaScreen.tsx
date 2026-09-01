@@ -18,6 +18,7 @@ import { MAX_EVIDENCIAS, useEvidencias } from "../features/gastos/use-evidencias
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
+import { guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
 import type { ClienteDiaPublic } from "../types/cobrador";
 
@@ -30,6 +31,7 @@ export function DiaScreen({ navigation, route }: Props) {
   const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
+  const [offlineCache, setOfflineCache] = useState(false);
 
   const [gastoAbierto, setGastoAbierto] = useState(false);
   const [gastoDescripcion, setGastoDescripcion] = useState("");
@@ -50,12 +52,22 @@ export function DiaScreen({ navigation, route }: Props) {
 
   const cargar = useCallback(async () => {
     setError(null);
+    setOfflineCache(false);
     try {
       const dia = await api.dia(rutaId);
       setClientes(dia.clientes);
+      await guardarDia(rutaId, dia);
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
+      } else if (esErrorDeRed(err)) {
+        const cache = await leerDia(rutaId);
+        if (cache) {
+          setClientes(cache.clientes);
+          setOfflineCache(true);
+        } else {
+          setError("No se pudo cargar la lista del día.");
+        }
       } else {
         setError("No se pudo cargar la lista del día.");
       }
@@ -137,6 +149,11 @@ export function DiaScreen({ navigation, route }: Props) {
         }
         ListHeaderComponent={
           <View style={styles.acciones}>
+            {offlineCache ? (
+              <Text testID="aviso-offline" style={styles.avisoOffline}>
+                Datos sin conexión
+              </Text>
+            ) : null}
             {trayectoria.activa ? (
               <View style={styles.trayectoriaActiva}>
                 <View style={styles.puntoRojo} />
@@ -258,6 +275,7 @@ const styles = StyleSheet.create({
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   acciones: { marginBottom: 8, gap: 8 },
+  avisoOffline: { color: "#d97706", fontWeight: "600", fontSize: 13 },
   botonPrimario: {
     backgroundColor: "#2563eb",
     borderRadius: 8,
