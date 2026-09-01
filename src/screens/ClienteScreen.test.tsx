@@ -262,6 +262,34 @@ describe("ClienteScreen", () => {
       ),
     );
   });
+
+  it("no permite pagar una cuota si el préstamo no tiene cuotas pendientes", async () => {
+    const prestamoPagado = {
+      ...prestamo,
+      cuotas: [
+        { ...prestamo.cuotas[0], estatus: "pagada" as const },
+      ],
+    };
+    const registrarVisitaPago = jest.fn();
+    const { getByTestId, getByText, getAllByText } = await renderConApi({
+      listarPrestamosDeCliente: jest.fn().mockResolvedValue([prestamoPagado]),
+      registrarVisitaPago,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
+    expect(getByText("Sin cuotas pendientes para este préstamo.")).toBeTruthy();
+
+    await fireEvent.press(getByTestId("btn-pago"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "300");
+    await fireEvent.press(getByTestId("guardar-visita"));
+
+    await waitFor(() =>
+      expect(
+        getAllByText("Sin cuotas pendientes para este préstamo.").length,
+      ).toBeGreaterThan(0),
+    );
+    expect(registrarVisitaPago).not.toHaveBeenCalled();
+  });
 });
 
 describe("ClienteScreen — cache offline", () => {
