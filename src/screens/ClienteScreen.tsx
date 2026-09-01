@@ -119,9 +119,14 @@ export function ClienteScreen({ route }: Props) {
         setEnviando(false);
       }
     } else {
+      const esCompromiso = motivoNoPago === "compromiso_de_pago";
       const errorFecha = validarFechaPrometida(fechaPrometida);
       if (errorFecha) {
         setMensaje(errorFecha);
+        return;
+      }
+      if (esCompromiso && !fechaPrometida.trim()) {
+        setMensaje("Para compromiso de pago se requiere la fecha prometida.");
         return;
       }
       const montoPrometido = valorPrometido.trim() ? Number(valorPrometido) : null;
@@ -297,23 +302,31 @@ export function ClienteScreen({ route }: Props) {
               </Pressable>
             ))}
           </View>
-          <Text style={styles.label}>Promesa de pago (opcional)</Text>
-          <TextInput
-            testID="fecha-prometida"
-            style={styles.input}
-            placeholder="Fecha prometida (AAAA-MM-DD)"
-            autoCapitalize="none"
-            value={fechaPrometida}
-            onChangeText={setFechaPrometida}
-          />
-          <TextInput
-            testID="valor-prometido"
-            style={styles.input}
-            placeholder="Valor prometido"
-            keyboardType="decimal-pad"
-            value={valorPrometido}
-            onChangeText={setValorPrometido}
-          />
+          <Text style={styles.label}>Promesa de pago (solo para compromiso_de_pago)</Text>
+          {motivoNoPago === "compromiso_de_pago" ? (
+            <>
+              <TextInput
+                testID="fecha-prometida"
+                style={styles.input}
+                placeholder="Fecha prometida (AAAA-MM-DD)"
+                autoCapitalize="none"
+                value={fechaPrometida}
+                onChangeText={setFechaPrometida}
+              />
+              <TextInput
+                testID="valor-prometido"
+                style={styles.input}
+                placeholder="Valor prometido"
+                keyboardType="decimal-pad"
+                value={valorPrometido}
+                onChangeText={setValorPrometido}
+              />
+            </>
+          ) : (
+            <Text style={styles.promesaNota}>
+              Cambia el motivo a compromiso_de_pago para registrar una promesa.
+            </Text>
+          )}
         </View>
       ) : null}
 
@@ -341,9 +354,6 @@ export function ClienteScreen({ route }: Props) {
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
   scroll: { padding: 16, gap: 12 },
-  centro: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  errorBox: { alignItems: "center", gap: 8 },
-  error: { color: "#dc2626", fontSize: 15 },
   tarjetaInfo: {
     backgroundColor: "#ffffff",
     borderRadius: 12,
@@ -403,5 +413,6 @@ const styles = StyleSheet.create({
   chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
   chipTexto: { color: "#334155", fontSize: 13 },
   chipTextoActivo: { color: "#ffffff", fontSize: 13 },
+  promesaNota: { color: "#64748b", fontSize: 13 },
   mensaje: { color: "#16a34a", fontSize: 14, marginTop: 4 },
 });

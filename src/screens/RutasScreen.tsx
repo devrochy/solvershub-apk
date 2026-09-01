@@ -101,16 +101,6 @@ export function RutasScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  centro: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  errorBox: { alignItems: "center", gap: 8 },
-  error: { color: "#dc2626", fontSize: 15 },
-  reintentar: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  reintentarTexto: { color: "#ffffff", fontWeight: "600" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

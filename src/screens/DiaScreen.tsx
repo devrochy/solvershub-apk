@@ -248,9 +248,6 @@ export function DiaScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  centro: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  errorBox: { alignItems: "center", gap: 8 },
-  error: { color: "#dc2626", fontSize: 15 },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   acciones: { marginBottom: 8, gap: 8 },

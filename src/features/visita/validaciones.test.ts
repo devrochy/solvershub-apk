@@ -8,7 +8,11 @@ describe("validarFechaPrometida", () => {
 
   it("rechaza un formato inválido", () => {
     expect(validarFechaPrometida("31/12/2026")).toMatch(/formato/i);
-    expect(validarFechaPrometida("2026-13-01")).toMatch(/formato/i);
+    expect(validarFechaPrometida("2026-13-01")).toMatch(/no existe|formato/i);
+  });
+
+  it("rechaza una fecha que no existe (2026-02-30)", () => {
+    expect(validarFechaPrometida("2026-02-30")).toMatch(/no existe/i);
   });
 
   it("rechaza una fecha en el pasado", () => {

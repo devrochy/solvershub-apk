@@ -39,6 +39,9 @@ export function useEvidencias(): UseEvidenciasResult {
   const [error, setError] = useState<string | null>(null);
 
   async function agregarDesdeLibreria() {
+    if (evidencias.length >= MAX_EVIDENCIAS) {
+      return;
+    }
     const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permiso.granted) {
       setError("Se necesita permiso para acceder a tus fotos.");
@@ -67,6 +70,9 @@ export function useEvidencias(): UseEvidenciasResult {
   }
 
   async function agregarDesdeCamara() {
+    if (evidencias.length >= MAX_EVIDENCIAS) {
+      return;
+    }
     const permiso = await ImagePicker.requestCameraPermissionsAsync();
     if (!permiso.granted) {
       setError("Se necesita permiso para usar la cámara.");
