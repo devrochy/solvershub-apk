@@ -31,6 +31,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   contarCola,
   encolar,
+  existePendiente,
   limpiarCola,
   listarCola,
   removerDeCola,
@@ -73,5 +74,12 @@ describe("cola offline", () => {
     await limpiarCola();
 
     await expect(contarCola()).resolves.toBe(0);
+  });
+
+  it("existePendiente detecta un evento pendiente con la misma dedupeKey", async () => {
+    await encolar("visita", { cuotaId: 3359 }, "pago-3359");
+
+    await expect(existePendiente("visita", "pago-3359")).resolves.toBe(true);
+    await expect(existePendiente("visita", "pago-3360")).resolves.toBe(false);
   });
 });

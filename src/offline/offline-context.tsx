@@ -13,6 +13,7 @@ import { DEVICE_API_KEY } from "../config";
 import {
   contarCola,
   encolar as encolarCola,
+  existePendiente,
   listarCola,
   removerDeCola,
 } from "./cola";
@@ -21,6 +22,11 @@ export interface OfflineValue {
   isOnline: boolean;
   sinSubir: number;
   encolar(tipoEvento: string, payload: Record<string, unknown>): Promise<void>;
+  encolarSiNoExiste(
+    tipoEvento: string,
+    payload: Record<string, unknown>,
+    dedupeKey: string,
+  ): Promise<boolean>;
   sincronizar(): Promise<void>;
 }
 
@@ -70,6 +76,22 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     [actualizarContador],
   );
 
+  const encolarSiNoExiste = useCallback(
+    async (
+      tipoEvento: string,
+      payload: Record<string, unknown>,
+      dedupeKey: string,
+    ) => {
+      if (await existePendiente(tipoEvento, dedupeKey)) {
+        return false;
+      }
+      await encolarCola(tipoEvento, payload, dedupeKey);
+      await actualizarContador();
+      return true;
+    },
+    [actualizarContador],
+  );
+
   const sincronizar = useCallback(async () => {
     const eventos = await listarCola();
     if (eventos.length === 0) {
@@ -90,8 +112,8 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   }, [isOnline, sincronizar]);
 
   const value = useMemo(
-    () => ({ isOnline, sinSubir, encolar, sincronizar }),
-    [isOnline, sinSubir, encolar, sincronizar],
+    () => ({ isOnline, sinSubir, encolar, encolarSiNoExiste, sincronizar }),
+    [isOnline, sinSubir, encolar, encolarSiNoExiste, sincronizar],
   );
 
   return <OfflineContext.Provider value={value}>{children}</OfflineContext.Provider>;

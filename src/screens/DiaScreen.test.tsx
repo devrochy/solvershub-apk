@@ -8,12 +8,14 @@ import { SessionContext, SessionValue } from "../session/session-context";
 jest.mock("../offline/cache", () => ({
   guardarDia: jest.fn().mockResolvedValue(undefined),
   leerDia: jest.fn().mockResolvedValue(null),
+  guardarCliente: jest.fn().mockResolvedValue(undefined),
 }));
 
 const offlineValor: OfflineValue = {
   isOnline: true,
   sinSubir: 0,
   encolar: jest.fn().mockResolvedValue(undefined),
+  encolarSiNoExiste: jest.fn().mockResolvedValue(true),
   sincronizar: jest.fn().mockResolvedValue(undefined),
 };
 
@@ -110,6 +112,33 @@ describe("DiaScreen — cache del día", () => {
 
     await waitFor(() =>
       expect(getByText("No se pudo cargar la lista del día.")).toBeTruthy(),
+    );
+  });
+
+  it("precachea tarjeta y préstamos de cada cliente del día", async () => {
+    (cache.guardarDia as jest.Mock).mockResolvedValue(undefined);
+    const clientes = [
+      { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
+      { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo" as const },
+    ];
+    const api = {
+      dia: jest.fn().mockResolvedValue({ clientes, trayectos: null }),
+      tarjeta: jest.fn().mockResolvedValue({ clienteId: 1 }),
+      listarPrestamosDeCliente: jest.fn().mockResolvedValue([]),
+    };
+    await renderConApi(api);
+
+    await waitFor(() =>
+      expect(cache.guardarCliente).toHaveBeenCalledWith(6, 1, {
+        tarjeta: { clienteId: 1 },
+        prestamos: [],
+      }),
+    );
+    await waitFor(() =>
+      expect(cache.guardarCliente).toHaveBeenCalledWith(6, 2, {
+        tarjeta: { clienteId: 1 },
+        prestamos: [],
+      }),
     );
   });
 });

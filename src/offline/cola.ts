@@ -6,6 +6,8 @@ export interface EventoOffline {
   tipoEvento: string;
   payload: Record<string, unknown>;
   creadoEn: string;
+  /** Clave local de deduplicación (NO se envía al backend). */
+  dedupeKey?: string;
 }
 
 export const CLAVE_COLA = "cobranza_cola_offline";
@@ -29,16 +31,27 @@ async function escribir(cola: EventoOffline[]): Promise<void> {
 export async function encolar(
   tipoEvento: string,
   payload: Record<string, unknown>,
+  dedupeKey?: string,
 ): Promise<EventoOffline> {
   const evento: EventoOffline = {
     eventoIdCliente: Crypto.randomUUID(),
     tipoEvento,
     payload,
     creadoEn: new Date().toISOString(),
+    dedupeKey,
   };
   const cola = await leer();
   await escribir([...cola, evento]);
   return evento;
+}
+
+/** ¿Ya hay un evento pendiente del mismo tipo con esa clave de deduplicación? */
+export async function existePendiente(
+  tipoEvento: string,
+  dedupeKey: string,
+): Promise<boolean> {
+  const cola = await leer();
+  return cola.some((e) => e.tipoEvento === tipoEvento && e.dedupeKey === dedupeKey);
 }
 
 export async function listarCola(): Promise<EventoOffline[]> {
