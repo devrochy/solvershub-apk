@@ -1,15 +1,19 @@
 {
   "expo": {
-    "name": "app-cobranza-apk",
+    "name": "CobraIA Cobrador",
     "slug": "app-cobranza-apk",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "cobranzacobrador",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cobraia.cobrador"
     },
     "android": {
+      "package": "com.cobraia.cobrador",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
