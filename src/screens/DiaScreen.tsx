@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
+import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
 import { MAX_EVIDENCIAS, useEvidencias } from "../features/gastos/use-evidencias";
@@ -25,6 +27,7 @@ export function DiaScreen({ navigation, route }: Props) {
   const { api, logout } = useSession();
   const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [refrescando, setRefrescando] = useState(false);
 
   const [gastoAbierto, setGastoAbierto] = useState(false);
   const [gastoDescripcion, setGastoDescripcion] = useState("");
@@ -88,6 +91,12 @@ export function DiaScreen({ navigation, route }: Props) {
     }
   }
 
+  async function refrescar() {
+    setRefrescando(true);
+    await cargar();
+    setRefrescando(false);
+  }
+
   async function detenerYEnviarTrayectoria() {
     const puntos = trayectoria.detener();
     if (puntos.length < 2) {
@@ -107,20 +116,7 @@ export function DiaScreen({ navigation, route }: Props) {
   }
 
   if (!clientes) {
-    return (
-      <View style={styles.centro}>
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.error}>{error}</Text>
-            <Pressable style={styles.botonPrimario} onPress={cargar}>
-              <Text style={styles.botonPrimarioTexto}>Reintentar</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <ActivityIndicator size="large" />
-        )}
-      </View>
-    );
+    return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
   return (
@@ -129,6 +125,9 @@ export function DiaScreen({ navigation, route }: Props) {
         data={clientes}
         keyExtractor={(cliente) => String(cliente.clienteId)}
         contentContainerStyle={styles.lista}
+        refreshControl={
+          <RefreshControl refreshing={refrescando} onRefresh={refrescar} />
+        }
         ListHeaderComponent={
           <View style={styles.acciones}>
             {trayectoria.activa ? (

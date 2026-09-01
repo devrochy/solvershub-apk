@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
+import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
@@ -155,20 +156,7 @@ export function ClienteScreen({ route }: Props) {
   }
 
   if (!tarjeta) {
-    return (
-      <View style={styles.centro}>
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.error}>{error}</Text>
-            <Pressable style={styles.botonPrimario} onPress={cargar}>
-              <Text style={styles.botonTexto}>Reintentar</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <ActivityIndicator size="large" />
-        )}
-      </View>
-    );
+    return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
   return (
