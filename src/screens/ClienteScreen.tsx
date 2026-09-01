@@ -9,12 +9,13 @@ import {
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { apiErrorStatus } from "../api/client";
+import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
+import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import type {
   ClienteTarjetaPublic,
@@ -31,6 +32,7 @@ function esPendienteOArrasada(cuota: CuotaPublic): boolean {
 export function ClienteScreen({ route }: Props) {
   const { rutaId, clienteId } = route.params;
   const { api, logout } = useSession();
+  const offline = useOffline();
 
   const [tarjeta, setTarjeta] = useState<ClienteTarjetaPublic | null>(null);
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
@@ -99,22 +101,30 @@ export function ClienteScreen({ route }: Props) {
       }
       setEnviando(true);
       setMensaje(null);
+      const input = {
+        prestamoId: prestamoVigente.id,
+        clienteId,
+        resultado: "pago" as const,
+        tipoPago,
+        cuotaId: tipoPago === "cuota" ? cuotaPorPagar?.id : undefined,
+        valor: monto,
+        metodoPago,
+      };
       try {
-        await api.registrarVisitaPago(rutaId, {
-          prestamoId: prestamoVigente.id,
-          clienteId,
-          resultado: "pago",
-          tipoPago,
-          cuotaId: tipoPago === "cuota" ? cuotaPorPagar?.id : undefined,
-          valor: monto,
-          metodoPago,
-        });
+        await api.registrarVisitaPago(rutaId, input);
         setModo(null);
         setValor("");
         setMensaje("Pago registrado.");
         await cargar();
-      } catch {
-        setMensaje("No se pudo registrar el pago.");
+      } catch (err) {
+        if (esErrorDeRed(err)) {
+          await offline.encolar("visita", input);
+          setModo(null);
+          setValor("");
+          setMensaje("Guardado sin conexión (se sincronizará).");
+        } else {
+          setMensaje("No se pudo registrar el pago.");
+        }
       } finally {
         setEnviando(false);
       }
@@ -139,21 +149,30 @@ export function ClienteScreen({ route }: Props) {
       }
       setEnviando(true);
       setMensaje(null);
+      const input = {
+        prestamoId: prestamoVigente.id,
+        clienteId,
+        resultado: "no_pago" as const,
+        motivoNoPago,
+        fechaPrometida: fechaPrometida.trim() || undefined,
+        valorPrometido: montoPrometido ?? undefined,
+      };
       try {
-        await api.registrarVisitaNoPago(rutaId, {
-          prestamoId: prestamoVigente.id,
-          clienteId,
-          resultado: "no_pago",
-          motivoNoPago,
-          fechaPrometida: fechaPrometida.trim() || undefined,
-          valorPrometido: montoPrometido ?? undefined,
-        });
+        await api.registrarVisitaNoPago(rutaId, input);
         setModo(null);
         setFechaPrometida("");
         setValorPrometido("");
         setMensaje("Visita registrada.");
-      } catch {
-        setMensaje("No se pudo registrar la visita.");
+      } catch (err) {
+        if (esErrorDeRed(err)) {
+          await offline.encolar("visita", input);
+          setModo(null);
+          setFechaPrometida("");
+          setValorPrometido("");
+          setMensaje("Guardado sin conexión (se sincronizará).");
+        } else {
+          setMensaje("No se pudo registrar la visita.");
+        }
       } finally {
         setEnviando(false);
       }

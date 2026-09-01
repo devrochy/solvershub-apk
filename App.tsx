@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import type { RootStackParamList } from "./src/navigation/types";
+import { OfflineProvider } from "./src/offline/offline-context";
 import { ClienteScreen } from "./src/screens/ClienteScreen";
 import { DiaScreen } from "./src/screens/DiaScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
@@ -58,8 +59,10 @@ function RootNavigator() {
 export default function App() {
   return (
     <SessionProvider>
-      <StatusBar style="auto" />
-      <RootNavigator />
+      <OfflineProvider>
+        <StatusBar style="auto" />
+        <RootNavigator />
+      </OfflineProvider>
     </SessionProvider>
   );
 }

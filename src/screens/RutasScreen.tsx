@@ -11,6 +11,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import type { RootStackParamList } from "../navigation/types";
+import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import type { RutaApkPublic } from "../types/cobrador";
 
@@ -18,6 +19,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Rutas">;
 
 export function RutasScreen({ navigation }: Props) {
   const { api, cobrador, logout } = useSession();
+  const offline = useOffline();
   const [rutas, setRutas] = useState<RutaApkPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
@@ -56,9 +58,16 @@ export function RutasScreen({ navigation }: Props) {
         <Text style={styles.bienvenida}>
           Hola, {cobrador?.nombre ?? "cobrador"}
         </Text>
-        <Pressable onPress={logout}>
-          <Text style={styles.salir}>Salir</Text>
-        </Pressable>
+        <View style={styles.headerDerecha}>
+          {offline.sinSubir > 0 ? (
+            <View testID="badge-sin-subir" style={styles.badge}>
+              <Text style={styles.badgeTexto}>{offline.sinSubir} sin subir</Text>
+            </View>
+          ) : null}
+          <Pressable onPress={logout}>
+            <Text style={styles.salir}>Salir</Text>
+          </Pressable>
+        </View>
       </View>
 
       <FlatList
@@ -111,6 +120,14 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e2e8f0",
   },
   bienvenida: { fontSize: 18, fontWeight: "700" },
+  headerDerecha: { flexDirection: "row", alignItems: "center", gap: 10 },
+  badge: {
+    backgroundColor: "#f59e0b",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  badgeTexto: { color: "#ffffff", fontSize: 12, fontWeight: "600" },
   salir: { color: "#dc2626", fontSize: 15 },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
