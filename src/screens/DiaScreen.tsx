@@ -11,6 +11,8 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { ColorBadge } from "../components/ColorBadge";
+import { EvidenciaPicker } from "../components/EvidenciaPicker";
+import { MAX_EVIDENCIAS, useEvidencias } from "../features/gastos/use-evidencias";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import type { ClienteDiaPublic } from "../types/cobrador";
@@ -28,6 +30,14 @@ export function DiaScreen({ navigation, route }: Props) {
   const [gastoValor, setGastoValor] = useState("");
   const [gastoEnviando, setGastoEnviando] = useState(false);
   const [gastoMensaje, setGastoMensaje] = useState<string | null>(null);
+  const {
+    evidencias,
+    cargando: evidenciasCargando,
+    error: evidenciasError,
+    agregarDesdeLibreria,
+    agregarDesdeCamara,
+    quitar,
+  } = useEvidencias();
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -57,9 +67,14 @@ export function DiaScreen({ navigation, route }: Props) {
     setGastoEnviando(true);
     setGastoMensaje(null);
     try {
-      await api.registrarGasto(rutaId, { descripcion: gastoDescripcion.trim(), valor }, []);
+      await api.registrarGasto(
+        rutaId,
+        { descripcion: gastoDescripcion.trim(), valor },
+        evidencias,
+      );
       setGastoDescripcion("");
       setGastoValor("");
+      evidencias.forEach((e) => quitar(e.uri));
       setGastoAbierto(false);
       setGastoMensaje("Gasto registrado.");
     } catch {
@@ -146,6 +161,15 @@ export function DiaScreen({ navigation, route }: Props) {
             keyboardType="decimal-pad"
             value={gastoValor}
             onChangeText={setGastoValor}
+          />
+          <EvidenciaPicker
+            evidencias={evidencias}
+            cargando={evidenciasCargando}
+            error={evidenciasError}
+            onAgregarLibreria={agregarDesdeLibreria}
+            onAgregarCamara={agregarDesdeCamara}
+            onQuitar={quitar}
+            max={MAX_EVIDENCIAS}
           />
           {gastoMensaje ? (
             <Text style={styles.gastoMensaje}>{gastoMensaje}</Text>

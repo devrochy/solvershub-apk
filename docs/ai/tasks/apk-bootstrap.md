@@ -30,7 +30,8 @@ Crear el repo `app-cobranza-apk` (Expo/React Native + TypeScript) con la base: c
 ## Ambigüedades resueltas con el usuario
 - Pregunta: ¿orden? → "Seguir con el APK y dejar el proceso offline al final para probar".
 
-## Resultado final (llenar al completar)
-- Comandos ejecutados para verificar: `scripts/check.sh` verde (lint + typecheck + 19 tests, 4 suites).
-- Archivos modificados: scaffold completo + `src/` (config, types, api, session, screens, components, domain) + `App.tsx` + infra (AGENTS.md, scripts/check.sh, CI, jest, eslint, .env.example).
-- Pendientes/seguimiento: mergear PR #77 (incluye endpoint de préstamos); next: evidencias con imagen + GPS; offline-first al final.
+## Resultado final
+- Comandos ejecutados para verificar: `scripts/check.sh` verde (lint + typecheck + 19 tests, 4 suites). CI del repo (build-and-test: install/lint/typecheck/test/gitleaks) en verde.
+- Archivos modificados: scaffold completo + `src/` (config, types, api, session, screens, components, domain) + `App.tsx` + infra (AGENTS.md, scripts/check.sh, CI, jest, eslint, .env.example) + `docs/ai/tasks/apk-bootstrap.md`.
+- Estado repo: `devrochy/app-cobranza-apk` (privado) creado, `develop` en `f09dcc6` pusheado, CI verde.
+- Pendientes/seguimiento: mergear PR #78 (backend, endpoint de préstamos del cobrador). Next: evidencias con cámara (expo-image-picker) + trayectoria GPS (expo-location); offline-first (cola local + sync) y `aplicar-offline-dominio` (backend) al final.
