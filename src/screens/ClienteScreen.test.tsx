@@ -1,7 +1,13 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ClienteScreen } from "./ClienteScreen";
+import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+
+jest.mock("../offline/cache", () => ({
+  guardarCliente: jest.fn().mockResolvedValue(undefined),
+  leerCliente: jest.fn().mockResolvedValue(null),
+}));
 
 const offlineValor: OfflineValue = {
   isOnline: true,
@@ -171,5 +177,30 @@ describe("ClienteScreen", () => {
         metodoPago: "efectivo",
       }),
     );
+  });
+});
+
+describe("ClienteScreen — cache offline", () => {
+  it("guarda tarjeta + prestamos al cargar online", async () => {
+    (cache.guardarCliente as jest.Mock).mockResolvedValue(undefined);
+    await renderConApi({});
+
+    await waitFor(() =>
+      expect(cache.guardarCliente).toHaveBeenCalledWith(6, 2, {
+        tarjeta,
+        prestamos: [prestamo],
+      }),
+    );
+  });
+
+  it("lee el cache y muestra la tarjeta en error de red", async () => {
+    (cache.leerCliente as jest.Mock).mockResolvedValue({ tarjeta, prestamos: [prestamo] });
+    const { getByText } = await renderConApi({
+      tarjeta: jest.fn().mockRejectedValue(new Error("Network request failed")),
+      listarPrestamosDeCliente: jest.fn().mockRejectedValue(new Error("Network request failed")),
+    });
+
+    await waitFor(() => expect(getByText("Juan")).toBeTruthy());
+    expect(getByText(/Saldo pendiente: 300/)).toBeTruthy();
   });
 });

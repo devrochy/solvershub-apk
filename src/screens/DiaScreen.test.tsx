@@ -1,8 +1,14 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { DiaScreen } from "./DiaScreen";
 import { ApiError } from "../api/client";
+import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+
+jest.mock("../offline/cache", () => ({
+  guardarDia: jest.fn().mockResolvedValue(undefined),
+  leerDia: jest.fn().mockResolvedValue(null),
+}));
 
 const offlineValor: OfflineValue = {
   isOnline: true,
@@ -35,8 +41,7 @@ async function renderConApi(
   );
 }
 
-describe("DiaScreen — gasto offline", () => {
-  it("encola el gasto en la cola offline cuando hay error de red", async () => {
+describe("DiaScreen — gasto offline", () => {  it("encola el gasto en la cola offline cuando hay error de red", async () => {
     const encolar = jest.fn().mockResolvedValue(undefined);
     const offlineConError: OfflineValue = { ...offlineValor, encolar };
     const registrarGasto = jest.fn().mockRejectedValue(new Error("Network request failed"));
@@ -69,5 +74,42 @@ describe("DiaScreen — gasto offline", () => {
       expect(getByTestId("gasto-form")).toBeTruthy(),
     );
     expect(encolar).not.toHaveBeenCalled();
+  });
+});
+
+describe("DiaScreen — cache del día", () => {
+  const dia = {
+    clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const }],
+    trayectos: null,
+  };
+
+  it("guarda el snapshot del día al cargar online", async () => {
+    (cache.guardarDia as jest.Mock).mockResolvedValue(undefined);
+    await renderConApi({ dia: jest.fn().mockResolvedValue(dia) });
+
+    await waitFor(() =>
+      expect(cache.guardarDia).toHaveBeenCalledWith(6, dia),
+    );
+  });
+
+  it("lee el cache y muestra los clientes + aviso en error de red", async () => {
+    (cache.leerDia as jest.Mock).mockResolvedValue(dia);
+    const { getByTestId, getByText } = await renderConApi({
+      dia: jest.fn().mockRejectedValue(new Error("Network request failed")),
+    });
+
+    await waitFor(() => expect(getByText("Juan")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("aviso-offline")).toBeTruthy());
+  });
+
+  it("muestra error si no hay red ni cache", async () => {
+    (cache.leerDia as jest.Mock).mockResolvedValue(null);
+    const { getByText } = await renderConApi({
+      dia: jest.fn().mockRejectedValue(new Error("Network request failed")),
+    });
+
+    await waitFor(() =>
+      expect(getByText("No se pudo cargar la lista del día.")).toBeTruthy(),
+    );
   });
 });
