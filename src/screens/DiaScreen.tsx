@@ -18,7 +18,7 @@ import { MAX_EVIDENCIAS, useEvidencias } from "../features/gastos/use-evidencias
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
-import { guardarDia, leerDia } from "../offline/cache";
+import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
 import type { ClienteDiaPublic } from "../types/cobrador";
 
@@ -50,6 +50,30 @@ export function DiaScreen({ navigation, route }: Props) {
   const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
 
+  const precargarClientes = useCallback(
+    async (clientes: ClienteDiaPublic[]) => {
+      // Pre-cache de tarjeta + préstamos de cada cliente del día para que
+      // estén disponibles offline. En segundo plano (no bloquea el render).
+      await Promise.allSettled(
+        clientes.map(async (cliente) => {
+          try {
+            const [t, p] = await Promise.all([
+              api.tarjeta(rutaId, cliente.clienteId),
+              api.listarPrestamosDeCliente(rutaId, cliente.clienteId),
+            ]);
+            await guardarCliente(rutaId, cliente.clienteId, {
+              tarjeta: t,
+              prestamos: p,
+            });
+          } catch {
+            // se ignora: ese cliente se cacheará al abrirlo online
+          }
+        }),
+      );
+    },
+    [api, rutaId],
+  );
+
   const cargar = useCallback(async () => {
     setError(null);
     setOfflineCache(false);
@@ -57,6 +81,7 @@ export function DiaScreen({ navigation, route }: Props) {
       const dia = await api.dia(rutaId);
       setClientes(dia.clientes);
       await guardarDia(rutaId, dia);
+      void precargarClientes(dia.clientes);
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
@@ -72,7 +97,7 @@ export function DiaScreen({ navigation, route }: Props) {
         setError("No se pudo cargar la lista del día.");
       }
     }
-  }, [api, logout, rutaId]);
+  }, [api, logout, rutaId, precargarClientes]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)

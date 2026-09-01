@@ -128,10 +128,20 @@ export function ClienteScreen({ route }: Props) {
         await cargar();
       } catch (err) {
         if (esErrorDeRed(err)) {
-          await offline.encolar("visita", input);
-          setModo(null);
-          setValor("");
-          setMensaje("Guardado sin conexión (se sincronizará).");
+          const encolado = await offline.encolarSiNoExiste(
+            "visita",
+            input,
+            `pago-${input.prestamoId}-${input.clienteId}-${input.cuotaId ?? "abono"}`,
+          );
+          if (encolado) {
+            setModo(null);
+            setValor("");
+            setMensaje("Guardado sin conexión (se sincronizará).");
+          } else {
+            setMensaje(
+              "Ya hay un pago pendiente por sincronizar para este préstamo.",
+            );
+          }
         } else {
           setMensaje("No se pudo registrar el pago.");
         }
@@ -175,11 +185,21 @@ export function ClienteScreen({ route }: Props) {
         setMensaje("Visita registrada.");
       } catch (err) {
         if (esErrorDeRed(err)) {
-          await offline.encolar("visita", input);
-          setModo(null);
-          setFechaPrometida("");
-          setValorPrometido("");
-          setMensaje("Guardado sin conexión (se sincronizará).");
+          const encolado = await offline.encolarSiNoExiste(
+            "visita",
+            input,
+            `no_pago-${input.prestamoId}-${input.clienteId}`,
+          );
+          if (encolado) {
+            setModo(null);
+            setFechaPrometida("");
+            setValorPrometido("");
+            setMensaje("Guardado sin conexión (se sincronizará).");
+          } else {
+            setMensaje(
+              "Ya hay una visita de no pago pendiente por sincronizar para este préstamo.",
+            );
+          }
         } else {
           setMensaje("No se pudo registrar la visita.");
         }
