@@ -91,9 +91,7 @@ export function ClienteScreen({ route }: Props) {
   );
 
   const cuotaPorPagar = useMemo(
-    () =>
-      prestamoVigente?.cuotas.find(esPendienteOArrasada) ??
-      prestamoVigente?.cuotas[0],
+    () => prestamoVigente?.cuotas.find(esPendienteOArrasada),
     [prestamoVigente],
   );
 
@@ -103,6 +101,10 @@ export function ClienteScreen({ route }: Props) {
       return;
     }
     if (modo === "pago") {
+      if (tipoPago === "cuota" && !cuotaPorPagar) {
+        setMensaje("Sin cuotas pendientes para este préstamo.");
+        return;
+      }
       const monto = Number(valor);
       const errorMonto = validarMonto(monto);
       if (errorMonto) {
@@ -237,6 +239,8 @@ export function ClienteScreen({ route }: Props) {
             ({cuotaPorPagar.estatus})
           </Text>
         </View>
+      ) : prestamoVigente ? (
+        <Text style={styles.sinCuotas}>Sin cuotas pendientes para este préstamo.</Text>
       ) : null}
 
       <View style={styles.acciones}>
@@ -420,8 +424,10 @@ const styles = StyleSheet.create({
   detalle: { color: "#475569", fontSize: 14 },
   seccion: { marginTop: 4 },
   seccionTitulo: { fontSize: 14, fontWeight: "700", color: "#334155" },
+  sinCuotas: { color: "#64748b", fontSize: 13, marginTop: 4 },
   acciones: { flexDirection: "row", gap: 10, marginTop: 8 },
   botonPrimario: {
+    backgroundColor: "#2563eb",
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
