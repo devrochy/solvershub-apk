@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import type { TokenPair } from "../types/auth";
 
@@ -17,27 +18,21 @@ export interface StoredSession {
   refreshToken: string;
 }
 
-interface StorageLike {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-  removeItem(key: string): void;
-}
-
 /**
- * expo-secure-store no existe en web (módulo vacío), así que la APK cae a
- * localStorage en la build web y a secure-store en iOS/Android.
+ * expo-secure-store no existe en web (módulo vacío). Por seguridad los tokens
+ * en la build web viven SOLO en memoria (Map de módulo): nunca se persisten a
+ * localStorage, que es exfiltrable por XSS. Al recargar la página hay que
+ * volver a iniciar sesión. En iOS/Android se usa expo-secure-store.
  */
-function webStorage(): StorageLike | null {
-  if (typeof globalThis.localStorage === "undefined") {
-    return null;
-  }
-  return globalThis.localStorage;
+const memoriaWeb = new Map<string, string>();
+
+function esWeb(): boolean {
+  return Platform.OS === "web";
 }
 
 async function getItem(key: string): Promise<string | null> {
-  const storage = webStorage();
-  if (storage) {
-    return storage.getItem(key);
+  if (esWeb()) {
+    return memoriaWeb.get(key) ?? null;
   }
   try {
     return await SecureStore.getItemAsync(key);
@@ -47,18 +42,16 @@ async function getItem(key: string): Promise<string | null> {
 }
 
 async function setItem(key: string, value: string): Promise<void> {
-  const storage = webStorage();
-  if (storage) {
-    storage.setItem(key, value);
+  if (esWeb()) {
+    memoriaWeb.set(key, value);
     return;
   }
   await SecureStore.setItemAsync(key, value);
 }
 
 async function deleteItem(key: string): Promise<void> {
-  const storage = webStorage();
-  if (storage) {
-    storage.removeItem(key);
+  if (esWeb()) {
+    memoriaWeb.delete(key);
     return;
   }
   await SecureStore.deleteItemAsync(key);

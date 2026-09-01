@@ -4,8 +4,7 @@
 
 ## Seguridad — JWT en localStorage (web)
 - Detectado en: revisión code-reviewer Fase A (2026-09-01)
-- Descripción: en la build web el access token vive en `localStorage` (expuesto a XSS), a diferencia del panel (cookie httpOnly). Necesario porque `expo-secure-store` no existe en web. Mitigaciones a evaluar en Fase C (empaquetado/seguridad): expiración corta, purga en logout, posible `expo-crypto`/memoria.
-- Prioridad sugerida: media
+- **Resuelto en `apk-seguridad-jwt-web` (2026-09-01):** en la build web los tokens (access + refresh) y el perfil viven SOLO en memoria (`Map` de módulo vía `Platform.OS === "web"`); se eliminó el fallback a `localStorage` (exfiltrable por XSS). Tradeoff aceptado por el usuario: al recargar la página en web hay que volver a iniciar sesión. La build nativa (APK) sigue usando `expo-secure-store` sin cambios.
 
 ## Tests de integración de pantalla (gasto multipart + GPS desde DiaScreen)
 - Detectado en: revisión code-reviewer Fase A (2026-09-01)
