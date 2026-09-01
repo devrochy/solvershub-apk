@@ -11,6 +11,7 @@ jest.mock("@react-native-community/netinfo", () => ({
 jest.mock("./cola", () => ({
   contarCola: jest.fn().mockResolvedValue(0),
   encolar: jest.fn().mockResolvedValue({}),
+  existePendiente: jest.fn().mockResolvedValue(false),
   listarCola: jest.fn().mockResolvedValue([]),
   removerDeCola: jest.fn(),
 }));
@@ -91,5 +92,27 @@ describe("OfflineProvider", () => {
     await waitFor(() => expect(sincronizarCola).toHaveBeenCalled());
     await waitFor(() => expect(cola.removerDeCola).toHaveBeenCalledWith("a"));
     await waitFor(() => expect(getByTestId("estado")).toHaveTextContent(/^online\|0/));
+  });
+
+  it("encolarSiNoExiste encola si no hay pendiente y devuelve false si ya existe", async () => {
+    (cola.contarCola as jest.Mock).mockResolvedValue(0);
+    const { ref } = await renderConProvider();
+    await waitFor(() => expect(ref.current).toBeTruthy());
+
+    (cola.existePendiente as jest.Mock).mockResolvedValue(false);
+    await act(async () => {
+      await expect(
+        ref.current!.encolarSiNoExiste("visita", { cuotaId: 3359 }, "pago-3359"),
+      ).resolves.toBe(true);
+    });
+    expect(cola.encolar).toHaveBeenCalledWith("visita", { cuotaId: 3359 }, "pago-3359");
+
+    (cola.existePendiente as jest.Mock).mockResolvedValue(true);
+    await act(async () => {
+      await expect(
+        ref.current!.encolarSiNoExiste("visita", { cuotaId: 3359 }, "pago-3359"),
+      ).resolves.toBe(false);
+    });
+    expect(cola.encolar).toHaveBeenCalledTimes(1);
   });
 });

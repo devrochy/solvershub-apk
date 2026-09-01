@@ -13,6 +13,7 @@ const offlineValor: OfflineValue = {
   isOnline: true,
   sinSubir: 0,
   encolar: jest.fn().mockResolvedValue(undefined),
+  encolarSiNoExiste: jest.fn().mockResolvedValue(true),
   sincronizar: jest.fn().mockResolvedValue(undefined),
 };
 
@@ -150,10 +151,10 @@ describe("ClienteScreen", () => {
 
   it("encola la visita en la cola offline cuando hay error de red", async () => {
     const errorRed = new Error("Network request failed");
-    const encolar = jest.fn().mockResolvedValue(undefined);
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
     const offlineConError: OfflineValue = {
       ...offlineValor,
-      encolar,
+      encolarSiNoExiste,
     };
     const registrarVisitaPago = jest.fn().mockRejectedValue(errorRed);
     const { getByTestId } = await renderConApi(
@@ -167,15 +168,98 @@ describe("ClienteScreen", () => {
     await fireEvent.press(getByTestId("guardar-visita"));
 
     await waitFor(() =>
-      expect(encolar).toHaveBeenCalledWith("visita", {
-        prestamoId: 1,
-        clienteId: 2,
-        resultado: "pago",
-        tipoPago: "cuota",
-        cuotaId: 10,
-        valor: 300,
-        metodoPago: "efectivo",
-      }),
+      expect(encolarSiNoExiste).toHaveBeenCalledWith(
+        "visita",
+        {
+          prestamoId: 1,
+          clienteId: 2,
+          resultado: "pago",
+          tipoPago: "cuota",
+          cuotaId: 10,
+          valor: 300,
+          metodoPago: "efectivo",
+        },
+        "pago-1-2-10",
+      ),
+    );
+  });
+
+  it("no encola un pago duplicado pendiente (dedupe) y avisa", async () => {
+    const errorRed = new Error("Network request failed");
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(false);
+    const offlineConError: OfflineValue = {
+      ...offlineValor,
+      encolarSiNoExiste,
+    };
+    const registrarVisitaPago = jest.fn().mockRejectedValue(errorRed);
+    const { getByTestId, getByText } = await renderConApi(
+      { registrarVisitaPago },
+      offlineConError,
+    );
+
+    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-pago"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "300");
+    await fireEvent.press(getByTestId("guardar-visita"));
+
+    await waitFor(() =>
+      expect(
+        getByText("Ya hay un pago pendiente por sincronizar para este préstamo."),
+      ).toBeTruthy(),
+    );
+  });
+
+  it("dedup de abono usa la clave abono (no colisiona con pagos de cuota)", async () => {
+    const errorRed = new Error("Network request failed");
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const offlineConError: OfflineValue = {
+      ...offlineValor,
+      encolarSiNoExiste,
+    };
+    const registrarVisitaPago = jest.fn().mockRejectedValue(errorRed);
+    const { getByTestId } = await renderConApi(
+      { registrarVisitaPago },
+      offlineConError,
+    );
+
+    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-pago"));
+    await fireEvent.press(getByTestId("tipo-abono"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "100");
+    await fireEvent.press(getByTestId("guardar-visita"));
+
+    await waitFor(() =>
+      expect(encolarSiNoExiste).toHaveBeenCalledWith(
+        "visita",
+        expect.objectContaining({ tipoPago: "abono", cuotaId: undefined }),
+        "pago-1-2-abono",
+      ),
+    );
+  });
+
+  it("dedup de no_pago usa la clave préstamo-cliente", async () => {
+    const errorRed = new Error("Network request failed");
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const offlineConError: OfflineValue = {
+      ...offlineValor,
+      encolarSiNoExiste,
+    };
+    const registrarVisitaNoPago = jest.fn().mockRejectedValue(errorRed);
+    const { getByTestId } = await renderConApi(
+      { registrarVisitaNoPago },
+      offlineConError,
+    );
+
+    await waitFor(() => expect(getByTestId("btn-no-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-no-pago"));
+    await fireEvent.press(getByTestId("guardar-visita"));
+
+    await waitFor(() =>
+      expect(encolarSiNoExiste).toHaveBeenCalledWith(
+        "visita",
+        expect.objectContaining({ resultado: "no_pago", motivoNoPago: "no_esta" }),
+        "no_pago-1-2",
+      ),
     );
   });
 });

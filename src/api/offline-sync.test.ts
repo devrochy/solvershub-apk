@@ -12,6 +12,7 @@ const evento = {
   tipoEvento: "visita",
   payload: { clienteId: 2 },
   creadoEn: "2026-09-01T00:00:00.000Z",
+  dedupeKey: "pago-1-2-10",
 };
 
 describe("sincronizarCola", () => {
@@ -56,6 +57,15 @@ describe("sincronizarCola", () => {
         }),
       }),
     );
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      eventos: [
+        {
+          eventoIdCliente: evento.eventoIdCliente,
+          tipoEvento: "visita",
+          payload: { clienteId: 2 },
+        },
+      ],
+    });
   });
 
   it("trata duplicado como confirmado (no re-sincronizar)", async () => {
