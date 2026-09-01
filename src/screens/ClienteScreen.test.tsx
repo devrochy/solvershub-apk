@@ -87,12 +87,15 @@ describe("ClienteScreen", () => {
     );
   });
 
-  it("registra una visita no-pago con promesa de pago", async () => {
+  it("registra una visita no-pago con promesa de pago (compromiso_de_pago)", async () => {
     const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: 1 });
-    const { getByTestId } = await renderConApi({ registrarVisitaNoPago });
+    const { getByTestId, getByText } = await renderConApi({
+      registrarVisitaNoPago,
+    });
 
     await waitFor(() => expect(getByTestId("btn-no-pago")).toBeTruthy());
     await fireEvent.press(getByTestId("btn-no-pago"));
+    await fireEvent.press(getByText("compromiso_de_pago"));
     const manana = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     await fireEvent.changeText(getByTestId("fecha-prometida"), manana);
     await fireEvent.changeText(getByTestId("valor-prometido"), "150");
@@ -103,10 +106,26 @@ describe("ClienteScreen", () => {
         prestamoId: 1,
         clienteId: 2,
         resultado: "no_pago",
-        motivoNoPago: "no_esta",
+        motivoNoPago: "compromiso_de_pago",
         fechaPrometida: manana,
         valorPrometido: 150,
       }),
     );
+  });
+
+  it("exige fecha prometida para compromiso de pago", async () => {
+    const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: 1 });
+    const { getByTestId, getByText, getByTestId: getByTestId2 } =
+      await renderConApi({ registrarVisitaNoPago });
+
+    await waitFor(() => expect(getByTestId("btn-no-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-no-pago"));
+    await fireEvent.press(getByText("compromiso_de_pago"));
+    await fireEvent.press(getByTestId2("guardar-visita"));
+
+    await waitFor(() =>
+      expect(getByText("Para compromiso de pago se requiere la fecha prometida.")).toBeTruthy(),
+    );
+    expect(registrarVisitaNoPago).not.toHaveBeenCalled();
   });
 });

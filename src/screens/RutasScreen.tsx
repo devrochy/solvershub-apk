@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
+import { CargaError } from "../components/CargaError";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import type { RutaApkPublic } from "../types/cobrador";
@@ -19,6 +20,7 @@ export function RutasScreen({ navigation }: Props) {
   const { api, cobrador, logout } = useSession();
   const [rutas, setRutas] = useState<RutaApkPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [refrescando, setRefrescando] = useState(false);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -38,21 +40,14 @@ export function RutasScreen({ navigation }: Props) {
     cargar();
   }, [cargar]);
 
+  async function refrescar() {
+    setRefrescando(true);
+    await cargar();
+    setRefrescando(false);
+  }
+
   if (!rutas) {
-    return (
-      <View style={styles.centro}>
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.error}>{error}</Text>
-            <Pressable style={styles.reintentar} onPress={cargar}>
-              <Text style={styles.reintentarTexto}>Reintentar</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <ActivityIndicator size="large" />
-        )}
-      </View>
-    );
+    return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
   return (
@@ -70,6 +65,9 @@ export function RutasScreen({ navigation }: Props) {
         data={rutas}
         keyExtractor={(ruta) => String(ruta.id)}
         contentContainerStyle={styles.lista}
+        refreshControl={
+          <RefreshControl refreshing={refrescando} onRefresh={refrescar} />
+        }
         ListEmptyComponent={
           <Text style={styles.vacio}>No tienes rutas asignadas.</Text>
         }
@@ -103,16 +101,6 @@ export function RutasScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  centro: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  errorBox: { alignItems: "center", gap: 8 },
-  error: { color: "#dc2626", fontSize: 15 },
-  reintentar: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  reintentarTexto: { color: "#ffffff", fontWeight: "600" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
