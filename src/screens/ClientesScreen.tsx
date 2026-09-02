@@ -109,7 +109,7 @@ export function ClientesScreen({ navigation }: Props) {
               ) : null}
               <Text style={styles.clienteTelefono}>{item.telefonoWhatsapp}</Text>
             </View>
-            <ColorBadge color={item.colorRiesgo} label={item.colorRiesgo} />
+            <ColorBadge color={item.colorRiesgo} />
           </Pressable>
         )}
       />
