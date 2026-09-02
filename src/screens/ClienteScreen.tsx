@@ -456,6 +456,7 @@ export function ClienteScreen({ route, navigation }: Props) {
                 rutaId,
                 prestamoId: prestamoVigente.id,
                 clienteNombre: tarjeta.nombre,
+                telefonoWhatsapp: tarjeta.telefonoWhatsapp,
                 valor: prestamoVigente.valor,
                 numCuotas: prestamoVigente.numCuotas,
               })

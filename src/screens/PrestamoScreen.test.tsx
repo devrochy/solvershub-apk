@@ -1,4 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { Linking } from "react-native";
 import { PrestamoScreen } from "./PrestamoScreen";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
@@ -35,7 +36,14 @@ const estadoCuenta = {
 
 async function renderConEstado(
   api: Partial<SessionValue["api"]>,
-  route: Partial<{ rutaId: number; prestamoId: number; clienteNombre: string; valor: number; numCuotas: number }> = {},
+  route: Partial<{
+    rutaId: number;
+    prestamoId: number;
+    clienteNombre: string;
+    telefonoWhatsapp: string;
+    valor: number;
+    numCuotas: number;
+  }> = {},
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López" },
@@ -56,6 +64,7 @@ async function renderConEstado(
               rutaId: 6,
               prestamoId: 200,
               clienteNombre: "Juan Perez",
+              telefonoWhatsapp: "+59170000000",
               valor: 1000,
               numCuotas: 8,
               ...route,
@@ -115,5 +124,19 @@ describe("PrestamoScreen", () => {
     await fireEvent.press(getByTestId("reintentar"));
 
     await waitFor(() => expect(getByText(/Saldo: 410/)).toBeTruthy());
+  });
+
+  it("envía por WhatsApp el estado de cuenta al tocar el botón", async () => {
+    const openSpy = jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+    const { getByTestId } = await renderConEstado({
+      obtenerEstadoCuentaPrestamo: jest.fn().mockResolvedValue(estadoCuenta),
+    });
+
+    await waitFor(() => expect(getByTestId("btn-whatsapp-canvas")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-whatsapp-canvas"));
+
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("wa.me/59170000000"));
+    expect(openSpy.mock.calls[0][0]).toContain(encodeURIComponent("Estado de cuenta de Juan Perez"));
+    openSpy.mockRestore();
   });
 });

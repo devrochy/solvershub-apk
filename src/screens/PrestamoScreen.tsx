@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
+import {
+  enlaceWhatsApp,
+  textoReportePrestamo,
+} from "../features/estado-cuenta/estado-cuenta";
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
@@ -34,7 +38,8 @@ const LEYENDA: { tipo: TipoCuotaCanvas; texto: string }[] = [
 ];
 
 export function PrestamoScreen({ route }: Props) {
-  const { rutaId, prestamoId, clienteNombre, valor, numCuotas } = route.params;
+  const { rutaId, prestamoId, clienteNombre, telefonoWhatsapp, valor, numCuotas } =
+    route.params;
   const { api, logout } = useSession();
   const [estado, setEstado] = useState<EstadoCuentaPrestamoPublic | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -115,6 +120,26 @@ export function PrestamoScreen({ route }: Props) {
           );
         })}
       </View>
+
+      <Pressable
+        testID="btn-whatsapp-canvas"
+        style={styles.botonWhatsApp}
+        onPress={() => {
+          const texto = [
+            `Estado de cuenta de ${estado.nombreCliente}`,
+            `Préstamo ${estado.prestamoId} — ${estado.valor} ${estado.moneda}, ${estado.numCuotas} cuotas`,
+            ...estado.cuotas.map(
+              (c) =>
+                `Cuota ${c.numeroCuota} (${c.fechaVencimiento}): ${c.valorEsperado} ${estado.moneda} - ${c.estatus} - saldo ${c.saldoPendiente}`,
+            ),
+            `Abonos totales: ${estado.totalAbonos} ${estado.moneda}`,
+            `Saldo pendiente: ${estado.saldoPendiente} ${estado.moneda}`,
+          ].join("\n");
+          void Linking.openURL(enlaceWhatsApp(telefonoWhatsapp, texto));
+        }}
+      >
+        <Text style={styles.botonWhatsAppTexto}>Enviar por WhatsApp</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -160,4 +185,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   cuadroEtiquetaTexto: { fontSize: 9, fontWeight: "600" },
+  botonWhatsApp: {
+    backgroundColor: "#16a34a",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  botonWhatsAppTexto: { color: "#ffffff", fontSize: 15, fontWeight: "600" },
 });

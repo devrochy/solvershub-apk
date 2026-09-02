@@ -20,6 +20,7 @@ export type RootStackParamList = {
     rutaId: number;
     prestamoId: number;
     clienteNombre: string;
+    telefonoWhatsapp: string;
     valor: number;
     numCuotas: number;
   };

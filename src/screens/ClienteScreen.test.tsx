@@ -650,6 +650,7 @@ describe("ClienteScreen — editar/eliminar cuota", () => {
       rutaId: 6,
       prestamoId: 1,
       clienteNombre: "Juan",
+      telefonoWhatsapp: "+59170000000",
       valor: 1000,
       numCuotas: 4,
     });
