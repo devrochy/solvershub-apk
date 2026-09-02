@@ -18,8 +18,7 @@
 
 ## Evidencias de gasto se pierden en modo offline
 - Detectado en: revisión code-reviewer apk-offline-first (2026-09-01)
-- Descripción: el gasto offline encola solo `{ descripcion, valor }` sin evidencias (el online envía FormData con fotos). Decisión: el backend `AplicarEventosOfflineService` acepta gasto sin evidencias, pero para no perderlas habría que encolar las fotos (base64) en el payload del evento `gasto` y que el procesador las persista. Pendiente de evaluar.
-- Prioridad sugerida: media
+- **Resuelto en `apk-evidencias-offline` (2026-09-02):** el gasto offline encola las fotos en base64 en el payload del evento `gasto` (`{descripcion, valor, evidencias:[{nombre, mimetype, base64}]}`); el backend las persiste vía `EvidenciasOfflineService` al sincronizar.
 
 ## Device key inválida deja la cola atascada sin feedback
 - Detectado en: revisión code-reviewer apk-offline-first (2026-09-01)

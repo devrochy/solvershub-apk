@@ -26,7 +26,7 @@ describe("EvidenciaPicker", () => {
     const { getByTestId } = await render(
       <EvidenciaPicker
         {...base}
-        evidencias={[{ uri: "file:///a.jpg", name: "a.jpg", type: "image/jpeg" }]}
+        evidencias={[{ uri: "file:///a.jpg", name: "a.jpg", type: "image/jpeg", base64: "AAAA" }]}
         onQuitar={onQuitar}
       />,
     );
@@ -41,6 +41,7 @@ describe("EvidenciaPicker", () => {
       uri: `file:///e${i}.jpg`,
       name: `e${i}.jpg`,
       type: "image/jpeg",
+      base64: "AAAA",
     }));
     const { getByTestId } = await render(
       <EvidenciaPicker {...base} evidencias={evidencias} />,

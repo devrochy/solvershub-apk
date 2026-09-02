@@ -14,7 +14,7 @@ import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
-import { MAX_EVIDENCIAS, useEvidencias } from "../features/gastos/use-evidencias";
+import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
@@ -113,6 +113,7 @@ export function DiaScreen({ navigation, route }: Props) {
     setGastoEnviando(true);
     setGastoMensaje(null);
     const input = { descripcion: gastoDescripcion.trim(), valor };
+    const evidenciasOffline = evidenciasParaOffline(evidencias);
     try {
       await api.registrarGasto(rutaId, input, evidencias);
       setGastoDescripcion("");
@@ -122,7 +123,7 @@ export function DiaScreen({ navigation, route }: Props) {
       setGastoMensaje("Gasto registrado.");
     } catch (err) {
       if (esErrorDeRed(err)) {
-        await offline.encolar("gasto", input);
+        await offline.encolar("gasto", { ...input, evidencias: evidenciasOffline });
         setGastoDescripcion("");
         setGastoValor("");
         setGastoAbierto(false);

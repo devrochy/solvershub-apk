@@ -4,6 +4,7 @@ import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+import * as useEvidenciasModule from "../features/gastos/use-evidencias";
 
 jest.mock("../offline/cache", () => ({
   guardarDia: jest.fn().mockResolvedValue(undefined),
@@ -43,7 +44,8 @@ async function renderConApi(
   );
 }
 
-describe("DiaScreen — gasto offline", () => {  it("encola el gasto en la cola offline cuando hay error de red", async () => {
+describe("DiaScreen — gasto offline", () => {
+  it("encola el gasto en la cola offline cuando hay error de red", async () => {
     const encolar = jest.fn().mockResolvedValue(undefined);
     const offlineConError: OfflineValue = { ...offlineValor, encolar };
     const registrarGasto = jest.fn().mockRejectedValue(new Error("Network request failed"));
@@ -56,8 +58,50 @@ describe("DiaScreen — gasto offline", () => {  it("encola el gasto en la cola 
     await fireEvent.press(getByTestId("gasto-guardar"));
 
     await waitFor(() =>
-      expect(encolar).toHaveBeenCalledWith("gasto", { descripcion: "Combustible", valor: 50 }),
+      expect(encolar).toHaveBeenCalledWith("gasto", {
+        descripcion: "Combustible",
+        valor: 50,
+        evidencias: [],
+      }),
     );
+  });
+
+  it("encola el gasto con evidencias base64 cuando hay error de red", async () => {
+    const encolar = jest.fn().mockResolvedValue(undefined);
+    const offlineConError: OfflineValue = { ...offlineValor, encolar };
+    const registrarGasto = jest.fn().mockRejectedValue(new Error("Network request failed"));
+
+    const spyUseEvidencias = jest
+      .spyOn(useEvidenciasModule, "useEvidencias")
+      .mockReturnValue({
+        evidencias: [
+          { uri: "file:///a.jpg", name: "a.jpg", type: "image/jpeg", base64: "AAAA" },
+        ],
+        cargando: false,
+        error: null,
+        agregarDesdeLibreria: jest.fn(),
+        agregarDesdeCamara: jest.fn(),
+        quitar: jest.fn(),
+        resetError: jest.fn(),
+      });
+
+    const { getByTestId } = await renderConApi({ registrarGasto }, offlineConError);
+
+    await waitFor(() => expect(getByTestId("nuevo-gasto")).toBeTruthy());
+    await fireEvent.press(getByTestId("nuevo-gasto"));
+    await fireEvent.changeText(getByTestId("gasto-descripcion"), "Combustible");
+    await fireEvent.changeText(getByTestId("gasto-valor"), "50");
+    await fireEvent.press(getByTestId("gasto-guardar"));
+
+    await waitFor(() =>
+      expect(encolar).toHaveBeenCalledWith("gasto", {
+        descripcion: "Combustible",
+        valor: 50,
+        evidencias: [{ nombre: "a.jpg", mimetype: "image/jpeg", base64: "AAAA" }],
+      }),
+    );
+
+    spyUseEvidencias.mockRestore();
   });
 
   it("NO encola si el error es una respuesta HTTP válida (ApiError)", async () => {
