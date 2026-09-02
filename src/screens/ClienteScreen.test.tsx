@@ -457,6 +457,23 @@ describe("ClienteScreen — navegación externa (maps/waze)", () => {
 
     expect(abrirNavegacion).toHaveBeenCalledWith(-17.78, -63.18, "waze");
   });
+
+  it("muestra el mapa del cliente cuando hay coordenadas", async () => {
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
+    );
+
+    await waitFor(() => expect(getByTestId("mapa-cliente")).toBeTruthy());
+  });
+
+  it("no muestra el mapa sin coordenadas", async () => {
+    const { queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(queryByTestId("btn-pago")).toBeTruthy());
+    expect(queryByTestId("mapa-cliente")).toBeNull();
+  });
 });
 
 describe("ClienteScreen — estado de cuenta y WhatsApp", () => {

@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
+import { MapaCliente } from "../components/MapaCliente";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
 import {
   cambioClientePayload,
@@ -432,7 +433,9 @@ export function ClienteScreen({ route, navigation }: Props) {
           Saldo pendiente: {tarjeta.saldoPendiente} | Mora: {tarjeta.diasMora} días
         </Text>
         {typeof latitud === "number" && typeof longitud === "number" ? (
-          <View style={styles.navegacion}>
+          <>
+            <MapaCliente latitud={latitud} longitud={longitud} nombre={tarjeta.nombre} />
+            <View style={styles.navegacion}>
             <Pressable
               testID="navegar-maps"
               style={[styles.botonPrimario, styles.botonNavegar]}
@@ -448,6 +451,7 @@ export function ClienteScreen({ route, navigation }: Props) {
               <Text style={styles.botonTexto}>Waze</Text>
             </Pressable>
           </View>
+          </>
         ) : null}
       </View>
 
