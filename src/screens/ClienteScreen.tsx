@@ -13,6 +13,13 @@ import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
+import {
+  cambioClientePayload,
+  camposCambiados,
+  dedupeKeyCambioCliente,
+  edicionDesdeTarjeta,
+  type CambioClienteInput,
+} from "../features/cliente/cambio-cliente";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
@@ -39,7 +46,7 @@ export function ClienteScreen({ route }: Props) {
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [modo, setModo] = useState<"pago" | "no_pago" | null>(null);
+  const [modo, setModo] = useState<"pago" | "no_pago" | "editar" | null>(null);
   const [valor, setValor] = useState("");
   const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>(
     "efectivo",
@@ -52,6 +59,9 @@ export function ClienteScreen({ route }: Props) {
   const [valorPrometido, setValorPrometido] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
+  const [edicion, setEdicion] = useState<CambioClienteInput>({});
+  const [edicionOriginal, setEdicionOriginal] = useState<CambioClienteInput>({});
+  const [editando, setEditando] = useState(false);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -211,6 +221,31 @@ export function ClienteScreen({ route }: Props) {
     }
   }
 
+  async function guardarCambioCliente() {
+    const input = camposCambiados(edicion, edicionOriginal);
+    if (Object.keys(input).length === 0) {
+      setMensaje("No hay cambios para guardar.");
+      return;
+    }
+    setEditando(true);
+    setMensaje(null);
+    try {
+      const encolado = await offline.encolarSiNoExiste(
+        "cambio_cliente",
+        cambioClientePayload(clienteId, input),
+        dedupeKeyCambioCliente(clienteId),
+      );
+      if (encolado) {
+        setEdicionOriginal({ ...input });
+        setMensaje("Cambio enviado (se sincronizará).");
+      } else {
+        setMensaje("Ya hay un cambio pendiente por sincronizar.");
+      }
+    } finally {
+      setEditando(false);
+    }
+  }
+
   if (!tarjeta) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
@@ -244,6 +279,19 @@ export function ClienteScreen({ route }: Props) {
       ) : null}
 
       <View style={styles.acciones}>
+        <Pressable
+          testID="btn-editar-cliente"
+          style={[styles.botonPrimario, styles.botonEditar]}
+          onPress={() => {
+            setModo("editar");
+            setMensaje(null);
+            const actual = edicionDesdeTarjeta(tarjeta);
+            setEdicion(actual);
+            setEdicionOriginal(actual);
+          }}
+        >
+          <Text style={styles.botonTexto}>Editar datos</Text>
+        </Pressable>
         <Pressable
           testID="btn-pago"
           style={[styles.botonPrimario, styles.botonPago]}
@@ -383,7 +431,50 @@ export function ClienteScreen({ route }: Props) {
         </View>
       ) : null}
 
-      {modo ? (
+      {modo === "editar" ? (
+        <View testID="editar-cliente-form" style={styles.form}>
+          <Text style={styles.formTitulo}>Editar datos del cliente</Text>
+          <TextInput
+            testID="editar-nombre"
+            style={styles.input}
+            placeholder="Nombre"
+            value={edicion.nombre ?? ""}
+            onChangeText={(v) => setEdicion((e) => ({ ...e, nombre: v }))}
+          />
+          <TextInput
+            testID="editar-negocio"
+            style={styles.input}
+            placeholder="Negocio"
+            value={edicion.negocio ?? ""}
+            onChangeText={(v) => setEdicion((e) => ({ ...e, negocio: v }))}
+          />
+          <TextInput
+            testID="editar-telefono"
+            style={styles.input}
+            placeholder="WhatsApp"
+            keyboardType="phone-pad"
+            value={edicion.telefonoWhatsapp ?? ""}
+            onChangeText={(v) =>
+              setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))
+            }
+          />
+          {mensaje ? <Text style={styles.mensaje}>{mensaje}</Text> : null}
+          <Pressable
+            testID="guardar-cambio-cliente"
+            style={[styles.botonPrimario, editando && styles.deshabilitado]}
+            disabled={editando}
+            onPress={guardarCambioCliente}
+          >
+            {editando ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.botonTexto}>Guardar cambios</Text>
+            )}
+          </Pressable>
+        </View>
+      ) : null}
+
+      {modo === "pago" || modo === "no_pago" ? (
         <>
           {mensaje ? <Text style={styles.mensaje}>{mensaje}</Text> : null}
           <Pressable
@@ -436,6 +527,7 @@ const styles = StyleSheet.create({
   },
   botonPago: { backgroundColor: "#16a34a" },
   botonNoPago: { backgroundColor: "#d97706" },
+  botonEditar: { backgroundColor: "#64748b" },
   botonTexto: { color: "#ffffff", fontWeight: "600" },
   deshabilitado: { backgroundColor: "#93c5fd" },
   form: {

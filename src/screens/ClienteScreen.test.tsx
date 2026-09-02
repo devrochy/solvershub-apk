@@ -316,3 +316,59 @@ describe("ClienteScreen — cache offline", () => {
     expect(getByText(/Saldo pendiente: 300/)).toBeTruthy();
   });
 });
+
+describe("ClienteScreen — edición de cliente offline", () => {
+  it("abre el formulario, prellena la tarjeta y encola cambio_cliente", async () => {
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
+    const { getByTestId, getByText } = await renderConApi({}, offlineConError);
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+
+    expect(getByTestId("editar-cliente-form")).toBeTruthy();
+    await fireEvent.changeText(getByTestId("editar-nombre"), "Juan Carlos");
+    await fireEvent.press(getByTestId("guardar-cambio-cliente"));
+
+    await waitFor(() =>
+      expect(encolarSiNoExiste).toHaveBeenCalledWith(
+        "cambio_cliente",
+        { clienteId: 2, input: { nombre: "Juan Carlos" } },
+        "cambio_cliente-2",
+      ),
+    );
+    expect(getByText(/se sincronizará/)).toBeTruthy();
+  });
+
+  it("no vuelve a encolar si ya hay un cambio pendiente del cliente", async () => {
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(false);
+    const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
+    const { getByTestId, getByText } = await renderConApi({}, offlineConError);
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    await fireEvent.changeText(getByTestId("editar-nombre"), "Otro");
+    await fireEvent.press(getByTestId("guardar-cambio-cliente"));
+
+    await waitFor(() =>
+      expect(encolarSiNoExiste).toHaveBeenCalledWith(
+        "cambio_cliente",
+        { clienteId: 2, input: { nombre: "Otro" } },
+        "cambio_cliente-2",
+      ),
+    );
+    expect(getByText("Ya hay un cambio pendiente por sincronizar.")).toBeTruthy();
+  });
+
+  it("no encola si no cambió ningún campo", async () => {
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
+    const { getByTestId } = await renderConApi({}, offlineConError);
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    await fireEvent.press(getByTestId("guardar-cambio-cliente"));
+
+    expect(encolarSiNoExiste).not.toHaveBeenCalled();
+  });
+});
