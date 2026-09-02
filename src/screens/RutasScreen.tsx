@@ -7,18 +7,21 @@ import {
   Text,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
-import type { RootStackParamList } from "../navigation/types";
+import type { RootTabParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
+import { useRutaActiva } from "../session/ruta-activa-context";
 import type { RutaApkPublic } from "../types/cobrador";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Rutas">;
+type Props = BottomTabScreenProps<RootTabParamList, "Rutas">;
 
 export function RutasScreen({ navigation }: Props) {
   const { api, cobrador, logout } = useSession();
+  const { setRutaActiva } = useRutaActiva();
   const offline = useOffline();
   const [rutas, setRutas] = useState<RutaApkPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +56,14 @@ export function RutasScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.contenedor}>
+    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <Text style={styles.bienvenida}>
-          Hola, {cobrador?.nombre ?? "cobrador"}
-        </Text>
+        <View style={styles.headerTitulo}>
+          <Text style={styles.apkNombre}>CobraIA</Text>
+          <Text style={styles.bienvenida}>
+            Hola, {cobrador?.nombre ?? "cobrador"}
+          </Text>
+        </View>
         <View style={styles.headerDerecha}>
           {offline.sinSubir > 0 ? (
             <View testID="badge-sin-subir" style={styles.badge}>
@@ -92,12 +98,16 @@ export function RutasScreen({ navigation }: Props) {
             <Pressable
               testID={`ruta-${item.id}`}
               style={styles.tarjeta}
-              onPress={() =>
-                navigation.navigate("Dia", {
+              onPress={() => {
+                setRutaActiva({
                   rutaId: item.id,
                   rutaNombre: item.nombre,
-                })
-              }
+                  tipoInteres: item.tipoInteres,
+                  numCuotas: item.numCuotas,
+                  config: item.config,
+                });
+                navigation.navigate("Clientes");
+              }}
             >
               <View style={styles.tarjetaInfo}>
                 <Text style={styles.rutaNombre}>{item.nombre}</Text>
@@ -110,7 +120,7 @@ export function RutasScreen({ navigation }: Props) {
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -125,6 +135,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
   },
+  headerTitulo: { flex: 1 },
+  apkNombre: { fontSize: 12, fontWeight: "700", color: "#2563eb", letterSpacing: 0.5 },
   bienvenida: { fontSize: 18, fontWeight: "700" },
   headerDerecha: { flexDirection: "row", alignItems: "center", gap: 10 },
   badge: {

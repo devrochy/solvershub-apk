@@ -46,3 +46,4 @@ yarn-error.*
 
 # uploads/artefactos locales
 uploads/
+builds/

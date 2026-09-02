@@ -1,7 +1,9 @@
 import type {
+  ClienteCobradorPublic,
   ClienteTarjetaPublic,
   CuotaPublic,
   DiaApkPublic,
+  EstadoCuentaPrestamoPublic,
   GastoPublic,
   PrestamoPublic,
   RegistrarGastoInput,
@@ -22,6 +24,7 @@ function jsonBody(input: unknown): string {
 export interface CobradorApi {
   misRutas(): Promise<RutaApkPublic[]>;
   dia(rutaId: number): Promise<DiaApkPublic>;
+  generarTrayecto(rutaId: number): Promise<unknown>;
   registrarVisitaPago(
     rutaId: number,
     input: RegistrarVisitaInput,
@@ -40,6 +43,16 @@ export interface CobradorApi {
     input: RegistrarTrayectoriaRealInput,
   ): Promise<{ id: number; tipo: "real" }>;
   tarjeta(rutaId: number, clienteId: number): Promise<ClienteTarjetaPublic>;
+  agregarEvidenciasCliente(
+    rutaId: number,
+    clienteId: number,
+    evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+  ): Promise<{ clienteId: number }>;
+  listarClientesDeRuta(rutaId: number): Promise<ClienteCobradorPublic[]>;
+  obtenerEstadoCuentaPrestamo(
+    rutaId: number,
+    prestamoId: number,
+  ): Promise<EstadoCuentaPrestamoPublic>;
   listarPrestamosDeCliente(
     rutaId: number,
     clienteId: number,
@@ -67,6 +80,10 @@ export interface CobradorApi {
     rutaId: number,
     input: { latitud?: number; longitud?: number },
   ): Promise<{ id: number; rutaId: number }>;
+  registrarPosicion(
+    rutaId: number,
+    input: { latitud: number; longitud: number },
+  ): Promise<{ rutaId: number; latitud: number; longitud: number }>;
 }
 
 export function cobradorApi(client: ApiClient): CobradorApi {
@@ -75,6 +92,11 @@ export function cobradorApi(client: ApiClient): CobradorApi {
 
     dia: (rutaId: number) =>
       client.request<DiaApkPublic>(`/cobrador/rutas/${rutaId}/dia`),
+
+    generarTrayecto: (rutaId: number) =>
+      client.request<unknown>(`/cobrador/rutas/${rutaId}/trayecto`, {
+        method: "POST",
+      }),
 
     registrarVisitaPago: (rutaId: number, input: RegistrarVisitaInput) =>
       client.request<VisitaPublic>(`/cobrador/rutas/${rutaId}/visitas/pago`, {
@@ -129,6 +151,33 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         `/cobrador/rutas/${rutaId}/clientes/${clienteId}/tarjeta`,
       ),
 
+    agregarEvidenciasCliente: (
+      rutaId: number,
+      clienteId: number,
+      evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+    ) => {
+      const form = new FormData();
+      for (const e of evidencias) {
+        form.append(e.campo, {
+          uri: e.uri,
+          name: e.name,
+          type: e.type,
+        } as unknown as Blob);
+      }
+      return client.request<{ clienteId: number }>(
+        `/cobrador/rutas/${rutaId}/clientes/${clienteId}/evidencias`,
+        { method: "POST", body: form },
+      );
+    },
+
+    listarClientesDeRuta: (rutaId: number) =>
+      client.request<ClienteCobradorPublic[]>(`/cobrador/rutas/${rutaId}/clientes`),
+
+    obtenerEstadoCuentaPrestamo: (rutaId: number, prestamoId: number) =>
+      client.request<EstadoCuentaPrestamoPublic>(
+        `/cobrador/rutas/${rutaId}/prestamos/${prestamoId}/estado-cuenta`,
+      ),
+
     listarPrestamosDeCliente: (rutaId: number, clienteId: number) =>
       client.request<PrestamoPublic[]>(
         `/cobrador/rutas/${rutaId}/clientes/${clienteId}/prestamos`,
@@ -180,6 +229,19 @@ export function cobradorApi(client: ApiClient): CobradorApi {
     ) =>
       client.request<{ id: number; rutaId: number }>(
         `/cobrador/rutas/${rutaId}/apertura`,
+        {
+          method: "POST",
+          headers: JSON_HEADERS,
+          body: jsonBody(input),
+        },
+      ),
+
+    registrarPosicion: (
+      rutaId: number,
+      input: { latitud: number; longitud: number },
+    ) =>
+      client.request<{ rutaId: number; latitud: number; longitud: number }>(
+        `/cobrador/rutas/${rutaId}/posicion`,
         {
           method: "POST",
           headers: JSON_HEADERS,

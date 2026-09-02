@@ -9,27 +9,35 @@ import {
   TextInput,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
+import { TrayectosLista } from "../components/TrayectosLista";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import {
   abrirNavegacion,
   coordenadaDeCliente,
 } from "../features/navegacion/navegacion";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
-import type { RootStackParamList } from "../navigation/types";
+import { usePosicion } from "../features/trayectoria/use-posicion";
+import type { RootStackParamList, RootTabParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
+import { useRutaActiva } from "../session/ruta-activa-context";
 import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Dia">;
+type Props = { navigation: StackNavigation };
+type StackNavigation = {
+  navigate(screen: "Cliente", params: RootStackParamList["Cliente"]): void;
+};
 
-export function DiaScreen({ navigation, route }: Props) {
-  const { rutaId } = route.params;
+export function DiaScreen({ navigation }: Props) {
+  const { rutaActiva } = useRutaActiva();
+  const rutaId = rutaActiva?.rutaId ?? 0;
   const { api, logout } = useSession();
   const offline = useOffline();
   const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
@@ -52,8 +60,11 @@ export function DiaScreen({ navigation, route }: Props) {
     quitar,
   } = useEvidencias();
   const trayectoria = useTrayectoria();
+  const posicion = usePosicion(api, rutaId, trayectoria.activa, trayectoria.puntos.length);
   const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
+  const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
+  const [trayectosAbierto, setTrayectosAbierto] = useState(false);
 
   const precargarClientes = useCallback(
     async (clientes: ClienteDiaPublic[]) => {
@@ -167,6 +178,25 @@ export function DiaScreen({ navigation, route }: Props) {
     setRefrescando(false);
   }
 
+  async function generarTrayecto() {
+    if (!rutaId) {
+      return;
+    }
+    setGenerandoTrayecto(true);
+    try {
+      await api.generarTrayecto(rutaId);
+      await cargar();
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setError("No se pudo generar el trayecto.");
+      }
+    } finally {
+      setGenerandoTrayecto(false);
+    }
+  }
+
   async function detenerYEnviarTrayectoria() {
     const puntos = trayectoria.detener();
     if (puntos.length < 2) {
@@ -190,12 +220,23 @@ export function DiaScreen({ navigation, route }: Props) {
     }
   }
 
+  if (!rutaActiva) {
+    return (
+      <View style={styles.contenedor}>
+        <Text style={styles.vacio}>Selecciona una ruta para ver el día.</Text>
+      </View>
+    );
+  }
+
   if (!clientes) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
+  // A12: la lista de cobros solo se habilita con trayecto planificado Y GPS activo.
+  const listaHabilitada = Boolean(trayectos) && trayectoria.activa;
+
   return (
-    <View style={styles.contenedor}>
+    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <FlatList
         data={clientes}
         keyExtractor={(cliente) => String(cliente.clienteId)}
@@ -243,6 +284,31 @@ export function DiaScreen({ navigation, route }: Props) {
                 {trayectoria.error ?? trayectoriaMensaje}
               </Text>
             ) : null}
+            {!trayectos ? (
+              <View style={styles.gating}>
+                <Text style={styles.gatingTexto}>
+                  Genera el trayecto óptimo para habilitar los cobros del día.
+                </Text>
+                <Pressable
+                  testID="generar-trayecto"
+                  style={[styles.botonPrimario, generandoTrayecto && styles.deshabilitado]}
+                  disabled={generandoTrayecto}
+                  onPress={generarTrayecto}
+                >
+                  {generandoTrayecto ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text style={styles.botonPrimarioTexto}>Generar trayecto</Text>
+                  )}
+                </Pressable>
+              </View>
+            ) : !trayectoria.activa ? (
+              <View style={styles.gating}>
+                <Text style={styles.gatingTexto}>
+                  Activa el GPS para habilitar la lista de cobros.
+                </Text>
+              </View>
+            ) : null}
             <Pressable
               testID="nuevo-gasto"
               style={styles.botonPrimario}
@@ -250,6 +316,15 @@ export function DiaScreen({ navigation, route }: Props) {
             >
               <Text style={styles.botonPrimarioTexto}>Registrar gasto</Text>
             </Pressable>
+            {trayectos ? (
+              <Pressable
+                testID="ver-trayectos"
+                style={styles.botonTrayectos}
+                onPress={() => setTrayectosAbierto(true)}
+              >
+                <Text style={styles.botonTrayectosTexto}>Ver trayectos</Text>
+              </Pressable>
+            ) : null}
           </View>
         }
         ListEmptyComponent={
@@ -260,9 +335,10 @@ export function DiaScreen({ navigation, route }: Props) {
           return (
             <Pressable
               testID={`cliente-${item.clienteId}`}
-              style={styles.tarjeta}
+              style={[styles.tarjeta, !listaHabilitada && styles.tarjetaBloqueada]}
+              disabled={!listaHabilitada}
               onPress={() =>
-                navigation.navigate("Cliente", {
+                (navigation as unknown as StackNavigation).navigate("Cliente", {
                   rutaId,
                   clienteId: item.clienteId,
                   nombre: item.nombre,
@@ -335,7 +411,17 @@ export function DiaScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       ) : null}
-    </View>
+
+      {trayectosAbierto && trayectos ? (
+        <View style={styles.trayectosOverlay}>
+          <TrayectosLista
+            clientes={clientes}
+            trayectos={trayectos}
+            onCerrar={() => setTrayectosAbierto(false)}
+          />
+        </View>
+      ) : null}
+    </SafeAreaView>
   );
 }
 
@@ -360,6 +446,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignItems: "center",
   },
+  botonTrayectos: {
+    backgroundColor: "#0891b2",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  botonTrayectosTexto: { color: "#ffffff", fontWeight: "600" },
+  trayectosOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#f8fafc",
+    zIndex: 10,
+  },
   botonSecundarioTexto: { color: "#ffffff", fontWeight: "600" },
   trayectoriaActiva: {
     flexDirection: "row",
@@ -377,6 +480,17 @@ const styles = StyleSheet.create({
   },
   trayectoriaTexto: { color: "#7f1d1d", fontWeight: "600", flex: 1 },
   mensajeTrayectoria: { color: "#475569", fontSize: 13 },
+  gating: {
+    backgroundColor: "#fef9c3",
+    borderWidth: 1,
+    borderColor: "#fde68a",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  gatingTexto: { color: "#92400e", fontSize: 13, fontWeight: "600" },
+  tarjetaBloqueada: { opacity: 0.5 },
   deshabilitado: { backgroundColor: "#93c5fd" },
   tarjeta: {
     flexDirection: "row",

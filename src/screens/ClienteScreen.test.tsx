@@ -3,6 +3,7 @@ import { ClienteScreen } from "./ClienteScreen";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+import { RutaActivaContext } from "../session/ruta-activa-context";
 
 jest.mock("../features/estado-cuenta/estado-cuenta", () => ({
   enlaceWhatsApp: jest.fn(
@@ -68,6 +69,7 @@ async function renderConApi(
   api: Partial<SessionValue["api"]>,
   offline = offlineValor,
   params: { latitud?: number; longitud?: number } = {},
+  navigate: jest.Mock = jest.fn(),
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L" },
@@ -80,18 +82,31 @@ async function renderConApi(
     login: jest.fn(),
     logout: jest.fn(),
   };
-  const navigation = { navigate: jest.fn() } as never;
+  const navigation = { navigate } as never;
   return render(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
-        <ClienteScreen
-          navigation={navigation}
-          route={{
-            key: "cliente",
-            name: "Cliente",
-            params: { rutaId: 6, clienteId: 2, nombre: "Juan", ...params },
+        <RutaActivaContext.Provider
+          value={{
+            rutaActiva: {
+              rutaId: 6,
+              rutaNombre: "Ruta Centro",
+              tipoInteres: 20,
+              numCuotas: 8,
+              config: { rutaId: 6, cupoDefault: 1500, cuotasMinimasPrestamo: 1 } as never,
+            },
+            setRutaActiva: jest.fn(),
           }}
-        />
+        >
+          <ClienteScreen
+            navigation={navigation}
+            route={{
+              key: "cliente",
+              name: "Cliente",
+              params: { rutaId: 6, clienteId: 2, nombre: "Juan", ...params },
+            }}
+          />
+        </RutaActivaContext.Provider>
       </SessionContext.Provider>
     </OfflineContext.Provider>,
   );
@@ -354,6 +369,23 @@ describe("ClienteScreen — edición de cliente offline", () => {
     expect(getByText(/se sincronizará/)).toBeTruthy();
   });
 
+  it("tras editar el teléfono, el WhatsApp usa el número nuevo (no stale)", async () => {
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
+    jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+    const { getByTestId } = await renderConApi({}, offlineConError);
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    await fireEvent.changeText(getByTestId("editar-telefono"), "+59179999999");
+    await fireEvent.press(getByTestId("guardar-cambio-cliente"));
+
+    await waitFor(() => expect(getByTestId("btn-whatsapp")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-whatsapp"));
+
+    expect(enlaceWhatsApp).toHaveBeenCalledWith("+59179999999", "Estado de cuenta de Juan");
+  });
+
   it("no vuelve a encolar si ya hay un cambio pendiente del cliente", async () => {
     const encolarSiNoExiste = jest.fn().mockResolvedValue(false);
     const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
@@ -425,6 +457,23 @@ describe("ClienteScreen — navegación externa (maps/waze)", () => {
 
     expect(abrirNavegacion).toHaveBeenCalledWith(-17.78, -63.18, "waze");
   });
+
+  it("muestra el mapa del cliente cuando hay coordenadas", async () => {
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
+    );
+
+    await waitFor(() => expect(getByTestId("mapa-cliente")).toBeTruthy());
+  });
+
+  it("no muestra el mapa sin coordenadas", async () => {
+    const { queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(queryByTestId("btn-pago")).toBeTruthy());
+    expect(queryByTestId("mapa-cliente")).toBeNull();
+  });
 });
 
 describe("ClienteScreen — estado de cuenta y WhatsApp", () => {
@@ -470,7 +519,7 @@ describe("ClienteScreen — tarjeta completa (foto, tipoPago, detalle)", () => {
       tarjeta: jest.fn().mockResolvedValue(tarjetaCompleta),
     });
 
-    await waitFor(() => expect(getByTestId("foto-cliente")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("avatar-foto")).toBeTruthy());
     expect(getByText(/Tipo de pago: diario/)).toBeTruthy();
     expect(getByText(/WhatsApp: \+59170000000/)).toBeTruthy();
   });
@@ -479,7 +528,7 @@ describe("ClienteScreen — tarjeta completa (foto, tipoPago, detalle)", () => {
     const { queryByTestId, queryByText } = await renderConApi({});
 
     await waitFor(() => expect(queryByTestId("btn-pago")).toBeTruthy());
-    expect(queryByTestId("foto-cliente")).toBeNull();
+    expect(queryByTestId("avatar-foto")).toBeNull();
     expect(queryByText(/Tipo de pago:/)).toBeNull();
   });
 
@@ -515,6 +564,7 @@ describe("ClienteScreen — registrar préstamo", () => {
         valor: 800,
         numCuotas: 4,
         diasEntreCuotas: 7,
+        tipoInteres: 20,
       }),
     );
   });
@@ -525,10 +575,38 @@ describe("ClienteScreen — registrar préstamo", () => {
 
     await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
     await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+    // Autocompletado: limpiamos el valor para forzar el fallo de validación.
+    await fireEvent.changeText(getByTestId("prestamo-valor"), "");
     await fireEvent.press(getByTestId("guardar-prestamo"));
 
     expect(crearPrestamo).not.toHaveBeenCalled();
     expect(getByText(/Ingresa un valor de préstamo válido/)).toBeTruthy();
+  });
+
+  it("autocompleta interés, cuotas y valor desde la ruta activa", async () => {
+    const crearPrestamo = jest.fn().mockResolvedValue({ id: 5 });
+    const { getByTestId } = await renderConApi({ crearPrestamo });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+
+    // Los defaults de la ruta activa vienen pre-llenados (20% interés, 8 cuotas, cupo 1500).
+    expect(getByTestId("prestamo-valor").props.value).toBe("1500");
+    expect(getByTestId("prestamo-cuotas").props.value).toBe("8");
+    expect(getByTestId("prestamo-interes").props.value).toBe("20");
+
+    await fireEvent.changeText(getByTestId("prestamo-dias"), "7");
+    await fireEvent.press(getByTestId("guardar-prestamo"));
+
+    await waitFor(() =>
+      expect(crearPrestamo).toHaveBeenCalledWith(6, {
+        clienteId: 2,
+        valor: 1500,
+        numCuotas: 8,
+        diasEntreCuotas: 7,
+        tipoInteres: 20,
+      }),
+    );
   });
 });
 
@@ -571,5 +649,85 @@ describe("ClienteScreen — editar/eliminar cuota", () => {
         motivo: "error de registro",
       }),
     );
+  });
+
+  it("navega a la pantalla de préstamo (canvas de cuotas) al tocar el botón", async () => {
+    const navigate = jest.fn();
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      {},
+      navigate,
+    );
+
+    await waitFor(() => expect(getByTestId("btn-canvas-prestamo")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-canvas-prestamo"));
+
+    expect(navigate).toHaveBeenCalledWith("Prestamo", {
+      rutaId: 6,
+      prestamoId: 1,
+      clienteNombre: "Juan",
+      telefonoWhatsapp: "+59170000000",
+      valor: 1000,
+      numCuotas: 4,
+    });
+  });
+
+  it("solo muestra un formulario a la vez (Nuevo préstamo cierra Editar datos)", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    expect(getByTestId("editar-cliente-form")).toBeTruthy();
+
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+    expect(getByTestId("prestamo-form")).toBeTruthy();
+    expect(queryByTestId("editar-cliente-form")).toBeNull();
+  });
+
+  it("abrir pago cierra el formulario de préstamo", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+    expect(getByTestId("prestamo-form")).toBeTruthy();
+
+await fireEvent.press(getByTestId("btn-pago"));
+    expect(getByTestId("form-pago")).toBeTruthy();
+    expect(queryByTestId("prestamo-form")).toBeNull();
+  });
+
+  it("abre el formulario de foto/documento y no solapa otros formularios", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-evidencias")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-evidencias"));
+
+    expect(getByTestId("evidencias-form")).toBeTruthy();
+    expect(queryByTestId("prestamo-form")).toBeNull();
+    expect(queryByTestId("editar-cliente-form")).toBeNull();
+  });
+});
+
+describe("ClienteScreen — lista de préstamos con color", () => {
+  it("lista todos los préstamos del cliente con su color de estado", async () => {
+    const prestamoCancelado = {
+      ...prestamo,
+      id: 2,
+      estatus: "cancelado" as const,
+      cuotas: [],
+    };
+    const { getByTestId, getAllByTestId } = await renderConApi({
+      listarPrestamosDeCliente: jest
+        .fn()
+        .mockResolvedValue([prestamo, prestamoCancelado]),
+    });
+
+    await waitFor(() => expect(getByTestId("prestamo-item-1")).toBeTruthy());
+    expect(getByTestId("prestamo-item-2")).toBeTruthy();
+    expect(getAllByTestId("color-badge-verde").length).toBeGreaterThan(0);
+    expect(getByTestId("color-badge-blanco")).toBeTruthy();
   });
 });

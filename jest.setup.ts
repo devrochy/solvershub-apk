@@ -10,4 +10,30 @@ jest.mock("@react-native-community/netinfo", () => ({
   fetch: jest.fn().mockResolvedValue({ isConnected: true }),
 }));
 
+jest.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  const Icono = (props: { name: string }) =>
+    React.createElement(Text, { testID: `icono-${props.name}` }, props.name);
+  return { MaterialIcons: Icono };
+});
+
+jest.mock("react-native-webview", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return { WebView: (props: Record<string, unknown>) => React.createElement(View, props) };
+});
+
+jest.mock("react-native-safe-area-context", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    SafeAreaProvider: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(View, null, children),
+    SafeAreaView: ({ children, ...rest }: Record<string, unknown>) =>
+      React.createElement(View, rest, children),
+    useSafeAreaInsets: jest.fn(() => ({ top: 0, right: 0, bottom: 0, left: 0 })),
+  };
+});
+
 export {};

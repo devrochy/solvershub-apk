@@ -12,8 +12,10 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
+import { Avatar } from "../components/Avatar";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
+import { MapaCliente } from "../components/MapaCliente";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
 import {
   cambioClientePayload,
@@ -28,11 +30,13 @@ import {
   textoReportePrestamo,
 } from "../features/estado-cuenta/estado-cuenta";
 import { validarPrestamo } from "../features/prestamo/registrar-prestamo";
+import { useEvidenciasCliente } from "../features/cliente/use-evidencias-cliente";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, leerCliente } from "../offline/cache";
 import { useSession } from "../session/session-context";
+import { useRutaActiva } from "../session/ruta-activa-context";
 import type {
   ClienteTarjetaPublic,
   CuotaPublic,
@@ -45,16 +49,17 @@ function esPendienteOArrasada(cuota: CuotaPublic): boolean {
   return cuota.estatus === "pendiente" || cuota.estatus === "atrasada";
 }
 
-export function ClienteScreen({ route }: Props) {
+export function ClienteScreen({ route, navigation }: Props) {
   const { rutaId, clienteId, latitud, longitud } = route.params;
   const { api, logout } = useSession();
   const offline = useOffline();
+  const { rutaActiva } = useRutaActiva();
 
   const [tarjeta, setTarjeta] = useState<ClienteTarjetaPublic | null>(null);
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [modo, setModo] = useState<"pago" | "no_pago" | "editar" | null>(null);
+  const [modo, setModo] = useState<"pago" | "no_pago" | "editar" | "prestamo" | "evidencias" | null>(null);
   const [valor, setValor] = useState("");
   const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>(
     "efectivo",
@@ -71,7 +76,6 @@ export function ClienteScreen({ route }: Props) {
   const [edicionOriginal, setEdicionOriginal] = useState<CambioClienteInput>({});
   const [editando, setEditando] = useState(false);
   const [detalleAbierto, setDetalleAbierto] = useState(true);
-  const [modoPrestamo, setModoPrestamo] = useState(false);
   const [prestamoValor, setPrestamoValor] = useState("");
   const [prestamoCuotas, setPrestamoCuotas] = useState("");
   const [prestamoDias, setPrestamoDias] = useState("");
@@ -85,6 +89,43 @@ export function ClienteScreen({ route }: Props) {
   const [cuotaMotivo, setCuotaMotivo] = useState("");
   const [cuotaEnviando, setCuotaEnviando] = useState(false);
   const [cuotaMensaje, setCuotaMensaje] = useState<string | null>(null);
+
+  const evidenciasCliente = useEvidenciasCliente();
+  const [evidenciasEnviando, setEvidenciasEnviando] = useState(false);
+  const [evidenciasMensaje, setEvidenciasMensaje] = useState<string | null>(null);
+
+  // Máquina de estados: solo un formulario activo a la vez (A2).
+  function abrirModo(
+    m: "pago" | "no_pago" | "editar" | "prestamo" | "evidencias",
+  ): void {
+    setCuotaEditando(null);
+    setCuotaEliminando(null);
+    setCuotaMensaje(null);
+    setModo(m);
+  }
+
+  async function guardarEvidenciasCliente() {
+    if (evidenciasCliente.evidencias.length === 0) {
+      return;
+    }
+    setEvidenciasEnviando(true);
+    setEvidenciasMensaje(null);
+    try {
+      await api.agregarEvidenciasCliente(rutaId, clienteId, evidenciasCliente.evidencias);
+      setEvidenciasMensaje("Evidencias guardadas.");
+      evidenciasCliente.quitar("foto_facial");
+      evidenciasCliente.quitar("documento_frente");
+      await cargar();
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setEvidenciasMensaje("No se pudieron guardar las evidencias.");
+      }
+    } finally {
+      setEvidenciasEnviando(false);
+    }
+  }
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -260,6 +301,24 @@ export function ClienteScreen({ route }: Props) {
       );
       if (encolado) {
         setEdicionOriginal({ ...input });
+        // A4: reflejar el cambio en la tarjeta local para que cabecera y
+        // WhatsApp usen los datos nuevos (antes quedaba stale).
+        setTarjeta((actual) =>
+          actual
+            ? {
+                ...actual,
+                nombre:
+                  input.nombre !== undefined
+                    ? `${input.nombre} ${actual.nombre.split(" ").slice(1).join(" ")}`.trim()
+                    : actual.nombre,
+                negocio: input.negocio !== undefined ? input.negocio : actual.negocio,
+                telefonoWhatsapp:
+                  input.telefonoWhatsapp !== undefined
+                    ? input.telefonoWhatsapp
+                    : actual.telefonoWhatsapp,
+              }
+            : actual,
+        );
         setMensaje("Cambio enviado (se sincronizará).");
       } else {
         setMensaje("Ya hay un cambio pendiente por sincronizar.");
@@ -292,7 +351,7 @@ export function ClienteScreen({ route }: Props) {
           ? { tipoInteres: Number(prestamoInteres) }
           : {}),
       });
-      setModoPrestamo(false);
+      setModo(null);
       setPrestamoValor("");
       setPrestamoCuotas("");
       setPrestamoDias("");
@@ -353,13 +412,7 @@ export function ClienteScreen({ route }: Props) {
   return (
     <ScrollView style={styles.contenedor} contentContainerStyle={styles.scroll}>
       <View style={styles.tarjetaInfo}>
-        {tarjeta.fotoUrl ? (
-          <Image
-            testID="foto-cliente"
-            source={{ uri: tarjeta.fotoUrl }}
-            style={styles.foto}
-          />
-        ) : null}
+        {tarjeta.fotoUrl ? <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={72} /> : null}
         <View style={styles.fila}>
           <Text style={styles.nombre}>{tarjeta.nombre}</Text>
           <ColorBadge color={tarjeta.color} />
@@ -375,7 +428,9 @@ export function ClienteScreen({ route }: Props) {
           Saldo pendiente: {tarjeta.saldoPendiente} | Mora: {tarjeta.diasMora} días
         </Text>
         {typeof latitud === "number" && typeof longitud === "number" ? (
-          <View style={styles.navegacion}>
+          <>
+            <MapaCliente latitud={latitud} longitud={longitud} nombre={tarjeta.nombre} />
+            <View style={styles.navegacion}>
             <Pressable
               testID="navegar-maps"
               style={[styles.botonPrimario, styles.botonNavegar]}
@@ -391,8 +446,46 @@ export function ClienteScreen({ route }: Props) {
               <Text style={styles.botonTexto}>Waze</Text>
             </Pressable>
           </View>
+          </>
         ) : null}
       </View>
+
+      {prestamos.length > 0 ? (
+        <View style={styles.seccion}>
+          <Text style={styles.seccionTitulo}>Préstamos</Text>
+          {prestamos.map((p) => (
+            <Pressable
+              key={p.id}
+              testID={`prestamo-item-${p.id}`}
+              style={styles.prestamoItem}
+              onPress={() =>
+                navigation.navigate("Prestamo", {
+                  rutaId,
+                  prestamoId: p.id,
+                  clienteNombre: tarjeta.nombre,
+                  telefonoWhatsapp: tarjeta.telefonoWhatsapp,
+                  valor: p.valor,
+                  numCuotas: p.numCuotas,
+                })
+              }
+            >
+              <View style={styles.prestamoInfo}>
+                <Text style={styles.prestamoValor}>
+                  {p.valor} · {p.numCuotas} cuotas
+                </Text>
+                <Text style={styles.prestamoEstatus}>{p.estatus}</Text>
+              </View>
+              <ColorBadge
+                color={
+                  p.estatus === "vigente" || p.estatus === "liquidado"
+                    ? "verde"
+                    : "blanco"
+                }
+              />
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
 
       {prestamoVigente && cuotaPorPagar ? (
         <View style={styles.seccion}>
@@ -419,6 +512,22 @@ export function ClienteScreen({ route }: Props) {
               </Text>
             </Pressable>
           </View>
+          <Pressable
+            testID="btn-canvas-prestamo"
+            style={[styles.botonPrimario, styles.botonPrestamo]}
+            onPress={() =>
+              navigation.navigate("Prestamo", {
+                rutaId,
+                prestamoId: prestamoVigente.id,
+                clienteNombre: tarjeta.nombre,
+                telefonoWhatsapp: tarjeta.telefonoWhatsapp,
+                valor: prestamoVigente.valor,
+                numCuotas: prestamoVigente.numCuotas,
+              })
+            }
+          >
+            <Text style={styles.botonTexto}>Ver canvas de cuotas</Text>
+          </Pressable>
           {detalleAbierto ? (
             <View
               testID="estado-cuenta"
@@ -494,9 +603,15 @@ export function ClienteScreen({ route }: Props) {
           testID="btn-nuevo-prestamo"
           style={[styles.botonPrimario, styles.botonPrestamo]}
           onPress={() => {
-            setModoPrestamo(true);
+            abrirModo("prestamo");
             setMensaje(null);
             setPrestamoMensaje(null);
+            // Autocompletado desde la ruta activa (defaults de la ruta).
+            setPrestamoInteres(rutaActiva ? String(rutaActiva.tipoInteres) : "");
+            setPrestamoCuotas(rutaActiva ? String(rutaActiva.numCuotas) : "");
+            const cupo = rutaActiva?.config.cupoDefault;
+            setPrestamoValor(cupo ? String(cupo) : "");
+            setPrestamoDias("");
           }}
         >
           <Text style={styles.botonTexto}>Nuevo préstamo</Text>
@@ -505,7 +620,7 @@ export function ClienteScreen({ route }: Props) {
           testID="btn-editar-cliente"
           style={[styles.botonPrimario, styles.botonEditar]}
           onPress={() => {
-            setModo("editar");
+            abrirModo("editar");
             setMensaje(null);
             const actual = edicionDesdeTarjeta(tarjeta);
             setEdicion(actual);
@@ -518,7 +633,7 @@ export function ClienteScreen({ route }: Props) {
           testID="btn-pago"
           style={[styles.botonPrimario, styles.botonPago]}
           onPress={() => {
-            setModo("pago");
+            abrirModo("pago");
             setMensaje(null);
             if (cuotaPorPagar) {
               setValor(String(cuotaPorPagar.valorEsperado));
@@ -531,13 +646,65 @@ export function ClienteScreen({ route }: Props) {
           testID="btn-no-pago"
           style={[styles.botonPrimario, styles.botonNoPago]}
           onPress={() => {
-            setModo("no_pago");
+            abrirModo("no_pago");
             setMensaje(null);
           }}
         >
           <Text style={styles.botonTexto}>Registrar no pago</Text>
         </Pressable>
+        <Pressable
+          testID="btn-evidencias"
+          style={[styles.botonPrimario, styles.botonEvidencias]}
+          onPress={() => abrirModo("evidencias")}
+        >
+          <Text style={styles.botonTexto}>Foto / documento</Text>
+        </Pressable>
       </View>
+
+      {modo === "evidencias" ? (
+        <View testID="evidencias-form" style={styles.form}>
+          <Text style={styles.formTitulo}>Foto y documento del cliente</Text>
+          <Text style={styles.detalle}>Selecciona la foto facial y el documento de identidad.</Text>
+          <Pressable
+            testID="evidencia-foto"
+            style={[styles.botonPrimario, styles.botonPrestamo]}
+            onPress={() => void evidenciasCliente.agregar("foto_facial")}
+          >
+            <Text style={styles.botonTexto}>
+              {evidenciasCliente.evidencias.find((e) => e.campo === "foto_facial")
+                ? "Foto seleccionada (cambiar)"
+                : "Seleccionar foto"}
+            </Text>
+          </Pressable>
+          <Pressable
+            testID="evidencia-documento"
+            style={[styles.botonPrimario, styles.botonPrestamo]}
+            onPress={() => void evidenciasCliente.agregar("documento_frente")}
+          >
+            <Text style={styles.botonTexto}>
+              {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
+                ? "Documento seleccionado (cambiar)"
+                : "Seleccionar documento"}
+            </Text>
+          </Pressable>
+          {evidenciasCliente.error ? (
+            <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
+          ) : null}
+          <Pressable
+            testID="guardar-evidencias"
+            style={[styles.botonPrimario, styles.botonPrestamo, evidenciasCliente.evidencias.length === 0 && styles.deshabilitado]}
+            disabled={evidenciasCliente.evidencias.length === 0 || evidenciasEnviando}
+            onPress={guardarEvidenciasCliente}
+          >
+            {evidenciasEnviando ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.botonTexto}>Guardar evidencias</Text>
+            )}
+          </Pressable>
+          {evidenciasMensaje ? <Text style={styles.errorTexto}>{evidenciasMensaje}</Text> : null}
+        </View>
+      ) : null}
 
       {modo === "pago" ? (
         <View testID="form-pago" style={styles.form}>
@@ -653,7 +820,7 @@ export function ClienteScreen({ route }: Props) {
         </View>
       ) : null}
 
-      {modoPrestamo ? (
+      {modo === "prestamo" ? (
         <View testID="prestamo-form" style={styles.form}>
           <Text style={styles.formTitulo}>Nuevo préstamo</Text>
           <TextInput
@@ -834,13 +1001,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  foto: {
-    width: 72,
-    height: 72,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: "#e2e8f0",
-  },
   nombre: { fontSize: 18, fontWeight: "700" },
   detalle: { color: "#475569", fontSize: 14 },
   seccion: { marginTop: 4 },
@@ -852,6 +1012,21 @@ const styles = StyleSheet.create({
   detalleBoton: { color: "#2563eb", fontSize: 13, fontWeight: "600" },
   seccionTitulo: { fontSize: 14, fontWeight: "700", color: "#334155" },
   sinCuotas: { color: "#64748b", fontSize: 13, marginTop: 4 },
+  prestamoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  prestamoInfo: { flex: 1, marginRight: 8 },
+  prestamoValor: { fontSize: 14, fontWeight: "600", color: "#334155" },
+  prestamoEstatus: { color: "#64748b", fontSize: 12, marginTop: 2 },
   recuadroCuota: {
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -888,6 +1063,7 @@ const styles = StyleSheet.create({
   botonPago: { backgroundColor: "#16a34a" },
   botonNoPago: { backgroundColor: "#d97706" },
   botonEditar: { backgroundColor: "#64748b" },
+  botonEvidencias: { backgroundColor: "#0891b2" },
   botonPrestamo: { backgroundColor: "#7c3aed" },
   botonTexto: { color: "#ffffff", fontWeight: "600" },
   deshabilitado: { backgroundColor: "#93c5fd" },
@@ -923,4 +1099,5 @@ const styles = StyleSheet.create({
   chipTextoActivo: { color: "#ffffff", fontSize: 13 },
   promesaNota: { color: "#64748b", fontSize: 13 },
   mensaje: { color: "#16a34a", fontSize: 14, marginTop: 4 },
+  errorTexto: { color: "#dc2626", fontSize: 13, marginTop: 4 },
 });

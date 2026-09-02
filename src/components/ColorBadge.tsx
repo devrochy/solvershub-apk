@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 const COLORES: Record<string, string> = {
   verde: "#16a34a",
@@ -7,33 +7,24 @@ const COLORES: Record<string, string> = {
   blanco: "#94a3b8",
 };
 
-export function ColorBadge({
-  color,
-  label,
-}: {
-  color: string;
-  label?: string;
-}) {
+/**
+ * Indicador de color de una tarjeta/cliente: un punto circular del color
+ * semántico, sin texto (A8). Aplica en listas de clientes, lista del día y
+ * tarjeta de cliente.
+ */
+export function ColorBadge({ color }: { color: string; label?: string }) {
   return (
     <View
       testID={`color-badge-${color}`}
-      style={[styles.badge, { backgroundColor: COLORES[color] ?? "#94a3b8" }]}
-    >
-      <Text style={styles.texto}>{label ?? color}</Text>
-    </View>
+      style={[styles.punto, { backgroundColor: COLORES[color] ?? "#94a3b8" }]}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+  punto: {
+    width: 14,
+    height: 14,
     borderRadius: 999,
-    alignSelf: "flex-start",
-  },
-  texto: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "600",
   },
 });
