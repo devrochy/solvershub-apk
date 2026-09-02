@@ -174,6 +174,18 @@ export interface RegistrarGastoInput {
   valor: number;
 }
 
+export interface RegistrarPrestamoInput {
+  clienteId: number;
+  valor: number;
+  numCuotas: number;
+  tipoInteres?: number;
+  diasEntreCuotas: number;
+  fiadorNombre?: string;
+  fiadorApellido?: string;
+  fiadorDocumento?: string;
+  fiadorTelefono?: string;
+}
+
 export interface RegistrarTrayectoriaRealInput {
   puntos: { latitud: number; longitud: number }[];
 }

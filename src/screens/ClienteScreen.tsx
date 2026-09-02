@@ -27,6 +27,7 @@ import {
   enlaceWhatsApp,
   textoReportePrestamo,
 } from "../features/estado-cuenta/estado-cuenta";
+import { validarPrestamo } from "../features/prestamo/registrar-prestamo";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
@@ -70,6 +71,13 @@ export function ClienteScreen({ route }: Props) {
   const [edicionOriginal, setEdicionOriginal] = useState<CambioClienteInput>({});
   const [editando, setEditando] = useState(false);
   const [detalleAbierto, setDetalleAbierto] = useState(true);
+  const [modoPrestamo, setModoPrestamo] = useState(false);
+  const [prestamoValor, setPrestamoValor] = useState("");
+  const [prestamoCuotas, setPrestamoCuotas] = useState("");
+  const [prestamoDias, setPrestamoDias] = useState("");
+  const [prestamoInteres, setPrestamoInteres] = useState("");
+  const [prestamoEnviando, setPrestamoEnviando] = useState(false);
+  const [prestamoMensaje, setPrestamoMensaje] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -254,6 +262,43 @@ export function ClienteScreen({ route }: Props) {
     }
   }
 
+  async function guardarPrestamo() {
+    const error = validarPrestamo({
+      valor: prestamoValor,
+      numCuotas: prestamoCuotas,
+      diasEntreCuotas: prestamoDias,
+      tipoInteres: prestamoInteres,
+    });
+    if (error) {
+      setPrestamoMensaje(error);
+      return;
+    }
+    setPrestamoEnviando(true);
+    setPrestamoMensaje(null);
+    try {
+      await api.crearPrestamo(rutaId, {
+        clienteId,
+        valor: Number(prestamoValor),
+        numCuotas: Number(prestamoCuotas),
+        diasEntreCuotas: Number(prestamoDias),
+        ...(prestamoInteres.trim()
+          ? { tipoInteres: Number(prestamoInteres) }
+          : {}),
+      });
+      setModoPrestamo(false);
+      setPrestamoValor("");
+      setPrestamoCuotas("");
+      setPrestamoDias("");
+      setPrestamoInteres("");
+      setPrestamoMensaje("Préstamo registrado.");
+      await cargar();
+    } catch {
+      setPrestamoMensaje("No se pudo registrar el préstamo.");
+    } finally {
+      setPrestamoEnviando(false);
+    }
+  }
+
   if (!tarjeta) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
@@ -369,6 +414,17 @@ export function ClienteScreen({ route }: Props) {
       ) : null}
 
       <View style={styles.acciones}>
+        <Pressable
+          testID="btn-nuevo-prestamo"
+          style={[styles.botonPrimario, styles.botonPrestamo]}
+          onPress={() => {
+            setModoPrestamo(true);
+            setMensaje(null);
+            setPrestamoMensaje(null);
+          }}
+        >
+          <Text style={styles.botonTexto}>Nuevo préstamo</Text>
+        </Pressable>
         <Pressable
           testID="btn-editar-cliente"
           style={[styles.botonPrimario, styles.botonEditar]}
@@ -521,6 +577,59 @@ export function ClienteScreen({ route }: Props) {
         </View>
       ) : null}
 
+      {modoPrestamo ? (
+        <View testID="prestamo-form" style={styles.form}>
+          <Text style={styles.formTitulo}>Nuevo préstamo</Text>
+          <TextInput
+            testID="prestamo-valor"
+            style={styles.input}
+            placeholder="Valor"
+            keyboardType="decimal-pad"
+            value={prestamoValor}
+            onChangeText={setPrestamoValor}
+          />
+          <TextInput
+            testID="prestamo-cuotas"
+            style={styles.input}
+            placeholder="Número de cuotas"
+            keyboardType="number-pad"
+            value={prestamoCuotas}
+            onChangeText={setPrestamoCuotas}
+          />
+          <TextInput
+            testID="prestamo-dias"
+            style={styles.input}
+            placeholder="Días entre cuotas"
+            keyboardType="number-pad"
+            value={prestamoDias}
+            onChangeText={setPrestamoDias}
+          />
+          <TextInput
+            testID="prestamo-interes"
+            style={styles.input}
+            placeholder="Tipo de interés (%) — opcional"
+            keyboardType="decimal-pad"
+            value={prestamoInteres}
+            onChangeText={setPrestamoInteres}
+          />
+          {prestamoMensaje ? (
+            <Text style={styles.mensaje}>{prestamoMensaje}</Text>
+          ) : null}
+          <Pressable
+            testID="guardar-prestamo"
+            style={[styles.botonPrimario, prestamoEnviando && styles.deshabilitado]}
+            disabled={prestamoEnviando}
+            onPress={guardarPrestamo}
+          >
+            {prestamoEnviando ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.botonTexto}>Guardar préstamo</Text>
+            )}
+          </Pressable>
+        </View>
+      ) : null}
+
       {modo === "editar" ? (
         <View testID="editar-cliente-form" style={styles.form}>
           <Text style={styles.formTitulo}>Editar datos del cliente</Text>
@@ -645,6 +754,7 @@ const styles = StyleSheet.create({
   botonPago: { backgroundColor: "#16a34a" },
   botonNoPago: { backgroundColor: "#d97706" },
   botonEditar: { backgroundColor: "#64748b" },
+  botonPrestamo: { backgroundColor: "#7c3aed" },
   botonTexto: { color: "#ffffff", fontWeight: "600" },
   deshabilitado: { backgroundColor: "#93c5fd" },
   form: {

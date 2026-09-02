@@ -495,3 +495,39 @@ describe("ClienteScreen — tarjeta completa (foto, tipoPago, detalle)", () => {
     expect(queryByTestId("cuota-10")).toBeNull();
   });
 });
+
+describe("ClienteScreen — registrar préstamo", () => {
+  it("abre el formulario y llama crearPrestamo con los campos", async () => {
+    const crearPrestamo = jest.fn().mockResolvedValue({ id: 5 });
+    const { getByTestId } = await renderConApi({ crearPrestamo });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+
+    await fireEvent.changeText(getByTestId("prestamo-valor"), "800");
+    await fireEvent.changeText(getByTestId("prestamo-cuotas"), "4");
+    await fireEvent.changeText(getByTestId("prestamo-dias"), "7");
+    await fireEvent.press(getByTestId("guardar-prestamo"));
+
+    await waitFor(() =>
+      expect(crearPrestamo).toHaveBeenCalledWith(6, {
+        clienteId: 2,
+        valor: 800,
+        numCuotas: 4,
+        diasEntreCuotas: 7,
+      }),
+    );
+  });
+
+  it("no llama crearPrestamo si la validación falla", async () => {
+    const crearPrestamo = jest.fn();
+    const { getByTestId, getByText } = await renderConApi({ crearPrestamo });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+    await fireEvent.press(getByTestId("guardar-prestamo"));
+
+    expect(crearPrestamo).not.toHaveBeenCalled();
+    expect(getByText(/Ingresa un valor de préstamo válido/)).toBeTruthy();
+  });
+});

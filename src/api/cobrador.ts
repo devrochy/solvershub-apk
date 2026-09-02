@@ -4,6 +4,7 @@ import type {
   GastoPublic,
   PrestamoPublic,
   RegistrarGastoInput,
+  RegistrarPrestamoInput,
   RegistrarTrayectoriaRealInput,
   RegistrarVisitaInput,
   RutaApkPublic,
@@ -42,6 +43,10 @@ export interface CobradorApi {
     rutaId: number,
     clienteId: number,
   ): Promise<PrestamoPublic[]>;
+  crearPrestamo(
+    rutaId: number,
+    input: RegistrarPrestamoInput,
+  ): Promise<PrestamoPublic>;
 }
 
 export function cobradorApi(client: ApiClient): CobradorApi {
@@ -108,5 +113,12 @@ export function cobradorApi(client: ApiClient): CobradorApi {
       client.request<PrestamoPublic[]>(
         `/cobrador/rutas/${rutaId}/clientes/${clienteId}/prestamos`,
       ),
+
+    crearPrestamo: (rutaId: number, input: RegistrarPrestamoInput) =>
+      client.request<PrestamoPublic>(`/cobrador/rutas/${rutaId}/prestamos`, {
+        method: "POST",
+        headers: JSON_HEADERS,
+        body: jsonBody(input),
+      }),
   };
 }

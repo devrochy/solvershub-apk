@@ -105,4 +105,26 @@ describe("cobradorApi", () => {
 
     expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2/prestamos");
   });
+
+  it("crearPrestamo hace POST con el input", async () => {
+    request.mockResolvedValue({ id: 1 });
+
+    await api.crearPrestamo(6, {
+      clienteId: 2,
+      valor: 800,
+      numCuotas: 4,
+      diasEntreCuotas: 7,
+    });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/prestamos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clienteId: 2,
+        valor: 800,
+        numCuotas: 4,
+        diasEntreCuotas: 7,
+      }),
+    });
+  });
 });
