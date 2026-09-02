@@ -70,6 +70,12 @@ export function RutasScreen({ navigation }: Props) {
         </View>
       </View>
 
+      {offline.errorSync ? (
+        <View testID="aviso-error-sync" style={styles.avisoErrorSync}>
+          <Text style={styles.avisoErrorSyncTexto}>{offline.errorSync}</Text>
+        </View>
+      ) : null}
+
       <FlatList
         data={rutas}
         keyExtractor={(ruta) => String(ruta.id)}
@@ -129,6 +135,17 @@ const styles = StyleSheet.create({
   },
   badgeTexto: { color: "#ffffff", fontSize: 12, fontWeight: "600" },
   salir: { color: "#dc2626", fontSize: 15 },
+  avisoErrorSync: {
+    backgroundColor: "#fee2e2",
+    borderWidth: 1,
+    borderColor: "#fca5a5",
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  avisoErrorSyncTexto: { color: "#991b1b", fontSize: 13, fontWeight: "600" },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   tarjeta: {

@@ -115,4 +115,55 @@ describe("OfflineProvider", () => {
     });
     expect(cola.encolar).toHaveBeenCalledTimes(1);
   });
+
+  it("deja la cola sin vaciar y expone errorSync si el sync falla (device key inválida)", async () => {
+    (cola.listarCola as jest.Mock).mockResolvedValue([
+      { eventoIdCliente: "a", tipoEvento: "visita", payload: {}, creadoEn: "" },
+    ]);
+    (sincronizarCola as jest.Mock).mockRejectedValue(
+      new Error("Request failed with status code 401"),
+    );
+    (cola.contarCola as jest.Mock).mockResolvedValue(1);
+    const { ref } = await renderConProvider();
+    await waitFor(() => expect(ref.current).toBeTruthy());
+
+    await act(async () => {
+      await expect(ref.current!.sincronizar()).rejects.toThrow();
+    });
+
+    expect(ref.current!.errorSync).toMatch(/sincronizar/i);
+    expect(cola.removerDeCola).not.toHaveBeenCalled();
+  });
+
+  it("limpia errorSync cuando el sync tiene éxito", async () => {
+    (cola.listarCola as jest.Mock).mockResolvedValue([
+      { eventoIdCliente: "a", tipoEvento: "visita", payload: {}, creadoEn: "" },
+    ]);
+    (sincronizarCola as jest.Mock).mockResolvedValue(["a"]);
+    (cola.contarCola as jest.Mock).mockResolvedValue(0);
+    const { ref } = await renderConProvider();
+    await waitFor(() => expect(ref.current).toBeTruthy());
+
+    // Primero un fallo para setear errorSync
+    (sincronizarCola as jest.Mock).mockRejectedValueOnce(
+      new Error("Request failed with status code 401"),
+    );
+    (cola.listarCola as jest.Mock).mockResolvedValueOnce([
+      { eventoIdCliente: "a", tipoEvento: "visita", payload: {}, creadoEn: "" },
+    ]);
+    await act(async () => {
+      await ref.current!.sincronizar().catch(() => undefined);
+    });
+    expect(ref.current!.errorSync).toBeTruthy();
+
+    // Luego éxito: debe limpiar
+    (sincronizarCola as jest.Mock).mockResolvedValueOnce(["a"]);
+    (cola.listarCola as jest.Mock).mockResolvedValueOnce([
+      { eventoIdCliente: "a", tipoEvento: "visita", payload: {}, creadoEn: "" },
+    ]);
+    await act(async () => {
+      await ref.current!.sincronizar().catch(() => undefined);
+    });
+    expect(ref.current!.errorSync).toBeNull();
+  });
 });
