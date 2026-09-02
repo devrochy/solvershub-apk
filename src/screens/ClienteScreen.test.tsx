@@ -681,4 +681,23 @@ describe("ClienteScreen — editar/eliminar cuota", () => {
     expect(getByTestId("form-pago")).toBeTruthy();
     expect(queryByTestId("prestamo-form")).toBeNull();
   });
+
+  it("lista todos los préstamos del cliente con su color de estado", async () => {
+    const prestamoCancelado = {
+      ...prestamo,
+      id: 2,
+      estatus: "cancelado" as const,
+      cuotas: [],
+    };
+    const { getByTestId, getAllByTestId } = await renderConApi({
+      listarPrestamosDeCliente: jest
+        .fn()
+        .mockResolvedValue([prestamo, prestamoCancelado]),
+    });
+
+    await waitFor(() => expect(getByTestId("prestamo-item-1")).toBeTruthy());
+    expect(getByTestId("prestamo-item-2")).toBeTruthy();
+    expect(getAllByTestId("color-badge-verde").length).toBeGreaterThan(0);
+    expect(getByTestId("color-badge-blanco")).toBeTruthy();
+  });
 });

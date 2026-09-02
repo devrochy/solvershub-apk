@@ -423,6 +423,43 @@ export function ClienteScreen({ route, navigation }: Props) {
         ) : null}
       </View>
 
+      {prestamos.length > 0 ? (
+        <View style={styles.seccion}>
+          <Text style={styles.seccionTitulo}>Préstamos</Text>
+          {prestamos.map((p) => (
+            <Pressable
+              key={p.id}
+              testID={`prestamo-item-${p.id}`}
+              style={styles.prestamoItem}
+              onPress={() =>
+                navigation.navigate("Prestamo", {
+                  rutaId,
+                  prestamoId: p.id,
+                  clienteNombre: tarjeta.nombre,
+                  telefonoWhatsapp: tarjeta.telefonoWhatsapp,
+                  valor: p.valor,
+                  numCuotas: p.numCuotas,
+                })
+              }
+            >
+              <View style={styles.prestamoInfo}>
+                <Text style={styles.prestamoValor}>
+                  {p.valor} · {p.numCuotas} cuotas
+                </Text>
+                <Text style={styles.prestamoEstatus}>{p.estatus}</Text>
+              </View>
+              <ColorBadge
+                color={
+                  p.estatus === "vigente" || p.estatus === "liquidado"
+                    ? "verde"
+                    : "blanco"
+                }
+              />
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
       {prestamoVigente && cuotaPorPagar ? (
         <View style={styles.seccion}>
           <Text style={styles.seccionTitulo}>Próxima cuota</Text>
@@ -903,6 +940,21 @@ const styles = StyleSheet.create({
   detalleBoton: { color: "#2563eb", fontSize: 13, fontWeight: "600" },
   seccionTitulo: { fontSize: 14, fontWeight: "700", color: "#334155" },
   sinCuotas: { color: "#64748b", fontSize: 13, marginTop: 4 },
+  prestamoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  prestamoInfo: { flex: 1, marginRight: 8 },
+  prestamoValor: { fontSize: 14, fontWeight: "600", color: "#334155" },
+  prestamoEstatus: { color: "#64748b", fontSize: 12, marginTop: 2 },
   recuadroCuota: {
     borderWidth: 1,
     borderColor: "#e2e8f0",
