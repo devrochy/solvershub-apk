@@ -5,6 +5,7 @@ export interface EvidenciaSeleccionada {
   uri: string;
   name: string;
   type: string;
+  base64: string | null;
 }
 
 export const MAX_EVIDENCIAS = 5;
@@ -13,6 +14,7 @@ function aEvidencia(asset: {
   uri: string;
   fileName?: string | null;
   mimeType?: string | null;
+  base64?: string | null;
 }): EvidenciaSeleccionada {
   const type = asset.mimeType ?? "image/jpeg";
   const ext = type.split("/")[1] ?? "jpg";
@@ -20,7 +22,21 @@ function aEvidencia(asset: {
     uri: asset.uri,
     name: asset.fileName ?? `evidencia-${Date.now()}.${ext}`,
     type,
+    base64: asset.base64 ?? null,
   };
+}
+
+/**
+ * Convierte las evidencias seleccionadas al payload que espera el backend para
+ * el evento offline `gasto` (`EvidenciasOfflineInput[]`): {nombre, mimetype,
+ * base64}. Omite las que no tienen base64 (no capturadas).
+ */
+export function evidenciasParaOffline(
+  evidencias: EvidenciaSeleccionada[],
+): Array<{ nombre: string; mimetype: string; base64: string }> {
+  return evidencias
+    .filter((e) => e.base64 != null)
+    .map((e) => ({ nombre: e.name, mimetype: e.type, base64: e.base64 as string }));
 }
 
 export interface UseEvidenciasResult {
@@ -55,6 +71,7 @@ export function useEvidencias(): UseEvidenciasResult {
         allowsMultipleSelection: true,
         selectionLimit: MAX_EVIDENCIAS - evidencias.length,
         quality: 0.7,
+        base64: true,
       });
       if (!result.canceled) {
         const nuevas = result.assets.map(aEvidencia);
@@ -84,6 +101,7 @@ export function useEvidencias(): UseEvidenciasResult {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ["images"],
         quality: 0.7,
+        base64: true,
       });
       if (!result.canceled && result.assets[0]) {
         setEvidencias((actual) =>
