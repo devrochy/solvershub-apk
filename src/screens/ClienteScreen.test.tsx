@@ -677,11 +677,24 @@ describe("ClienteScreen — editar/eliminar cuota", () => {
     await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
     expect(getByTestId("prestamo-form")).toBeTruthy();
 
-    await fireEvent.press(getByTestId("btn-pago"));
+await fireEvent.press(getByTestId("btn-pago"));
     expect(getByTestId("form-pago")).toBeTruthy();
     expect(queryByTestId("prestamo-form")).toBeNull();
   });
 
+  it("abre el formulario de foto/documento y no solapa otros formularios", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-evidencias")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-evidencias"));
+
+    expect(getByTestId("evidencias-form")).toBeTruthy();
+    expect(queryByTestId("prestamo-form")).toBeNull();
+    expect(queryByTestId("editar-cliente-form")).toBeNull();
+  });
+});
+
+describe("ClienteScreen — lista de préstamos con color", () => {
   it("lista todos los préstamos del cliente con su color de estado", async () => {
     const prestamoCancelado = {
       ...prestamo,

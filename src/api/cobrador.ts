@@ -43,6 +43,11 @@ export interface CobradorApi {
     input: RegistrarTrayectoriaRealInput,
   ): Promise<{ id: number; tipo: "real" }>;
   tarjeta(rutaId: number, clienteId: number): Promise<ClienteTarjetaPublic>;
+  agregarEvidenciasCliente(
+    rutaId: number,
+    clienteId: number,
+    evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+  ): Promise<{ clienteId: number }>;
   listarClientesDeRuta(rutaId: number): Promise<ClienteCobradorPublic[]>;
   obtenerEstadoCuentaPrestamo(
     rutaId: number,
@@ -141,6 +146,25 @@ export function cobradorApi(client: ApiClient): CobradorApi {
       client.request<ClienteTarjetaPublic>(
         `/cobrador/rutas/${rutaId}/clientes/${clienteId}/tarjeta`,
       ),
+
+    agregarEvidenciasCliente: (
+      rutaId: number,
+      clienteId: number,
+      evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+    ) => {
+      const form = new FormData();
+      for (const e of evidencias) {
+        form.append(e.campo, {
+          uri: e.uri,
+          name: e.name,
+          type: e.type,
+        } as unknown as Blob);
+      }
+      return client.request<{ clienteId: number }>(
+        `/cobrador/rutas/${rutaId}/clientes/${clienteId}/evidencias`,
+        { method: "POST", body: form },
+      );
+    },
 
     listarClientesDeRuta: (rutaId: number) =>
       client.request<ClienteCobradorPublic[]>(`/cobrador/rutas/${rutaId}/clientes`),

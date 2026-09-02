@@ -28,6 +28,7 @@ import {
   textoReportePrestamo,
 } from "../features/estado-cuenta/estado-cuenta";
 import { validarPrestamo } from "../features/prestamo/registrar-prestamo";
+import { useEvidenciasCliente } from "../features/cliente/use-evidencias-cliente";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
@@ -56,7 +57,7 @@ export function ClienteScreen({ route, navigation }: Props) {
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [modo, setModo] = useState<"pago" | "no_pago" | "editar" | "prestamo" | null>(null);
+  const [modo, setModo] = useState<"pago" | "no_pago" | "editar" | "prestamo" | "evidencias" | null>(null);
   const [valor, setValor] = useState("");
   const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>(
     "efectivo",
@@ -87,14 +88,41 @@ export function ClienteScreen({ route, navigation }: Props) {
   const [cuotaEnviando, setCuotaEnviando] = useState(false);
   const [cuotaMensaje, setCuotaMensaje] = useState<string | null>(null);
 
+  const evidenciasCliente = useEvidenciasCliente();
+  const [evidenciasEnviando, setEvidenciasEnviando] = useState(false);
+  const [evidenciasMensaje, setEvidenciasMensaje] = useState<string | null>(null);
+
   // Máquina de estados: solo un formulario activo a la vez (A2).
   function abrirModo(
-    m: "pago" | "no_pago" | "editar" | "prestamo",
+    m: "pago" | "no_pago" | "editar" | "prestamo" | "evidencias",
   ): void {
     setCuotaEditando(null);
     setCuotaEliminando(null);
     setCuotaMensaje(null);
     setModo(m);
+  }
+
+  async function guardarEvidenciasCliente() {
+    if (evidenciasCliente.evidencias.length === 0) {
+      return;
+    }
+    setEvidenciasEnviando(true);
+    setEvidenciasMensaje(null);
+    try {
+      await api.agregarEvidenciasCliente(rutaId, clienteId, evidenciasCliente.evidencias);
+      setEvidenciasMensaje("Evidencias guardadas.");
+      evidenciasCliente.quitar("foto_facial");
+      evidenciasCliente.quitar("documento_frente");
+      await cargar();
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setEvidenciasMensaje("No se pudieron guardar las evidencias.");
+      }
+    } finally {
+      setEvidenciasEnviando(false);
+    }
   }
 
   const cargar = useCallback(async () => {
@@ -625,7 +653,59 @@ export function ClienteScreen({ route, navigation }: Props) {
         >
           <Text style={styles.botonTexto}>Registrar no pago</Text>
         </Pressable>
+        <Pressable
+          testID="btn-evidencias"
+          style={[styles.botonPrimario, styles.botonEvidencias]}
+          onPress={() => abrirModo("evidencias")}
+        >
+          <Text style={styles.botonTexto}>Foto / documento</Text>
+        </Pressable>
       </View>
+
+      {modo === "evidencias" ? (
+        <View testID="evidencias-form" style={styles.form}>
+          <Text style={styles.formTitulo}>Foto y documento del cliente</Text>
+          <Text style={styles.detalle}>Selecciona la foto facial y el documento de identidad.</Text>
+          <Pressable
+            testID="evidencia-foto"
+            style={[styles.botonPrimario, styles.botonPrestamo]}
+            onPress={() => void evidenciasCliente.agregar("foto_facial")}
+          >
+            <Text style={styles.botonTexto}>
+              {evidenciasCliente.evidencias.find((e) => e.campo === "foto_facial")
+                ? "Foto seleccionada (cambiar)"
+                : "Seleccionar foto"}
+            </Text>
+          </Pressable>
+          <Pressable
+            testID="evidencia-documento"
+            style={[styles.botonPrimario, styles.botonPrestamo]}
+            onPress={() => void evidenciasCliente.agregar("documento_frente")}
+          >
+            <Text style={styles.botonTexto}>
+              {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
+                ? "Documento seleccionado (cambiar)"
+                : "Seleccionar documento"}
+            </Text>
+          </Pressable>
+          {evidenciasCliente.error ? (
+            <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
+          ) : null}
+          <Pressable
+            testID="guardar-evidencias"
+            style={[styles.botonPrimario, styles.botonPrestamo, evidenciasCliente.evidencias.length === 0 && styles.deshabilitado]}
+            disabled={evidenciasCliente.evidencias.length === 0 || evidenciasEnviando}
+            onPress={guardarEvidenciasCliente}
+          >
+            {evidenciasEnviando ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.botonTexto}>Guardar evidencias</Text>
+            )}
+          </Pressable>
+          {evidenciasMensaje ? <Text style={styles.errorTexto}>{evidenciasMensaje}</Text> : null}
+        </View>
+      ) : null}
 
       {modo === "pago" ? (
         <View testID="form-pago" style={styles.form}>
@@ -991,6 +1071,7 @@ const styles = StyleSheet.create({
   botonPago: { backgroundColor: "#16a34a" },
   botonNoPago: { backgroundColor: "#d97706" },
   botonEditar: { backgroundColor: "#64748b" },
+  botonEvidencias: { backgroundColor: "#0891b2" },
   botonPrestamo: { backgroundColor: "#7c3aed" },
   botonTexto: { color: "#ffffff", fontWeight: "600" },
   deshabilitado: { backgroundColor: "#93c5fd" },
@@ -1026,4 +1107,5 @@ const styles = StyleSheet.create({
   chipTextoActivo: { color: "#ffffff", fontSize: 13 },
   promesaNota: { color: "#64748b", fontSize: 13 },
   mensaje: { color: "#16a34a", fontSize: 14, marginTop: 4 },
+  errorTexto: { color: "#dc2626", fontSize: 13, marginTop: 4 },
 });
