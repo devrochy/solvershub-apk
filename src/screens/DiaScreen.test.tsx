@@ -11,7 +11,18 @@ jest.mock("../features/navegacion/navegacion", () => ({
   coordenadaDeCliente: jest.fn(),
 }));
 
+jest.mock("../features/trayectoria/use-trayectoria", () => ({
+  useTrayectoria: jest.fn(() => ({
+    activa: false,
+    puntos: [],
+    error: null,
+    iniciar: jest.fn(),
+    detener: jest.fn().mockReturnValue([]),
+  })),
+}));
+
 import { abrirNavegacion, coordenadaDeCliente } from "../features/navegacion/navegacion";
+import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 
 jest.mock("../offline/cache", () => ({
   guardarDia: jest.fn().mockResolvedValue(undefined),
@@ -254,5 +265,40 @@ describe("DiaScreen — re-fetch periódico (día en vivo)", () => {
       jest.advanceTimersByTime(30000);
     });
     await waitFor(() => expect(dia).toHaveBeenCalledTimes(2));
+  });
+});
+
+describe("DiaScreen — trayectoria offline", () => {
+  it("encola la trayectoria cuando el envío falla por red", async () => {
+    const encolar = jest.fn().mockResolvedValue(undefined);
+    const offlineConError: OfflineValue = { ...offlineValor, encolar };
+    (useTrayectoria as jest.Mock).mockReturnValue({
+      activa: true,
+      puntos: [
+        { latitud: -17.78, longitud: -63.18 },
+        { latitud: -17.79, longitud: -63.19 },
+      ],
+      error: null,
+      iniciar: jest.fn(),
+      detener: jest.fn().mockReturnValue([
+        { latitud: -17.78, longitud: -63.18 },
+        { latitud: -17.79, longitud: -63.19 },
+      ]),
+    });
+    const registrarTrayectoriaReal = jest.fn().mockRejectedValue(new Error("Network request failed"));
+    const { getByTestId, getByText } = await renderConApi({ registrarTrayectoriaReal }, offlineConError);
+
+    await waitFor(() => expect(getByTestId("detener-trayectoria")).toBeTruthy());
+    await fireEvent.press(getByTestId("detener-trayectoria"));
+
+    await waitFor(() =>
+      expect(encolar).toHaveBeenCalledWith("trayectoria", {
+        puntos: [
+          { latitud: -17.78, longitud: -63.18 },
+          { latitud: -17.79, longitud: -63.19 },
+        ],
+      }),
+    );
+    expect(getByText(/se sincronizará/)).toBeTruthy();
   });
 });
