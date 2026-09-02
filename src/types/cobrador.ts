@@ -148,6 +148,7 @@ export interface ClienteCobradorPublic {
   topeMaximoDeuda: number | null;
   estatus: string;
   colorRiesgo: ColorRiesgo;
+  fotoUrl: string | null;
   createdAt: string;
 }
 

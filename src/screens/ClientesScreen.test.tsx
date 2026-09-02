@@ -27,6 +27,7 @@ const cliente = {
   topeMaximoDeuda: null,
   estatus: "activo",
   colorRiesgo: "azul",
+  fotoUrl: null,
   createdAt: "2026-08-01T00:00:00.000Z",
 };
 
@@ -76,6 +77,14 @@ describe("ClientesScreen", () => {
 
     await waitFor(() => expect(getByText("Juan Perez")).toBeTruthy());
     expect(getByText("Tienda Central")).toBeTruthy();
+  });
+
+  it("muestra avatar con iniciales si el cliente no tiene foto", async () => {
+    const { getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("avatar-iniciales")).toBeTruthy());
   });
 
   it("navega al cliente al tocarlo", async () => {

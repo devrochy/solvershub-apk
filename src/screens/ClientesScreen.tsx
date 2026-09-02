@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus } from "../api/client";
+import { Avatar } from "../components/Avatar";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import type { RootStackParamList, RootTabParamList } from "../navigation/types";
@@ -102,6 +103,7 @@ export function ClientesScreen({ navigation }: Props) {
               })
             }
           >
+            <Avatar nombre={nombreCompleto(item)} fotoUrl={item.fotoUrl} />
             <View style={styles.tarjetaInfo}>
               <Text style={styles.clienteNombre}>{nombreCompleto(item)}</Text>
               {item.negocio ? (
@@ -135,14 +137,14 @@ const styles = StyleSheet.create({
   tarjeta: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 12,
     backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
     borderColor: "#e2e8f0",
   },
-  tarjetaInfo: { flex: 1, marginRight: 10 },
+  tarjetaInfo: { flex: 1 },
   clienteNombre: { fontSize: 16, fontWeight: "600", color: "#334155" },
   clienteDetalle: { color: "#64748b", fontSize: 13, marginTop: 2 },
   clienteTelefono: { color: "#475569", fontSize: 12, marginTop: 2 },
