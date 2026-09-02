@@ -369,6 +369,23 @@ describe("ClienteScreen — edición de cliente offline", () => {
     expect(getByText(/se sincronizará/)).toBeTruthy();
   });
 
+  it("tras editar el teléfono, el WhatsApp usa el número nuevo (no stale)", async () => {
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
+    jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+    const { getByTestId } = await renderConApi({}, offlineConError);
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    await fireEvent.changeText(getByTestId("editar-telefono"), "+59179999999");
+    await fireEvent.press(getByTestId("guardar-cambio-cliente"));
+
+    await waitFor(() => expect(getByTestId("btn-whatsapp")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-whatsapp"));
+
+    expect(enlaceWhatsApp).toHaveBeenCalledWith("+59179999999", "Estado de cuenta de Juan");
+  });
+
   it("no vuelve a encolar si ya hay un cambio pendiente del cliente", async () => {
     const encolarSiNoExiste = jest.fn().mockResolvedValue(false);
     const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };

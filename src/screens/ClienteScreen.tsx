@@ -271,6 +271,24 @@ export function ClienteScreen({ route, navigation }: Props) {
       );
       if (encolado) {
         setEdicionOriginal({ ...input });
+        // A4: reflejar el cambio en la tarjeta local para que cabecera y
+        // WhatsApp usen los datos nuevos (antes quedaba stale).
+        setTarjeta((actual) =>
+          actual
+            ? {
+                ...actual,
+                nombre:
+                  input.nombre !== undefined
+                    ? `${input.nombre} ${actual.nombre.split(" ").slice(1).join(" ")}`.trim()
+                    : actual.nombre,
+                negocio: input.negocio !== undefined ? input.negocio : actual.negocio,
+                telefonoWhatsapp:
+                  input.telefonoWhatsapp !== undefined
+                    ? input.telefonoWhatsapp
+                    : actual.telefonoWhatsapp,
+              }
+            : actual,
+        );
         setMensaje("Cambio enviado (se sincronizará).");
       } else {
         setMensaje("Ya hay un cambio pendiente por sincronizar.");
