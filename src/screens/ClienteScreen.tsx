@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Linking,
   Pressable,
   ScrollView,
@@ -68,6 +69,7 @@ export function ClienteScreen({ route }: Props) {
   const [edicion, setEdicion] = useState<CambioClienteInput>({});
   const [edicionOriginal, setEdicionOriginal] = useState<CambioClienteInput>({});
   const [editando, setEditando] = useState(false);
+  const [detalleAbierto, setDetalleAbierto] = useState(true);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -259,6 +261,13 @@ export function ClienteScreen({ route }: Props) {
   return (
     <ScrollView style={styles.contenedor} contentContainerStyle={styles.scroll}>
       <View style={styles.tarjetaInfo}>
+        {tarjeta.fotoUrl ? (
+          <Image
+            testID="foto-cliente"
+            source={{ uri: tarjeta.fotoUrl }}
+            style={styles.foto}
+          />
+        ) : null}
         <View style={styles.fila}>
           <Text style={styles.nombre}>{tarjeta.nombre}</Text>
           <ColorBadge color={tarjeta.color} />
@@ -267,6 +276,9 @@ export function ClienteScreen({ route }: Props) {
           <Text style={styles.detalle}>Negocio: {tarjeta.negocio}</Text>
         ) : null}
         <Text style={styles.detalle}>WhatsApp: {tarjeta.telefonoWhatsapp}</Text>
+        {tarjeta.tipoPago ? (
+          <Text style={styles.detalle}>Tipo de pago: {tarjeta.tipoPago}</Text>
+        ) : null}
         <Text style={styles.detalle}>
           Saldo pendiente: {tarjeta.saldoPendiente} | Mora: {tarjeta.diasMora} días
         </Text>
@@ -304,33 +316,55 @@ export function ClienteScreen({ route }: Props) {
 
       {prestamoVigente ? (
         <View style={styles.seccion}>
-          <Text style={styles.seccionTitulo}>Estado de cuenta</Text>
-          {prestamoVigente.cuotas.map((cuota) => (
-            <View
-              key={cuota.id}
-              style={[styles.recuadroCuota, cuota.estatus === "atrasada" && styles.recuadroCuotaMora]}
-              testID={`cuota-${cuota.id}`}
+          <View style={styles.seccionFila}>
+            <Text style={styles.seccionTitulo}>Estado de cuenta</Text>
+            <Pressable
+              testID="btn-detalle-estado-cuenta"
+              onPress={() => setDetalleAbierto((abierto) => !abierto)}
             >
-              <Text style={styles.cuotaLinea}>
-                Cuota {cuota.numeroCuota} — {cuota.valorEsperado} ({cuota.estatus})
+              <Text style={styles.detalleBoton}>
+                {detalleAbierto ? "Ocultar" : "Ver detalle"}
               </Text>
-              <Text style={styles.cuotaFecha}>
-                Vence {cuota.fechaVencimiento}
-              </Text>
+            </Pressable>
+          </View>
+          {detalleAbierto ? (
+            <View
+              testID="estado-cuenta"
+              accessibilityState={{ expanded: true }}
+            >
+              {prestamoVigente.cuotas.map((cuota) => (
+                <View
+                  key={cuota.id}
+                  style={[styles.recuadroCuota, cuota.estatus === "atrasada" && styles.recuadroCuotaMora]}
+                  testID={`cuota-${cuota.id}`}
+                >
+                  <Text style={styles.cuotaLinea}>
+                    Cuota {cuota.numeroCuota} — {cuota.valorEsperado} ({cuota.estatus})
+                  </Text>
+                  <Text style={styles.cuotaFecha}>
+                    Vence {cuota.fechaVencimiento}
+                  </Text>
+                </View>
+              ))}
+              <Pressable
+                testID="btn-whatsapp"
+                style={[styles.botonPrimario, styles.botonWhatsApp]}
+                onPress={() => {
+                  const texto = textoReportePrestamo(prestamoVigente, tarjeta);
+                  void Linking.openURL(
+                    enlaceWhatsApp(tarjeta.telefonoWhatsapp, texto),
+                  );
+                }}
+              >
+                <Text style={styles.botonTexto}>Enviar por WhatsApp</Text>
+              </Pressable>
             </View>
-          ))}
-          <Pressable
-            testID="btn-whatsapp"
-            style={[styles.botonPrimario, styles.botonWhatsApp]}
-            onPress={() => {
-              const texto = textoReportePrestamo(prestamoVigente, tarjeta);
-              void Linking.openURL(
-                enlaceWhatsApp(tarjeta.telefonoWhatsapp, texto),
-              );
-            }}
-          >
-            <Text style={styles.botonTexto}>Enviar por WhatsApp</Text>
-          </Pressable>
+          ) : (
+            <View
+              testID="estado-cuenta"
+              accessibilityState={{ expanded: false }}
+            />
+          )}
         </View>
       ) : null}
 
@@ -567,9 +601,22 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  foto: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: "#e2e8f0",
+  },
   nombre: { fontSize: 18, fontWeight: "700" },
   detalle: { color: "#475569", fontSize: 14 },
   seccion: { marginTop: 4 },
+  seccionFila: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  detalleBoton: { color: "#2563eb", fontSize: 13, fontWeight: "600" },
   seccionTitulo: { fontSize: 14, fontWeight: "700", color: "#334155" },
   sinCuotas: { color: "#64748b", fontSize: 13, marginTop: 4 },
   recuadroCuota: {
