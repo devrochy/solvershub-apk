@@ -328,3 +328,20 @@ describe("DiaScreen — trayectoria offline", () => {
     expect(getByText(/se sincronizará/)).toBeTruthy();
   });
 });
+
+describe("DiaScreen — gating de la lista del día", () => {
+  it("bloquea la lista y permite generar el trayecto si no existe", async () => {
+    const dia = jest.fn().mockResolvedValue({
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const }],
+      trayectos: null,
+    });
+    const generarTrayecto = jest.fn().mockResolvedValue([]);
+    const { getByTestId } = await renderConApi({ dia, generarTrayecto });
+
+    await waitFor(() => expect(getByTestId("generar-trayecto")).toBeTruthy());
+    expect(getByTestId("cliente-1").props.accessibilityState.disabled).toBe(true);
+
+    await fireEvent.press(getByTestId("generar-trayecto"));
+    await waitFor(() => expect(generarTrayecto).toHaveBeenCalledWith(6));
+  });
+});

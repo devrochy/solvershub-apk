@@ -58,6 +58,7 @@ export function DiaScreen({ navigation }: Props) {
   } = useEvidencias();
   const trayectoria = useTrayectoria();
   const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
+  const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
 
   const precargarClientes = useCallback(
@@ -172,6 +173,25 @@ export function DiaScreen({ navigation }: Props) {
     setRefrescando(false);
   }
 
+  async function generarTrayecto() {
+    if (!rutaId) {
+      return;
+    }
+    setGenerandoTrayecto(true);
+    try {
+      await api.generarTrayecto(rutaId);
+      await cargar();
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setError("No se pudo generar el trayecto.");
+      }
+    } finally {
+      setGenerandoTrayecto(false);
+    }
+  }
+
   async function detenerYEnviarTrayectoria() {
     const puntos = trayectoria.detener();
     if (puntos.length < 2) {
@@ -206,6 +226,9 @@ export function DiaScreen({ navigation }: Props) {
   if (!clientes) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
+
+  // A12: la lista de cobros solo se habilita con trayecto planificado Y GPS activo.
+  const listaHabilitada = Boolean(trayectos) && trayectoria.activa;
 
   return (
     <View style={styles.contenedor}>
@@ -256,6 +279,31 @@ export function DiaScreen({ navigation }: Props) {
                 {trayectoria.error ?? trayectoriaMensaje}
               </Text>
             ) : null}
+            {!trayectos ? (
+              <View style={styles.gating}>
+                <Text style={styles.gatingTexto}>
+                  Genera el trayecto óptimo para habilitar los cobros del día.
+                </Text>
+                <Pressable
+                  testID="generar-trayecto"
+                  style={[styles.botonPrimario, generandoTrayecto && styles.deshabilitado]}
+                  disabled={generandoTrayecto}
+                  onPress={generarTrayecto}
+                >
+                  {generandoTrayecto ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text style={styles.botonPrimarioTexto}>Generar trayecto</Text>
+                  )}
+                </Pressable>
+              </View>
+            ) : !trayectoria.activa ? (
+              <View style={styles.gating}>
+                <Text style={styles.gatingTexto}>
+                  Activa el GPS para habilitar la lista de cobros.
+                </Text>
+              </View>
+            ) : null}
             <Pressable
               testID="nuevo-gasto"
               style={styles.botonPrimario}
@@ -273,7 +321,8 @@ export function DiaScreen({ navigation }: Props) {
           return (
             <Pressable
               testID={`cliente-${item.clienteId}`}
-              style={styles.tarjeta}
+              style={[styles.tarjeta, !listaHabilitada && styles.tarjetaBloqueada]}
+              disabled={!listaHabilitada}
               onPress={() =>
                 (navigation as unknown as StackNavigation).navigate("Cliente", {
                   rutaId,
@@ -390,6 +439,17 @@ const styles = StyleSheet.create({
   },
   trayectoriaTexto: { color: "#7f1d1d", fontWeight: "600", flex: 1 },
   mensajeTrayectoria: { color: "#475569", fontSize: 13 },
+  gating: {
+    backgroundColor: "#fef9c3",
+    borderWidth: 1,
+    borderColor: "#fde68a",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  gatingTexto: { color: "#92400e", fontSize: 13, fontWeight: "600" },
+  tarjetaBloqueada: { opacity: 0.5 },
   deshabilitado: { backgroundColor: "#93c5fd" },
   tarjeta: {
     flexDirection: "row",

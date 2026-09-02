@@ -24,6 +24,7 @@ function jsonBody(input: unknown): string {
 export interface CobradorApi {
   misRutas(): Promise<RutaApkPublic[]>;
   dia(rutaId: number): Promise<DiaApkPublic>;
+  generarTrayecto(rutaId: number): Promise<unknown>;
   registrarVisitaPago(
     rutaId: number,
     input: RegistrarVisitaInput,
@@ -82,6 +83,11 @@ export function cobradorApi(client: ApiClient): CobradorApi {
 
     dia: (rutaId: number) =>
       client.request<DiaApkPublic>(`/cobrador/rutas/${rutaId}/dia`),
+
+    generarTrayecto: (rutaId: number) =>
+      client.request<unknown>(`/cobrador/rutas/${rutaId}/trayecto`, {
+        method: "POST",
+      }),
 
     registrarVisitaPago: (rutaId: number, input: RegistrarVisitaInput) =>
       client.request<VisitaPublic>(`/cobrador/rutas/${rutaId}/visitas/pago`, {
