@@ -78,6 +78,13 @@ export function ClienteScreen({ route }: Props) {
   const [prestamoInteres, setPrestamoInteres] = useState("");
   const [prestamoEnviando, setPrestamoEnviando] = useState(false);
   const [prestamoMensaje, setPrestamoMensaje] = useState<string | null>(null);
+  const [cuotaEditando, setCuotaEditando] = useState<CuotaPublic | null>(null);
+  const [cuotaEliminando, setCuotaEliminando] = useState<CuotaPublic | null>(null);
+  const [cuotaNuevoValor, setCuotaNuevoValor] = useState("");
+  const [cuotaPassword, setCuotaPassword] = useState("");
+  const [cuotaMotivo, setCuotaMotivo] = useState("");
+  const [cuotaEnviando, setCuotaEnviando] = useState(false);
+  const [cuotaMensaje, setCuotaMensaje] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -299,6 +306,46 @@ export function ClienteScreen({ route }: Props) {
     }
   }
 
+  async function guardarCuota() {
+    if (!cuotaPassword.trim() || !cuotaMotivo.trim()) {
+      setCuotaMensaje("La contraseña y el motivo son obligatorios.");
+      return;
+    }
+    setCuotaEnviando(true);
+    setCuotaMensaje(null);
+    try {
+      if (cuotaEditando) {
+        const valor = Number(cuotaNuevoValor);
+        if (!cuotaNuevoValor.trim() || !Number.isFinite(valor) || valor <= 0) {
+          setCuotaMensaje("Ingresa un valor de cuota válido.");
+          setCuotaEnviando(false);
+          return;
+        }
+        await api.editarCuota(rutaId, cuotaEditando.id, {
+          valorEsperado: valor,
+          password: cuotaPassword,
+          motivo: cuotaMotivo,
+        });
+        setCuotaEditando(null);
+      } else if (cuotaEliminando) {
+        await api.eliminarCuota(rutaId, cuotaEliminando.id, {
+          password: cuotaPassword,
+          motivo: cuotaMotivo,
+        });
+        setCuotaEliminando(null);
+      }
+      setCuotaPassword("");
+      setCuotaMotivo("");
+      setCuotaNuevoValor("");
+      setCuotaMensaje("Cuota actualizada.");
+      await cargar();
+    } catch {
+      setCuotaMensaje("No se pudo actualizar la cuota.");
+    } finally {
+      setCuotaEnviando(false);
+    }
+  }
+
   if (!tarjeta) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
@@ -389,6 +436,35 @@ export function ClienteScreen({ route }: Props) {
                   <Text style={styles.cuotaFecha}>
                     Vence {cuota.fechaVencimiento}
                   </Text>
+                  <View style={styles.cuotaAcciones}>
+                    <Pressable
+                      testID={`btn-editar-cuota-${cuota.id}`}
+                      style={styles.botonCuota}
+                      onPress={() => {
+                        setCuotaEditando(cuota);
+                        setCuotaEliminando(null);
+                        setCuotaNuevoValor(String(cuota.valorEsperado));
+                        setCuotaPassword("");
+                        setCuotaMotivo("");
+                        setCuotaMensaje(null);
+                      }}
+                    >
+                      <Text style={styles.botonCuotaTexto}>Editar</Text>
+                    </Pressable>
+                    <Pressable
+                      testID={`btn-eliminar-cuota-${cuota.id}`}
+                      style={[styles.botonCuota, styles.botonCuotaPeligro]}
+                      onPress={() => {
+                        setCuotaEliminando(cuota);
+                        setCuotaEditando(null);
+                        setCuotaPassword("");
+                        setCuotaMotivo("");
+                        setCuotaMensaje(null);
+                      }}
+                    >
+                      <Text style={styles.botonCuotaTexto}>Eliminar</Text>
+                    </Pressable>
+                  </View>
                 </View>
               ))}
               <Pressable
@@ -630,6 +706,54 @@ export function ClienteScreen({ route }: Props) {
         </View>
       ) : null}
 
+      {cuotaEditando || cuotaEliminando ? (
+        <View testID="cuota-dialog" style={styles.form}>
+          <Text style={styles.formTitulo}>
+            {cuotaEditando ? "Editar cuota" : "Eliminar cuota"}
+          </Text>
+          {cuotaEditando ? (
+            <TextInput
+              testID="cuota-nuevo-valor"
+              style={styles.input}
+              placeholder="Nuevo valor"
+              keyboardType="decimal-pad"
+              value={cuotaNuevoValor}
+              onChangeText={setCuotaNuevoValor}
+            />
+          ) : null}
+          <TextInput
+            testID="audit-password"
+            style={styles.input}
+            placeholder="Contraseña (re-autenticación)"
+            secureTextEntry
+            value={cuotaPassword}
+            onChangeText={setCuotaPassword}
+          />
+          <TextInput
+            testID="audit-motivo"
+            style={styles.input}
+            placeholder="Motivo"
+            value={cuotaMotivo}
+            onChangeText={setCuotaMotivo}
+          />
+          {cuotaMensaje ? <Text style={styles.mensaje}>{cuotaMensaje}</Text> : null}
+          <Pressable
+            testID="guardar-cuota"
+            style={[styles.botonPrimario, cuotaEnviando && styles.deshabilitado]}
+            disabled={cuotaEnviando}
+            onPress={guardarCuota}
+          >
+            {cuotaEnviando ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.botonTexto}>
+                {cuotaEditando ? "Guardar cambios" : "Confirmar eliminación"}
+              </Text>
+            )}
+          </Pressable>
+        </View>
+      ) : null}
+
       {modo === "editar" ? (
         <View testID="editar-cliente-form" style={styles.form}>
           <Text style={styles.formTitulo}>Editar datos del cliente</Text>
@@ -739,6 +863,16 @@ const styles = StyleSheet.create({
   recuadroCuotaMora: { borderColor: "#fca5a5", backgroundColor: "#fef2f2" },
   cuotaLinea: { fontSize: 14, fontWeight: "600" },
   cuotaFecha: { color: "#64748b", fontSize: 12, marginTop: 2 },
+  cuotaAcciones: { flexDirection: "row", gap: 8, marginTop: 6 },
+  botonCuota: {
+    borderWidth: 1,
+    borderColor: "#2563eb",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  botonCuotaPeligro: { borderColor: "#dc2626" },
+  botonCuotaTexto: { color: "#2563eb", fontSize: 12, fontWeight: "600" },
   botonWhatsApp: { backgroundColor: "#16a34a", marginTop: 10, flex: 0 },
   acciones: { flexDirection: "row", gap: 10, marginTop: 8 },
   navegacion: { flexDirection: "row", gap: 10, marginTop: 10 },

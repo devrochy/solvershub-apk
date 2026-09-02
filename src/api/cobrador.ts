@@ -1,5 +1,6 @@
 import type {
   ClienteTarjetaPublic,
+  CuotaPublic,
   DiaApkPublic,
   GastoPublic,
   PrestamoPublic,
@@ -47,6 +48,21 @@ export interface CobradorApi {
     rutaId: number,
     input: RegistrarPrestamoInput,
   ): Promise<PrestamoPublic>;
+  editarCuota(
+    rutaId: number,
+    cuotaId: number,
+    input: { valorEsperado?: number; password: string; motivo: string },
+  ): Promise<CuotaPublic>;
+  eliminarCuota(
+    rutaId: number,
+    cuotaId: number,
+    input: { password: string; motivo: string },
+  ): Promise<{ id: number }>;
+  eliminarAbono(
+    rutaId: number,
+    abonoId: number,
+    input: { password: string; motivo: string },
+  ): Promise<{ id: number }>;
 }
 
 export function cobradorApi(client: ApiClient): CobradorApi {
@@ -117,6 +133,39 @@ export function cobradorApi(client: ApiClient): CobradorApi {
     crearPrestamo: (rutaId: number, input: RegistrarPrestamoInput) =>
       client.request<PrestamoPublic>(`/cobrador/rutas/${rutaId}/prestamos`, {
         method: "POST",
+        headers: JSON_HEADERS,
+        body: jsonBody(input),
+      }),
+
+    editarCuota: (
+      rutaId: number,
+      cuotaId: number,
+      input: { valorEsperado?: number; password: string; motivo: string },
+    ) =>
+      client.request<CuotaPublic>(`/cobrador/rutas/${rutaId}/cuotas/${cuotaId}`, {
+        method: "PATCH",
+        headers: JSON_HEADERS,
+        body: jsonBody(input),
+      }),
+
+    eliminarCuota: (
+      rutaId: number,
+      cuotaId: number,
+      input: { password: string; motivo: string },
+    ) =>
+      client.request<{ id: number }>(`/cobrador/rutas/${rutaId}/cuotas/${cuotaId}`, {
+        method: "DELETE",
+        headers: JSON_HEADERS,
+        body: jsonBody(input),
+      }),
+
+    eliminarAbono: (
+      rutaId: number,
+      abonoId: number,
+      input: { password: string; motivo: string },
+    ) =>
+      client.request<{ id: number }>(`/cobrador/rutas/${rutaId}/abonos/${abonoId}`, {
+        method: "DELETE",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),

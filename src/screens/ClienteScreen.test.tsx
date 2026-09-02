@@ -531,3 +531,45 @@ describe("ClienteScreen — registrar préstamo", () => {
     expect(getByText(/Ingresa un valor de préstamo válido/)).toBeTruthy();
   });
 });
+
+describe("ClienteScreen — editar/eliminar cuota", () => {
+  it("abre el diálogo de edición y llama editarCuota con password y motivo", async () => {
+    const editarCuota = jest.fn().mockResolvedValue({ id: 10 });
+    const { getByTestId } = await renderConApi({ editarCuota });
+
+    await waitFor(() => expect(getByTestId("btn-editar-cuota-10")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cuota-10"));
+
+    await fireEvent.changeText(getByTestId("cuota-nuevo-valor"), "550");
+    await fireEvent.changeText(getByTestId("audit-password"), "secreto");
+    await fireEvent.changeText(getByTestId("audit-motivo"), "corrección");
+    await fireEvent.press(getByTestId("guardar-cuota"));
+
+    await waitFor(() =>
+      expect(editarCuota).toHaveBeenCalledWith(6, 10, {
+        valorEsperado: 550,
+        password: "secreto",
+        motivo: "corrección",
+      }),
+    );
+  });
+
+  it("confirma y llama eliminarCuota con password y motivo", async () => {
+    const eliminarCuota = jest.fn().mockResolvedValue({ id: 10 });
+    const { getByTestId } = await renderConApi({ eliminarCuota });
+
+    await waitFor(() => expect(getByTestId("btn-eliminar-cuota-10")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-eliminar-cuota-10"));
+
+    await fireEvent.changeText(getByTestId("audit-password"), "secreto");
+    await fireEvent.changeText(getByTestId("audit-motivo"), "error de registro");
+    await fireEvent.press(getByTestId("guardar-cuota"));
+
+    await waitFor(() =>
+      expect(eliminarCuota).toHaveBeenCalledWith(6, 10, {
+        password: "secreto",
+        motivo: "error de registro",
+      }),
+    );
+  });
+});
