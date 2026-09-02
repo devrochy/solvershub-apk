@@ -458,3 +458,40 @@ describe("ClienteScreen — estado de cuenta y WhatsApp", () => {
     );
   });
 });
+
+describe("ClienteScreen — tarjeta completa (foto, tipoPago, detalle)", () => {
+  it("muestra la foto, el tipo de pago y el teléfono cuando vienen en la tarjeta", async () => {
+    const tarjetaCompleta = {
+      ...tarjeta,
+      fotoUrl: "https://cdn.test/foto.jpg",
+      tipoPago: "diario",
+    };
+    const { getByTestId, getByText } = await renderConApi({
+      tarjeta: jest.fn().mockResolvedValue(tarjetaCompleta),
+    });
+
+    await waitFor(() => expect(getByTestId("foto-cliente")).toBeTruthy());
+    expect(getByText(/Tipo de pago: diario/)).toBeTruthy();
+    expect(getByText(/WhatsApp: \+59170000000/)).toBeTruthy();
+  });
+
+  it("no muestra la foto ni el tipo de pago cuando son null", async () => {
+    const { queryByTestId, queryByText } = await renderConApi({});
+
+    await waitFor(() => expect(queryByTestId("btn-pago")).toBeTruthy());
+    expect(queryByTestId("foto-cliente")).toBeNull();
+    expect(queryByText(/Tipo de pago:/)).toBeNull();
+  });
+
+  it("colapsa y expande el detalle de estado de cuenta", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-whatsapp")).toBeTruthy());
+    // el detalle está visible por defecto
+    expect(getByTestId("estado-cuenta").props.accessibilityState.expanded).toBe(true);
+
+    await fireEvent.press(getByTestId("btn-detalle-estado-cuenta"));
+    expect(getByTestId("estado-cuenta").props.accessibilityState.expanded).toBe(false);
+    expect(queryByTestId("cuota-10")).toBeNull();
+  });
+});
