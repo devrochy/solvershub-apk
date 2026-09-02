@@ -5,6 +5,12 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 function propsDe(
   index: number,
   navigate: jest.Mock = jest.fn(),
+  insets: { top: number; right: number; bottom: number; left: number } = {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
 ): BottomTabBarProps {
   return {
     state: {
@@ -28,7 +34,7 @@ function propsDe(
       emit: jest.fn(() => ({ defaultPrevented: false })),
       navigate,
     } as never,
-    insets: { top: 0, right: 0, bottom: 0, left: 0 },
+    insets,
   };
 }
 
@@ -46,5 +52,13 @@ describe("CustomTabBar", () => {
     const { getByTestId } = await render(<CustomTabBar {...propsDe(0, navigate)} />);
     await fireEvent.press(getByTestId("tab-central"));
     expect(navigate).toHaveBeenCalledWith("Dia");
+  });
+
+  it("reserva el espacio del inset inferior de la barra de navegación del sistema", async () => {
+    const { getByTestId } = await render(
+      <CustomTabBar {...propsDe(0)} insets={{ top: 0, right: 0, bottom: 34, left: 0 }} />,
+    );
+    const barra = getByTestId("tab-bar").props.style;
+    expect(barra[1].paddingBottom).toBe(42);
   });
 });

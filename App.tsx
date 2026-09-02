@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import type { RootStackParamList, RootTabParamList } from "./src/navigation/types";
 import { CustomTabBar } from "./src/components/CustomTabBar";
 import { OfflineProvider } from "./src/offline/offline-context";
@@ -77,14 +78,16 @@ function RootNavigator() {
 
 export default function App() {
   return (
-    <SessionProvider>
-      <OfflineProvider>
-        <RutaActivaProvider>
-          <StatusBar style="auto" />
-          <RootNavigator />
-        </RutaActivaProvider>
-      </OfflineProvider>
-    </SessionProvider>
+    <SafeAreaProvider>
+      <SessionProvider>
+        <OfflineProvider>
+          <RutaActivaProvider>
+            <StatusBar style="auto" />
+            <RootNavigator />
+          </RutaActivaProvider>
+        </OfflineProvider>
+      </SessionProvider>
+    </SafeAreaProvider>
   );
 }
 

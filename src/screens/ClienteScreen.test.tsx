@@ -519,7 +519,7 @@ describe("ClienteScreen — tarjeta completa (foto, tipoPago, detalle)", () => {
       tarjeta: jest.fn().mockResolvedValue(tarjetaCompleta),
     });
 
-    await waitFor(() => expect(getByTestId("foto-cliente")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("avatar-foto")).toBeTruthy());
     expect(getByText(/Tipo de pago: diario/)).toBeTruthy();
     expect(getByText(/WhatsApp: \+59170000000/)).toBeTruthy();
   });
@@ -528,7 +528,7 @@ describe("ClienteScreen — tarjeta completa (foto, tipoPago, detalle)", () => {
     const { queryByTestId, queryByText } = await renderConApi({});
 
     await waitFor(() => expect(queryByTestId("btn-pago")).toBeTruthy());
-    expect(queryByTestId("foto-cliente")).toBeNull();
+    expect(queryByTestId("avatar-foto")).toBeNull();
     expect(queryByText(/Tipo de pago:/)).toBeNull();
   });
 

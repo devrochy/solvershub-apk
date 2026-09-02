@@ -3,6 +3,7 @@ import {
   abrirNavegacion,
   coordenadaDeCliente,
   enlaceGoogleMaps,
+  enlaceGoogleMapsRuta,
   enlaceWaze,
 } from "./navegacion";
 import type { TrayectoPublic } from "../../types/cobrador";
@@ -63,5 +64,21 @@ describe("navegacion", () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       "https://waze.com/ul?ll=-17.78,-63.18&navigate=yes",
     );
+  });
+
+  it("enlaceGoogleMapsRuta encadena las paradas en el orden del trayecto", () => {
+    const url = enlaceGoogleMapsRuta([
+      { latitud: -17.78, longitud: -63.18 },
+      { latitud: -17.79, longitud: -63.19 },
+      { latitud: -17.8, longitud: -63.2 },
+    ]);
+    expect(url).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=-17.78,-63.18&waypoints=-17.79,-63.19|-17.8,-63.2",
+    );
+  });
+
+  it("enlaceGoogleMapsRuta devuelve null si hay menos de 1 parada con coords", () => {
+    expect(enlaceGoogleMapsRuta([])).toBeNull();
+    expect(enlaceGoogleMapsRuta([{ latitud: undefined as never, longitud: 0 }])).toBeNull();
   });
 });

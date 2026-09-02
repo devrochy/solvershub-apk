@@ -1,4 +1,5 @@
 import { Image, StyleSheet, Text, View } from "react-native";
+import { urlArchivo } from "../config";
 
 export interface AvatarProps {
   nombre: string;
@@ -22,11 +23,12 @@ export function inicialesDe(nombre: string): string {
  * iniciales del nombre (A10).
  */
 export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
-  if (fotoUrl) {
+  const uri = urlArchivo(fotoUrl);
+  if (uri) {
     return (
       <Image
         testID="avatar-foto"
-        source={{ uri: fotoUrl }}
+        source={{ uri }}
         style={{ width: size, height: size, borderRadius: size / 2 }}
       />
     );

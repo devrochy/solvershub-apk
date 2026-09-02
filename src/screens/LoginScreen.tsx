@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { apiErrorStatus } from "../api/client";
 import { useSession } from "../session/session-context";
 
@@ -41,10 +42,11 @@ export function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.contenedor}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right", "bottom"]}>
+      <KeyboardAvoidingView
+        style={styles.formFlex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
       <View style={styles.form}>
         <Text style={styles.titulo}>CobraIA</Text>
         <Text style={styles.subtitulo}>App del cobrador</Text>
@@ -87,16 +89,20 @@ export function LoginScreen() {
           )}
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   contenedor: {
     flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  formFlex: {
+    flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "#ffffff",
   },
   form: {
     gap: 12,

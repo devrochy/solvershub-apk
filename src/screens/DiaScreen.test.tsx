@@ -22,6 +22,47 @@ jest.mock("../features/trayectoria/use-trayectoria", () => ({
   })),
 }));
 
+jest.mock("../components/TrayectosLista", () => {
+  const React = require("react");
+  const { Text, View } = require("react-native");
+  return {
+    TrayectosLista: ({
+      clientes,
+      trayectos,
+    }: {
+      clientes: Array<{ clienteId: number; nombre: string }>;
+      trayectos: {
+        ordenClientes: Array<
+          Array<{ clienteId: number; latitud?: number; longitud?: number }>
+        >;
+      };
+    }) =>
+      React.createElement(
+        View,
+        { testID: "trayectos-lista" },
+        ...trayectos.ordenClientes.map((trayecto, i) =>
+          React.createElement(
+            Text,
+            { key: `t${i}` },
+            `Trayecto ${i + 1}`,
+          ),
+        ),
+        ...trayectos.ordenClientes.flatMap((trayecto, i) =>
+          trayecto.map((parada, j) => {
+            const nombre =
+              clientes.find((c) => c.clienteId === parada.clienteId)?.nombre ??
+              `Cliente ${parada.clienteId}`;
+            return React.createElement(
+              Text,
+              { key: `p${i}-${j}` },
+              `${j + 1}. ${nombre}`,
+            );
+          }),
+        ),
+      ),
+  };
+});
+
 import { abrirNavegacion, coordenadaDeCliente } from "../features/navegacion/navegacion";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 
@@ -343,5 +384,50 @@ describe("DiaScreen — gating de la lista del día", () => {
 
     await fireEvent.press(getByTestId("generar-trayecto"));
     await waitFor(() => expect(generarTrayecto).toHaveBeenCalledWith(6));
+  });
+});
+
+describe("DiaScreen — ver trayectos generados", () => {
+  it("abre la lista de trayectos desde el botón y muestra las paradas en orden", async () => {
+    const dia = jest.fn().mockResolvedValue({
+      clientes: [
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
+        { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo" as const },
+      ],
+      trayectos: {
+        id: 1,
+        rutaId: 6,
+        fecha: "2026-09-02",
+        ordenClientes: [
+          [
+            { clienteId: 1, latitud: -17.78, longitud: -63.18 },
+            { clienteId: 2, latitud: -17.79, longitud: -63.19 },
+          ],
+        ],
+        waypoints: [],
+        distanciaEstimadaKm: 3,
+        tiempoEstimadoMin: 10,
+        tipo: "planificada",
+      },
+    });
+    const { getByTestId, getByText } = await renderConApi({ dia });
+
+    await waitFor(() => expect(getByTestId("ver-trayectos")).toBeTruthy());
+    await fireEvent.press(getByTestId("ver-trayectos"));
+
+    await waitFor(() => expect(getByText("Trayecto 1")).toBeTruthy());
+    expect(getByText("1. Juan")).toBeTruthy();
+    expect(getByText("2. Ana")).toBeTruthy();
+  });
+
+  it("no muestra el botón de trayectos si no hay trayecto generado", async () => {
+    const dia = jest.fn().mockResolvedValue({
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const }],
+      trayectos: null,
+    });
+    const { queryByTestId } = await renderConApi({ dia });
+
+    await waitFor(() => expect(queryByTestId("generar-trayecto")).toBeTruthy());
+    expect(queryByTestId("ver-trayectos")).toBeNull();
   });
 });

@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
+import { Avatar } from "../components/Avatar";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { MapaCliente } from "../components/MapaCliente";
@@ -411,13 +412,7 @@ export function ClienteScreen({ route, navigation }: Props) {
   return (
     <ScrollView style={styles.contenedor} contentContainerStyle={styles.scroll}>
       <View style={styles.tarjetaInfo}>
-        {tarjeta.fotoUrl ? (
-          <Image
-            testID="foto-cliente"
-            source={{ uri: tarjeta.fotoUrl }}
-            style={styles.foto}
-          />
-        ) : null}
+        {tarjeta.fotoUrl ? <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={72} /> : null}
         <View style={styles.fila}>
           <Text style={styles.nombre}>{tarjeta.nombre}</Text>
           <ColorBadge color={tarjeta.color} />
@@ -1005,13 +1000,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  foto: {
-    width: 72,
-    height: 72,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: "#e2e8f0",
   },
   nombre: { fontSize: 18, fontWeight: "700" },
   detalle: { color: "#475569", fontSize: 14 },

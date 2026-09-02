@@ -12,14 +12,14 @@ const ICONOS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
  * Tab bar custom (A9): "Día" en el centro y sobresaliente (estilo FAB), con
  * iconos MaterialIcons + texto. Rutas y Clientes a los lados.
  */
-export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   const orden = ["Rutas", "Dia", "Clientes"];
   const rutasOrdenadas = orden
     .map((name) => state.routes.find((r) => r.name === name))
     .filter((r): r is NonNullable<typeof r> => Boolean(r));
 
   return (
-    <View style={styles.barra}>
+    <View testID="tab-bar" style={[styles.barra, { paddingBottom: Math.max(insets.bottom, 8) + 8 }]}>
       {rutasOrdenadas.map((route, indice) => {
         const descriptor = descriptors[route.key];
         const enfocado = state.index === state.routes.indexOf(route);
@@ -85,7 +85,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderTopWidth: 1,
     borderTopColor: "#e2e8f0",
-    paddingBottom: 8,
     paddingHorizontal: 16,
     paddingTop: 6,
   },

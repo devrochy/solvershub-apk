@@ -50,6 +50,14 @@ async function renderConRutas(
 }
 
 describe("RutasScreen", () => {
+  it("muestra el nombre de la APK en el encabezado", async () => {
+    const { getByText } = await renderConRutas({
+      misRutas: jest.fn().mockResolvedValue([]),
+    });
+
+    await waitFor(() => expect(getByText("CobraIA")).toBeTruthy());
+  });
+
   it("muestra las rutas del cobrador, fija la ruta activa y navega al tab Clientes", async () => {
     const navigate = jest.fn();
     const setRutaActiva = jest.fn();

@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus } from "../api/client";
 import { Avatar } from "../components/Avatar";
@@ -76,7 +77,7 @@ export function ClientesScreen({ navigation }: Props) {
     `${c.nombre} ${c.apellido}`.trim();
 
   return (
-    <View style={styles.contenedor}>
+    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header}>
         <Text style={styles.headerTitulo}>{rutaActiva.rutaNombre}</Text>
         <Text style={styles.headerDetalle}>{clientes.length} clientes</Text>
@@ -115,7 +116,7 @@ export function ClientesScreen({ navigation }: Props) {
           </Pressable>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

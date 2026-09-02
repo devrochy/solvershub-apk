@@ -9,11 +9,13 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
+import { TrayectosLista } from "../components/TrayectosLista";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import {
   abrirNavegacion,
@@ -62,6 +64,7 @@ export function DiaScreen({ navigation }: Props) {
   const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
   const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
+  const [trayectosAbierto, setTrayectosAbierto] = useState(false);
 
   const precargarClientes = useCallback(
     async (clientes: ClienteDiaPublic[]) => {
@@ -233,7 +236,7 @@ export function DiaScreen({ navigation }: Props) {
   const listaHabilitada = Boolean(trayectos) && trayectoria.activa;
 
   return (
-    <View style={styles.contenedor}>
+    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <FlatList
         data={clientes}
         keyExtractor={(cliente) => String(cliente.clienteId)}
@@ -313,6 +316,15 @@ export function DiaScreen({ navigation }: Props) {
             >
               <Text style={styles.botonPrimarioTexto}>Registrar gasto</Text>
             </Pressable>
+            {trayectos ? (
+              <Pressable
+                testID="ver-trayectos"
+                style={styles.botonTrayectos}
+                onPress={() => setTrayectosAbierto(true)}
+              >
+                <Text style={styles.botonTrayectosTexto}>Ver trayectos</Text>
+              </Pressable>
+            ) : null}
           </View>
         }
         ListEmptyComponent={
@@ -399,7 +411,17 @@ export function DiaScreen({ navigation }: Props) {
           </Pressable>
         </View>
       ) : null}
-    </View>
+
+      {trayectosAbierto && trayectos ? (
+        <View style={styles.trayectosOverlay}>
+          <TrayectosLista
+            clientes={clientes}
+            trayectos={trayectos}
+            onCerrar={() => setTrayectosAbierto(false)}
+          />
+        </View>
+      ) : null}
+    </SafeAreaView>
   );
 }
 
@@ -423,6 +445,23 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     alignItems: "center",
+  },
+  botonTrayectos: {
+    backgroundColor: "#0891b2",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  botonTrayectosTexto: { color: "#ffffff", fontWeight: "600" },
+  trayectosOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#f8fafc",
+    zIndex: 10,
   },
   botonSecundarioTexto: { color: "#ffffff", fontWeight: "600" },
   trayectoriaActiva: {

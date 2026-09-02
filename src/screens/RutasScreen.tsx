@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
@@ -55,11 +56,14 @@ export function RutasScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.contenedor}>
+    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <Text style={styles.bienvenida}>
-          Hola, {cobrador?.nombre ?? "cobrador"}
-        </Text>
+        <View style={styles.headerTitulo}>
+          <Text style={styles.apkNombre}>CobraIA</Text>
+          <Text style={styles.bienvenida}>
+            Hola, {cobrador?.nombre ?? "cobrador"}
+          </Text>
+        </View>
         <View style={styles.headerDerecha}>
           {offline.sinSubir > 0 ? (
             <View testID="badge-sin-subir" style={styles.badge}>
@@ -116,7 +120,7 @@ export function RutasScreen({ navigation }: Props) {
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -131,6 +135,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
   },
+  headerTitulo: { flex: 1 },
+  apkNombre: { fontSize: 12, fontWeight: "700", color: "#2563eb", letterSpacing: 0.5 },
   bienvenida: { fontSize: 18, fontWeight: "700" },
   headerDerecha: { flexDirection: "row", alignItems: "center", gap: 10 },
   badge: {
