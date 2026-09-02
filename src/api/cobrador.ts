@@ -63,6 +63,10 @@ export interface CobradorApi {
     abonoId: number,
     input: { password: string; motivo: string },
   ): Promise<{ id: number }>;
+  registrarApertura(
+    rutaId: number,
+    input: { latitud?: number; longitud?: number },
+  ): Promise<{ id: number; rutaId: number }>;
 }
 
 export function cobradorApi(client: ApiClient): CobradorApi {
@@ -169,5 +173,18 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
+
+    registrarApertura: (
+      rutaId: number,
+      input: { latitud?: number; longitud?: number },
+    ) =>
+      client.request<{ id: number; rutaId: number }>(
+        `/cobrador/rutas/${rutaId}/apertura`,
+        {
+          method: "POST",
+          headers: JSON_HEADERS,
+          body: jsonBody(input),
+        },
+      ),
   };
 }

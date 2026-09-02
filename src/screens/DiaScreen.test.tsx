@@ -46,7 +46,11 @@ async function renderConApi(
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L" },
     loading: false,
-    api: { dia: jest.fn().mockResolvedValue({ clientes: [], trayectos: null }), ...api } as SessionValue["api"],
+    api: {
+      dia: jest.fn().mockResolvedValue({ clientes: [], trayectos: null }),
+      registrarApertura: jest.fn().mockResolvedValue({ id: 1, rutaId: 6 }),
+      ...api,
+    } as SessionValue["api"],
     login: jest.fn(),
     logout: jest.fn(),
   };
@@ -265,6 +269,17 @@ describe("DiaScreen — re-fetch periódico (día en vivo)", () => {
       jest.advanceTimersByTime(30000);
     });
     await waitFor(() => expect(dia).toHaveBeenCalledTimes(2));
+  });
+});
+
+describe("DiaScreen — apertura de ruta", () => {
+  it("registra la apertura de la ruta al montar la pantalla", async () => {
+    const registrarApertura = jest.fn().mockResolvedValue({ id: 1, rutaId: 6 });
+    await renderConApi({ registrarApertura });
+
+    await waitFor(() =>
+      expect(registrarApertura).toHaveBeenCalledWith(6, expect.anything()),
+    );
   });
 });
 

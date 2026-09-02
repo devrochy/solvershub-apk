@@ -112,6 +112,14 @@ export function DiaScreen({ navigation, route }: Props) {
   }, [cargar]);
 
   useEffect(() => {
+    // Auditoría de apertura de la ruta del día (HU-41): registra el momento y
+    // las coordenadas en que el cobrador abre la ruta. Fire-and-forget.
+    api
+      .registrarApertura(rutaId, {})
+      .catch(() => undefined);
+  }, [api, rutaId]);
+
+  useEffect(() => {
     // Re-fetch periódico: la lista del día se va actualizando a medida que se
     // registran visitas (HU-56). No interfiere con el pull-to-refresh ni con
     // el modo offline (cargar() ya maneja la caída al cache).

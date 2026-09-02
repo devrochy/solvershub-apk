@@ -171,4 +171,16 @@ describe("cobradorApi", () => {
       body: JSON.stringify({ password: "secreto", motivo: "error" }),
     });
   });
+
+  it("registrarApertura hace POST con las coordenadas", async () => {
+    request.mockResolvedValue({ id: 1, rutaId: 6 });
+
+    await api.registrarApertura(6, { latitud: -17.78, longitud: -63.18 });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/apertura", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitud: -17.78, longitud: -63.18 }),
+    });
+  });
 });
