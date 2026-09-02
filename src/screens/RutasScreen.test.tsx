@@ -20,6 +20,7 @@ async function renderConRutas(
   offline: OfflineValue = {
     isOnline: true,
     sinSubir: 0,
+    errorSync: null,
     encolar: jest.fn(),
     encolarSiNoExiste: jest.fn().mockResolvedValue(true),
     sincronizar: jest.fn(),
@@ -76,9 +77,38 @@ describe("RutasScreen", () => {
     const { getByTestId } = await renderConRutas(
       { misRutas: jest.fn().mockResolvedValue([ruta]) },
       jest.fn(),
-      { isOnline: false, sinSubir: 2, encolar: jest.fn(), encolarSiNoExiste: jest.fn().mockResolvedValue(true), sincronizar: jest.fn() },
+      { isOnline: false, sinSubir: 2, errorSync: null, encolar: jest.fn(), encolarSiNoExiste: jest.fn().mockResolvedValue(true), sincronizar: jest.fn() },
     );
 
     await waitFor(() => expect(getByTestId("badge-sin-subir")).toBeTruthy());
+  });
+
+  it("muestra el aviso de error de sincronización (device key inválida)", async () => {
+    const { getByTestId, getByText } = await renderConRutas(
+      { misRutas: jest.fn().mockResolvedValue([ruta]) },
+      jest.fn(),
+      {
+        isOnline: true,
+        sinSubir: 1,
+        errorSync: "No se pudo sincronizar. Verifica la conexión y la clave del dispositivo.",
+        encolar: jest.fn(),
+        encolarSiNoExiste: jest.fn().mockResolvedValue(true),
+        sincronizar: jest.fn(),
+      },
+    );
+
+    await waitFor(() => expect(getByTestId("aviso-error-sync")).toBeTruthy());
+    expect(
+      getByText(/No se pudo sincronizar/),
+    ).toBeTruthy();
+  });
+
+  it("no muestra el aviso de error de sync cuando no hay error", async () => {
+    const { queryByTestId } = await renderConRutas({
+      misRutas: jest.fn().mockResolvedValue([ruta]),
+    });
+
+    await waitFor(() => expect(queryByTestId("ruta-6")).toBeTruthy());
+    expect(queryByTestId("aviso-error-sync")).toBeNull();
   });
 });

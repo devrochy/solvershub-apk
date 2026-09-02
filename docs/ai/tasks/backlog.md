@@ -26,5 +26,4 @@
 
 ## Device key inválida deja la cola atascada sin feedback
 - Detectado en: revisión code-reviewer apk-offline-first (2026-09-01)
-- Descripción: `sincronizar().catch(() => undefined)` silencia cualquier fallo (incluido 401 por device key inválida o `EXPO_PUBLIC_DEVICE_KEY` vacío); los eventos quedan en la cola sin avisar al usuario. Evaluar exponer estado de error de sync.
-- Prioridad sugerida: baja
+- **Resuelto en `apk-feedback-device-key` (2026-09-02):** `OfflineProvider` expone `errorSync` (se setea al fallar el sync, se limpia al éxito) y `RutasScreen` muestra el aviso. La cola no se vacía ante fallo (se conserva para reintento).

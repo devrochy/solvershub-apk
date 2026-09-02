@@ -12,6 +12,7 @@ jest.mock("../offline/cache", () => ({
 const offlineValor: OfflineValue = {
   isOnline: true,
   sinSubir: 0,
+  errorSync: null,
   encolar: jest.fn().mockResolvedValue(undefined),
   encolarSiNoExiste: jest.fn().mockResolvedValue(true),
   sincronizar: jest.fn().mockResolvedValue(undefined),

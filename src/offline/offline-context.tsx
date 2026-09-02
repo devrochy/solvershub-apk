@@ -21,6 +21,7 @@ import {
 export interface OfflineValue {
   isOnline: boolean;
   sinSubir: number;
+  errorSync: string | null;
   encolar(tipoEvento: string, payload: Record<string, unknown>): Promise<void>;
   encolarSiNoExiste(
     tipoEvento: string,
@@ -35,6 +36,7 @@ export const OfflineContext = createContext<OfflineValue | null>(null);
 export function OfflineProvider({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [sinSubir, setSinSubir] = useState(0);
+  const [errorSync, setErrorSync] = useState<string | null>(null);
 
   useEffect(() => {
     let activo = true;
@@ -97,9 +99,19 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     if (eventos.length === 0) {
       return;
     }
-    const confirmados = await sincronizarCola(eventos, DEVICE_API_KEY);
-    for (const id of confirmados) {
-      await removerDeCola(id);
+    try {
+      const confirmados = await sincronizarCola(eventos, DEVICE_API_KEY);
+      for (const id of confirmados) {
+        await removerDeCola(id);
+      }
+      setErrorSync(null);
+    } catch {
+      // Device key inválida/ausente, 401 del backend o error de red: la cola
+      // se queda pendiente y se expone el error para que la UI avise.
+      setErrorSync(
+        "No se pudo sincronizar. Verifica la conexión y la clave del dispositivo.",
+      );
+      throw new Error("Fallo de sincronización");
     }
     await actualizarContador();
   }, [actualizarContador]);
@@ -112,8 +124,15 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   }, [isOnline, sincronizar]);
 
   const value = useMemo(
-    () => ({ isOnline, sinSubir, encolar, encolarSiNoExiste, sincronizar }),
-    [isOnline, sinSubir, encolar, encolarSiNoExiste, sincronizar],
+    () => ({
+      isOnline,
+      sinSubir,
+      errorSync,
+      encolar,
+      encolarSiNoExiste,
+      sincronizar,
+    }),
+    [isOnline, sinSubir, errorSync, encolar, encolarSiNoExiste, sincronizar],
   );
 
   return <OfflineContext.Provider value={value}>{children}</OfflineContext.Provider>;
