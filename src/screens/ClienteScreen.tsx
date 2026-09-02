@@ -56,7 +56,7 @@ export function ClienteScreen({ route, navigation }: Props) {
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [modo, setModo] = useState<"pago" | "no_pago" | "editar" | null>(null);
+  const [modo, setModo] = useState<"pago" | "no_pago" | "editar" | "prestamo" | null>(null);
   const [valor, setValor] = useState("");
   const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>(
     "efectivo",
@@ -73,7 +73,6 @@ export function ClienteScreen({ route, navigation }: Props) {
   const [edicionOriginal, setEdicionOriginal] = useState<CambioClienteInput>({});
   const [editando, setEditando] = useState(false);
   const [detalleAbierto, setDetalleAbierto] = useState(true);
-  const [modoPrestamo, setModoPrestamo] = useState(false);
   const [prestamoValor, setPrestamoValor] = useState("");
   const [prestamoCuotas, setPrestamoCuotas] = useState("");
   const [prestamoDias, setPrestamoDias] = useState("");
@@ -87,6 +86,16 @@ export function ClienteScreen({ route, navigation }: Props) {
   const [cuotaMotivo, setCuotaMotivo] = useState("");
   const [cuotaEnviando, setCuotaEnviando] = useState(false);
   const [cuotaMensaje, setCuotaMensaje] = useState<string | null>(null);
+
+  // Máquina de estados: solo un formulario activo a la vez (A2).
+  function abrirModo(
+    m: "pago" | "no_pago" | "editar" | "prestamo",
+  ): void {
+    setCuotaEditando(null);
+    setCuotaEliminando(null);
+    setCuotaMensaje(null);
+    setModo(m);
+  }
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -294,7 +303,7 @@ export function ClienteScreen({ route, navigation }: Props) {
           ? { tipoInteres: Number(prestamoInteres) }
           : {}),
       });
-      setModoPrestamo(false);
+      setModo(null);
       setPrestamoValor("");
       setPrestamoCuotas("");
       setPrestamoDias("");
@@ -511,7 +520,7 @@ export function ClienteScreen({ route, navigation }: Props) {
           testID="btn-nuevo-prestamo"
           style={[styles.botonPrimario, styles.botonPrestamo]}
           onPress={() => {
-            setModoPrestamo(true);
+            abrirModo("prestamo");
             setMensaje(null);
             setPrestamoMensaje(null);
             // Autocompletado desde la ruta activa (defaults de la ruta).
@@ -528,7 +537,7 @@ export function ClienteScreen({ route, navigation }: Props) {
           testID="btn-editar-cliente"
           style={[styles.botonPrimario, styles.botonEditar]}
           onPress={() => {
-            setModo("editar");
+            abrirModo("editar");
             setMensaje(null);
             const actual = edicionDesdeTarjeta(tarjeta);
             setEdicion(actual);
@@ -541,7 +550,7 @@ export function ClienteScreen({ route, navigation }: Props) {
           testID="btn-pago"
           style={[styles.botonPrimario, styles.botonPago]}
           onPress={() => {
-            setModo("pago");
+            abrirModo("pago");
             setMensaje(null);
             if (cuotaPorPagar) {
               setValor(String(cuotaPorPagar.valorEsperado));
@@ -554,7 +563,7 @@ export function ClienteScreen({ route, navigation }: Props) {
           testID="btn-no-pago"
           style={[styles.botonPrimario, styles.botonNoPago]}
           onPress={() => {
-            setModo("no_pago");
+            abrirModo("no_pago");
             setMensaje(null);
           }}
         >
@@ -676,7 +685,7 @@ export function ClienteScreen({ route, navigation }: Props) {
         </View>
       ) : null}
 
-      {modoPrestamo ? (
+      {modo === "prestamo" ? (
         <View testID="prestamo-form" style={styles.form}>
           <Text style={styles.formTitulo}>Nuevo préstamo</Text>
           <TextInput

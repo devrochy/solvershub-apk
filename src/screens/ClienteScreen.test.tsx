@@ -637,4 +637,30 @@ describe("ClienteScreen — editar/eliminar cuota", () => {
       numCuotas: 4,
     });
   });
+
+  it("solo muestra un formulario a la vez (Nuevo préstamo cierra Editar datos)", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    expect(getByTestId("editar-cliente-form")).toBeTruthy();
+
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+    expect(getByTestId("prestamo-form")).toBeTruthy();
+    expect(queryByTestId("editar-cliente-form")).toBeNull();
+  });
+
+  it("abrir pago cierra el formulario de préstamo", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+    expect(getByTestId("prestamo-form")).toBeTruthy();
+
+    await fireEvent.press(getByTestId("btn-pago"));
+    expect(getByTestId("form-pago")).toBeTruthy();
+    expect(queryByTestId("prestamo-form")).toBeNull();
+  });
 });
