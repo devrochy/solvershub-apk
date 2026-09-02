@@ -20,6 +20,10 @@
 - Detectado en: revisión code-reviewer apk-offline-first (2026-09-01)
 - **Resuelto en `apk-evidencias-offline` (2026-09-02):** el gasto offline encola las fotos en base64 en el payload del evento `gasto` (`{descripcion, valor, evidencias:[{nombre, mimetype, base64}]}`); el backend las persiste vía `EvidenciasOfflineService` al sincronizar.
 
+## Cambio de cliente offline (HU-47)
+- Detectado en: tareas apk-offline-first / apk-cache-offline (2026-09-01)
+- **Resuelto en `apk-cambio-cliente-offline` (2026-09-02):** UI de edición de cliente en `ClienteScreen` (nombre, negocio, WhatsApp) que encola `cambio_cliente` (`{clienteId, input}`) con dedupe por cliente. El backend aplica directo si el cobrador tiene `actualizar_cliente`, o crea propuesta.
+
 ## Device key inválida deja la cola atascada sin feedback
 - Detectado en: revisión code-reviewer apk-offline-first (2026-09-01)
 - Descripción: `sincronizar().catch(() => undefined)` silencia cualquier fallo (incluido 401 por device key inválida o `EXPO_PUBLIC_DEVICE_KEY` vacío); los eventos quedan en la cola sin avisar al usuario. Evaluar exponer estado de error de sync.
