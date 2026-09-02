@@ -80,6 +80,10 @@ export interface CobradorApi {
     rutaId: number,
     input: { latitud?: number; longitud?: number },
   ): Promise<{ id: number; rutaId: number }>;
+  registrarPosicion(
+    rutaId: number,
+    input: { latitud: number; longitud: number },
+  ): Promise<{ rutaId: number; latitud: number; longitud: number }>;
 }
 
 export function cobradorApi(client: ApiClient): CobradorApi {
@@ -225,6 +229,19 @@ export function cobradorApi(client: ApiClient): CobradorApi {
     ) =>
       client.request<{ id: number; rutaId: number }>(
         `/cobrador/rutas/${rutaId}/apertura`,
+        {
+          method: "POST",
+          headers: JSON_HEADERS,
+          body: jsonBody(input),
+        },
+      ),
+
+    registrarPosicion: (
+      rutaId: number,
+      input: { latitud: number; longitud: number },
+    ) =>
+      client.request<{ rutaId: number; latitud: number; longitud: number }>(
+        `/cobrador/rutas/${rutaId}/posicion`,
         {
           method: "POST",
           headers: JSON_HEADERS,

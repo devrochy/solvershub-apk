@@ -20,6 +20,7 @@ import {
   coordenadaDeCliente,
 } from "../features/navegacion/navegacion";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
+import { usePosicion } from "../features/trayectoria/use-posicion";
 import type { RootStackParamList, RootTabParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
@@ -57,6 +58,7 @@ export function DiaScreen({ navigation }: Props) {
     quitar,
   } = useEvidencias();
   const trayectoria = useTrayectoria();
+  const posicion = usePosicion(api, rutaId, trayectoria.activa, trayectoria.puntos.length);
   const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
   const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
