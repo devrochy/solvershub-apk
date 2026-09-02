@@ -15,12 +15,16 @@ import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
+import {
+  abrirNavegacion,
+  coordenadaDeCliente,
+} from "../features/navegacion/navegacion";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
-import type { ClienteDiaPublic } from "../types/cobrador";
+import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Dia">;
 
@@ -29,6 +33,7 @@ export function DiaScreen({ navigation, route }: Props) {
   const { api, logout } = useSession();
   const offline = useOffline();
   const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
+  const [trayectos, setTrayectos] = useState<TrayectoPublic | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
   const [offlineCache, setOfflineCache] = useState(false);
@@ -80,6 +85,7 @@ export function DiaScreen({ navigation, route }: Props) {
     try {
       const dia = await api.dia(rutaId);
       setClientes(dia.clientes);
+      setTrayectos(dia.trayectos);
       await guardarDia(rutaId, dia);
       void precargarClientes(dia.clientes);
     } catch (err) {
@@ -89,6 +95,7 @@ export function DiaScreen({ navigation, route }: Props) {
         const cache = await leerDia(rutaId);
         if (cache) {
           setClientes(cache.clientes);
+          setTrayectos(cache.trayectos ?? null);
           setOfflineCache(true);
         } else {
           setError("No se pudo cargar la lista del día.");
@@ -225,27 +232,40 @@ export function DiaScreen({ navigation, route }: Props) {
         ListEmptyComponent={
           <Text style={styles.vacio}>Sin clientes para hoy.</Text>
         }
-        renderItem={({ item }) => (
-          <Pressable
-            testID={`cliente-${item.clienteId}`}
-            style={styles.tarjeta}
-            onPress={() =>
-              navigation.navigate("Cliente", {
-                rutaId,
-                clienteId: item.clienteId,
-                nombre: item.nombre,
-              })
-            }
-          >
-            <View style={styles.tarjetaInfo}>
-              <Text style={styles.clienteNombre}>{item.nombre}</Text>
-              {item.enTrayecto ? (
-                <Text style={styles.enTrayecto}>En trayecto</Text>
-              ) : null}
-            </View>
-            <ColorBadge color={item.color} />
-          </Pressable>
-        )}
+        renderItem={({ item }) => {
+          const coords = coordenadaDeCliente(trayectos, item.clienteId);
+          return (
+            <Pressable
+              testID={`cliente-${item.clienteId}`}
+              style={styles.tarjeta}
+              onPress={() =>
+                navigation.navigate("Cliente", {
+                  rutaId,
+                  clienteId: item.clienteId,
+                  nombre: item.nombre,
+                  ...(coords ?? {}),
+                })
+              }
+            >
+              <View style={styles.tarjetaInfo}>
+                <Text style={styles.clienteNombre}>{item.nombre}</Text>
+                {item.enTrayecto ? (
+                  <Text style={styles.enTrayecto}>En trayecto</Text>
+                ) : null}
+                {coords ? (
+                  <Pressable
+                    testID={`llegar-${item.clienteId}`}
+                    style={styles.llegar}
+                    onPress={() => abrirNavegacion(coords.latitud, coords.longitud, "maps")}
+                  >
+                    <Text style={styles.llegarTexto}>Cómo llegar</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+              <ColorBadge color={item.color} />
+            </Pressable>
+          );
+        }}
       />
 
       {gastoAbierto ? (
@@ -348,6 +368,15 @@ const styles = StyleSheet.create({
   tarjetaInfo: { flex: 1 },
   clienteNombre: { fontSize: 16, fontWeight: "600" },
   enTrayecto: { color: "#2563eb", fontSize: 12, marginTop: 2 },
+  llegar: {
+    marginTop: 6,
+    alignSelf: "flex-start",
+    backgroundColor: "#0891b2",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  llegarTexto: { color: "#ffffff", fontWeight: "600", fontSize: 12 },
   gastoForm: {
     backgroundColor: "#ffffff",
     borderTopWidth: 1,

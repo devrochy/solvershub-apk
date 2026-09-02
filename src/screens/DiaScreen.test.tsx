@@ -6,6 +6,13 @@ import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import * as useEvidenciasModule from "../features/gastos/use-evidencias";
 
+jest.mock("../features/navegacion/navegacion", () => ({
+  abrirNavegacion: jest.fn().mockResolvedValue(undefined),
+  coordenadaDeCliente: jest.fn(),
+}));
+
+import { abrirNavegacion, coordenadaDeCliente } from "../features/navegacion/navegacion";
+
 jest.mock("../offline/cache", () => ({
   guardarDia: jest.fn().mockResolvedValue(undefined),
   leerDia: jest.fn().mockResolvedValue(null),
@@ -185,5 +192,43 @@ describe("DiaScreen — cache del día", () => {
         prestamos: [],
       }),
     );
+  });
+});
+
+describe("DiaScreen — navegación externa", () => {
+  it("muestra el botón 'Cómo llegar' cuando el cliente tiene coordenadas en el trayecto", async () => {
+    (coordenadaDeCliente as jest.Mock).mockReturnValue({
+      latitud: -17.78,
+      longitud: -63.18,
+    });
+    const dia = {
+      clientes: [
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
+      ],
+      trayectos: { id: 1, rutaId: 6, fecha: "2026-09-02", ordenClientes: [], waypoints: [], distanciaEstimadaKm: 1, tiempoEstimadoMin: 1, tipo: "planificada" },
+    };
+    const { getByTestId } = await renderConApi({
+      dia: jest.fn().mockResolvedValue(dia),
+    });
+
+    await waitFor(() => expect(getByTestId("llegar-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("llegar-1"));
+    expect(abrirNavegacion).toHaveBeenCalledWith(-17.78, -63.18, "maps");
+  });
+
+  it("NO muestra el botón si el cliente no tiene coordenadas", async () => {
+    (coordenadaDeCliente as jest.Mock).mockReturnValue(null);
+    const dia = {
+      clientes: [
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
+      ],
+      trayectos: null,
+    };
+    const { queryByTestId } = await renderConApi({
+      dia: jest.fn().mockResolvedValue(dia),
+    });
+
+    await waitFor(() => expect(queryByTestId("cliente-1")).toBeTruthy());
+    expect(queryByTestId("llegar-1")).toBeNull();
   });
 });

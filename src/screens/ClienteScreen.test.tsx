@@ -55,6 +55,7 @@ const tarjeta = {
 async function renderConApi(
   api: Partial<SessionValue["api"]>,
   offline = offlineValor,
+  params: { latitud?: number; longitud?: number } = {},
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L" },
@@ -76,7 +77,7 @@ async function renderConApi(
           route={{
             key: "cliente",
             name: "Cliente",
-            params: { rutaId: 6, clienteId: 2, nombre: "Juan" },
+            params: { rutaId: 6, clienteId: 2, nombre: "Juan", ...params },
           }}
         />
       </SessionContext.Provider>
@@ -371,5 +372,45 @@ describe("ClienteScreen — edición de cliente offline", () => {
     await fireEvent.press(getByTestId("guardar-cambio-cliente"));
 
     expect(encolarSiNoExiste).not.toHaveBeenCalled();
+  });
+});
+
+jest.mock("../features/navegacion/navegacion", () => ({
+  abrirNavegacion: jest.fn().mockResolvedValue(undefined),
+}));
+
+import { abrirNavegacion } from "../features/navegacion/navegacion";
+
+describe("ClienteScreen — navegación externa (maps/waze)", () => {
+  it("muestra los botones de navegación cuando llegan coordenadas por params", async () => {
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
+    );
+
+    await waitFor(() => expect(getByTestId("navegar-maps")).toBeTruthy());
+    expect(getByTestId("navegar-waze")).toBeTruthy();
+  });
+
+  it("no muestra botones de navegación sin coordenadas", async () => {
+    const { queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(queryByTestId("btn-pago")).toBeTruthy());
+    expect(queryByTestId("navegar-maps")).toBeNull();
+    expect(queryByTestId("navegar-waze")).toBeNull();
+  });
+
+  it("abre Waze al tocar el botón Waze", async () => {
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
+    );
+
+    await waitFor(() => expect(getByTestId("navegar-waze")).toBeTruthy());
+    await fireEvent.press(getByTestId("navegar-waze"));
+
+    expect(abrirNavegacion).toHaveBeenCalledWith(-17.78, -63.18, "waze");
   });
 });

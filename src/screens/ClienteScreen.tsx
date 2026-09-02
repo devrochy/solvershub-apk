@@ -20,6 +20,7 @@ import {
   edicionDesdeTarjeta,
   type CambioClienteInput,
 } from "../features/cliente/cambio-cliente";
+import { abrirNavegacion } from "../features/navegacion/navegacion";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
@@ -38,7 +39,7 @@ function esPendienteOArrasada(cuota: CuotaPublic): boolean {
 }
 
 export function ClienteScreen({ route }: Props) {
-  const { rutaId, clienteId } = route.params;
+  const { rutaId, clienteId, latitud, longitud } = route.params;
   const { api, logout } = useSession();
   const offline = useOffline();
 
@@ -264,6 +265,24 @@ export function ClienteScreen({ route }: Props) {
         <Text style={styles.detalle}>
           Saldo pendiente: {tarjeta.saldoPendiente} | Mora: {tarjeta.diasMora} días
         </Text>
+        {typeof latitud === "number" && typeof longitud === "number" ? (
+          <View style={styles.navegacion}>
+            <Pressable
+              testID="navegar-maps"
+              style={[styles.botonPrimario, styles.botonNavegar]}
+              onPress={() => abrirNavegacion(latitud, longitud, "maps")}
+            >
+              <Text style={styles.botonTexto}>Google Maps</Text>
+            </Pressable>
+            <Pressable
+              testID="navegar-waze"
+              style={[styles.botonPrimario, styles.botonNavegar]}
+              onPress={() => abrirNavegacion(latitud, longitud, "waze")}
+            >
+              <Text style={styles.botonTexto}>Waze</Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
 
       {prestamoVigente && cuotaPorPagar ? (
@@ -517,6 +536,8 @@ const styles = StyleSheet.create({
   seccionTitulo: { fontSize: 14, fontWeight: "700", color: "#334155" },
   sinCuotas: { color: "#64748b", fontSize: 13, marginTop: 4 },
   acciones: { flexDirection: "row", gap: 10, marginTop: 8 },
+  navegacion: { flexDirection: "row", gap: 10, marginTop: 10 },
+  botonNavegar: { backgroundColor: "#0891b2", paddingVertical: 8 },
   botonPrimario: {
     backgroundColor: "#2563eb",
     borderRadius: 8,
