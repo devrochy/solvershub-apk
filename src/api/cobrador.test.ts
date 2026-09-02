@@ -127,4 +127,48 @@ describe("cobradorApi", () => {
       }),
     });
   });
+
+  it("editarCuota hace PATCH con valor, password y motivo", async () => {
+    request.mockResolvedValue({ id: 10 });
+
+    await api.editarCuota(6, 10, {
+      valorEsperado: 500,
+      password: "secreto",
+      motivo: "corrección",
+    });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/cuotas/10", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        valorEsperado: 500,
+        password: "secreto",
+        motivo: "corrección",
+      }),
+    });
+  });
+
+  it("eliminarCuota hace DELETE con password y motivo", async () => {
+    request.mockResolvedValue({ id: 10 });
+
+    await api.eliminarCuota(6, 10, { password: "secreto", motivo: "error" });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/cuotas/10", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "secreto", motivo: "error" }),
+    });
+  });
+
+  it("eliminarAbono hace DELETE con password y motivo", async () => {
+    request.mockResolvedValue({ id: 30 });
+
+    await api.eliminarAbono(6, 30, { password: "secreto", motivo: "error" });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/abonos/30", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "secreto", motivo: "error" }),
+    });
+  });
 });
