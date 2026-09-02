@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { DiaScreen } from "./DiaScreen";
 import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
@@ -230,5 +230,29 @@ describe("DiaScreen — navegación externa", () => {
 
     await waitFor(() => expect(queryByTestId("cliente-1")).toBeTruthy());
     expect(queryByTestId("llegar-1")).toBeNull();
+  });
+});
+
+describe("DiaScreen — re-fetch periódico (día en vivo)", () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.clearAllTimers();
+  });
+
+  it("recarga la lista del día automáticamente al pasar el intervalo", async () => {
+    const dia = jest.fn().mockResolvedValue({
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const }],
+      trayectos: null,
+    });
+    const { getByText } = await renderConApi({ dia });
+
+    await waitFor(() => expect(getByText("Juan")).toBeTruthy());
+    expect(dia).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(30000);
+    });
+    await waitFor(() => expect(dia).toHaveBeenCalledTimes(2));
   });
 });

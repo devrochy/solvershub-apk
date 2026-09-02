@@ -111,6 +111,16 @@ export function DiaScreen({ navigation, route }: Props) {
     cargar();
   }, [cargar]);
 
+  useEffect(() => {
+    // Re-fetch periódico: la lista del día se va actualizando a medida que se
+    // registran visitas (HU-56). No interfiere con el pull-to-refresh ni con
+    // el modo offline (cargar() ya maneja la caída al cache).
+    const intervalo = setInterval(() => {
+      void cargar();
+    }, 30000);
+    return () => clearInterval(intervalo);
+  }, [cargar]);
+
   async function registrarGasto() {
     const valor = Number(gastoValor);
     if (!gastoDescripcion.trim() || !Number.isFinite(valor) || valor <= 0) {
