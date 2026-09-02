@@ -33,6 +33,7 @@ import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, leerCliente } from "../offline/cache";
 import { useSession } from "../session/session-context";
+import { useRutaActiva } from "../session/ruta-activa-context";
 import type {
   ClienteTarjetaPublic,
   CuotaPublic,
@@ -49,6 +50,7 @@ export function ClienteScreen({ route, navigation }: Props) {
   const { rutaId, clienteId, latitud, longitud } = route.params;
   const { api, logout } = useSession();
   const offline = useOffline();
+  const { rutaActiva } = useRutaActiva();
 
   const [tarjeta, setTarjeta] = useState<ClienteTarjetaPublic | null>(null);
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
@@ -512,6 +514,12 @@ export function ClienteScreen({ route, navigation }: Props) {
             setModoPrestamo(true);
             setMensaje(null);
             setPrestamoMensaje(null);
+            // Autocompletado desde la ruta activa (defaults de la ruta).
+            setPrestamoInteres(rutaActiva ? String(rutaActiva.tipoInteres) : "");
+            setPrestamoCuotas(rutaActiva ? String(rutaActiva.numCuotas) : "");
+            const cupo = rutaActiva?.config.cupoDefault;
+            setPrestamoValor(cupo ? String(cupo) : "");
+            setPrestamoDias("");
           }}
         >
           <Text style={styles.botonTexto}>Nuevo préstamo</Text>

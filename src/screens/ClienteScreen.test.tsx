@@ -3,6 +3,7 @@ import { ClienteScreen } from "./ClienteScreen";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+import { RutaActivaContext } from "../session/ruta-activa-context";
 
 jest.mock("../features/estado-cuenta/estado-cuenta", () => ({
   enlaceWhatsApp: jest.fn(
@@ -85,14 +86,27 @@ async function renderConApi(
   return render(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
-        <ClienteScreen
-          navigation={navigation}
-          route={{
-            key: "cliente",
-            name: "Cliente",
-            params: { rutaId: 6, clienteId: 2, nombre: "Juan", ...params },
+        <RutaActivaContext.Provider
+          value={{
+            rutaActiva: {
+              rutaId: 6,
+              rutaNombre: "Ruta Centro",
+              tipoInteres: 20,
+              numCuotas: 8,
+              config: { rutaId: 6, cupoDefault: 1500, cuotasMinimasPrestamo: 1 } as never,
+            },
+            setRutaActiva: jest.fn(),
           }}
-        />
+        >
+          <ClienteScreen
+            navigation={navigation}
+            route={{
+              key: "cliente",
+              name: "Cliente",
+              params: { rutaId: 6, clienteId: 2, nombre: "Juan", ...params },
+            }}
+          />
+        </RutaActivaContext.Provider>
       </SessionContext.Provider>
     </OfflineContext.Provider>,
   );
@@ -516,6 +530,7 @@ describe("ClienteScreen — registrar préstamo", () => {
         valor: 800,
         numCuotas: 4,
         diasEntreCuotas: 7,
+        tipoInteres: 20,
       }),
     );
   });
@@ -526,10 +541,38 @@ describe("ClienteScreen — registrar préstamo", () => {
 
     await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
     await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+    // Autocompletado: limpiamos el valor para forzar el fallo de validación.
+    await fireEvent.changeText(getByTestId("prestamo-valor"), "");
     await fireEvent.press(getByTestId("guardar-prestamo"));
 
     expect(crearPrestamo).not.toHaveBeenCalled();
     expect(getByText(/Ingresa un valor de préstamo válido/)).toBeTruthy();
+  });
+
+  it("autocompleta interés, cuotas y valor desde la ruta activa", async () => {
+    const crearPrestamo = jest.fn().mockResolvedValue({ id: 5 });
+    const { getByTestId } = await renderConApi({ crearPrestamo });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+
+    // Los defaults de la ruta activa vienen pre-llenados (20% interés, 8 cuotas, cupo 1500).
+    expect(getByTestId("prestamo-valor").props.value).toBe("1500");
+    expect(getByTestId("prestamo-cuotas").props.value).toBe("8");
+    expect(getByTestId("prestamo-interes").props.value).toBe("20");
+
+    await fireEvent.changeText(getByTestId("prestamo-dias"), "7");
+    await fireEvent.press(getByTestId("guardar-prestamo"));
+
+    await waitFor(() =>
+      expect(crearPrestamo).toHaveBeenCalledWith(6, {
+        clienteId: 2,
+        valor: 1500,
+        numCuotas: 8,
+        diasEntreCuotas: 7,
+        tipoInteres: 20,
+      }),
+    );
   });
 });
 

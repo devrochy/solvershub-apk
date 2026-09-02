@@ -60,7 +60,16 @@ async function renderConApi(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
         <RutaActivaContext.Provider
-          value={{ rutaActiva: { rutaId: 6, rutaNombre: "Ruta" }, setRutaActiva: jest.fn() }}
+          value={{
+            rutaActiva: {
+              rutaId: 6,
+              rutaNombre: "Ruta",
+              tipoInteres: 20,
+              numCuotas: 8,
+              config: {} as never,
+            },
+            setRutaActiva: jest.fn(),
+          }}
         >
           <DiaScreen navigation={navigation} />
         </RutaActivaContext.Provider>

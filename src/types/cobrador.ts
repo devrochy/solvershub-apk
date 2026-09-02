@@ -51,6 +51,8 @@ export interface RutaApkPublic {
   id: number;
   nombre: string;
   estatus: string;
+  tipoInteres: number;
+  numCuotas: number;
   config: RutaConfigPublic;
   permisos: CobradorPermisoEstado[];
 }

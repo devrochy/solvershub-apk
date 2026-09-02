@@ -1,9 +1,13 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import type { RutaConfigPublic } from "../types/cobrador";
 
 export interface RutaActiva {
   rutaId: number;
   rutaNombre: string;
+  tipoInteres: number;
+  numCuotas: number;
+  config: RutaConfigPublic;
 }
 
 export interface RutaActivaContextValue {

@@ -33,7 +33,19 @@ const cliente = {
 async function renderConRutaActiva(
   api: Partial<SessionValue["api"]>,
   navigate: jest.Mock = jest.fn(),
-  rutaActiva: { rutaId: number; rutaNombre: string } | null = { rutaId: 6, rutaNombre: "Ruta Centro" },
+  rutaActiva: {
+    rutaId: number;
+    rutaNombre: string;
+    tipoInteres: number;
+    numCuotas: number;
+    config: never;
+  } | null = {
+    rutaId: 6,
+    rutaNombre: "Ruta Centro",
+    tipoInteres: 20,
+    numCuotas: 8,
+    config: {} as never,
+  },
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López" },

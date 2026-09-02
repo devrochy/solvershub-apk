@@ -95,7 +95,13 @@ export function RutasScreen({ navigation }: Props) {
               testID={`ruta-${item.id}`}
               style={styles.tarjeta}
               onPress={() => {
-                setRutaActiva({ rutaId: item.id, rutaNombre: item.nombre });
+                setRutaActiva({
+                  rutaId: item.id,
+                  rutaNombre: item.nombre,
+                  tipoInteres: item.tipoInteres,
+                  numCuotas: item.numCuotas,
+                  config: item.config,
+                });
                 navigation.navigate("Clientes");
               }}
             >
