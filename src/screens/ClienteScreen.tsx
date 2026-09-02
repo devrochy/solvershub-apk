@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,6 +22,10 @@ import {
   type CambioClienteInput,
 } from "../features/cliente/cambio-cliente";
 import { abrirNavegacion } from "../features/navegacion/navegacion";
+import {
+  enlaceWhatsApp,
+  textoReportePrestamo,
+} from "../features/estado-cuenta/estado-cuenta";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
@@ -297,6 +302,38 @@ export function ClienteScreen({ route }: Props) {
         <Text style={styles.sinCuotas}>Sin cuotas pendientes para este préstamo.</Text>
       ) : null}
 
+      {prestamoVigente ? (
+        <View style={styles.seccion}>
+          <Text style={styles.seccionTitulo}>Estado de cuenta</Text>
+          {prestamoVigente.cuotas.map((cuota) => (
+            <View
+              key={cuota.id}
+              style={[styles.recuadroCuota, cuota.estatus === "atrasada" && styles.recuadroCuotaMora]}
+              testID={`cuota-${cuota.id}`}
+            >
+              <Text style={styles.cuotaLinea}>
+                Cuota {cuota.numeroCuota} — {cuota.valorEsperado} ({cuota.estatus})
+              </Text>
+              <Text style={styles.cuotaFecha}>
+                Vence {cuota.fechaVencimiento}
+              </Text>
+            </View>
+          ))}
+          <Pressable
+            testID="btn-whatsapp"
+            style={[styles.botonPrimario, styles.botonWhatsApp]}
+            onPress={() => {
+              const texto = textoReportePrestamo(prestamoVigente, tarjeta);
+              void Linking.openURL(
+                enlaceWhatsApp(tarjeta.telefonoWhatsapp, texto),
+              );
+            }}
+          >
+            <Text style={styles.botonTexto}>Enviar por WhatsApp</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={styles.acciones}>
         <Pressable
           testID="btn-editar-cliente"
@@ -535,6 +572,18 @@ const styles = StyleSheet.create({
   seccion: { marginTop: 4 },
   seccionTitulo: { fontSize: 14, fontWeight: "700", color: "#334155" },
   sinCuotas: { color: "#64748b", fontSize: 13, marginTop: 4 },
+  recuadroCuota: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 6,
+  },
+  recuadroCuotaMora: { borderColor: "#fca5a5", backgroundColor: "#fef2f2" },
+  cuotaLinea: { fontSize: 14, fontWeight: "600" },
+  cuotaFecha: { color: "#64748b", fontSize: 12, marginTop: 2 },
+  botonWhatsApp: { backgroundColor: "#16a34a", marginTop: 10, flex: 0 },
   acciones: { flexDirection: "row", gap: 10, marginTop: 8 },
   navegacion: { flexDirection: "row", gap: 10, marginTop: 10 },
   botonNavegar: { backgroundColor: "#0891b2", paddingVertical: 8 },

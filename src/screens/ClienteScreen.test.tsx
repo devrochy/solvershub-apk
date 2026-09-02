@@ -4,6 +4,18 @@ import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 
+jest.mock("../features/estado-cuenta/estado-cuenta", () => ({
+  enlaceWhatsApp: jest.fn(
+    (telefono: string, texto: string) =>
+      `https://wa.me/${telefono.replace(/[^\d]/g, "")}?text=${encodeURIComponent(texto)}`,
+  ),
+  textoReportePrestamo: jest.fn(() => "Estado de cuenta de Juan"),
+  numeroWhatsApp: jest.fn((t: string) => t.replace(/[^\d]/g, "")),
+}));
+
+import { Linking } from "react-native";
+import { enlaceWhatsApp } from "../features/estado-cuenta/estado-cuenta";
+
 jest.mock("../offline/cache", () => ({
   guardarCliente: jest.fn().mockResolvedValue(undefined),
   leerCliente: jest.fn().mockResolvedValue(null),
@@ -412,5 +424,37 @@ describe("ClienteScreen — navegación externa (maps/waze)", () => {
     await fireEvent.press(getByTestId("navegar-waze"));
 
     expect(abrirNavegacion).toHaveBeenCalledWith(-17.78, -63.18, "waze");
+  });
+});
+
+describe("ClienteScreen — estado de cuenta y WhatsApp", () => {
+  let spyOpenURL: jest.SpyInstance;
+  beforeEach(() => {
+    spyOpenURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+  });
+  afterEach(() => {
+    spyOpenURL.mockRestore();
+  });
+
+  it("muestra las cuotas del préstamo y el botón Enviar por WhatsApp", async () => {
+    const { getByTestId, getAllByText } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-whatsapp")).toBeTruthy());
+    expect(getAllByText(/Cuota 1 — 300 \(pendiente\)/).length).toBeGreaterThan(0);
+  });
+
+  it("abre wa.me con el reporte al tocar el botón", async () => {
+    const { getByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-whatsapp")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-whatsapp"));
+
+    expect(enlaceWhatsApp).toHaveBeenCalledWith(
+      "+59170000000",
+      "Estado de cuenta de Juan",
+    );
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      "https://wa.me/59170000000?text=Estado%20de%20cuenta%20de%20Juan",
+    );
   });
 });
