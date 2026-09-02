@@ -2,8 +2,9 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import type { RootStackParamList, RootTabParamList } from "./src/navigation/types";
+import { CustomTabBar } from "./src/components/CustomTabBar";
 import { OfflineProvider } from "./src/offline/offline-context";
 import { ClienteScreen } from "./src/screens/ClienteScreen";
 import { ClientesScreen } from "./src/screens/ClientesScreen";
@@ -20,26 +21,12 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 function TabsNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: "#2563eb",
-        tabBarInactiveTintColor: "#64748b",
-      }}
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
-      <Tab.Screen
-        name="Rutas"
-        component={RutasScreen}
-        options={{ title: "Rutas", tabBarIcon: () => <Text style={styles.icono}>R</Text> }}
-      />
-      <Tab.Screen
-        name="Clientes"
-        component={ClientesScreen}
-        options={{ title: "Clientes", tabBarIcon: () => <Text style={styles.icono}>C</Text> }}
-      />
-      <Tab.Screen
-        name="Dia"
-        component={DiaScreen}
-        options={{ title: "Día", tabBarIcon: () => <Text style={styles.icono}>D</Text> }}
-      />
+      <Tab.Screen name="Rutas" component={RutasScreen} options={{ title: "Rutas" }} />
+      <Tab.Screen name="Dia" component={DiaScreen} options={{ title: "Día" }} />
+      <Tab.Screen name="Clientes" component={ClientesScreen} options={{ title: "Clientes" }} />
     </Tab.Navigator>
   );
 }
@@ -103,5 +90,4 @@ export default function App() {
 
 const styles = StyleSheet.create({
   carga: { flex: 1, alignItems: "center", justifyContent: "center" },
-  icono: { fontSize: 14, fontWeight: "700" },
 });

@@ -10,4 +10,12 @@ jest.mock("@react-native-community/netinfo", () => ({
   fetch: jest.fn().mockResolvedValue({ isConnected: true }),
 }));
 
+jest.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  const Icono = (props: { name: string }) =>
+    React.createElement(Text, { testID: `icono-${props.name}` }, props.name);
+  return { MaterialIcons: Icono };
+});
+
 export {};
