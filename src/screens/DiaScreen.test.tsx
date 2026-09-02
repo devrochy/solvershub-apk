@@ -4,6 +4,7 @@ import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+import { RutaActivaContext } from "../session/ruta-activa-context";
 import * as useEvidenciasModule from "../features/gastos/use-evidencias";
 
 jest.mock("../features/navegacion/navegacion", () => ({
@@ -58,10 +59,11 @@ async function renderConApi(
   return render(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
-        <DiaScreen
-          navigation={navigation}
-          route={{ key: "dia", name: "Dia", params: { rutaId: 6, rutaNombre: "Ruta" } }}
-        />
+        <RutaActivaContext.Provider
+          value={{ rutaActiva: { rutaId: 6, rutaNombre: "Ruta" }, setRutaActiva: jest.fn() }}
+        >
+          <DiaScreen navigation={navigation} />
+        </RutaActivaContext.Provider>
       </SessionContext.Provider>
     </OfflineContext.Provider>,
   );

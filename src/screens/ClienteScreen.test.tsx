@@ -68,6 +68,7 @@ async function renderConApi(
   api: Partial<SessionValue["api"]>,
   offline = offlineValor,
   params: { latitud?: number; longitud?: number } = {},
+  navigate: jest.Mock = jest.fn(),
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L" },
@@ -80,7 +81,7 @@ async function renderConApi(
     login: jest.fn(),
     logout: jest.fn(),
   };
-  const navigation = { navigate: jest.fn() } as never;
+  const navigation = { navigate } as never;
   return render(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
@@ -571,5 +572,26 @@ describe("ClienteScreen — editar/eliminar cuota", () => {
         motivo: "error de registro",
       }),
     );
+  });
+
+  it("navega a la pantalla de préstamo (canvas de cuotas) al tocar el botón", async () => {
+    const navigate = jest.fn();
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      {},
+      navigate,
+    );
+
+    await waitFor(() => expect(getByTestId("btn-canvas-prestamo")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-canvas-prestamo"));
+
+    expect(navigate).toHaveBeenCalledWith("Prestamo", {
+      rutaId: 6,
+      prestamoId: 1,
+      clienteNombre: "Juan",
+      valor: 1000,
+      numCuotas: 4,
+    });
   });
 });

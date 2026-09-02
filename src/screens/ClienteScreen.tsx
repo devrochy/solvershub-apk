@@ -45,7 +45,7 @@ function esPendienteOArrasada(cuota: CuotaPublic): boolean {
   return cuota.estatus === "pendiente" || cuota.estatus === "atrasada";
 }
 
-export function ClienteScreen({ route }: Props) {
+export function ClienteScreen({ route, navigation }: Props) {
   const { rutaId, clienteId, latitud, longitud } = route.params;
   const { api, logout } = useSession();
   const offline = useOffline();
@@ -419,6 +419,21 @@ export function ClienteScreen({ route }: Props) {
               </Text>
             </Pressable>
           </View>
+          <Pressable
+            testID="btn-canvas-prestamo"
+            style={[styles.botonPrimario, styles.botonPrestamo]}
+            onPress={() =>
+              navigation.navigate("Prestamo", {
+                rutaId,
+                prestamoId: prestamoVigente.id,
+                clienteNombre: tarjeta.nombre,
+                valor: prestamoVigente.valor,
+                numCuotas: prestamoVigente.numCuotas,
+              })
+            }
+          >
+            <Text style={styles.botonTexto}>Ver canvas de cuotas</Text>
+          </Pressable>
           {detalleAbierto ? (
             <View
               testID="estado-cuenta"

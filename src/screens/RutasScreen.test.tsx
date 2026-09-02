@@ -2,6 +2,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { RutasScreen } from "./RutasScreen";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+import { RutaActivaContext } from "../session/ruta-activa-context";
 
 const ruta = {
   id: 6,
@@ -17,6 +18,7 @@ const ruta = {
 async function renderConRutas(
   api: Partial<SessionValue["api"]>,
   navigate: jest.Mock = jest.fn(),
+  setRutaActiva: jest.Mock = jest.fn(),
   offline: OfflineValue = {
     isOnline: true,
     sinSubir: 0,
@@ -37,18 +39,22 @@ async function renderConRutas(
   return render(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
-        <RutasScreen navigation={navigation} route={{ key: "rutas", name: "Rutas" }} />
+        <RutaActivaContext.Provider value={{ rutaActiva: null, setRutaActiva }}>
+          <RutasScreen navigation={navigation} route={{ key: "rutas", name: "Rutas" }} />
+        </RutaActivaContext.Provider>
       </SessionContext.Provider>
     </OfflineContext.Provider>,
   );
 }
 
 describe("RutasScreen", () => {
-  it("muestra las rutas del cobrador y navega al día", async () => {
+  it("muestra las rutas del cobrador, fija la ruta activa y navega al tab Clientes", async () => {
     const navigate = jest.fn();
+    const setRutaActiva = jest.fn();
     const { getByTestId, getByText } = await renderConRutas(
       { misRutas: jest.fn().mockResolvedValue([ruta]) },
       navigate,
+      setRutaActiva,
     );
 
     await waitFor(() => expect(getByText("Ruta Centro")).toBeTruthy());
@@ -56,11 +62,12 @@ describe("RutasScreen", () => {
     await fireEvent.press(getByTestId("ruta-6"));
 
     await waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith("Dia", {
+      expect(setRutaActiva).toHaveBeenCalledWith({
         rutaId: 6,
         rutaNombre: "Ruta Centro",
       }),
     );
+    expect(navigate).toHaveBeenCalledWith("Clientes");
   });
 
   it("muestra el estado vacío si no hay rutas", async () => {
@@ -77,6 +84,7 @@ describe("RutasScreen", () => {
     const { getByTestId } = await renderConRutas(
       { misRutas: jest.fn().mockResolvedValue([ruta]) },
       jest.fn(),
+      jest.fn(),
       { isOnline: false, sinSubir: 2, errorSync: null, encolar: jest.fn(), encolarSiNoExiste: jest.fn().mockResolvedValue(true), sincronizar: jest.fn() },
     );
 
@@ -86,6 +94,7 @@ describe("RutasScreen", () => {
   it("muestra el aviso de error de sincronización (device key inválida)", async () => {
     const { getByTestId, getByText } = await renderConRutas(
       { misRutas: jest.fn().mockResolvedValue([ruta]) },
+      jest.fn(),
       jest.fn(),
       {
         isOnline: true,

@@ -1,16 +1,48 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
-import type { RootStackParamList } from "./src/navigation/types";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import type { RootStackParamList, RootTabParamList } from "./src/navigation/types";
 import { OfflineProvider } from "./src/offline/offline-context";
 import { ClienteScreen } from "./src/screens/ClienteScreen";
+import { ClientesScreen } from "./src/screens/ClientesScreen";
 import { DiaScreen } from "./src/screens/DiaScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
+import { PrestamoScreen } from "./src/screens/PrestamoScreen";
 import { RutasScreen } from "./src/screens/RutasScreen";
+import { RutaActivaProvider } from "./src/session/ruta-activa-context";
 import { SessionProvider, useSession } from "./src/session/session-context";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<RootTabParamList>();
+
+function TabsNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: "#2563eb",
+        tabBarInactiveTintColor: "#64748b",
+      }}
+    >
+      <Tab.Screen
+        name="Rutas"
+        component={RutasScreen}
+        options={{ title: "Rutas", tabBarIcon: () => <Text style={styles.icono}>R</Text> }}
+      />
+      <Tab.Screen
+        name="Clientes"
+        component={ClientesScreen}
+        options={{ title: "Clientes", tabBarIcon: () => <Text style={styles.icono}>C</Text> }}
+      />
+      <Tab.Screen
+        name="Dia"
+        component={DiaScreen}
+        options={{ title: "Día", tabBarIcon: () => <Text style={styles.icono}>D</Text> }}
+      />
+    </Tab.Navigator>
+  );
+}
 
 function RootNavigator() {
   const { cobrador, loading } = useSession();
@@ -29,19 +61,19 @@ function RootNavigator() {
         {cobrador ? (
           <>
             <Stack.Screen
-              name="Rutas"
-              component={RutasScreen}
-              options={{ title: "Mis rutas" }}
-            />
-            <Stack.Screen
-              name="Dia"
-              component={DiaScreen}
-              options={({ route }) => ({ title: route.params.rutaNombre })}
+              name="Main"
+              component={TabsNavigator}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
               name="Cliente"
               component={ClienteScreen}
               options={({ route }) => ({ title: route.params.nombre })}
+            />
+            <Stack.Screen
+              name="Prestamo"
+              component={PrestamoScreen}
+              options={{ title: "Préstamo" }}
             />
           </>
         ) : (
@@ -60,8 +92,10 @@ export default function App() {
   return (
     <SessionProvider>
       <OfflineProvider>
-        <StatusBar style="auto" />
-        <RootNavigator />
+        <RutaActivaProvider>
+          <StatusBar style="auto" />
+          <RootNavigator />
+        </RutaActivaProvider>
       </OfflineProvider>
     </SessionProvider>
   );
@@ -69,4 +103,5 @@ export default function App() {
 
 const styles = StyleSheet.create({
   carga: { flex: 1, alignItems: "center", justifyContent: "center" },
+  icono: { fontSize: 14, fontWeight: "700" },
 });

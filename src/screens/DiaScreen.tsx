@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
@@ -20,16 +20,21 @@ import {
   coordenadaDeCliente,
 } from "../features/navegacion/navegacion";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
-import type { RootStackParamList } from "../navigation/types";
+import type { RootStackParamList, RootTabParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
+import { useRutaActiva } from "../session/ruta-activa-context";
 import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Dia">;
+type Props = { navigation: StackNavigation };
+type StackNavigation = {
+  navigate(screen: "Cliente", params: RootStackParamList["Cliente"]): void;
+};
 
-export function DiaScreen({ navigation, route }: Props) {
-  const { rutaId } = route.params;
+export function DiaScreen({ navigation }: Props) {
+  const { rutaActiva } = useRutaActiva();
+  const rutaId = rutaActiva?.rutaId ?? 0;
   const { api, logout } = useSession();
   const offline = useOffline();
   const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
@@ -190,6 +195,14 @@ export function DiaScreen({ navigation, route }: Props) {
     }
   }
 
+  if (!rutaActiva) {
+    return (
+      <View style={styles.contenedor}>
+        <Text style={styles.vacio}>Selecciona una ruta para ver el día.</Text>
+      </View>
+    );
+  }
+
   if (!clientes) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
@@ -262,7 +275,7 @@ export function DiaScreen({ navigation, route }: Props) {
               testID={`cliente-${item.clienteId}`}
               style={styles.tarjeta}
               onPress={() =>
-                navigation.navigate("Cliente", {
+                (navigation as unknown as StackNavigation).navigate("Cliente", {
                   rutaId,
                   clienteId: item.clienteId,
                   nombre: item.nombre,

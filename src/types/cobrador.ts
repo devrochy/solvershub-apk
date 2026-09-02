@@ -132,6 +132,23 @@ export interface ClienteTarjetaPublic {
   diasMora: number;
 }
 
+export interface ClienteCobradorPublic {
+  id: number;
+  rutaId: number;
+  nombre: string;
+  apellido: string;
+  negocio: string | null;
+  telefonoWhatsapp: string;
+  latitud: number;
+  longitud: number;
+  latitudDomicilio: number | null;
+  longitudDomicilio: number | null;
+  topeMaximoDeuda: number | null;
+  estatus: string;
+  colorRiesgo: ColorRiesgo;
+  createdAt: string;
+}
+
 export type CuotaEstatus = "pendiente" | "pagada" | "atrasada";
 export type PrestamoEstatus = "vigente" | "liquidado" | "cancelado";
 
@@ -154,6 +171,32 @@ export interface PrestamoPublic {
   fechaOtorgado: string;
   estatus: PrestamoEstatus;
   cuotas: CuotaPublic[];
+}
+
+export interface CuotaEstado {
+  cuotaId: number;
+  numeroCuota: number;
+  valorEsperado: number;
+  fechaVencimiento: string;
+  estatus: CuotaEstatus;
+  abonosAcumulados: number;
+  saldoPendiente: number;
+}
+
+export interface EstadoCuentaPrestamoPublic {
+  prestamoId: number;
+  rutaId: number;
+  clienteId: number;
+  nombreCliente: string;
+  valor: number;
+  numCuotas: number;
+  tipoInteres: number;
+  estatus: string;
+  moneda: string;
+  cuotas: CuotaEstado[];
+  totalAbonos: number;
+  saldoPendiente: number;
+  proximoVencimiento: string | null;
 }
 
 export interface RegistrarVisitaInput {

@@ -7,18 +7,20 @@ import {
   Text,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
-import type { RootStackParamList } from "../navigation/types";
+import type { RootTabParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
+import { useRutaActiva } from "../session/ruta-activa-context";
 import type { RutaApkPublic } from "../types/cobrador";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Rutas">;
+type Props = BottomTabScreenProps<RootTabParamList, "Rutas">;
 
 export function RutasScreen({ navigation }: Props) {
   const { api, cobrador, logout } = useSession();
+  const { setRutaActiva } = useRutaActiva();
   const offline = useOffline();
   const [rutas, setRutas] = useState<RutaApkPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -92,12 +94,10 @@ export function RutasScreen({ navigation }: Props) {
             <Pressable
               testID={`ruta-${item.id}`}
               style={styles.tarjeta}
-              onPress={() =>
-                navigation.navigate("Dia", {
-                  rutaId: item.id,
-                  rutaNombre: item.nombre,
-                })
-              }
+              onPress={() => {
+                setRutaActiva({ rutaId: item.id, rutaNombre: item.nombre });
+                navigation.navigate("Clientes");
+              }}
             >
               <View style={styles.tarjetaInfo}>
                 <Text style={styles.rutaNombre}>{item.nombre}</Text>
