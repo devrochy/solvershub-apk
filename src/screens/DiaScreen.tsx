@@ -170,8 +170,13 @@ export function DiaScreen({ navigation, route }: Props) {
     try {
       await api.registrarTrayectoriaReal(rutaId, { puntos });
       setTrayectoriaMensaje("Trayectoria enviada.");
-    } catch {
-      setTrayectoriaMensaje("No se pudo enviar la trayectoria.");
+    } catch (err) {
+      if (esErrorDeRed(err)) {
+        await offline.encolar("trayectoria", { puntos });
+        setTrayectoriaMensaje("Guardado sin conexión (se sincronizará).");
+      } else {
+        setTrayectoriaMensaje("No se pudo enviar la trayectoria.");
+      }
     } finally {
       setTrayectoriaEnviando(false);
     }
