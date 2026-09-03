@@ -422,7 +422,8 @@ describe("ClienteScreen — cache offline", () => {
     });
 
     await waitFor(() => expect(getByText("Juan")).toBeTruthy());
-    expect(getByText(/Saldo pendiente: 300/)).toBeTruthy();
+    expect(getByText("Saldo pendiente")).toBeTruthy();
+    expect(getByText("300")).toBeTruthy();
   });
 });
 
@@ -677,8 +678,10 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     });
 
     await waitFor(() => expect(getByTestId("avatar-foto")).toBeTruthy());
-    expect(getByText(/Tipo de pago: diario/)).toBeTruthy();
-    expect(getByText(/WhatsApp: \+59170000000/)).toBeTruthy();
+    expect(getByText("Tipo de pago")).toBeTruthy();
+    expect(getByText("diario")).toBeTruthy();
+    expect(getByText("WhatsApp")).toBeTruthy();
+    expect(getByText("+59170000000")).toBeTruthy();
   });
 
   it("usa el icono person cuando no hay foto y no muestra el tipo de pago", async () => {
@@ -772,6 +775,32 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
     expect(getByText("Verificado")).toBeTruthy();
+  });
+
+  it("el header de la tarjeta usa el fondo del color de clasificación del cliente", async () => {
+    const tarjetaRoja = { ...tarjeta, color: "rojo" };
+    const { getByTestId } = await renderConApi({
+      tarjeta: jest.fn().mockResolvedValue(tarjetaRoja),
+    });
+
+    await waitFor(() => expect(getByTestId("header-tarjeta-cliente")).toBeTruthy());
+    expect(getByTestId("header-tarjeta-cliente")).toHaveStyle({ backgroundColor: "#dc2626" });
+  });
+
+  it("quita el punto de color de la tarjeta cédula (solo header de clasificación)", async () => {
+    const { queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(queryByTestId("tarjeta-cedula")).toBeTruthy());
+    // El punto (color-badge) no debe existir dentro de la tarjeta cédula.
+    expect(queryByTestId("color-badge-azul")).toBeNull();
+  });
+
+  it("muestra los documentos frente y reverso como iconos grandes en la cédula", async () => {
+    const { getByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("doc-frente")).toBeTruthy());
+    expect(getByTestId("doc-reverso")).toBeTruthy();
+    expect(getByTestId("tarjeta-cedula")).toBeTruthy();
   });
 });
 

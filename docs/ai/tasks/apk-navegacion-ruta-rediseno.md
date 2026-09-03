@@ -54,3 +54,11 @@ cliente (header neutro + tarjeta con header propio + edición sin ubicaciones +
   - Estilos muertos eliminados (headerAccionTexto, seccionEspacio, headerEspacio).
 - Backlog: mapa "Cómo llegar" stale tras guardar ubicación; 2N requests por ruta.
 - Prueba en dispositivo pendiente.
+## Iteración 2 — Tarjeta cédula/pasaporte (2026-09-03)
+- Header de la tarjeta con fondo del color de clasificación del cliente (azul/rojo/verde/blanco) + nombre + Editar.
+- Foto grande a la izquierda (92px) + datos a la derecha con subtítulos en negrita (Negocio, Tipo de pago, Saldo pendiente, Mora, WhatsApp).
+- Dos iconos grandes de documento (frente/reverso) en una fila, sin el texto "Documento".
+- Debajo, la fila con "Cómo llegar" y "Editar ubicación".
+- Se quitó el punto de color de la tarjeta (queda el color en el header).
+- Tests: header con fondo por clasificación, ausencia del punto, documentos como iconos grandes.
+- `scripts/check.sh` APK → verde (261 tests).

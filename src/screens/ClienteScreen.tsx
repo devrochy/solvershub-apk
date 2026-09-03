@@ -20,7 +20,7 @@ import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
-import { ColorBadge } from "../components/ColorBadge";
+import { ColorBadge, colorDeEstado } from "../components/ColorBadge";
 import { MapaCliente } from "../components/MapaCliente";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
@@ -745,120 +745,130 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           </View>
         ) : null}
 
-        {/* Tarjeta principal del cliente con header propio: nombre + Editar */}
-        <View style={styles.tarjeta}>
-          <View style={styles.tarjetaHeader}>
+        {/* Tarjeta cédula/pasaporte: header con fondo por clasificación, foto grande
+            a la izquierda y datos a la derecha; documentos como iconos grandes. */}
+        <View testID="tarjeta-cedula" style={styles.tarjeta}>
+          <View
+            testID="header-tarjeta-cliente"
+            style={[styles.tarjetaHeader, { backgroundColor: colorDeEstado(tarjeta.color) }]}
+          >
             <Text style={styles.tarjetaHeaderNombre} numberOfLines={1}>
               {tarjeta.nombre}
             </Text>
             <Pressable testID="btn-editar-cliente" style={styles.tarjetaHeaderEditar} onPress={abrirEditar}>
-              <MaterialIcons name="edit" size={16} color="#2563eb" />
+              <MaterialIcons name="edit" size={16} color="#ffffff" />
               <Text style={styles.tarjetaHeaderEditarTexto}>Editar</Text>
             </Pressable>
           </View>
-          <View style={styles.filaSuperior}>
-            <Pressable testID="btn-avatar" onPress={() => setModal("avatar")}>
-              <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={64} />
-            </Pressable>
 
-            {/* Tarjeta de documento: frontal y reverso */}
-            <View style={styles.documento}>
-              <View style={styles.documentoFilaTitulo}>
-                <Text style={styles.documentoTitulo}>Documento</Text>
-                <ColorBadge color={tarjeta.color} />
+          {/* Foto grande a la izquierda + datos a la derecha */}
+          <View style={styles.filaCedula}>
+            <Pressable testID="btn-avatar" onPress={() => setModal("avatar")}>
+              <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={92} />
+            </Pressable>
+            <View style={styles.datosCedula}>
+              {tarjeta.negocio ? (
+                <View style={styles.datoCedula}>
+                  <Text style={styles.datoCedulaSubtitulo}>Negocio</Text>
+                  <Text style={styles.datoCedulaValor} numberOfLines={2}>{tarjeta.negocio}</Text>
+                </View>
+              ) : null}
+              {tarjeta.tipoPago ? (
+                <View style={styles.datoCedula}>
+                  <Text style={styles.datoCedulaSubtitulo}>Tipo de pago</Text>
+                  <Text style={styles.datoCedulaValor}>{tarjeta.tipoPago}</Text>
+                </View>
+              ) : null}
+              <View style={styles.datoCedula}>
+                <Text style={styles.datoCedulaSubtitulo}>Saldo pendiente</Text>
+                <Text style={styles.datoCedulaValor}>{tarjeta.saldoPendiente}</Text>
               </View>
-              <View style={styles.documentoMiniaturas}>
-                <Pressable
-                  testID="doc-frente"
-                  style={styles.miniatura}
-                  onPress={() => {
-                    setModalDocumento("frente");
-                    setModal("documento");
-                  }}
-                >
-                  {docFrenteUrl ? (
-                    <Image
-                      source={{ uri: docFrenteUrl }}
-                      style={styles.miniaturaImagen}
-                    />
-                  ) : (
-                    <View style={styles.miniaturaPlaceholder}>
-                      <MaterialIcons name="badge" size={22} color="#94a3b8" />
-                    </View>
-                  )}
-                  <View
-                    testID="doc-frente-badge"
-                    style={[
-                      styles.badgeDoc,
-                      docFrenteUrl ? styles.badgeVerificado : styles.badgePendiente,
-                    ]}
-                  >
-                    {docFrenteUrl ? (
-                      <MaterialIcons name="check" size={11} color="#16a34a" />
-                    ) : null}
-                    <Text
-                      style={[
-                        docFrenteUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
-                      ]}
-                    >
-                      {docFrenteUrl ? "Verificado" : "Pendiente"}
-                    </Text>
-                  </View>
-                  <Text style={styles.miniaturaEtiqueta}>Frente</Text>
-                </Pressable>
-                <Pressable
-                  testID="doc-reverso"
-                  style={styles.miniatura}
-                  onPress={() => {
-                    setModalDocumento("reverso");
-                    setModal("documento");
-                  }}
-                >
-                  {docReversoUrl ? (
-                    <Image
-                      source={{ uri: docReversoUrl }}
-                      style={styles.miniaturaImagen}
-                    />
-                  ) : (
-                    <View style={styles.miniaturaPlaceholder}>
-                      <MaterialIcons name="badge" size={22} color="#94a3b8" />
-                    </View>
-                  )}
-                  <View
-                    testID="doc-reverso-badge"
-                    style={[
-                      styles.badgeDoc,
-                      docReversoUrl ? styles.badgeVerificado : styles.badgePendiente,
-                    ]}
-                  >
-                    {docReversoUrl ? (
-                      <MaterialIcons name="check" size={11} color="#16a34a" />
-                    ) : null}
-                    <Text
-                      style={[
-                        docReversoUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
-                      ]}
-                    >
-                      {docReversoUrl ? "Verificado" : "Pendiente"}
-                    </Text>
-                  </View>
-                  <Text style={styles.miniaturaEtiqueta}>Reverso</Text>
-                </Pressable>
+              <View style={styles.datoCedula}>
+                <Text style={styles.datoCedulaSubtitulo}>Mora</Text>
+                <Text style={styles.datoCedulaValor}>{tarjeta.diasMora} días</Text>
+              </View>
+              <View style={styles.datoCedula}>
+                <Text style={styles.datoCedulaSubtitulo}>WhatsApp</Text>
+                <Text style={styles.datoCedulaValor}>{tarjeta.telefonoWhatsapp}</Text>
               </View>
             </View>
           </View>
 
-          {tarjeta.negocio ? (
-            <Text style={styles.detalle}>Negocio: {tarjeta.negocio}</Text>
-          ) : null}
-          <Text style={styles.detalle}>WhatsApp: {tarjeta.telefonoWhatsapp}</Text>
-          {tarjeta.tipoPago ? (
-            <Text style={styles.detalle}>Tipo de pago: {tarjeta.tipoPago}</Text>
-          ) : null}
-          <Text style={styles.detalle}>
-            Saldo pendiente: {tarjeta.saldoPendiente} | Mora: {tarjeta.diasMora} días
-          </Text>
+          {/* Dos iconos grandes: documento frente y reverso */}
+          <View style={styles.documentosFila}>
+            <Pressable
+              testID="doc-frente"
+              style={styles.miniatura}
+              onPress={() => {
+                setModalDocumento("frente");
+                setModal("documento");
+              }}
+            >
+              {docFrenteUrl ? (
+                <Image source={{ uri: docFrenteUrl }} style={styles.miniaturaImagenGrande} />
+              ) : (
+                <View style={styles.miniaturaPlaceholderGrande}>
+                  <MaterialIcons name="badge" size={40} color="#94a3b8" />
+                </View>
+              )}
+              <View
+                testID="doc-frente-badge"
+                style={[
+                  styles.badgeDoc,
+                  docFrenteUrl ? styles.badgeVerificado : styles.badgePendiente,
+                ]}
+              >
+                {docFrenteUrl ? (
+                  <MaterialIcons name="check" size={11} color="#16a34a" />
+                ) : null}
+                <Text
+                  style={[
+                    docFrenteUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
+                  ]}
+                >
+                  {docFrenteUrl ? "Verificado" : "Pendiente"}
+                </Text>
+              </View>
+              <Text style={styles.miniaturaEtiqueta}>Frente</Text>
+            </Pressable>
+            <Pressable
+              testID="doc-reverso"
+              style={styles.miniatura}
+              onPress={() => {
+                setModalDocumento("reverso");
+                setModal("documento");
+              }}
+            >
+              {docReversoUrl ? (
+                <Image source={{ uri: docReversoUrl }} style={styles.miniaturaImagenGrande} />
+              ) : (
+                <View style={styles.miniaturaPlaceholderGrande}>
+                  <MaterialIcons name="badge" size={40} color="#94a3b8" />
+                </View>
+              )}
+              <View
+                testID="doc-reverso-badge"
+                style={[
+                  styles.badgeDoc,
+                  docReversoUrl ? styles.badgeVerificado : styles.badgePendiente,
+                ]}
+              >
+                {docReversoUrl ? (
+                  <MaterialIcons name="check" size={11} color="#16a34a" />
+                ) : null}
+                <Text
+                  style={[
+                    docReversoUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
+                  ]}
+                >
+                  {docReversoUrl ? "Verificado" : "Pendiente"}
+                </Text>
+              </View>
+              <Text style={styles.miniaturaEtiqueta}>Reverso</Text>
+            </Pressable>
+          </View>
 
+          {/* Fila de acciones: cómo llegar + editar ubicación */}
           {tieneCoordenadas ? (
             <View style={styles.footerTarjeta}>
               <Pressable
@@ -1709,11 +1719,40 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingBottom: 8,
+    margin: -16,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
-  tarjetaHeaderNombre: { fontSize: 16, fontWeight: "700", color: "#334155", flex: 1 },
+  tarjetaHeaderNombre: { fontSize: 16, fontWeight: "700", color: "#ffffff", flex: 1 },
   tarjetaHeaderEditar: { flexDirection: "row", alignItems: "center", gap: 4 },
-  tarjetaHeaderEditarTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
+  tarjetaHeaderEditarTexto: { color: "#ffffff", fontSize: 14, fontWeight: "600" },
+  filaCedula: { flexDirection: "row", gap: 16, alignItems: "flex-start" },
+  datosCedula: { flex: 1, gap: 8 },
+  datoCedula: { gap: 1 },
+  datoCedulaSubtitulo: { fontSize: 11, fontWeight: "700", color: "#475569", textTransform: "uppercase" },
+  datoCedulaValor: { fontSize: 15, color: "#1e293b", fontWeight: "600" },
+  documentosFila: { flexDirection: "row", gap: 14, marginTop: 16 },
+  miniaturaImagenGrande: {
+    width: 96,
+    height: 64,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  miniaturaPlaceholderGrande: {
+    width: 96,
+    height: 64,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
+  },
   banner: {
     backgroundColor: "#eff6ff",
     borderWidth: 1,
@@ -1728,6 +1767,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 16,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 10,
@@ -1780,7 +1820,6 @@ const styles = StyleSheet.create({
   badgePendiente: { backgroundColor: "#fef3c7" },
   badgeVerificadoTexto: { color: "#16a34a", fontSize: 10, fontWeight: "700" },
   badgePendienteTexto: { color: "#b45309", fontSize: 10, fontWeight: "700" },
-  nombre: { fontSize: 18, fontWeight: "700", color: "#1e293b", marginTop: 8 },
   detalle: { color: "#475569", fontSize: 14 },
   footerTarjeta: {
     marginTop: 10,
