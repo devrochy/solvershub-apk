@@ -152,8 +152,21 @@ export function RutasScreen() {
             clientesDia: 0,
             enMora: 0,
           };
+          const activa = item.estatus === "activo";
+          const colorBorde = activa ? "#16a34a" : "#dc2626";
           return (
-            <View style={styles.tarjeta}>
+            <View
+              style={[
+                styles.tarjeta,
+                { borderColor: colorBorde },
+                !activa && styles.tarjetaInactiva,
+              ]}
+            >
+              <View style={[styles.tarjetaHeader, { backgroundColor: colorBorde }]}>
+                <Text style={styles.tarjetaHeaderTexto}>
+                  {activa ? "Activa" : "Inactiva"}
+                </Text>
+              </View>
               <Pressable
                 testID={`ruta-${item.id}`}
                 style={styles.tarjetaCuerpo}
@@ -163,7 +176,7 @@ export function RutasScreen() {
               >
                 <View style={styles.tarjetaInfo}>
                   <Text style={styles.rutaNombre}>{item.nombre}</Text>
-                  <Text style={styles.estatus}>{item.estatus}</Text>
+                  <Text style={[styles.estatus, { color: colorBorde }]}>{item.estatus}</Text>
                 </View>
                 <View style={styles.kpis}>
                   <View style={styles.kpi}>
@@ -252,6 +265,12 @@ const styles = StyleSheet.create({
     borderColor: "#e2e8f0",
     overflow: "hidden",
   },
+  tarjetaHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  tarjetaHeaderTexto: { color: "#ffffff", fontWeight: "700", fontSize: 12 },
+  tarjetaInactiva: { opacity: 0.75 },
   tarjetaCuerpo: { padding: 16, gap: 12 },
   tarjetaInfo: {
     flexDirection: "row",

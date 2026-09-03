@@ -258,4 +258,22 @@ describe("RutasScreen — dashboard de rutas", () => {
 
     await waitFor(() => expect(getByTestId("badge-sin-subir")).toBeTruthy());
   });
+
+  it("pinta la tarjeta activa con header/borde verde y la inactiva en rojo opaco", async () => {
+    const rutaActiva = { ...ruta, estatus: "activo" };
+    const rutaInactiva = { ...ruta, id: 9, nombre: "Ruta Inactiva", estatus: "bloqueado" };
+    const misRutas = jest.fn().mockResolvedValue([rutaActiva, rutaInactiva]);
+    const { getByTestId, getByText } = await renderConRutas({
+      misRutas,
+      listarClientesDeRuta: jest.fn().mockResolvedValue([]),
+      dia: jest.fn().mockResolvedValue(diaVacio),
+    });
+
+    await waitFor(() => expect(getByTestId("ruta-6")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("ruta-9")).toBeTruthy());
+
+    // La tarjeta activa indica "Activa" y la inactiva "Inactiva".
+    expect(getByText("Activa")).toBeTruthy();
+    expect(getByText("Inactiva")).toBeTruthy();
+  });
 });

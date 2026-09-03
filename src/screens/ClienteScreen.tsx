@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { MaterialIcons } from "@expo/vector-icons";
 import { captureRef } from "react-native-view-shot";
@@ -98,6 +99,17 @@ function esPendienteOArrasada(cuota: CuotaPublic): boolean {
   return cuota.estatus === "pendiente" || cuota.estatus === "atrasada";
 }
 
+const COLOR_RIESGO_HEADER: Record<string, string> = {
+  verde: "#16a34a",
+  rojo: "#dc2626",
+  azul: "#2563eb",
+  blanco: "#64748b",
+};
+
+function colorDeRiesgo(color: string): string {
+  return COLOR_RIESGO_HEADER[color] ?? "#2563eb";
+}
+
 function coordenadaDeTexto(valor: string): number | undefined {
   if (!valor.trim()) {
     return undefined;
@@ -164,7 +176,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   // WhatsApp con screenshot.
   const [compartiendo, setCompartiendo] = useState(false);
-  const refDetalle = useRef<View | null>(null);
+  const refCanvas = useRef<View | null>(null);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -552,26 +564,33 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     campo: "foto_facial" | "documento_frente" | "documento_reverso",
     fuente: FuenteEvidencia,
   ) {
-    const evidencia = await evidenciasCliente.agregar(campo, fuente);
-    if (evidencia) {
-      await guardarEvidencia(evidencia);
-    }
+    // Solo selecciona y previsualiza; la subida ocurre al tocar "Guardar".
+    setMensaje(null);
+    await evidenciasCliente.agregar(campo, fuente);
   }
 
-  async function guardarEvidencia(evidencia: {
-    campo: "foto_facial" | "documento_frente" | "documento_reverso";
-    uri: string;
-    name: string;
-    type: string;
-  }) {
+  function evidenciasSeleccionadasPara(
+    campo: "foto_facial" | "documento_frente" | "documento_reverso",
+  ) {
+    return evidenciasCliente.evidencias.filter((e) => e.campo === campo);
+  }
+
+  async function guardarEvidenciaSeleccionada(
+    campo: "foto_facial" | "documento_frente" | "documento_reverso",
+  ) {
+    const pendiente = evidenciasSeleccionadasPara(campo)[0];
+    if (!pendiente) {
+      setMensaje("Selecciona una imagen primero.");
+      return;
+    }
     setEvidenciasEnviando(true);
     setMensaje(null);
     try {
-      await api.agregarEvidenciasCliente(rutaId, clienteId, [evidencia]);
-      evidenciasCliente.quitar(evidencia.campo);
+      await api.agregarEvidenciasCliente(rutaId, clienteId, [pendiente]);
+      evidenciasCliente.quitar(campo);
       setModal("ninguno");
       setMensaje(
-        evidencia.campo === "foto_facial"
+        campo === "foto_facial"
           ? "Foto actualizada."
           : "Documento actualizado.",
       );
@@ -593,7 +612,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     }
     setCompartiendo(true);
     try {
-      const uri = await captureRef(refDetalle, { format: "png", quality: 0.8 });
+      const uri = await captureRef(refCanvas, { format: "png", quality: 0.8 });
       await shareAsync(uri, {
         mimeType: "image/png",
         dialogTitle: "Estado de cuenta del préstamo",
@@ -627,21 +646,25 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   return (
     <>
-      <ScrollView style={styles.contenedor} contentContainerStyle={styles.scroll}>
-        {/* Header: enlace Editar a la izquierda + título */}
-        <View style={styles.header}>
-          <Pressable testID="btn-editar-cliente" style={styles.headerAccion} onPress={abrirEditar}>
-            <MaterialIcons name="edit" size={16} color="#2563eb" />
-            <Text style={styles.headerAccionTexto}>Editar</Text>
-          </Pressable>
-          <Text style={styles.headerTitulo}>Detalle del cliente</Text>
+      <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Header: título "Información del cliente" a la izquierda + Editar a la derecha */}
+        <View
+          testID="header-cliente"
+          style={[styles.header, { backgroundColor: colorDeRiesgo(tarjeta.color) }]}
+        >
           {onCerrar ? (
-            <Pressable testID="btn-cerrar-detalle" style={styles.headerAccionDerecha} onPress={onCerrar}>
-              <MaterialIcons name="close" size={22} color="#475569" />
+            <Pressable testID="btn-back-cliente" style={styles.headerAccionIzq} onPress={onCerrar}>
+              <MaterialIcons name="arrow-back" size={22} color="#ffffff" />
             </Pressable>
           ) : (
-            <View style={styles.headerAccionDerecha} />
+            <View style={styles.headerAccionIzq} />
           )}
+          <Text style={styles.headerTitulo}>Información del cliente</Text>
+          <Pressable testID="btn-editar-cliente" style={styles.headerAccionDerecha} onPress={abrirEditar}>
+            <MaterialIcons name="edit" size={18} color="#ffffff" />
+            <Text style={styles.headerAccionTexto}>Editar</Text>
+          </Pressable>
         </View>
 
         {mensaje && modal === "ninguno" ? (
@@ -771,6 +794,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                   color="#0891b2"
                 />
               </Pressable>
+              <Pressable
+                testID="btn-editar-ubicacion"
+                style={styles.editarUbicacion}
+                onPress={abrirEditar}
+              >
+                <MaterialIcons name="edit-location" size={16} color="#2563eb" />
+                <Text style={styles.editarUbicacionTexto}>Editar ubicación</Text>
+              </Pressable>
             </View>
           ) : null}
         </View>
@@ -868,12 +899,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
         {/* Detalle del préstamo seleccionado */}
         {prestamoSeleccionado ? (
-          <View ref={refDetalle} collapsable={false} testID="detalle-prestamo" style={styles.detallePrestamo}>
+          <View style={styles.detallePrestamo}>
             <Text style={styles.detalleTitulo}>Préstamo #{prestamoSeleccionado.id}</Text>
             {estadoPrestamoCargando ? (
               <ActivityIndicator style={styles.detalleCarga} />
             ) : estadoPrestamo ? (
-              <>
+              <View ref={refCanvas} collapsable={false} testID="canvas-prestamo">
                 <Text style={styles.detalleLinea}>
                   Valor: {estadoPrestamo.valor} {estadoPrestamo.moneda} · Cuotas:{" "}
                   {estadoPrestamo.numCuotas} · Interés: {estadoPrestamo.tipoInteres}%
@@ -938,7 +969,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     );
                   })}
                 </View>
-              </>
+              </View>
             ) : (
               <Text style={styles.detalleError}>
                 No se pudo cargar el detalle del préstamo.
@@ -983,6 +1014,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           </View>
         ) : null}
       </ScrollView>
+      </SafeAreaView>
 
       {/* Modal: editar cliente */}
       <ModalConFooter
@@ -1163,22 +1195,45 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         titulo="Foto del cliente"
         onCerrar={() => {
           setModal("ninguno");
+          evidenciasCliente.quitar("foto_facial");
           evidenciasCliente.resetError();
         }}
+        onCancelar={() => {
+          setModal("ninguno");
+          evidenciasCliente.quitar("foto_facial");
+          evidenciasCliente.resetError();
+        }}
+        onConfirmar={() => void guardarEvidenciaSeleccionada("foto_facial")}
+        confirmando={evidenciasEnviando}
+        confirmarTestID="avatar-guardar"
         testID="avatar-modal"
       >
-        {tarjeta.fotoUrl ? (
-          <Image
-            testID="avatar-foto-actual"
-            source={{ uri: tarjeta.fotoUrl }}
-            style={styles.evidenciaPreview}
-          />
-        ) : (
-          <View style={styles.evidenciaVacio}>
-            <MaterialIcons name="person" size={32} color="#94a3b8" />
-            <Text style={styles.evidenciaVacioTexto}>Este cliente no tiene foto.</Text>
-          </View>
-        )}
+        {(() => {
+          const pendiente = evidenciasSeleccionadasPara("foto_facial")[0];
+          if (pendiente) {
+            return (
+              <Image
+                testID="avatar-preview"
+                source={{ uri: pendiente.uri }}
+                style={styles.evidenciaPreview}
+              />
+            );
+          }
+          return tarjeta.fotoUrl ? (
+            <Image
+              testID="avatar-foto-actual"
+              source={{ uri: tarjeta.fotoUrl }}
+              style={styles.evidenciaPreview}
+            />
+          ) : (
+            <View style={styles.evidenciaVacio}>
+              <MaterialIcons name="person" size={32} color="#94a3b8" />
+              <Text style={styles.evidenciaVacioTexto}>
+                Este cliente no tiene foto.
+              </Text>
+            </View>
+          );
+        })()}
         <Pressable
           testID="avatar-libreria"
           style={[styles.botonEvidencia]}
@@ -1211,32 +1266,60 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         titulo={modalDocumento === "frente" ? "Documento — frente" : "Documento — reverso"}
         onCerrar={() => {
           setModal("ninguno");
+          evidenciasCliente.quitar(
+            modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+          );
           evidenciasCliente.resetError();
         }}
+        onCancelar={() => {
+          setModal("ninguno");
+          evidenciasCliente.quitar(
+            modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+          );
+          evidenciasCliente.resetError();
+        }}
+        onConfirmar={() =>
+          void guardarEvidenciaSeleccionada(
+            modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+          )
+        }
+        confirmando={evidenciasEnviando}
+        confirmarTestID="documento-guardar"
         testID="documento-modal"
       >
-        {modalDocumento === "frente" && docFrenteUrl ? (
-          <Image
-            testID="documento-foto-actual"
-            source={{ uri: docFrenteUrl }}
-            style={styles.evidenciaPreview}
-          />
-        ) : modalDocumento === "reverso" && docReversoUrl ? (
-          <Image
-            testID="documento-foto-actual"
-            source={{ uri: docReversoUrl }}
-            style={styles.evidenciaPreview}
-          />
-        ) : (
-          <View style={styles.evidenciaVacio}>
-            <MaterialIcons name="badge" size={32} color="#94a3b8" />
-            <Text style={styles.evidenciaVacioTexto}>
-              {modalDocumento === "frente"
-                ? "El frente del documento aún no está cargado."
-                : "El reverso del documento aún no está disponible."}
-            </Text>
-          </View>
-        )}
+        {(() => {
+          const campo = modalDocumento === "reverso" ? "documento_reverso" : "documento_frente";
+          const pendiente = evidenciasSeleccionadasPara(campo)[0];
+          const urlActual = modalDocumento === "reverso" ? docReversoUrl : docFrenteUrl;
+          if (pendiente) {
+            return (
+              <Image
+                testID="documento-preview"
+                source={{ uri: pendiente.uri }}
+                style={styles.evidenciaPreview}
+              />
+            );
+          }
+          if (urlActual) {
+            return (
+              <Image
+                testID="documento-foto-actual"
+                source={{ uri: urlActual }}
+                style={styles.evidenciaPreview}
+              />
+            );
+          }
+          return (
+            <View style={styles.evidenciaVacio}>
+              <MaterialIcons name="badge" size={32} color="#94a3b8" />
+              <Text style={styles.evidenciaVacioTexto}>
+                {modalDocumento === "frente"
+                  ? "El frente del documento aún no está cargado."
+                  : "El reverso del documento aún no está disponible."}
+              </Text>
+            </View>
+          );
+        })()}
         <Pressable
           testID="documento-libreria"
           style={styles.botonEvidencia}
@@ -1476,19 +1559,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
-  headerAccion: {
+  headerAccionIzq: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     width: 72,
   },
-  headerAccionDerecha: { width: 36, alignItems: "flex-end" },
-  headerAccionTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
+  headerAccionDerecha: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    width: 72,
+    justifyContent: "flex-end",
+  },
+  headerAccionTexto: { color: "#ffffff", fontSize: 14, fontWeight: "600" },
   headerTitulo: {
+    flex: 1,
     fontSize: 17,
     fontWeight: "700",
-    color: "#334155",
+    color: "#ffffff",
     textAlign: "center",
   },
   banner: {
@@ -1579,6 +1671,20 @@ const styles = StyleSheet.create({
   },
   comoLlegarActivo: { borderColor: "#67e8f9" },
   comoLlegarTexto: { color: "#0891b2", fontWeight: "600", fontSize: 13 },
+  editarUbicacion: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    backgroundColor: "#eff6ff",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginTop: 8,
+  },
+  editarUbicacionTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
   seccionMapa: { gap: 8 },
   navegacion: { flexDirection: "row", gap: 10 },
   botonNavegar: {
@@ -1607,7 +1713,15 @@ const styles = StyleSheet.create({
   notificacionContenido: { flex: 1 },
   notificacionTitulo: { fontSize: 13, fontWeight: "700", color: "#1e40af" },
   notificacionDetalle: { fontSize: 12, color: "#3b82f6", marginTop: 2 },
-  seccion: { marginTop: 4 },
+  seccion: {
+    marginTop: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    padding: 14,
+    gap: 8,
+  },
   seccionHeader: {
     flexDirection: "row",
     alignItems: "center",

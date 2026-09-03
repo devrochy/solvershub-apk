@@ -147,7 +147,7 @@ describe("ClientesScreen", () => {
     expect(getByTestId("cliente-nombre")).toBeTruthy();
     expect(getByTestId("cliente-apellido")).toBeTruthy();
     expect(getByTestId("cliente-negocio")).toBeTruthy();
-    expect(getByTestId("cliente-telefono")).toBeTruthy();
+    expect(getByTestId("cliente-telefono-numero")).toBeTruthy();
     expect(getByTestId("cliente-tope")).toBeTruthy();
     expect(getByTestId("mapa-pin-cliente")).toBeTruthy();
   });
@@ -169,7 +169,7 @@ describe("ClientesScreen", () => {
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
     await fireEvent.changeText(getByTestId("cliente-negocio"), "Tienda");
-    await fireEvent.changeText(getByTestId("cliente-telefono"), "+5917000111");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
     await fireEvent.changeText(getByTestId("cliente-tope"), "1500");
     await fireEvent.changeText(getByTestId("cliente-latitud"), "-17.79");
     await fireEvent.changeText(getByTestId("cliente-longitud"), "-63.19");
@@ -215,7 +215,7 @@ describe("ClientesScreen", () => {
 
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
-    await fireEvent.changeText(getByTestId("cliente-telefono"), "+5917000111");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
     await fireEvent.changeText(getByTestId("cliente-latitud"), "");
     await fireEvent.changeText(getByTestId("cliente-longitud"), "");
 
@@ -237,12 +237,92 @@ describe("ClientesScreen", () => {
 
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
-    await fireEvent.changeText(getByTestId("cliente-telefono"), "+5917000111");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
     await fireEvent.changeText(getByTestId("cliente-tope"), "-100");
 
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     expect(crearCliente).not.toHaveBeenCalled();
     expect(getByText("El tope de deuda debe ser un número válido.")).toBeTruthy();
+  });
+
+  it("pre-llena el tope máximo con el cupoDefault de la ruta activa", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const { getByTestId } = await renderConRutaActiva(
+      {
+        listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+        crearCliente,
+      },
+      {
+        rutaId: 6,
+        rutaNombre: "Ruta Centro",
+        tipoInteres: 20,
+        numCuotas: 8,
+        config: { cupoDefault: 1500 } as never,
+      },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    expect(getByTestId("cliente-tope").props.value).toBe("1500");
+  });
+
+  it("muestra el avatar editable y los botones de documento frente/reverso en el modal", async () => {
+    const { getByTestId, getByText } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    expect(getByTestId("cliente-avatar-btn")).toBeTruthy();
+    expect(getByTestId("cliente-doc-frente")).toBeTruthy();
+    expect(getByTestId("cliente-doc-reverso")).toBeTruthy();
+    expect(getByText("Documento")).toBeTruthy();
+  });
+
+  it("muestra el check verde de éxito tras crear el cliente", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const listarClientesDeRuta = jest
+      .fn()
+      .mockResolvedValueOnce([cliente])
+      .mockResolvedValueOnce([cliente, { ...cliente, id: 50 }]);
+    const { getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta,
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    await waitFor(() => expect(getByTestId("cliente-creado-ok")).toBeTruthy());
+  });
+
+  it("busca por dirección y mueve el marker (geocodeAsync)", async () => {
+    const Location = require("expo-location");
+    (Location.geocodeAsync as jest.Mock).mockResolvedValue([
+      { latitude: -17.4, longitude: -66.1 },
+    ]);
+    const { getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-direccion"), "Av. Pando, Cochabamba");
+    await fireEvent.press(getByTestId("cliente-buscar"));
+
+    await waitFor(() =>
+      expect(Location.geocodeAsync).toHaveBeenCalledWith("Av. Pando, Cochabamba"),
+    );
+    expect(getByTestId("cliente-latitud").props.value).toBe("-17.4");
+    expect(getByTestId("cliente-longitud").props.value).toBe("-66.1");
   });
 });

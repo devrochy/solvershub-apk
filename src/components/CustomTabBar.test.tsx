@@ -1,5 +1,6 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { CustomTabBar } from "./CustomTabBar";
+import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
 function propsDe(
@@ -40,7 +41,11 @@ function propsDe(
 
 describe("CustomTabBar", () => {
   it("renderiza los 3 tabs con el central (Día) sobresaliente", async () => {
-    const { getByTestId, getByText } = await render(<CustomTabBar {...propsDe(0)} />);
+    const { getByTestId, getByText } = await render(
+      <PantallaActivaProvider>
+        <CustomTabBar {...propsDe(0)} />
+      </PantallaActivaProvider>,
+    );
     expect(getByTestId("tab-Rutas")).toBeTruthy();
     expect(getByTestId("tab-central")).toBeTruthy();
     expect(getByTestId("tab-Clientes")).toBeTruthy();
@@ -49,16 +54,33 @@ describe("CustomTabBar", () => {
 
   it("navega al tab central al tocarlo", async () => {
     const navigate = jest.fn();
-    const { getByTestId } = await render(<CustomTabBar {...propsDe(0, navigate)} />);
+    const { getByTestId } = await render(
+      <PantallaActivaProvider>
+        <CustomTabBar {...propsDe(0, navigate)} />
+      </PantallaActivaProvider>,
+    );
     await fireEvent.press(getByTestId("tab-central"));
     expect(navigate).toHaveBeenCalledWith("Dia");
   });
 
   it("reserva el espacio del inset inferior de la barra de navegación del sistema", async () => {
     const { getByTestId } = await render(
-      <CustomTabBar {...propsDe(0)} insets={{ top: 0, right: 0, bottom: 34, left: 0 }} />,
+      <PantallaActivaProvider>
+        <CustomTabBar {...propsDe(0)} insets={{ top: 0, right: 0, bottom: 34, left: 0 }} />
+      </PantallaActivaProvider>,
     );
     const barra = getByTestId("tab-bar").props.style;
     expect(barra[1].paddingBottom).toBe(42);
+  });
+
+  it("cierra la pantalla activa (detalle) al cambiar de tab", async () => {
+    const navigate = jest.fn();
+    const { getByTestId } = await render(
+      <PantallaActivaProvider>
+        <CustomTabBar {...propsDe(0, navigate)} />
+      </PantallaActivaProvider>,
+    );
+    await fireEvent.press(getByTestId("tab-Clientes"));
+    expect(navigate).toHaveBeenCalledWith("Clientes");
   });
 });

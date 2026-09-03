@@ -159,12 +159,12 @@ describe("RutaDetalleScreen", () => {
     ).toBeTruthy();
   });
 
-  it("el botón cerrar llama a onCerrar", async () => {
+  it("el botón back llama a onCerrar", async () => {
     const onCerrar = jest.fn();
     const { getByTestId } = await renderDetalle(apiBase(), onCerrar);
 
-    await waitFor(() => expect(getByTestId("btn-cerrar-detalle")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-cerrar-detalle"));
+    await waitFor(() => expect(getByTestId("btn-back-ruta")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-back-ruta"));
     expect(onCerrar).toHaveBeenCalled();
   });
 

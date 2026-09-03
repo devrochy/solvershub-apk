@@ -669,7 +669,7 @@ describe("ClienteScreen — WhatsApp con screenshot del detalle", () => {
 
     await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
     expect(getByTestId("btn-whatsapp")).toBeTruthy();
-    expect(getByTestId("detalle-prestamo")).toBeTruthy();
+    expect(getByTestId("canvas-prestamo")).toBeTruthy();
   });
 });
 
@@ -697,7 +697,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     expect(queryByText(/Tipo de pago:/)).toBeNull();
   });
 
-  it("el avatar abre un modal con opciones y sube la foto por evidencias", async () => {
+  it("el avatar abre un modal, previsualiza la imagen elegida y sube al tocar Guardar", async () => {
     const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: 2 });
     const { getByTestId } = await renderConApi({ agregarEvidenciasCliente });
 
@@ -706,6 +706,12 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     expect(getByTestId("avatar-modal")).toBeTruthy();
     await fireEvent.press(getByTestId("avatar-libreria"));
+
+    // Se previsualiza la imagen local antes de subir.
+    await waitFor(() => expect(getByTestId("avatar-preview")).toBeTruthy());
+    // Todavía no se sube: se sube al tocar "Guardar".
+    expect(agregarEvidenciasCliente).not.toHaveBeenCalled();
+    await fireEvent.press(getByTestId("avatar-guardar"));
 
     await waitFor(() =>
       expect(agregarEvidenciasCliente).toHaveBeenCalledWith(
@@ -743,7 +749,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     expect(getByTestId("documento-modal")).toBeTruthy();
   });
 
-  it("desde el modal de reverso sube la evidencia documento_reverso (no frente)", async () => {
+  it("desde el modal de reverso previsualiza y sube documento_reverso al tocar Guardar", async () => {
     const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: 2 });
     const { getByTestId, getByText } = await renderConApi({ agregarEvidenciasCliente });
 
@@ -752,6 +758,10 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     expect(getByText("Documento — reverso")).toBeTruthy();
     await fireEvent.press(getByTestId("documento-libreria"));
+
+    await waitFor(() => expect(getByTestId("documento-preview")).toBeTruthy());
+    expect(agregarEvidenciasCliente).not.toHaveBeenCalled();
+    await fireEvent.press(getByTestId("documento-guardar"));
 
     await waitFor(() =>
       expect(agregarEvidenciasCliente).toHaveBeenCalledWith(
@@ -851,15 +861,15 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
 
     await waitFor(() => expect(getByTestId("prestamo-item-1")).toBeTruthy());
     expect(getByTestId("prestamo-item-2")).toBeTruthy();
-    expect(queryByTestId("detalle-prestamo")).toBeNull();
+    expect(queryByTestId("canvas-prestamo")).toBeNull();
 
     await fireEvent.press(getByTestId("prestamo-item-1"));
-    await waitFor(() => expect(getByTestId("detalle-prestamo")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
     expect(queryByTestId("prestamo-item-2")).toBeNull();
     expect(getByTestId("check-prestamo-1")).toBeTruthy();
 
     await fireEvent.press(getByTestId("prestamo-item-1"));
-    expect(queryByTestId("detalle-prestamo")).toBeNull();
+    expect(queryByTestId("canvas-prestamo")).toBeNull();
     expect(getByTestId("prestamo-item-2")).toBeTruthy();
   });
 
@@ -876,11 +886,11 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
 
     await waitFor(() => expect(getByTestId("prestamo-item-1")).toBeTruthy());
     await fireEvent.press(getByTestId("prestamo-item-1"));
-    await waitFor(() => expect(getByTestId("detalle-prestamo")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
 
     await fireEvent.press(getByTestId("prestamo-item-1"));
     await fireEvent.press(getByTestId("prestamo-item-2"));
-    await waitFor(() => expect(getByTestId("detalle-prestamo")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
     expect(queryByTestId("prestamo-item-1")).toBeNull();
   });
 
@@ -961,5 +971,30 @@ describe("ClienteScreen — lista de préstamos con color", () => {
     expect(getByTestId("prestamo-item-2")).toBeTruthy();
     expect(getAllByTestId("color-badge-verde").length).toBeGreaterThan(0);
     expect(getByTestId("color-badge-blanco")).toBeTruthy();
+  });
+});
+
+describe("ClienteScreen — header y editar ubicación", () => {
+  it("muestra 'Información del cliente' con el color según la clasificación", async () => {
+    const tarjetaRoja = { ...tarjeta, color: "rojo" };
+    const { getByText, getByTestId } = await renderConApi({
+      tarjeta: jest.fn().mockResolvedValue(tarjetaRoja),
+    });
+
+    await waitFor(() => expect(getByText("Información del cliente")).toBeTruthy());
+    expect(getByTestId("header-cliente")).toHaveStyle({ backgroundColor: "#dc2626" });
+  });
+
+  it("el botón Editar ubicación abre el modal de edición junto a Cómo llegar", async () => {
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-editar-ubicacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-ubicacion"));
+
+    expect(getByTestId("editar-cliente-form")).toBeTruthy();
   });
 });

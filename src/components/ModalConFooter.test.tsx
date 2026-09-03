@@ -89,4 +89,18 @@ describe("ModalConFooter", () => {
     expect(queryByTestId("modal-cancelar")).toBeNull();
     expect(queryByTestId("modal-confirmar")).toBeNull();
   });
+
+  it("coloca el título a la izquierda y el botón cerrar (X) a la derecha", async () => {
+    const { getByTestId, getByText } = await render(
+      <ModalConFooter visible titulo="Editar" onCerrar={jest.fn()}>
+        <Text>Cuerpo</Text>
+      </ModalConFooter>,
+    );
+
+    const titulo = getByText("Editar");
+    const cerrar = getByTestId("modal-cerrar");
+    expect(titulo).toHaveStyle({ textAlign: "left" });
+    // En la fila del header, la X está a la derecha (botón con flex-end).
+    expect(cerrar).toHaveStyle({ alignItems: "flex-end" });
+  });
 });

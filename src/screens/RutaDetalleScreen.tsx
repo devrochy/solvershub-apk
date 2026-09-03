@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
@@ -120,17 +121,17 @@ export function RutaDetalleScreen({
   const enMora = dia.clientes.filter((c) => c.color === "rojo").length;
 
   return (
-    <View style={styles.contenedor}>
+    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <Pressable testID="btn-editar-ruta" style={styles.headerIzquierda} onPress={() => setAvisoEdicion(true)}>
-          <MaterialIcons name="edit" size={20} color="#2563eb" />
-          <Text style={styles.headerAccion}>Editar</Text>
+        <Pressable testID="btn-back-ruta" style={styles.headerIzquierda} onPress={onCerrar}>
+          <MaterialIcons name="arrow-back" size={22} color="#334155" />
         </Pressable>
         <Text style={styles.headerTitulo} numberOfLines={1}>
           {rutaNombre}
         </Text>
-        <Pressable testID="btn-cerrar-detalle" style={styles.headerDerecha} onPress={onCerrar}>
-          <MaterialIcons name="close" size={24} color="#334155" />
+        <Pressable testID="btn-editar-ruta" style={styles.headerDerecha} onPress={() => setAvisoEdicion(true)}>
+          <MaterialIcons name="edit" size={20} color="#2563eb" />
+          <Text style={styles.headerAccion}>Editar</Text>
         </Pressable>
       </View>
 
@@ -226,7 +227,7 @@ export function RutaDetalleScreen({
         ) : null}
         {notaEnviando ? <ActivityIndicator color="#2563eb" /> : null}
       </ModalConFooter>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   headerIzquierda: { flexDirection: "row", alignItems: "center", gap: 4, width: 72 },
-  headerDerecha: { width: 72, alignItems: "flex-end" },
+  headerDerecha: { flexDirection: "row", alignItems: "center", gap: 4, width: 72, justifyContent: "flex-end" },
   headerTitulo: { flex: 1, textAlign: "center", fontSize: 17, fontWeight: "700", color: "#334155" },
   headerAccion: { color: "#2563eb", fontWeight: "600", fontSize: 14 },
   aviso: {

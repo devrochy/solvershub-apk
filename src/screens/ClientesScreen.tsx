@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -12,13 +13,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { apiErrorStatus } from "../api/client";
 import { Avatar } from "../components/Avatar";
+import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
-import { useEvidenciasCliente, type FuenteEvidencia } from "../features/cliente/use-evidencias-cliente";
+import {
+  useEvidenciasCliente,
+  type CampoEvidenciaCliente,
+  type FuenteEvidencia,
+} from "../features/cliente/use-evidencias-cliente";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
@@ -42,6 +49,10 @@ export function ClientesScreen() {
   const [latitud, setLatitud] = useState(String(COORD_DEFAULT.lat));
   const [longitud, setLongitud] = useState(String(COORD_DEFAULT.lng));
   const [tope, setTope] = useState("");
+  const [direccion, setDireccion] = useState("");
+  const [buscandoDireccion, setBuscandoDireccion] = useState(false);
+  const [ubicandoGps, setUbicandoGps] = useState(false);
+  const [creadoOk, setCreadoOk] = useState(false);
   const [creando, setCreando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const evidenciasCliente = useEvidenciasCliente();
@@ -74,10 +85,74 @@ export function ClientesScreen() {
   }
 
   function elegirEvidencia(
-    campo: "foto_facial" | "documento_frente",
+    campo: CampoEvidenciaCliente,
     fuente: FuenteEvidencia,
   ) {
     void evidenciasCliente.agregar(campo, fuente);
+  }
+
+  async function abrirNuevoCliente() {
+    setMensaje(null);
+    setCreadoOk(false);
+    setNombre("");
+    setApellido("");
+    setNegocio("");
+    setTelefono("");
+    setTope(
+      rutaActiva && rutaActiva.config.cupoDefault > 0
+        ? String(rutaActiva.config.cupoDefault)
+        : "",
+    );
+    setDireccion("");
+    evidenciasCliente.quitar("foto_facial");
+    evidenciasCliente.quitar("documento_frente");
+    evidenciasCliente.quitar("documento_reverso");
+    setLatitud(String(COORD_DEFAULT.lat));
+    setLongitud(String(COORD_DEFAULT.lng));
+    setNuevoAbierto(true);
+    void ubicarGpsActual();
+  }
+
+  async function ubicarGpsActual() {
+    setUbicandoGps(true);
+    try {
+      const permiso = await Location.requestForegroundPermissionsAsync();
+      if (!permiso.granted) {
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      setLatitud(String(pos.coords.latitude));
+      setLongitud(String(pos.coords.longitude));
+    } catch {
+      // Sin GPS: se deja la coordenada por defecto (el cobrador puede mover el pin).
+    } finally {
+      setUbicandoGps(false);
+    }
+  }
+
+  async function buscarDireccion() {
+    if (!direccion.trim()) {
+      setMensaje("Escribe una dirección para buscar.");
+      return;
+    }
+    setBuscandoDireccion(true);
+    setMensaje(null);
+    try {
+      const resultados = await Location.geocodeAsync(direccion.trim());
+      if (resultados.length === 0) {
+        setMensaje("No se encontró la dirección.");
+        return;
+      }
+      const mejor = resultados[0];
+      setLatitud(String(mejor.latitude));
+      setLongitud(String(mejor.longitude));
+    } catch {
+      setMensaje("No se pudo buscar la dirección.");
+    } finally {
+      setBuscandoDireccion(false);
+    }
   }
 
   async function guardarNuevoCliente() {
@@ -118,15 +193,21 @@ export function ClientesScreen() {
     setMensaje(null);
     try {
       await api.crearCliente(rutaActiva.rutaId, input, evidenciasCliente.evidencias);
-      setNuevoAbierto(false);
+      setCreadoOk(true);
       setNombre("");
       setApellido("");
       setNegocio("");
       setTelefono("");
       setTope("");
+      setDireccion("");
       evidenciasCliente.quitar("foto_facial");
       evidenciasCliente.quitar("documento_frente");
+      evidenciasCliente.quitar("documento_reverso");
       await cargar();
+      setTimeout(() => {
+        setNuevoAbierto(false);
+        setCreadoOk(false);
+      }, 1200);
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
@@ -163,10 +244,7 @@ export function ClientesScreen() {
         <Pressable
           testID="btn-nuevo-cliente"
           style={styles.botonNuevo}
-          onPress={() => {
-            setNuevoAbierto(true);
-            setMensaje(null);
-          }}
+          onPress={abrirNuevoCliente}
         >
           <Text style={styles.botonNuevoTexto}>+ Cliente</Text>
         </Pressable>
@@ -219,112 +297,169 @@ export function ClientesScreen() {
         confirmarTestID="cliente-guardar"
         testID="nuevo-cliente-modal"
       >
-        <ScrollView contentContainerStyle={styles.form}>
-          <Text style={styles.label}>Nombre</Text>
-          <TextInput
-            testID="cliente-nombre"
-            style={styles.input}
-            placeholder="Nombre"
-            value={nombre}
-            onChangeText={setNombre}
-          />
-          <Text style={styles.label}>Apellido</Text>
-          <TextInput
-            testID="cliente-apellido"
-            style={styles.input}
-            placeholder="Apellido"
-            value={apellido}
-            onChangeText={setApellido}
-          />
-          <Text style={styles.label}>Negocio (opcional)</Text>
-          <TextInput
-            testID="cliente-negocio"
-            style={styles.input}
-            placeholder="Negocio"
-            value={negocio}
-            onChangeText={setNegocio}
-          />
-          <Text style={styles.label}>Teléfono WhatsApp</Text>
-          <TextInput
-            testID="cliente-telefono"
-            style={styles.input}
-            placeholder="+591…"
-            keyboardType="phone-pad"
-            value={telefono}
-            onChangeText={setTelefono}
-          />
-          <Text style={styles.label}>Ubicación del negocio</Text>
-          <MapaPin
-            latitud={Number(latitud) || COORD_DEFAULT.lat}
-            longitud={Number(longitud) || COORD_DEFAULT.lng}
-            onChange={(lat, lng) => {
-              setLatitud(String(lat));
-              setLongitud(String(lng));
-            }}
-            testID="mapa-pin-cliente"
-          />
-          <View style={styles.filaCoordenadas}>
-            <TextInput
-              testID="cliente-latitud"
-              style={[styles.input, styles.inputCoordenada]}
-              placeholder="Latitud"
-              keyboardType="decimal-pad"
-              value={latitud}
-              onChangeText={setLatitud}
-            />
-            <TextInput
-              testID="cliente-longitud"
-              style={[styles.input, styles.inputCoordenada]}
-              placeholder="Longitud"
-              keyboardType="decimal-pad"
-              value={longitud}
-              onChangeText={setLongitud}
-            />
+        {creadoOk ? (
+          <View style={styles.exito} testID="cliente-creado-ok">
+            <MaterialIcons name="check-circle" size={48} color="#16a34a" />
+            <Text style={styles.exitoTexto}>Cliente registrado correctamente</Text>
           </View>
-          <Text style={styles.label}>Tope máximo de deuda (opcional)</Text>
-          <TextInput
-            testID="cliente-tope"
-            style={styles.input}
-            placeholder="Tope de deuda"
-            keyboardType="decimal-pad"
-            value={tope}
-            onChangeText={setTope}
-          />
-          <Text style={styles.label}>Foto y documento</Text>
-          <View style={styles.filaEvidencias}>
-            <Pressable
-              testID="cliente-evidencia-foto"
-              style={styles.botonEvidencia}
-              disabled={evidenciasCliente.cargando}
-              onPress={() => elegirEvidencia("foto_facial", "libreria")}
-            >
-              <MaterialIcons name="photo-library" size={16} color="#2563eb" />
-              <Text style={styles.botonEvidenciaTexto}>
-                {evidenciasCliente.evidencias.find((e) => e.campo === "foto_facial")
-                  ? "Foto seleccionada"
-                  : "Foto"}
+        ) : (
+          <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+            {/* Avatar editable + documento frente/reverso en la misma fila */}
+            <View style={styles.filaSuperior}>
+              <Pressable
+                testID="cliente-avatar-btn"
+                style={styles.avatarEditable}
+                disabled={evidenciasCliente.cargando}
+                onPress={() => elegirEvidencia("foto_facial", "libreria")}
+              >
+                <Avatar nombre={nombre || apellido || "?"} fotoUrl={null} size={72} />
+                <View style={styles.avatarOverlay}>
+                  <MaterialIcons name="photo-camera" size={18} color="#ffffff" />
+                </View>
+                <Text style={styles.avatarEtiqueta}>
+                  {evidenciasCliente.evidencias.find((e) => e.campo === "foto_facial")
+                    ? "Foto ✓"
+                    : "Foto"}
+                </Text>
+              </Pressable>
+
+              <View style={styles.documentoNuevo}>
+                <Text style={styles.documentoNuevoTitulo}>Documento</Text>
+                <View style={styles.documentoNuevoFilas}>
+                  <Pressable
+                    testID="cliente-doc-frente"
+                    style={styles.botonDoc}
+                    disabled={evidenciasCliente.cargando}
+                    onPress={() => elegirEvidencia("documento_frente", "libreria")}
+                  >
+                    <MaterialIcons name="badge" size={16} color="#2563eb" />
+                    <Text style={styles.botonDocTexto}>
+                      {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
+                        ? "Frente ✓"
+                        : "Frente"}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    testID="cliente-doc-reverso"
+                    style={styles.botonDoc}
+                    disabled={evidenciasCliente.cargando}
+                    onPress={() => elegirEvidencia("documento_reverso", "libreria")}
+                  >
+                    <MaterialIcons name="badge" size={16} color="#2563eb" />
+                    <Text style={styles.botonDocTexto}>
+                      {evidenciasCliente.evidencias.find((e) => e.campo === "documento_reverso")
+                        ? "Reverso ✓"
+                        : "Reverso"}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+            {evidenciasCliente.cargando ? (
+              <ActivityIndicator color="#2563eb" />
+            ) : null}
+
+            <Text style={styles.label}>Nombre</Text>
+            <TextInput
+              testID="cliente-nombre"
+              style={styles.input}
+              placeholder="Nombre"
+              value={nombre}
+              onChangeText={setNombre}
+            />
+            <Text style={styles.label}>Apellido</Text>
+            <TextInput
+              testID="cliente-apellido"
+              style={styles.input}
+              placeholder="Apellido"
+              value={apellido}
+              onChangeText={setApellido}
+            />
+            <Text style={styles.label}>Negocio (opcional)</Text>
+            <TextInput
+              testID="cliente-negocio"
+              style={styles.input}
+              placeholder="Negocio"
+              value={negocio}
+              onChangeText={setNegocio}
+            />
+            <Text style={styles.label}>Teléfono WhatsApp</Text>
+            <CampoTelefono
+              valor={telefono}
+              onChange={setTelefono}
+              testID="cliente-telefono"
+              placeholder="Número de WhatsApp"
+            />
+
+            <Text style={styles.label}>Ubicación del negocio</Text>
+            <View style={styles.filaBusqueda}>
+              <TextInput
+                testID="cliente-direccion"
+                style={[styles.input, styles.inputBusqueda]}
+                placeholder="Buscar por dirección"
+                value={direccion}
+                onChangeText={setDireccion}
+              />
+              <Pressable
+                testID="cliente-buscar"
+                style={styles.botonBuscar}
+                disabled={buscandoDireccion}
+                onPress={() => void buscarDireccion()}
+              >
+                {buscandoDireccion ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : (
+                  <MaterialIcons name="search" size={18} color="#ffffff" />
+                )}
+              </Pressable>
+            </View>
+            {ubicandoGps ? (
+              <Text style={styles.gpsTexto}>
+                <ActivityIndicator size="small" color="#2563eb" /> Ubicando por GPS…
               </Text>
-            </Pressable>
-            <Pressable
-              testID="cliente-evidencia-documento"
-              style={styles.botonEvidencia}
-              disabled={evidenciasCliente.cargando}
-              onPress={() => elegirEvidencia("documento_frente", "libreria")}
-            >
-              <MaterialIcons name="badge" size={16} color="#2563eb" />
-              <Text style={styles.botonEvidenciaTexto}>
-                {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
-                  ? "Documento seleccionado"
-                  : "Documento"}
-              </Text>
-            </Pressable>
-          </View>
-          {evidenciasCliente.error ? (
-            <Text style={styles.mensajeError}>{evidenciasCliente.error}</Text>
-          ) : null}
-          {evidenciasCliente.cargando ? <ActivityIndicator color="#2563eb" /> : null}
-          {mensaje ? <Text style={styles.mensajeError}>{mensaje}</Text> : null}
-        </ScrollView>
+            ) : null}
+            <MapaPin
+              latitud={Number(latitud) || COORD_DEFAULT.lat}
+              longitud={Number(longitud) || COORD_DEFAULT.lng}
+              onChange={(lat, lng) => {
+                setLatitud(String(lat));
+                setLongitud(String(lng));
+              }}
+              testID="mapa-pin-cliente"
+            />
+            <View style={styles.filaCoordenadas}>
+              <TextInput
+                testID="cliente-latitud"
+                style={[styles.input, styles.inputCoordenada]}
+                placeholder="Latitud"
+                keyboardType="decimal-pad"
+                value={latitud}
+                onChangeText={setLatitud}
+              />
+              <TextInput
+                testID="cliente-longitud"
+                style={[styles.input, styles.inputCoordenada]}
+                placeholder="Longitud"
+                keyboardType="decimal-pad"
+                value={longitud}
+                onChangeText={setLongitud}
+              />
+            </View>
+            <Text style={styles.label}>Tope máximo de deuda (opcional)</Text>
+            <TextInput
+              testID="cliente-tope"
+              style={styles.input}
+              placeholder="Tope de deuda"
+              keyboardType="decimal-pad"
+              value={tope}
+              onChangeText={setTope}
+            />
+            {evidenciasCliente.error ? (
+              <Text style={styles.mensajeError}>{evidenciasCliente.error}</Text>
+            ) : null}
+            {mensaje ? <Text style={styles.mensajeError}>{mensaje}</Text> : null}
+          </ScrollView>
+        )}
       </ModalConFooter>
     </SafeAreaView>
   );
@@ -375,8 +510,21 @@ const styles = StyleSheet.create({
   },
   filaCoordenadas: { flexDirection: "row", gap: 8 },
   inputCoordenada: { flex: 1 },
-  filaEvidencias: { flexDirection: "row", gap: 8 },
-  botonEvidencia: {
+  filaSuperior: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
+  avatarEditable: { alignItems: "center", gap: 4 },
+  avatarOverlay: {
+    position: "absolute",
+    bottom: 6,
+    right: 0,
+    backgroundColor: "#2563eb",
+    borderRadius: 999,
+    padding: 5,
+  },
+  avatarEtiqueta: { fontSize: 12, color: "#2563eb", fontWeight: "600" },
+  documentoNuevo: { flex: 1, gap: 6 },
+  documentoNuevoTitulo: { fontSize: 13, color: "#475569", fontWeight: "600" },
+  documentoNuevoFilas: { flexDirection: "row", gap: 8 },
+  botonDoc: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
@@ -387,6 +535,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 8,
   },
-  botonEvidenciaTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
+  botonDocTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
+  filaBusqueda: { flexDirection: "row", gap: 8 },
+  inputBusqueda: { flex: 1 },
+  botonBuscar: {
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+  },
+  gpsTexto: { color: "#64748b", fontSize: 12, flexDirection: "row", alignItems: "center", gap: 6 },
+  exito: { alignItems: "center", gap: 12, paddingVertical: 24 },
+  exitoTexto: { color: "#16a34a", fontSize: 16, fontWeight: "700" },
   mensajeError: { color: "#dc2626", fontSize: 13 },
 });

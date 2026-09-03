@@ -1,4 +1,6 @@
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons } from "@expo/vector-icons";
 import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
 import { enlaceGoogleMapsRuta } from "../features/navegacion/navegacion";
 
@@ -22,9 +24,12 @@ function nombreDeParada(
  */
 export function TrayectosLista({ clientes, trayectos, onCerrar }: TrayectosListaProps) {
   return (
-    <View testID="trayectos-lista" style={styles.contenedor}>
+    <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <View>
+        <Pressable testID="back-trayectos" style={styles.back} onPress={onCerrar}>
+          <MaterialIcons name="arrow-back" size={22} color="#2563eb" />
+        </Pressable>
+        <View style={styles.titulos}>
           <Text style={styles.titulo}>Trayectos del día</Text>
           <Text style={styles.detalle}>
             {trayectos.ordenClientes.length} trayecto
@@ -32,9 +37,6 @@ export function TrayectosLista({ clientes, trayectos, onCerrar }: TrayectosLista
             {trayectos.distanciaEstimadaKm} km · {trayectos.tiempoEstimadoMin} min
           </Text>
         </View>
-        <Pressable testID="cerrar-trayectos" onPress={onCerrar}>
-          <Text style={styles.cerrar}>Cerrar</Text>
-        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -73,7 +75,7 @@ export function TrayectosLista({ clientes, trayectos, onCerrar }: TrayectosLista
           );
         })}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -81,17 +83,18 @@ const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
+    gap: 8,
+    paddingHorizontal: 12,
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
     backgroundColor: "#ffffff",
   },
+  back: { width: 32, alignItems: "flex-start" },
+  titulos: { flex: 1 },
   titulo: { fontSize: 16, fontWeight: "700" },
   detalle: { color: "#64748b", fontSize: 13, marginTop: 2 },
-  cerrar: { color: "#2563eb", fontWeight: "600", fontSize: 14 },
   scroll: { padding: 16, gap: 12 },
   trayecto: {
     backgroundColor: "#ffffff",

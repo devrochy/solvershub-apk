@@ -18,6 +18,14 @@ jest.mock("@expo/vector-icons", () => {
   return { MaterialIcons: Icono };
 });
 
+jest.mock("expo-location", () => ({
+  requestForegroundPermissionsAsync: jest.fn().mockResolvedValue({ granted: false }),
+  getCurrentPositionAsync: jest.fn().mockResolvedValue({
+    coords: { latitude: -17.78, longitude: -63.18 },
+  }),
+  geocodeAsync: jest.fn().mockResolvedValue([]),
+}));
+
 jest.mock("react-native-webview", () => {
   const React = require("react");
   const { View } = require("react-native");
