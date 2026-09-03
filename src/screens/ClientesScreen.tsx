@@ -14,6 +14,7 @@ import { Avatar } from "../components/Avatar";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import type { RootStackParamList, RootTabParamList } from "../navigation/types";
+import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type { ClienteCobradorPublic } from "../types/cobrador";
@@ -25,11 +26,12 @@ type StackNavigation = {
   ): void;
 };
 
-type Props = { navigation: StackNavigation };
+type Props = { navigation?: StackNavigation };
 
-export function ClientesScreen({ navigation }: Props) {
+export function ClientesScreen({ navigation }: Props = {}) {
   const { rutaActiva } = useRutaActiva();
   const { api, logout } = useSession();
+  const { abrir } = usePantallaActiva();
   const [clientes, setClientes] = useState<ClienteCobradorPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
@@ -97,10 +99,13 @@ export function ClientesScreen({ navigation }: Props) {
             testID={`cliente-${item.id}`}
             style={styles.tarjeta}
             onPress={() =>
-              (navigation as unknown as StackNavigation).navigate("Cliente", {
+              abrir({
+                tipo: "cliente",
                 rutaId: item.rutaId,
                 clienteId: item.id,
                 nombre: nombreCompleto(item),
+                latitud: item.latitud,
+                longitud: item.longitud,
               })
             }
           >

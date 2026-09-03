@@ -24,20 +24,22 @@ import {
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import { usePosicion } from "../features/trayectoria/use-posicion";
 import type { RootStackParamList, RootTabParamList } from "../navigation/types";
+import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
 
-type Props = { navigation: StackNavigation };
+type Props = { navigation?: StackNavigation };
 type StackNavigation = {
   navigate(screen: "Cliente", params: RootStackParamList["Cliente"]): void;
 };
 
-export function DiaScreen({ navigation }: Props) {
+export function DiaScreen({ navigation }: Props = {}) {
   const { rutaActiva } = useRutaActiva();
   const rutaId = rutaActiva?.rutaId ?? 0;
+  const { abrir: abrirPantallaActiva } = usePantallaActiva();
   const { api, logout } = useSession();
   const offline = useOffline();
   const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
@@ -338,11 +340,13 @@ export function DiaScreen({ navigation }: Props) {
               style={[styles.tarjeta, !listaHabilitada && styles.tarjetaBloqueada]}
               disabled={!listaHabilitada}
               onPress={() =>
-                (navigation as unknown as StackNavigation).navigate("Cliente", {
+                abrirPantallaActiva({
+                  tipo: "cliente",
                   rutaId,
                   clienteId: item.clienteId,
                   nombre: item.nombre,
                   ...(coords ?? {}),
+                  prestamoAutoSeleccionado: true,
                 })
               }
             >

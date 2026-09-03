@@ -2,6 +2,7 @@ import type {
   ClienteCobradorPublic,
   ClienteTarjetaPublic,
   CuotaPublic,
+  DetalleCuotaPublic,
   DiaApkPublic,
   EstadoCuentaPrestamoPublic,
   GastoPublic,
@@ -53,6 +54,11 @@ export interface CobradorApi {
     rutaId: number,
     prestamoId: number,
   ): Promise<EstadoCuentaPrestamoPublic>;
+  detalleCuota(
+    rutaId: number,
+    prestamoId: number,
+    cuotaId: number,
+  ): Promise<DetalleCuotaPublic>;
   listarPrestamosDeCliente(
     rutaId: number,
     clienteId: number,
@@ -181,6 +187,11 @@ export function cobradorApi(client: ApiClient): CobradorApi {
     listarPrestamosDeCliente: (rutaId: number, clienteId: number) =>
       client.request<PrestamoPublic[]>(
         `/cobrador/rutas/${rutaId}/clientes/${clienteId}/prestamos`,
+      ),
+
+    detalleCuota: (rutaId: number, prestamoId: number, cuotaId: number) =>
+      client.request<DetalleCuotaPublic>(
+        `/cobrador/rutas/${rutaId}/prestamos/${prestamoId}/cuotas/${cuotaId}/detalle`,
       ),
 
     crearPrestamo: (rutaId: number, input: RegistrarPrestamoInput) =>

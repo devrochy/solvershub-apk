@@ -15,6 +15,7 @@ export type RootStackParamList = {
     nombre: string;
     latitud?: number;
     longitud?: number;
+    prestamoAutoSeleccionado?: boolean;
   };
   Prestamo: {
     rutaId: number;

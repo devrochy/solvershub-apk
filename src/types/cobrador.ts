@@ -129,6 +129,8 @@ export interface ClienteTarjetaPublic {
   telefonoWhatsapp: string;
   color: ColorRiesgo;
   fotoUrl: string | null;
+  /** URL del frente del documento de identidad (si el backend la expone). */
+  documentoFrenteUrl?: string | null;
   tipoPago: string | null;
   saldoPendiente: number;
   diasMora: number;
@@ -174,6 +176,32 @@ export interface PrestamoPublic {
   fechaOtorgado: string;
   estatus: PrestamoEstatus;
   cuotas: CuotaPublic[];
+}
+
+export interface PagoCuotaPublic {
+  id: number;
+  valor: number;
+  metodoPago: string | null;
+  fecha: string;
+}
+
+export interface UltimaVisitaCuotaPublic {
+  resultado: VisitaResultado;
+  motivoNoPago: string | null;
+  fecha: string;
+}
+
+export interface DetalleCuotaPublic {
+  cuotaId: number;
+  prestamoId: number;
+  numeroCuota: number;
+  valorEsperado: number;
+  fechaVencimiento: string;
+  estatus: CuotaEstatus;
+  pagos: PagoCuotaPublic[];
+  abonosAcumulados: number;
+  saldoPendiente: number;
+  ultimaVisita: UltimaVisitaCuotaPublic | null;
 }
 
 export interface CuotaEstado {

@@ -1,7 +1,13 @@
 export interface LoginResult {
   accessToken: string;
   refreshToken: string;
-  cobrador: {
+  cobrador?: {
+    id: number;
+    usuario: string;
+    nombre: string;
+    apellido: string;
+  };
+  socio?: {
     id: number;
     usuario: string;
     nombre: string;

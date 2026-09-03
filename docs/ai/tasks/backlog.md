@@ -27,3 +27,7 @@
 ## Device key inválida deja la cola atascada sin feedback
 - Detectado en: revisión code-reviewer apk-offline-first (2026-09-01)
 - **Resuelto en `apk-feedback-device-key` (2026-09-02):** `OfflineProvider` expone `errorSync` (se setea al fallar el sync, se limpia al éxito) y `RutasScreen` muestra el aviso. La cola no se vacía ante fallo (se conserva para reintento).
+## Modal de evidencias duplicado en ClienteScreen
+- Detectado en: tarea apk-pr1-rediseno-detalle-cliente (2026-09-03)
+- Descripción: los modales de avatar (foto) y documento comparten el mismo cuerpo (preview + botones librería/cámara + estados). Candidato a extraer un componente `EvidenciasModal` reutilizable.
+- Prioridad sugerida: baja

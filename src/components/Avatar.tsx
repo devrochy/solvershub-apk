@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { urlArchivo } from "../config";
 
 export interface AvatarProps {
@@ -19,8 +20,8 @@ export function inicialesDe(nombre: string): string {
 }
 
 /**
- * Avatar de cliente: muestra la foto si existe (fotoUrl) o un círculo con las
- * iniciales del nombre (A10).
+ * Avatar de cliente: muestra la foto si existe (fotoUrl) o un círculo con el
+ * icono `person` (rediseño 2026-09: icono en lugar de iniciales).
  */
 export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
   const uri = urlArchivo(fotoUrl);
@@ -35,10 +36,10 @@ export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
   }
   return (
     <View
-      testID="avatar-iniciales"
+      testID="avatar-icono"
       style={[styles.circulo, { width: size, height: size, borderRadius: size / 2 }]}
     >
-      <Text style={[styles.texto, { fontSize: size * 0.4 }]}>{inicialesDe(nombre)}</Text>
+      <MaterialIcons name="person" size={size * 0.55} color="#2563eb" />
     </View>
   );
 }
@@ -49,5 +50,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  texto: { color: "#2563eb", fontWeight: "700" },
 });

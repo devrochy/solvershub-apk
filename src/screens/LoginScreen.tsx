@@ -11,12 +11,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { apiErrorStatus } from "../api/client";
+import type { RolLogin } from "../api/auth";
 import { useSession } from "../session/session-context";
 
 export function LoginScreen() {
   const { login } = useSession();
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
+  const [rol, setRol] = useState<RolLogin>("cobrador");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +31,7 @@ export function LoginScreen() {
     setSubmitting(true);
     setError(null);
     try {
-      await login(usuario.trim(), password);
+      await login(usuario.trim(), password, rol);
     } catch (err) {
       setError(
         apiErrorStatus(err) === 401
@@ -49,7 +51,28 @@ export function LoginScreen() {
       >
       <View style={styles.form}>
         <Text style={styles.titulo}>CobraIA</Text>
-        <Text style={styles.subtitulo}>App del cobrador</Text>
+        <Text style={styles.subtitulo}>Plataforma del cobrador</Text>
+
+        <View style={styles.roles}>
+          <Pressable
+            testID="rol-cobrador"
+            style={[styles.rol, rol === "cobrador" && styles.rolActivo]}
+            onPress={() => setRol("cobrador")}
+          >
+            <Text style={rol === "cobrador" ? styles.rolTextoActivo : styles.rolTexto}>
+              Cobrador
+            </Text>
+          </Pressable>
+          <Pressable
+            testID="rol-socio"
+            style={[styles.rol, rol === "socio" && styles.rolActivo]}
+            onPress={() => setRol("socio")}
+          >
+            <Text style={rol === "socio" ? styles.rolTextoActivo : styles.rolTexto}>
+              Socio
+            </Text>
+          </Pressable>
+        </View>
 
         <TextInput
           testID="usuario-input"
@@ -118,6 +141,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 16,
   },
+  roles: { flexDirection: "row", gap: 8 },
+  rol: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  rolActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+  rolTexto: { color: "#334155", fontWeight: "600" },
+  rolTextoActivo: { color: "#ffffff", fontWeight: "600" },
   input: {
     borderWidth: 1,
     borderColor: "#cbd5e1",

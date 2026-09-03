@@ -21,12 +21,12 @@ describe("Avatar", () => {
       <Avatar nombre="Laura" fotoUrl="https://cdn.test/f.jpg" />,
     );
     expect(getByTestId("avatar-foto")).toBeTruthy();
-    expect(queryByTestId("avatar-iniciales")).toBeNull();
+    expect(queryByTestId("avatar-icono")).toBeNull();
   });
 
-  it("muestra iniciales si no hay foto", async () => {
+  it("muestra el icono person si no hay foto", async () => {
     const { getByTestId, getByText } = await render(<Avatar nombre="Laura Martínez" />);
-    expect(getByTestId("avatar-iniciales")).toBeTruthy();
-    expect(getByText("LM")).toBeTruthy();
+    expect(getByTestId("avatar-icono")).toBeTruthy();
+    expect(getByText("person")).toBeTruthy();
   });
 });

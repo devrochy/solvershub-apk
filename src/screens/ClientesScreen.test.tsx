@@ -3,6 +3,16 @@ import { ClientesScreen } from "./ClientesScreen";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
+import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
+import { ContenidoTab } from "../navigation/ContenidoTab";
+
+jest.mock("../screens/ClienteScreen", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    ClienteScreen: jest.fn(() => React.createElement(View, { testID: "mock-cliente" })),
+  };
+});
 
 const offline: OfflineValue = {
   isOnline: true,
@@ -49,7 +59,7 @@ async function renderConRutaActiva(
   },
 ) {
   const valor: SessionValue = {
-    cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López" },
+    cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López", rol: "cobrador" },
     loading: false,
     api: api as SessionValue["api"],
     login: jest.fn(),
@@ -57,15 +67,19 @@ async function renderConRutaActiva(
   };
   const navigation = { navigate } as never;
   return render(
-    <OfflineContext.Provider value={offline}>
+    <PantallaActivaProvider>
+      <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
         <RutaActivaContext.Provider
           value={{ rutaActiva, setRutaActiva: jest.fn() }}
         >
-          <ClientesScreen navigation={navigation} />
+          <ContenidoTab>
+            <ClientesScreen navigation={navigation} />
+          </ContenidoTab>
         </RutaActivaContext.Provider>
       </SessionContext.Provider>
-    </OfflineContext.Provider>,
+      </OfflineContext.Provider>
+    </PantallaActivaProvider>,
   );
 }
 
@@ -84,24 +98,19 @@ describe("ClientesScreen", () => {
       listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
     });
 
-    await waitFor(() => expect(getByTestId("avatar-iniciales")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("avatar-icono")).toBeTruthy());
   });
 
-  it("navega al cliente al tocarlo", async () => {
-    const navigate = jest.fn();
-    const { getByText } = await renderConRutaActiva(
-      { listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]) },
-      navigate,
-    );
+  it("navega al cliente al tocarlo (abre el detalle como pantalla activa)", async () => {
+    const { getByText, getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    });
 
     await waitFor(() => expect(getByText("Juan Perez")).toBeTruthy());
     await fireEvent.press(getByText("Juan Perez"));
 
-    expect(navigate).toHaveBeenCalledWith("Cliente", {
-      rutaId: 6,
-      clienteId: 11,
-      nombre: "Juan Perez",
-    });
+    // El detalle se abre como overlay (OverlayDetalle monta ClienteScreen).
+    await waitFor(() => expect(getByTestId("mock-cliente")).toBeTruthy());
   });
 
   it("muestra mensaje si no hay ruta activa", async () => {

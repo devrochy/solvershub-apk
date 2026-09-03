@@ -17,9 +17,9 @@ import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type { RutaApkPublic } from "../types/cobrador";
 
-type Props = BottomTabScreenProps<RootTabParamList, "Rutas">;
+type Props = { navigation?: { navigate(screen: "Clientes"): void } };
 
-export function RutasScreen({ navigation }: Props) {
+export function RutasScreen({ navigation }: Props = {}) {
   const { api, cobrador, logout } = useSession();
   const { setRutaActiva } = useRutaActiva();
   const offline = useOffline();
@@ -106,7 +106,7 @@ export function RutasScreen({ navigation }: Props) {
                   numCuotas: item.numCuotas,
                   config: item.config,
                 });
-                navigation.navigate("Clientes");
+                navigation?.navigate("Clientes");
               }}
             >
               <View style={styles.tarjetaInfo}>

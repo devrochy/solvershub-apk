@@ -45,7 +45,8 @@
         {
           "locationWhenInUsePermission": "La app usa tu ubicación para registrar la trayectoria de la ruta."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "extra": {
       "eas": {

@@ -38,7 +38,19 @@ describe("LoginScreen", () => {
     await fireEvent.changeText(getByTestId("password-input"), "secret");
     await fireEvent.press(getByTestId("login-button"));
 
-    await waitFor(() => expect(login).toHaveBeenCalledWith("cobrador1", "secret"));
+    await waitFor(() => expect(login).toHaveBeenCalledWith("cobrador1", "secret", "cobrador"));
+  });
+
+  it("permite elegir rol socio y lo pasa al login", async () => {
+    const login = jest.fn().mockResolvedValue(undefined);
+    const { getByTestId } = await renderConSesion(login);
+
+    await fireEvent.press(getByTestId("rol-socio"));
+    await fireEvent.changeText(getByTestId("usuario-input"), "socio1");
+    await fireEvent.changeText(getByTestId("password-input"), "secret");
+    await fireEvent.press(getByTestId("login-button"));
+
+    await waitFor(() => expect(login).toHaveBeenCalledWith("socio1", "secret", "socio"));
   });
 
   it("muestra error de credenciales cuando el login responde 401", async () => {

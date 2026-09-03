@@ -106,6 +106,22 @@ describe("cobradorApi", () => {
     expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2/prestamos");
   });
 
+  it("detalleCuota llama a GET del detalle de la cuota", async () => {
+    request.mockResolvedValue({
+      cuotaId: 10,
+      pagos: [],
+      abonosAcumulados: 0,
+      saldoPendiente: 300,
+      ultimaVisita: null,
+    });
+
+    await api.detalleCuota(6, 1, 10);
+
+    expect(request).toHaveBeenCalledWith(
+      "/cobrador/rutas/6/prestamos/1/cuotas/10/detalle",
+    );
+  });
+
   it("crearPrestamo hace POST con el input", async () => {
     request.mockResolvedValue({ id: 1 });
 

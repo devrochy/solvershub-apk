@@ -31,7 +31,7 @@ async function renderConRutas(
   },
 ) {
   const valor: SessionValue = {
-    cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López" },
+    cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López", rol: "cobrador" },
     loading: false,
     api: api as SessionValue["api"],
     login: jest.fn(),
@@ -42,7 +42,7 @@ async function renderConRutas(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
         <RutaActivaContext.Provider value={{ rutaActiva: null, setRutaActiva }}>
-          <RutasScreen navigation={navigation} route={{ key: "rutas", name: "Rutas" }} />
+          <RutasScreen navigation={navigation} />
         </RutaActivaContext.Provider>
       </SessionContext.Provider>
     </OfflineContext.Provider>,
