@@ -768,29 +768,29 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             </Pressable>
             <View style={styles.datosCedula}>
               {tarjeta.negocio ? (
-                <View style={styles.datoCedula}>
-                  <Text style={styles.datoCedulaSubtitulo}>Negocio</Text>
-                  <Text style={styles.datoCedulaValor} numberOfLines={2}>{tarjeta.negocio}</Text>
-                </View>
+                <Text style={styles.datoCedulaLineal}>
+                  <Text style={styles.datoCedulaEtiqueta}>Negocio: </Text>
+                  <Text style={styles.datoCedulaValor}>{tarjeta.negocio}</Text>
+                </Text>
               ) : null}
               {tarjeta.tipoPago ? (
-                <View style={styles.datoCedula}>
-                  <Text style={styles.datoCedulaSubtitulo}>Tipo de pago</Text>
+                <Text style={styles.datoCedulaLineal}>
+                  <Text style={styles.datoCedulaEtiqueta}>Tipo de pago: </Text>
                   <Text style={styles.datoCedulaValor}>{tarjeta.tipoPago}</Text>
-                </View>
+                </Text>
               ) : null}
-              <View style={styles.datoCedula}>
-                <Text style={styles.datoCedulaSubtitulo}>Saldo pendiente</Text>
+              <Text style={styles.datoCedulaLineal}>
+                <Text style={styles.datoCedulaEtiqueta}>Saldo pendiente: </Text>
                 <Text style={styles.datoCedulaValor}>{tarjeta.saldoPendiente}</Text>
-              </View>
-              <View style={styles.datoCedula}>
-                <Text style={styles.datoCedulaSubtitulo}>Mora</Text>
+              </Text>
+              <Text style={styles.datoCedulaLineal}>
+                <Text style={styles.datoCedulaEtiqueta}>Mora: </Text>
                 <Text style={styles.datoCedulaValor}>{tarjeta.diasMora} días</Text>
-              </View>
-              <View style={styles.datoCedula}>
-                <Text style={styles.datoCedulaSubtitulo}>WhatsApp</Text>
+              </Text>
+              <Text style={styles.datoCedulaLineal}>
+                <Text style={styles.datoCedulaEtiqueta}>WhatsApp: </Text>
                 <Text style={styles.datoCedulaValor}>{tarjeta.telefonoWhatsapp}</Text>
-              </View>
+              </Text>
             </View>
           </View>
 
@@ -994,7 +994,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             {estadoPrestamoCargando ? (
               <ActivityIndicator style={styles.detalleCarga} />
             ) : estadoPrestamo ? (
-              <View ref={refCanvas} collapsable={false} testID="canvas-prestamo">
+              <View
+                ref={refCanvas}
+                collapsable={false}
+                testID="canvas-prestamo"
+                style={styles.canvasScreenshot}
+              >
                 <Text style={styles.detalleLinea}>
                   Valor: {estadoPrestamo.valor} {estadoPrestamo.moneda} · Cuotas:{" "}
                   {estadoPrestamo.numCuotas} · Interés: {estadoPrestamo.tipoInteres}%
@@ -1730,10 +1735,10 @@ const styles = StyleSheet.create({
   tarjetaHeaderEditar: { flexDirection: "row", alignItems: "center", gap: 4 },
   tarjetaHeaderEditarTexto: { color: "#ffffff", fontSize: 14, fontWeight: "600" },
   filaCedula: { flexDirection: "row", gap: 16, alignItems: "flex-start" },
-  datosCedula: { flex: 1, gap: 8 },
-  datoCedula: { gap: 1 },
-  datoCedulaSubtitulo: { fontSize: 11, fontWeight: "700", color: "#475569", textTransform: "uppercase" },
-  datoCedulaValor: { fontSize: 15, color: "#1e293b", fontWeight: "600" },
+  datosCedula: { flex: 1, gap: 6 },
+  datoCedulaLineal: { fontSize: 14, color: "#1e293b", flexWrap: "wrap" },
+  datoCedulaEtiqueta: { fontWeight: "700", color: "#475569" },
+  datoCedulaValor: { fontWeight: "600", color: "#1e293b" },
   documentosFila: { flexDirection: "row", gap: 14, marginTop: 16 },
   miniaturaImagenGrande: {
     width: 96,
@@ -1926,6 +1931,11 @@ const styles = StyleSheet.create({
   prestamoValor: { fontSize: 14, fontWeight: "700", color: "#1e293b" },
   prestamoDetalle: { color: "#64748b", fontSize: 12, marginTop: 2 },
   prestamoEstatus: { color: "#475569", fontSize: 12, marginTop: 2, fontWeight: "600" },
+  canvasScreenshot: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 12,
+  },
   detallePrestamo: {
     backgroundColor: "#ffffff",
     borderRadius: 16,

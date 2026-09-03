@@ -62,3 +62,10 @@ cliente (header neutro + tarjeta con header propio + edición sin ubicaciones +
 - Se quitó el punto de color de la tarjeta (queda el color en el header).
 - Tests: header con fondo por clasificación, ausencia del punto, documentos como iconos grandes.
 - `scripts/check.sh` APK → verde (261 tests).
+
+## Iteración 3 — Fix subida evidencias, tarjeta lineal, screenshot blanco (2026-09-03)
+- Backend: `agregarEvidencias` valida contra tipos existentes + nuevos (permite subir solo la foto o solo el documento).
+- Tarjeta cédula: información lineal (`Negocio: valor`, `Tipo de pago: valor`, `Saldo pendiente: valor`, `Mora: valor`, `WhatsApp: valor`) con etiqueta en negrita.
+- Screenshot del préstamo: canvas con fondo blanco (`canvasScreenshot`).
+- Tests: subida parcial (backend), canvas fondo blanco, tarjeta lineal.
+- `scripts/check.sh` APK verde (262 tests) + backend verde (856 tests).

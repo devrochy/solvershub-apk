@@ -422,8 +422,7 @@ describe("ClienteScreen — cache offline", () => {
     });
 
     await waitFor(() => expect(getByText("Juan")).toBeTruthy());
-    expect(getByText("Saldo pendiente")).toBeTruthy();
-    expect(getByText("300")).toBeTruthy();
+    expect(getByText(/Saldo pendiente: 300/)).toBeTruthy();
   });
 });
 
@@ -632,6 +631,17 @@ describe("ClienteScreen — WhatsApp con screenshot del detalle", () => {
     );
   });
 
+  it("el canvas del screenshot tiene fondo blanco", async () => {
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
+    expect(getByTestId("canvas-prestamo")).toHaveStyle({ backgroundColor: "#ffffff" });
+  });
+
   it("cae al enlace wa.me si no se puede capturar el screenshot", async () => {
     (captureRef as jest.Mock).mockRejectedValueOnce(new Error("captura falló"));
     jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
@@ -678,10 +688,8 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     });
 
     await waitFor(() => expect(getByTestId("avatar-foto")).toBeTruthy());
-    expect(getByText("Tipo de pago")).toBeTruthy();
-    expect(getByText("diario")).toBeTruthy();
-    expect(getByText("WhatsApp")).toBeTruthy();
-    expect(getByText("+59170000000")).toBeTruthy();
+    expect(getByText(/Tipo de pago: diario/)).toBeTruthy();
+    expect(getByText(/WhatsApp: \+59170000000/)).toBeTruthy();
   });
 
   it("usa el icono person cuando no hay foto y no muestra el tipo de pago", async () => {
