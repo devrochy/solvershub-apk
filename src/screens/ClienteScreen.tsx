@@ -17,6 +17,7 @@ import { captureRef } from "react-native-view-shot";
 import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
+import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { MapaCliente } from "../components/MapaCliente";
@@ -331,7 +332,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setMensaje("Pago registrado.");
         await cargar();
       } catch (err) {
-        if (esErrorDeRed(err)) {
+        if (apiErrorStatus(err) === 401) {
+          await logout();
+        } else if (esErrorDeRed(err)) {
           const encolado = await offline.encolarSiNoExiste(
             "visita",
             input,
@@ -388,7 +391,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setValorPrometido("");
         setMensaje("Visita registrada.");
       } catch (err) {
-        if (esErrorDeRed(err)) {
+        if (apiErrorStatus(err) === 401) {
+          await logout();
+        } else if (esErrorDeRed(err)) {
           const encolado = await offline.encolarSiNoExiste(
             "visita",
             input,
@@ -484,6 +489,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setMensaje("Cambio enviado (se sincronizará).");
       } else {
         setMensaje("Ya hay un cambio pendiente por sincronizar.");
+      }
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setMensaje("No se pudo guardar el cambio.");
       }
     } finally {
       setEditando(false);
@@ -1058,13 +1069,11 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           onChangeText={(v) => setEdicion((e) => ({ ...e, negocio: v }))}
         />
         <Text style={styles.label}>WhatsApp</Text>
-        <TextInput
+        <CampoTelefono
           testID="editar-telefono"
-          style={styles.input}
-          placeholder="WhatsApp"
-          keyboardType="phone-pad"
-          value={edicion.telefonoWhatsapp ?? ""}
-          onChangeText={(v) => setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))}
+          valor={edicion.telefonoWhatsapp ?? ""}
+          onChange={(v) => setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))}
+          placeholder="Número de WhatsApp"
         />
         <Text style={styles.label}>Ubicación del negocio</Text>
         <MapaPin
@@ -1197,11 +1206,13 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           setModal("ninguno");
           evidenciasCliente.quitar("foto_facial");
           evidenciasCliente.resetError();
+          setMensaje(null);
         }}
         onCancelar={() => {
           setModal("ninguno");
           evidenciasCliente.quitar("foto_facial");
           evidenciasCliente.resetError();
+          setMensaje(null);
         }}
         onConfirmar={() => void guardarEvidenciaSeleccionada("foto_facial")}
         confirmando={evidenciasEnviando}
@@ -1258,6 +1269,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {evidenciasCliente.error ? (
           <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
         ) : null}
+        {mensaje ? <Text style={styles.errorTexto}>{mensaje}</Text> : null}
       </ModalConFooter>
 
       {/* Modal: documento */}
@@ -1270,6 +1282,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
           );
           evidenciasCliente.resetError();
+          setMensaje(null);
         }}
         onCancelar={() => {
           setModal("ninguno");
@@ -1277,6 +1290,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
           );
           evidenciasCliente.resetError();
+          setMensaje(null);
         }}
         onConfirmar={() =>
           void guardarEvidenciaSeleccionada(
@@ -1354,6 +1368,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {evidenciasCliente.error ? (
           <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
         ) : null}
+        {mensaje ? <Text style={styles.errorTexto}>{mensaje}</Text> : null}
       </ModalConFooter>
 
       {/* Modal: detalle de cuota */}

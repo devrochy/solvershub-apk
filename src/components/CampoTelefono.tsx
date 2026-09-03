@@ -37,7 +37,13 @@ export function CampoTelefono({
   placeholder = "Número",
 }: CampoTelefonoProps) {
   const [listaAbierta, setListaAbierta] = useState(false);
-  const pais = paisDesdeTelefono(valor) ?? PAIS_DEFECTO_TELEFONO;
+  const [paisSeleccionado, setPaisSeleccionado] = useState<PaisTelefono | null>(
+    null,
+  );
+  // Fuente de verdad: el país explícitamente elegido; si no se ha elegido uno,
+  // se infiere del número (y ante prefijos compartidos +1 se resuelve al país
+  // con el prefijo más largo que coincida, o al primero del catálogo).
+  const pais = paisSeleccionado ?? paisDesdeTelefono(valor) ?? PAIS_DEFECTO_TELEFONO;
 
   const numeroLocal = valor.startsWith(pais.prefijo)
     ? valor.slice(pais.prefijo.length)
@@ -45,6 +51,7 @@ export function CampoTelefono({
 
   function seleccionarPais(nuevoPais: PaisTelefono) {
     setListaAbierta(false);
+    setPaisSeleccionado(nuevoPais);
     const local = valor.startsWith(nuevoPais.prefijo)
       ? valor.slice(nuevoPais.prefijo.length)
       : numeroLocal.replace(/^\+\d{1,4}/, "");

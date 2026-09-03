@@ -55,6 +55,14 @@
 - SafeAreaView + botón back en header.
 
 ## Verificación
-- `scripts/check.sh` APK → verde (255 tests, 37 suites).
+- `scripts/check.sh` APK → verde (256 tests, 37 suites).
 - `scripts/check.sh` backend → verde (856 tests).
+- Code-review: APROBADO CON OBSERVACIONES (sin críticos). Correcciones aplicadas:
+  - Prefijo +1 compartido (US/DO): `CampoTelefono` guarda el país seleccionado explícitamente; `paisDesdeTelefono` elige el prefijo de mayor longitud.
+  - Error de guardado de evidencia visible dentro del modal avatar/documento (`mensaje` + `evidenciasCliente.error`).
+  - Avatar de nuevo cliente previsualiza la imagen local seleccionada.
+  - `setTimeout` del check verde con cleanup (`useEffect`).
+  - Validación de teléfono: exige ≥7 dígitos (no solo prefijo).
+  - Modal Editar cliente usa `CampoTelefono`.
+  - `enviarVisita` y `guardarCambioCliente` manejan 401 (logout) y errores.
 - Prueba en dispositivo pendiente.

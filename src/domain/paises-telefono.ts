@@ -28,8 +28,8 @@ export const PAISES_TELEFONO: PaisTelefono[] = [
   { codigo: "SV", nombre: "El Salvador", prefijo: "+503", bandera: "🇸🇻" },
   { codigo: "HN", nombre: "Honduras", prefijo: "+504", bandera: "🇭🇳" },
   { codigo: "NI", nombre: "Nicaragua", prefijo: "+505", bandera: "🇳🇮" },
-  { codigo: "DO", nombre: "Rep. Dominicana", prefijo: "+1", bandera: "🇩🇴" },
   { codigo: "US", nombre: "Estados Unidos", prefijo: "+1", bandera: "🇺🇸" },
+  { codigo: "DO", nombre: "Rep. Dominicana", prefijo: "+1", bandera: "🇩🇴" },
   { codigo: "ES", nombre: "España", prefijo: "+34", bandera: "🇪🇸" },
   { codigo: "BR", nombre: "Brasil", prefijo: "+55", bandera: "🇧🇷" },
 ];
@@ -39,7 +39,8 @@ export const PAIS_DEFECTO_TELEFONO: PaisTelefono = PAISES_TELEFONO[0];
 
 /**
  * Infiere el país a partir de un número internacional (p. ej. "+5917000111").
- * Devuelve null si no coincide con ningún prefijo del catálogo.
+ * Devuelve null si no coincide con ningún prefijo del catálogo. Ante prefijos
+ * compartidos (p. ej. +1 para US y DO) elige el de mayor longitud que coincida.
  */
 export function paisDesdeTelefono(
   telefono: string,
@@ -48,7 +49,8 @@ export function paisDesdeTelefono(
   if (!limpio.startsWith("+")) {
     return null;
   }
-  return (
-    PAISES_TELEFONO.find((p) => limpio.startsWith(p.prefijo)) ?? null
-  );
+  const coincidencias = PAISES_TELEFONO.filter((p) =>
+    limpio.startsWith(p.prefijo),
+  ).sort((a, b) => b.prefijo.length - a.prefijo.length);
+  return coincidencias[0] ?? null;
 }

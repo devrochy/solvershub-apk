@@ -78,6 +78,18 @@ export function ClientesScreen() {
     cargar();
   }, [cargar]);
 
+  // Auto-cierra el modal tras mostrar el check verde de éxito (con cleanup).
+  useEffect(() => {
+    if (!creadoOk) {
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      setNuevoAbierto(false);
+      setCreadoOk(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [creadoOk]);
+
   async function refrescar() {
     setRefrescando(true);
     await cargar();
@@ -161,8 +173,9 @@ export function ClientesScreen() {
     }
     const lat = Number(latitud);
     const lng = Number(longitud);
-    if (!nombre.trim() || !apellido.trim() || !telefono.trim()) {
-      setMensaje("Nombre, apellido y teléfono son obligatorios.");
+    const digitosTelefono = telefono.replace(/\D/g, "");
+    if (!nombre.trim() || !apellido.trim() || digitosTelefono.length < 7) {
+      setMensaje("Nombre, apellido y un teléfono válido son obligatorios.");
       return;
     }
     if (
@@ -204,10 +217,6 @@ export function ClientesScreen() {
       evidenciasCliente.quitar("documento_frente");
       evidenciasCliente.quitar("documento_reverso");
       await cargar();
-      setTimeout(() => {
-        setNuevoAbierto(false);
-        setCreadoOk(false);
-      }, 1200);
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
@@ -312,7 +321,23 @@ export function ClientesScreen() {
                 disabled={evidenciasCliente.cargando}
                 onPress={() => elegirEvidencia("foto_facial", "libreria")}
               >
-                <Avatar nombre={nombre || apellido || "?"} fotoUrl={null} size={72} />
+                {(() => {
+                  const foto = evidenciasCliente.evidencias.find(
+                    (e) => e.campo === "foto_facial",
+                  );
+                  if (foto) {
+                    return (
+                      <Image
+                        testID="cliente-avatar-preview"
+                        source={{ uri: foto.uri }}
+                        style={styles.avatarImagen}
+                      />
+                    );
+                  }
+                  return (
+                    <Avatar nombre={nombre || apellido || "?"} fotoUrl={null} size={72} />
+                  );
+                })()}
                 <View style={styles.avatarOverlay}>
                   <MaterialIcons name="photo-camera" size={18} color="#ffffff" />
                 </View>
@@ -512,6 +537,7 @@ const styles = StyleSheet.create({
   inputCoordenada: { flex: 1 },
   filaSuperior: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   avatarEditable: { alignItems: "center", gap: 4 },
+  avatarImagen: { width: 72, height: 72, borderRadius: 36 },
   avatarOverlay: {
     position: "absolute",
     bottom: 6,

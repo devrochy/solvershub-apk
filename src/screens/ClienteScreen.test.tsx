@@ -490,7 +490,7 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
 
     await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
     await fireEvent.press(getByTestId("btn-editar-cliente"));
-    await fireEvent.changeText(getByTestId("editar-telefono"), "+59179999999");
+    await fireEvent.changeText(getByTestId("editar-telefono-numero"), "79999999");
     await fireEvent.press(getByTestId("guardar-cambio-cliente"));
 
     await waitFor(() => expect(getByTestId("btn-whatsapp")).toBeTruthy());

@@ -22,6 +22,10 @@ describe("paises-telefono", () => {
     expect(paisDesdeTelefono("")).toBeNull();
   });
 
+  it("resuelve el prefijo compartido +1 a Estados Unidos (orden del catálogo)", () => {
+    expect(paisDesdeTelefono("+12125551234")).toMatchObject({ codigo: "US" });
+  });
+
   it("usa Bolivia como país por defecto", () => {
     expect(PAIS_DEFECTO_TELEFONO.codigo).toBe("BO");
   });
