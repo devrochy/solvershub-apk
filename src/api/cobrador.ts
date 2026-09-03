@@ -49,13 +49,13 @@ export interface CobradorApi {
   agregarEvidenciasCliente(
     rutaId: number,
     clienteId: number,
-    evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+    evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
   ): Promise<{ clienteId: number }>;
   listarClientesDeRuta(rutaId: number): Promise<ClienteCobradorPublic[]>;
   crearCliente(
     rutaId: number,
     input: CrearClienteInput,
-    evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+    evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
   ): Promise<ClienteCobradorPublic>;
   listarNotas(rutaId: number): Promise<RutaNotaPublic[]>;
   crearNota(rutaId: number, nota: string): Promise<RutaNotaPublic>;
@@ -169,7 +169,7 @@ export function cobradorApi(client: ApiClient): CobradorApi {
     agregarEvidenciasCliente: (
       rutaId: number,
       clienteId: number,
-      evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+      evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
     ) => {
       const form = new FormData();
       for (const e of evidencias) {
@@ -191,7 +191,7 @@ export function cobradorApi(client: ApiClient): CobradorApi {
     crearCliente: (
       rutaId: number,
       input: CrearClienteInput,
-      evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+      evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
     ) => {
       const form = new FormData();
       form.append("nombre", input.nombre);

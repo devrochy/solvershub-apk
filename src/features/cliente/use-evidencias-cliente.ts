@@ -1,15 +1,20 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 
+export type CampoEvidenciaCliente =
+  | "foto_facial"
+  | "documento_frente"
+  | "documento_reverso";
+
 export interface EvidenciaClienteSeleccionada {
-  campo: "foto_facial" | "documento_frente";
+  campo: CampoEvidenciaCliente;
   uri: string;
   name: string;
   type: string;
 }
 
 function aEvidencia(
-  campo: "foto_facial" | "documento_frente",
+  campo: CampoEvidenciaCliente,
   asset: {
     uri: string;
     fileName?: string | null;
@@ -33,16 +38,17 @@ export interface UseEvidenciasClienteResult {
   cargando: boolean;
   error: string | null;
   agregar(
-    campo: "foto_facial" | "documento_frente",
+    campo: CampoEvidenciaCliente,
     fuente?: FuenteEvidencia,
   ): Promise<EvidenciaClienteSeleccionada | null>;
-  quitar(campo: "foto_facial" | "documento_frente"): void;
+  quitar(campo: CampoEvidenciaCliente): void;
   resetError(): void;
 }
 
 /**
- * Hook de evidencias del cliente (A5): permite elegir una foto facial y un
- * documento desde la galería o cámara. Reutiliza expo-image-picker.
+ * Hook de evidencias del cliente (A5): permite elegir una foto facial, el
+ * frente y el reverso del documento desde la galería o cámara. Reutiliza
+ * expo-image-picker.
  */
 export function useEvidenciasCliente(): UseEvidenciasClienteResult {
   const [evidencias, setEvidencias] = useState<EvidenciaClienteSeleccionada[]>([]);
@@ -50,7 +56,7 @@ export function useEvidenciasCliente(): UseEvidenciasClienteResult {
   const [error, setError] = useState<string | null>(null);
 
   async function agregar(
-    campo: "foto_facial" | "documento_frente",
+    campo: CampoEvidenciaCliente,
     fuente: FuenteEvidencia = "libreria",
   ): Promise<EvidenciaClienteSeleccionada | null> {
     const permiso =
@@ -91,7 +97,7 @@ export function useEvidenciasCliente(): UseEvidenciasClienteResult {
     }
   }
 
-  function quitar(campo: "foto_facial" | "documento_frente") {
+  function quitar(campo: CampoEvidenciaCliente) {
     setEvidencias((prev) => prev.filter((e) => e.campo !== campo));
   }
 

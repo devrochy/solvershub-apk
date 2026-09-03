@@ -549,7 +549,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   async function elegirEvidencia(
-    campo: "foto_facial" | "documento_frente",
+    campo: "foto_facial" | "documento_frente" | "documento_reverso",
     fuente: FuenteEvidencia,
   ) {
     const evidencia = await evidenciasCliente.agregar(campo, fuente);
@@ -559,7 +559,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   async function guardarEvidencia(evidencia: {
-    campo: "foto_facial" | "documento_frente";
+    campo: "foto_facial" | "documento_frente" | "documento_reverso";
     uri: string;
     name: string;
     type: string;
@@ -619,6 +619,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       : prestamos.filter((p) => p.id === prestamoSeleccionadoId);
   const cuotasCanvas = estadoPrestamo ? clasificarCuotas(estadoPrestamo.cuotas) : [];
   const docFrenteUrl = tarjeta.documentoFrenteUrl ?? null;
+  const docReversoUrl = tarjeta.documentoReversoUrl ?? null;
   const latNegocio = edicion.latitud ?? COORD_DEFAULT.lat;
   const lngNegocio = edicion.longitud ?? COORD_DEFAULT.lng;
   const latDomicilio = edicion.latitudDomicilio ?? COORD_DEFAULT.lat;
@@ -709,14 +710,33 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     setModal("documento");
                   }}
                 >
-                  <View style={styles.miniaturaPlaceholder}>
-                    <MaterialIcons name="badge" size={22} color="#94a3b8" />
-                  </View>
+                  {docReversoUrl ? (
+                    <Image
+                      source={{ uri: docReversoUrl }}
+                      style={styles.miniaturaImagen}
+                    />
+                  ) : (
+                    <View style={styles.miniaturaPlaceholder}>
+                      <MaterialIcons name="badge" size={22} color="#94a3b8" />
+                    </View>
+                  )}
                   <View
                     testID="doc-reverso-badge"
-                    style={[styles.badgeDoc, styles.badgePendiente]}
+                    style={[
+                      styles.badgeDoc,
+                      docReversoUrl ? styles.badgeVerificado : styles.badgePendiente,
+                    ]}
                   >
-                    <Text style={styles.badgePendienteTexto}>Pendiente</Text>
+                    {docReversoUrl ? (
+                      <MaterialIcons name="check" size={11} color="#16a34a" />
+                    ) : null}
+                    <Text
+                      style={[
+                        docReversoUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
+                      ]}
+                    >
+                      {docReversoUrl ? "Verificado" : "Pendiente"}
+                    </Text>
                   </View>
                   <Text style={styles.miniaturaEtiqueta}>Reverso</Text>
                 </Pressable>
@@ -797,16 +817,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {/* Sección de préstamos (acordeón) */}
         <View style={styles.seccion}>
           <View style={styles.seccionHeader}>
+            <Text style={styles.seccionTitulo}>Préstamos</Text>
             <Pressable
               testID="btn-nuevo-prestamo"
               style={styles.botonNuevo}
               onPress={abrirNuevoPrestamo}
             >
-              <MaterialIcons name="add" size={16} color="#2563eb" />
               <Text style={styles.botonNuevoTexto}>+ Nuevo</Text>
             </Pressable>
-            <Text style={styles.seccionTitulo}>Préstamos</Text>
-            <View style={styles.seccionEspacio} />
           </View>
 
           {prestamosVisibles.length === 0 ? (
@@ -1203,6 +1221,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             source={{ uri: docFrenteUrl }}
             style={styles.evidenciaPreview}
           />
+        ) : modalDocumento === "reverso" && docReversoUrl ? (
+          <Image
+            testID="documento-foto-actual"
+            source={{ uri: docReversoUrl }}
+            style={styles.evidenciaPreview}
+          />
         ) : (
           <View style={styles.evidenciaVacio}>
             <MaterialIcons name="badge" size={32} color="#94a3b8" />
@@ -1217,7 +1241,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           testID="documento-libreria"
           style={styles.botonEvidencia}
           disabled={evidenciasEnviando || evidenciasCliente.cargando}
-          onPress={() => void elegirEvidencia("documento_frente", "libreria")}
+          onPress={() =>
+            void elegirEvidencia(
+              modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+              "libreria",
+            )
+          }
         >
           <MaterialIcons name="photo-library" size={16} color="#2563eb" />
           <Text style={styles.botonEvidenciaTexto}>Cargar desde librería</Text>
@@ -1226,7 +1255,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           testID="documento-camara"
           style={styles.botonEvidencia}
           disabled={evidenciasEnviando || evidenciasCliente.cargando}
-          onPress={() => void elegirEvidencia("documento_frente", "camara")}
+          onPress={() =>
+            void elegirEvidencia(
+              modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+              "camara",
+            )
+          }
         >
           <MaterialIcons name="photo-camera" size={16} color="#2563eb" />
           <Text style={styles.botonEvidenciaTexto}>Tomar foto con cámara</Text>
@@ -1583,7 +1617,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 2,
-    width: 84,
   },
   botonNuevoTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
   seccionTitulo: { fontSize: 15, fontWeight: "700", color: "#334155" },

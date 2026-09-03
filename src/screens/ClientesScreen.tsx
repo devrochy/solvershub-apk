@@ -156,6 +156,10 @@ export function ClientesScreen() {
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header}>
+        <View style={styles.headerInfo}>
+          <Text style={styles.headerTitulo}>{rutaActiva.rutaNombre}</Text>
+          <Text style={styles.headerDetalle}>{clientes.length} clientes</Text>
+        </View>
         <Pressable
           testID="btn-nuevo-cliente"
           style={styles.botonNuevo}
@@ -164,14 +168,8 @@ export function ClientesScreen() {
             setMensaje(null);
           }}
         >
-          <MaterialIcons name="add" size={18} color="#2563eb" />
-          <Text style={styles.botonNuevoTexto}>Cliente</Text>
+          <Text style={styles.botonNuevoTexto}>+ Cliente</Text>
         </Pressable>
-        <View style={styles.headerInfo}>
-          <Text style={styles.headerTitulo}>{rutaActiva.rutaNombre}</Text>
-          <Text style={styles.headerDetalle}>{clientes.length} clientes</Text>
-        </View>
-        <View style={styles.headerEspacio} />
       </View>
       <FlatList
         data={clientes}
@@ -343,9 +341,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e2e8f0",
     backgroundColor: "#ffffff",
   },
-  botonNuevo: { flexDirection: "row", alignItems: "center", gap: 2, width: 84 },
+  botonNuevo: { flexDirection: "row", alignItems: "center", gap: 2 },
   botonNuevoTexto: { color: "#2563eb", fontWeight: "700", fontSize: 14 },
-  headerInfo: { flex: 1, alignItems: "center" },
+  headerInfo: { flex: 1 },
   headerTitulo: { fontSize: 18, fontWeight: "700", color: "#334155" },
   headerDetalle: { color: "#64748b", fontSize: 13 },
   headerEspacio: { width: 84 },

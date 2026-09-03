@@ -54,5 +54,8 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
 }
 
 const styles = StyleSheet.create({
-  capa: { flex: 1, backgroundColor: "#f8fafc" },
+  capa: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "#f8fafc",
+  },
 });

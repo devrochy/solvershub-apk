@@ -131,6 +131,8 @@ export interface ClienteTarjetaPublic {
   fotoUrl: string | null;
   /** URL del frente del documento de identidad (si el backend la expone). */
   documentoFrenteUrl?: string | null;
+  /** URL del reverso del documento de identidad (si el backend la expone). */
+  documentoReversoUrl?: string | null;
   tipoPago: string | null;
   saldoPendiente: number;
   diasMora: number;

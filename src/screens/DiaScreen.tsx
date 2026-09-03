@@ -252,6 +252,7 @@ export function DiaScreen() {
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header} testID="header-dia">
+        <Text style={styles.headerTitulo}>Cobros del día</Text>
         <Pressable
           testID="nuevo-gasto"
           style={styles.botonGastos}
@@ -262,8 +263,6 @@ export function DiaScreen() {
         >
           <Text style={styles.botonGastosTexto}>+ Gastos</Text>
         </Pressable>
-        <Text style={styles.headerTitulo}>Cobros del día</Text>
-        <View style={styles.headerEspacio} />
       </View>
       <FlatList
         data={clientes}

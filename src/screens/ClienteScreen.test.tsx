@@ -742,6 +742,35 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     expect(getByTestId("documento-modal")).toBeTruthy();
   });
+
+  it("desde el modal de reverso sube la evidencia documento_reverso (no frente)", async () => {
+    const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: 2 });
+    const { getByTestId, getByText } = await renderConApi({ agregarEvidenciasCliente });
+
+    await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
+    await fireEvent.press(getByTestId("doc-reverso"));
+
+    expect(getByText("Documento — reverso")).toBeTruthy();
+    await fireEvent.press(getByTestId("documento-libreria"));
+
+    await waitFor(() =>
+      expect(agregarEvidenciasCliente).toHaveBeenCalledWith(
+        6,
+        2,
+        [expect.objectContaining({ campo: "documento_reverso" })],
+      ),
+    );
+  });
+
+  it("muestra Verificado en la miniatura del reverso cuando la tarjeta trae documentoReversoUrl", async () => {
+    const tarjetaConReverso = { ...tarjeta, documentoReversoUrl: "https://cdn.test/reverso.jpg" };
+    const { getByTestId, getByText } = await renderConApi({
+      tarjeta: jest.fn().mockResolvedValue(tarjetaConReverso),
+    });
+
+    await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
+    expect(getByText("Verificado")).toBeTruthy();
+  });
 });
 
 describe("ClienteScreen — registrar préstamo (modal)", () => {
