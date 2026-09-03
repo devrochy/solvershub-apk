@@ -67,7 +67,10 @@ export function camposCambiados(
 ): CambioClienteInput {
   const cambiados: CambioClienteInput = {};
   for (const clave of CAMBIABLES) {
-    const valor = actual[clave];
+    let valor = actual[clave];
+    if (clave === "negocio" && valor === "") {
+      valor = null;
+    }
     if (valor !== original[clave]) {
       (cambiados as Record<keyof CambioClienteInput, unknown>)[clave] = valor;
     }

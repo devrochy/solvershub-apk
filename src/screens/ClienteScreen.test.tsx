@@ -529,7 +529,12 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
     await fireEvent.press(getByTestId("guardar-cambio-cliente"));
 
     expect(encolarSiNoExiste).not.toHaveBeenCalled();
-    expect(getByText("No hay cambios para guardar.")).toBeTruthy();
+    // El error de validación se muestra DENTRO del modal (visible al usuario),
+    // no solo en el banner global detrás del backdrop.
+    expect(getByTestId("mensaje-editar")).toHaveTextContent(
+      "No hay cambios para guardar.",
+    );
+    expect(getByTestId("editar-cliente-form")).toBeTruthy();
   });
 });
 

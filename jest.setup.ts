@@ -21,7 +21,14 @@ jest.mock("@expo/vector-icons", () => {
 jest.mock("react-native-webview", () => {
   const React = require("react");
   const { View } = require("react-native");
-  return { WebView: (props: Record<string, unknown>) => React.createElement(View, props) };
+  return {
+    WebView: React.forwardRef(
+      (props: Record<string, unknown>, ref: { current: unknown } | null) => {
+        React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
+        return React.createElement(View, props);
+      },
+    ),
+  };
 });
 
 jest.mock("react-native-safe-area-context", () => {

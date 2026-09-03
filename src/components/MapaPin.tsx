@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -29,6 +30,9 @@ function htmlMapaPin(latitud: number, longitud: number): string {
     window.ReactNativeWebView.postMessage(JSON.stringify({ latitud: pos.lat, longitud: pos.lng }));
   }
   marker.on('dragend', enviar);
+  function mover(lat, lng) {
+    if (marker) marker.setLatLng([lat, lng]);
+  }
 </script>
 </body>
 </html>`;
@@ -38,7 +42,9 @@ function htmlMapaPin(latitud: number, longitud: number): string {
  * Mapa táctil con pin arrastrable (edición de ubicación del cliente): WebView
  * con Leaflet + OpenStreetMap y un marker draggable que notifica las nuevas
  * coordenadas a React Native por el bridge postMessage. Los campos numéricos
- * de lat/lng se sincronizan con el pin.
+ * de lat/lng se sincronizan con el pin. El HTML se genera una sola vez (evita
+ * recargar el mapa al cambiar coordenadas); los cambios externos de lat/lng
+ * mueven el marker vía injectJavaScript.
  */
 export function MapaPin({
   latitud,
@@ -47,11 +53,27 @@ export function MapaPin({
   alto = 180,
   testID = "mapa-pin",
 }: MapaPinProps) {
+  const html = useMemo(() => htmlMapaPin(latitud, longitud), [latitud, longitud]);
+  const webviewRef = useRef<WebView | null>(null);
+  const primerRender = useRef(true);
+
+  useEffect(() => {
+    // Ignorar el primer render: el marker ya nace en las coords iniciales.
+    if (primerRender.current) {
+      primerRender.current = false;
+      return;
+    }
+    webviewRef.current?.injectJavaScript(
+      `if (typeof mover === 'function') { mover(${latitud}, ${longitud}); } true;`,
+    );
+  }, [latitud, longitud]);
+
   return (
     <View style={[styles.contenedor, { height: alto }]} testID={testID}>
       <WebView
+        ref={webviewRef}
         testID={`${testID}-webview`}
-        source={{ html: htmlMapaPin(latitud, longitud) }}
+        source={{ html }}
         javaScriptEnabled
         originWhitelist={["*"]}
         onMessage={(event) => {

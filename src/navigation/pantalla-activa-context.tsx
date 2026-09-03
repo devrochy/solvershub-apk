@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
 export type PantallaActiva =
   | { tipo: "cliente"; rutaId: number; clienteId: number; nombre: string; latitud?: number; longitud?: number; prestamoAutoSeleccionado?: boolean }
@@ -13,8 +13,19 @@ export interface PantallaActivaValue {
 
 export const PantallaActivaContext = createContext<PantallaActivaValue | null>(null);
 
-export function PantallaActivaProvider({ children }: { children: ReactNode }) {
+export interface PantallaActivaProviderProps {
+  children: ReactNode;
+  /** Clave que, al cambiar, limpia la pantalla activa (p. ej. id de sesión). */
+  resetKey?: unknown;
+}
+
+export function PantallaActivaProvider({ children, resetKey }: PantallaActivaProviderProps) {
   const [pantalla, setPantalla] = useState<PantallaActiva | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset de la pantalla activa al cambiar de sesión (p. ej. logout)
+    setPantalla(null);
+  }, [resetKey]);
 
   const value = useMemo(
     () => ({

@@ -33,6 +33,8 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
           />
         </View>
       );
+    // "prestamo" y "ruta" aún no tienen vista propia en el overlay; se cierran
+    // para no dejar la capa activa sin contenido.
     default:
       return null;
   }

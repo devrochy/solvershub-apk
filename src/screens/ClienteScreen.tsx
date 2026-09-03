@@ -193,6 +193,17 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         if (cache) {
           setTarjeta(cache.tarjeta);
           setPrestamos(cache.prestamos);
+          if (prestamoAutoSeleccionado) {
+            setPrestamoSeleccionadoId((actual) => {
+              if (actual != null) {
+                return actual;
+              }
+              const vigente =
+                cache.prestamos.find((x) => x.estatus === "vigente") ??
+                cache.prestamos[0];
+              return vigente?.id ?? null;
+            });
+          }
         } else {
           setError("No se pudo cargar el cliente.");
         }
@@ -393,12 +404,16 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   function abrirPago() {
     setMensaje(null);
     setTipoPago("cuota");
+    setMetodoPago("efectivo");
     setValor(cuotaPorPagar ? String(cuotaPorPagar.valorEsperado) : "");
     setModal("pago");
   }
 
   function abrirNoPago() {
     setMensaje(null);
+    setMotivoNoPago("no_esta");
+    setFechaPrometida("");
+    setValorPrometido("");
     setModal("no_pago");
   }
 
@@ -432,22 +447,27 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setEdicionOriginal({ ...input });
         // A4: reflejar el cambio en la tarjeta local para que cabecera y
         // WhatsApp usen los datos nuevos (antes quedaba stale).
-        setTarjeta((actual) =>
-          actual
-            ? {
-                ...actual,
-                nombre:
-                  input.nombre !== undefined
-                    ? `${input.nombre} ${actual.nombre.split(" ").slice(1).join(" ")}`.trim()
-                    : actual.nombre,
-                negocio: input.negocio !== undefined ? input.negocio : actual.negocio,
-                telefonoWhatsapp:
-                  input.telefonoWhatsapp !== undefined
-                    ? input.telefonoWhatsapp
-                    : actual.telefonoWhatsapp,
-              }
-            : actual,
-        );
+        setTarjeta((actual) => {
+          if (!actual) {
+            return actual;
+          }
+          const [nombreViejo = "", ...apellidosViejos] = actual.nombre.split(" ");
+          const nombreNuevo =
+            input.nombre !== undefined ? input.nombre : nombreViejo;
+          const apellidoNuevo =
+            input.apellido !== undefined
+              ? input.apellido
+              : apellidosViejos.join(" ");
+          return {
+            ...actual,
+            nombre: `${nombreNuevo} ${apellidoNuevo}`.trim(),
+            negocio: input.negocio !== undefined ? input.negocio : actual.negocio,
+            telefonoWhatsapp:
+              input.telefonoWhatsapp !== undefined
+                ? input.telefonoWhatsapp
+                : actual.telefonoWhatsapp,
+          };
+        });
         setModal("ninguno");
         setMensaje("Cambio enviado (se sincronizará).");
       } else {
@@ -499,8 +519,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       setPrestamoInteres("");
       setPrestamoMensaje("Préstamo registrado.");
       await cargar();
-    } catch {
-      setPrestamoMensaje("No se pudo registrar el préstamo.");
+    } catch (err) {
+      if (esErrorDeRed(err)) {
+        setPrestamoMensaje("Sin conexión. El préstamo no se guardó; revisa tu conexión e inténtalo de nuevo.");
+      } else {
+        setPrestamoMensaje("No se pudo registrar el préstamo.");
+      }
     } finally {
       setPrestamoEnviando(false);
     }
@@ -619,7 +643,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           )}
         </View>
 
-        {mensaje ? (
+        {mensaje && modal === "ninguno" ? (
           <View testID="banner-mensaje" style={styles.banner}>
             <Text style={styles.bannerTexto}>{mensaje}</Text>
           </View>
@@ -1058,6 +1082,11 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             }
           />
         </View>
+        {mensaje && modal === "editar" ? (
+          <Text testID="mensaje-editar" style={styles.mensajeModal}>
+            {mensaje}
+          </Text>
+        ) : null}
       </ModalConFooter>
 
       {/* Modal: nuevo préstamo */}
@@ -1333,6 +1362,11 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             </Pressable>
           ))}
         </View>
+        {mensaje && modal === "pago" ? (
+          <Text testID="mensaje-pago" style={styles.mensajeModal}>
+            {mensaje}
+          </Text>
+        ) : null}
       </ModalConFooter>
 
       {/* Modal: registrar no pago */}
@@ -1391,6 +1425,11 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             Cambia el motivo a compromiso_de_pago para registrar una promesa.
           </Text>
         )}
+        {mensaje && modal === "no_pago" ? (
+          <Text testID="mensaje-no-pago" style={styles.mensajeModal}>
+            {mensaje}
+          </Text>
+        ) : null}
       </ModalConFooter>
     </>
   );
@@ -1427,6 +1466,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   bannerTexto: { color: "#1d4ed8", fontSize: 13, fontWeight: "500" },
+  mensajeModal: { color: "#dc2626", fontSize: 13, fontWeight: "500", marginTop: 8 },
   tarjeta: {
     backgroundColor: "#ffffff",
     borderRadius: 16,

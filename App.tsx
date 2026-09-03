@@ -94,14 +94,21 @@ export default function App() {
       <SessionProvider>
         <OfflineProvider>
           <RutaActivaProvider>
-            <PantallaActivaProvider>
-              <StatusBar style="auto" />
-              <RootNavigator />
-            </PantallaActivaProvider>
+            <RootContent />
           </RutaActivaProvider>
         </OfflineProvider>
       </SessionProvider>
     </SafeAreaProvider>
+  );
+}
+
+function RootContent() {
+  const { cobrador } = useSession();
+  return (
+    <PantallaActivaProvider resetKey={cobrador?.id ?? null}>
+      <StatusBar style="auto" />
+      <RootNavigator />
+    </PantallaActivaProvider>
   );
 }
 
