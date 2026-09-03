@@ -1,5 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { ClienteScreen } from "../screens/ClienteScreen";
+import { RutaDetalleScreen } from "../screens/RutaDetalleScreen";
 import type { PantallaActiva } from "./pantalla-activa-context";
 
 export interface OverlayDetalleProps {
@@ -33,8 +34,18 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
           />
         </View>
       );
-    // "prestamo" y "ruta" aún no tienen vista propia en el overlay; se cierran
-    // para no dejar la capa activa sin contenido.
+    case "ruta":
+      return (
+        <View style={styles.capa}>
+          <RutaDetalleScreen
+            rutaId={pantalla.rutaId}
+            rutaNombre={pantalla.rutaNombre}
+            onCerrar={onCerrar}
+          />
+        </View>
+      );
+    // "prestamo" aún no tiene vista propia en el overlay; se cierra para no
+    // dejar la capa activa sin contenido.
     default:
       return null;
   }

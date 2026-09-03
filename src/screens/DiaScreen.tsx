@@ -15,6 +15,7 @@ import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
+import { ModalConFooter } from "../components/ModalConFooter";
 import { TrayectosLista } from "../components/TrayectosLista";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import {
@@ -239,6 +240,20 @@ export function DiaScreen({ navigation }: Props = {}) {
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
+      <View style={styles.header} testID="header-dia">
+        <Pressable
+          testID="nuevo-gasto"
+          style={styles.botonGastos}
+          onPress={() => {
+            setGastoAbierto(true);
+            setGastoMensaje(null);
+          }}
+        >
+          <Text style={styles.botonGastosTexto}>+ Gastos</Text>
+        </Pressable>
+        <Text style={styles.headerTitulo}>Cobros del día</Text>
+        <View style={styles.headerEspacio} />
+      </View>
       <FlatList
         data={clientes}
         keyExtractor={(cliente) => String(cliente.clienteId)}
@@ -311,13 +326,6 @@ export function DiaScreen({ navigation }: Props = {}) {
                 </Text>
               </View>
             ) : null}
-            <Pressable
-              testID="nuevo-gasto"
-              style={styles.botonPrimario}
-              onPress={() => setGastoAbierto((abierto) => !abierto)}
-            >
-              <Text style={styles.botonPrimarioTexto}>Registrar gasto</Text>
-            </Pressable>
             {trayectos ? (
               <Pressable
                 testID="ver-trayectos"
@@ -371,50 +379,44 @@ export function DiaScreen({ navigation }: Props = {}) {
         }}
       />
 
-      {gastoAbierto ? (
-        <View testID="gasto-form" style={styles.gastoForm}>
-          <Text style={styles.gastoTitulo}>Nuevo gasto</Text>
-          <TextInput
-            testID="gasto-descripcion"
-            style={styles.input}
-            placeholder="Descripción"
-            value={gastoDescripcion}
-            onChangeText={setGastoDescripcion}
-          />
-          <TextInput
-            testID="gasto-valor"
-            style={styles.input}
-            placeholder="Valor"
-            keyboardType="decimal-pad"
-            value={gastoValor}
-            onChangeText={setGastoValor}
-          />
-          <EvidenciaPicker
-            evidencias={evidencias}
-            cargando={evidenciasCargando}
-            error={evidenciasError}
-            onAgregarLibreria={agregarDesdeLibreria}
-            onAgregarCamara={agregarDesdeCamara}
-            onQuitar={quitar}
-            max={MAX_EVIDENCIAS}
-          />
-          {gastoMensaje ? (
-            <Text style={styles.gastoMensaje}>{gastoMensaje}</Text>
-          ) : null}
-          <Pressable
-            testID="gasto-guardar"
-            style={[styles.botonPrimario, gastoEnviando && styles.deshabilitado]}
-            disabled={gastoEnviando}
-            onPress={registrarGasto}
-          >
-            {gastoEnviando ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.botonPrimarioTexto}>Guardar</Text>
-            )}
-          </Pressable>
-        </View>
-      ) : null}
+      <ModalConFooter
+        visible={gastoAbierto}
+        titulo="Nuevo gasto"
+        onCerrar={() => setGastoAbierto(false)}
+        onCancelar={() => setGastoAbierto(false)}
+        onConfirmar={registrarGasto}
+        confirmando={gastoEnviando}
+        confirmarTestID="gasto-guardar"
+        testID="gasto-form"
+      >
+        <TextInput
+          testID="gasto-descripcion"
+          style={styles.input}
+          placeholder="Descripción"
+          value={gastoDescripcion}
+          onChangeText={setGastoDescripcion}
+        />
+        <TextInput
+          testID="gasto-valor"
+          style={styles.input}
+          placeholder="Valor"
+          keyboardType="decimal-pad"
+          value={gastoValor}
+          onChangeText={setGastoValor}
+        />
+        <EvidenciaPicker
+          evidencias={evidencias}
+          cargando={evidenciasCargando}
+          error={evidenciasError}
+          onAgregarLibreria={agregarDesdeLibreria}
+          onAgregarCamara={agregarDesdeCamara}
+          onQuitar={quitar}
+          max={MAX_EVIDENCIAS}
+        />
+        {gastoMensaje ? (
+          <Text style={styles.gastoMensaje}>{gastoMensaje}</Text>
+        ) : null}
+      </ModalConFooter>
 
       {trayectosAbierto && trayectos ? (
         <View style={styles.trayectosOverlay}>
@@ -431,6 +433,25 @@ export function DiaScreen({ navigation }: Props = {}) {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+  },
+  botonGastos: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    width: 84,
+  },
+  botonGastosTexto: { color: "#2563eb", fontWeight: "700", fontSize: 14 },
+  headerTitulo: { fontSize: 17, fontWeight: "700", color: "#334155" },
+  headerEspacio: { width: 84 },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   acciones: { marginBottom: 8, gap: 8 },
@@ -518,14 +539,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   llegarTexto: { color: "#ffffff", fontWeight: "600", fontSize: 12 },
-  gastoForm: {
-    backgroundColor: "#ffffff",
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-    padding: 16,
-    gap: 10,
-  },
-  gastoTitulo: { fontSize: 16, fontWeight: "700" },
   input: {
     borderWidth: 1,
     borderColor: "#cbd5e1",

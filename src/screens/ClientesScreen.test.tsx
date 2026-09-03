@@ -137,4 +137,73 @@ describe("ClientesScreen", () => {
 
     await waitFor(() => expect(getByText("Juan Perez")).toBeTruthy());
   });
+
+  it("'+ Cliente' abre el modal de nuevo cliente con el formulario", async () => {
+    const { getByTestId, getByText } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    expect(getByText("Nuevo cliente")).toBeTruthy();
+    expect(getByTestId("cliente-nombre")).toBeTruthy();
+    expect(getByTestId("cliente-apellido")).toBeTruthy();
+    expect(getByTestId("cliente-negocio")).toBeTruthy();
+    expect(getByTestId("cliente-telefono")).toBeTruthy();
+    expect(getByTestId("cliente-tope")).toBeTruthy();
+    expect(getByTestId("mapa-pin-cliente")).toBeTruthy();
+  });
+
+  it("guardar crea el cliente vía crearCliente y refresca la lista", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const listarClientesDeRuta = jest
+      .fn()
+      .mockResolvedValueOnce([cliente])
+      .mockResolvedValueOnce([cliente, { ...cliente, id: 50, nombre: "Ana", apellido: "Ríos" }]);
+    const { getByTestId, getByText } = await renderConRutaActiva({
+      listarClientesDeRuta,
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-negocio"), "Tienda");
+    await fireEvent.changeText(getByTestId("cliente-telefono"), "+5917000111");
+    await fireEvent.changeText(getByTestId("cliente-tope"), "1500");
+    await fireEvent.changeText(getByTestId("cliente-latitud"), "-17.79");
+    await fireEvent.changeText(getByTestId("cliente-longitud"), "-63.19");
+
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    await waitFor(() =>
+      expect(crearCliente).toHaveBeenCalledWith(
+        6,
+        {
+          nombre: "Ana",
+          apellido: "Ríos",
+          negocio: "Tienda",
+          telefonoWhatsapp: "+5917000111",
+          latitud: -17.79,
+          longitud: -63.19,
+          topeMaximoDeuda: 1500,
+        },
+        [],
+      ),
+    );
+    await waitFor(() => expect(getByText("Ana Ríos")).toBeTruthy());
+  });
+
+  it("el botón '+ Cliente' solo se muestra con ruta activa", async () => {
+    const { queryByTestId } = await renderConRutaActiva(
+      { listarClientesDeRuta: jest.fn() },
+      jest.fn(),
+      null,
+    );
+
+    expect(queryByTestId("btn-nuevo-cliente")).toBeNull();
+  });
 });

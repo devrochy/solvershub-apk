@@ -31,3 +31,8 @@
 - Detectado en: tarea apk-pr1-rediseno-detalle-cliente (2026-09-03)
 - Descripción: los modales de avatar (foto) y documento comparten el mismo cuerpo (preview + botones librería/cámara + estados). Candidato a extraer un componente `EvidenciasModal` reutilizable.
 - Prioridad sugerida: baja
+
+## Edición de ruta desde la APK (solo lectura en B3)
+- Detectado en: rediseño B3 (2026-09-03)
+- Descripción: el detalle de ruta (`RutaDetalleScreen`) muestra el botón "Editar" pero es **solo lectura** (avisa "La edición de ruta se realiza desde el panel"); el permiso `actualizar_ruta` del cobrador aún no se expone en la APK. Habilitar la edición real cuando el rol del cobrador lo permita.
+- Prioridad sugerida: media

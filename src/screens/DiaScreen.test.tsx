@@ -73,6 +73,19 @@ jest.mock("../offline/cache", () => ({
   guardarCliente: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock("./ClienteScreen", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    ClienteScreen: jest.fn((props: Record<string, unknown>) =>
+      React.createElement(View, { testID: "mock-cliente" }),
+    ),
+  };
+});
+
+import { ClienteScreen } from "./ClienteScreen";
+import { ContenidoTab } from "../navigation/ContenidoTab";
+
 const offlineValor: OfflineValue = {
   isOnline: true,
   sinSubir: 0,
@@ -432,5 +445,116 @@ describe("DiaScreen — ver trayectos generados", () => {
 
     await waitFor(() => expect(queryByTestId("generar-trayecto")).toBeTruthy());
     expect(queryByTestId("ver-trayectos")).toBeNull();
+  });
+});
+
+describe("DiaScreen — cobros del día", () => {
+  it("muestra el header 'Cobros del día' con el botón '+ Gastos'", async () => {
+    const { getByTestId, getByText } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("nuevo-gasto")).toBeTruthy());
+    expect(getByText("Cobros del día")).toBeTruthy();
+    expect(getByText("+ Gastos")).toBeTruthy();
+  });
+
+  it("'+ Gastos' abre el modal y registrarGasto guarda el gasto", async () => {
+    const registrarGasto = jest.fn().mockResolvedValue({ id: 9 });
+    const { getByTestId, getByText } = await renderConApi({ registrarGasto });
+
+    await waitFor(() => expect(getByTestId("nuevo-gasto")).toBeTruthy());
+    await fireEvent.press(getByTestId("nuevo-gasto"));
+
+    expect(getByText("Nuevo gasto")).toBeTruthy();
+    expect(getByTestId("modal-cancelar")).toBeTruthy();
+    await fireEvent.changeText(getByTestId("gasto-descripcion"), "Combustible");
+    await fireEvent.changeText(getByTestId("gasto-valor"), "50");
+    await fireEvent.press(getByTestId("gasto-guardar"));
+
+    await waitFor(() =>
+      expect(registrarGasto).toHaveBeenCalledWith(
+        6,
+        { descripcion: "Combustible", valor: 50 },
+        [],
+      ),
+    );
+  });
+
+  it("al tocar un cliente del día abre el detalle con prestamoAutoSeleccionado", async () => {
+    (useTrayectoria as jest.Mock).mockReturnValue({
+      activa: true,
+      puntos: [],
+      error: null,
+      iniciar: jest.fn(),
+      detener: jest.fn().mockReturnValue([]),
+    });
+    const dia = jest.fn().mockResolvedValue({
+      clientes: [
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
+      ],
+      trayectos: {
+        id: 1,
+        rutaId: 6,
+        fecha: "2026-09-02",
+        ordenClientes: [
+          [{ clienteId: 1, latitud: -17.78, longitud: -63.18 }],
+        ],
+        waypoints: [],
+        distanciaEstimadaKm: 1,
+        tiempoEstimadoMin: 1,
+        tipo: "planificada",
+      },
+    });
+    (coordenadaDeCliente as jest.Mock).mockReturnValue({
+      latitud: -17.78,
+      longitud: -63.18,
+    });
+
+    const valor: SessionValue = {
+      cobrador: { id: 20, usuario: "c1", nombre: "C", apellido: "L", rol: "cobrador" },
+      loading: false,
+      api: {
+        dia,
+        registrarApertura: jest.fn().mockResolvedValue({ id: 1, rutaId: 6 }),
+      } as unknown as SessionValue["api"],
+      login: jest.fn(),
+      logout: jest.fn(),
+    };
+    const navigation = { navigate: jest.fn() } as never;
+    const { getByTestId } = await render(
+      <PantallaActivaProvider>
+        <OfflineContext.Provider value={offlineValor}>
+          <SessionContext.Provider value={valor}>
+            <RutaActivaContext.Provider
+              value={{
+                rutaActiva: {
+                  rutaId: 6,
+                  rutaNombre: "Ruta",
+                  tipoInteres: 20,
+                  numCuotas: 8,
+                  config: {} as never,
+                },
+                setRutaActiva: jest.fn(),
+              }}
+            >
+              <ContenidoTab>
+                <DiaScreen navigation={navigation} />
+              </ContenidoTab>
+            </RutaActivaContext.Provider>
+          </SessionContext.Provider>
+        </OfflineContext.Provider>
+      </PantallaActivaProvider>,
+    );
+
+    await waitFor(() => expect(getByTestId("cliente-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cliente-1"));
+
+    await waitFor(() => expect(getByTestId("mock-cliente")).toBeTruthy());
+    expect((ClienteScreen as jest.Mock).mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        rutaId: 6,
+        clienteId: 1,
+        prestamoAutoSeleccionado: true,
+      }),
+    );
   });
 });

@@ -199,4 +199,61 @@ describe("cobradorApi", () => {
       body: JSON.stringify({ latitud: -17.78, longitud: -63.18 }),
     });
   });
+
+  it("listarNotas llama a GET de notas de la ruta", async () => {
+    request.mockResolvedValue([{ id: 1, nota: "Nota" }]);
+
+    await api.listarNotas(6);
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/notas");
+  });
+
+  it("crearNota hace POST con el texto de la nota", async () => {
+    request.mockResolvedValue({ id: 1, nota: "Comprar combustible" });
+
+    await api.crearNota(6, "Comprar combustible");
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/notas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nota: "Comprar combustible" }),
+    });
+  });
+
+  it("crearCliente hace POST multipart con los datos y evidencias", async () => {
+    request.mockResolvedValue({ id: 50 });
+
+    await api.crearCliente(
+      6,
+      {
+        nombre: "Ana",
+        apellido: "Ríos",
+        negocio: "Tienda",
+        telefonoWhatsapp: "+5917000111",
+        latitud: -17.78,
+        longitud: -63.18,
+        topeMaximoDeuda: 1500,
+      },
+      [
+        { campo: "foto_facial", uri: "file:///f.jpg", name: "f.jpg", type: "image/jpeg" },
+        { campo: "documento_frente", uri: "file:///d.jpg", name: "d.jpg", type: "image/jpeg" },
+      ],
+    );
+
+    const [, opts] = request.mock.calls[0] as [
+      string,
+      { method: string; body: FormData },
+    ];
+    expect(opts.method).toBe("POST");
+    expect(opts.body).toBeInstanceOf(FormData);
+    expect(opts.body.get("nombre")).toBe("Ana");
+    expect(opts.body.get("apellido")).toBe("Ríos");
+    expect(opts.body.get("negocio")).toBe("Tienda");
+    expect(opts.body.get("telefonoWhatsapp")).toBe("+5917000111");
+    expect(opts.body.get("latitud")).toBe("-17.78");
+    expect(opts.body.get("longitud")).toBe("-63.18");
+    expect(opts.body.get("topeMaximoDeuda")).toBe("1500");
+    expect(opts.body.getAll("foto_facial")).toHaveLength(1);
+    expect(opts.body.getAll("documento_frente")).toHaveLength(1);
+  });
 });
