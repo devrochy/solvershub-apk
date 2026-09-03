@@ -9,15 +9,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
+import type { RootTabParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type { RutaApkPublic } from "../types/cobrador";
-
-type Props = { navigation?: { navigate(screen: "Clientes"): void } };
 
 interface RutaKpi {
   totalClientes: number;
@@ -32,7 +33,8 @@ interface RutaKpi {
  * ruta en el overlay; "Consultar" navega al tab de clientes. El header CobraIA
  * vive en la esquina inferior derecha, flotante sobre el contenido.
  */
-export function RutasScreen({ navigation }: Props = {}) {
+export function RutasScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList, "Rutas">>();
   const { api, cobrador, logout } = useSession();
   const { setRutaActiva } = useRutaActiva();
   const { abrir } = usePantallaActiva();
@@ -48,15 +50,19 @@ export function RutasScreen({ navigation }: Props = {}) {
       const misRutas = await api.misRutas();
       const resultados = await Promise.all(
         misRutas.map(async (ruta) => {
-          const [clientes, dia] = await Promise.all([
+          const [clientes, dia] = await Promise.allSettled([
             api.listarClientesDeRuta(ruta.id),
             api.dia(ruta.id),
           ]);
+          const listaClientes =
+            clientes.status === "fulfilled" ? clientes.value : [];
+          const diaRuta = dia.status === "fulfilled" ? dia.value : null;
           return {
             rutaId: ruta.id,
-            totalClientes: clientes.length,
-            clientesDia: dia.clientes.length,
-            enMora: dia.clientes.filter((c) => c.color === "rojo").length,
+            totalClientes: listaClientes.length,
+            clientesDia: diaRuta?.clientes.length ?? 0,
+            enMora:
+              diaRuta?.clientes.filter((c) => c.color === "rojo").length ?? 0,
           };
         }),
       );
@@ -90,7 +96,7 @@ export function RutasScreen({ navigation }: Props = {}) {
       numCuotas: ruta.numCuotas,
       config: ruta.config,
     });
-    navigation?.navigate("Clientes");
+    navigation.navigate("Clientes");
   }
 
   if (!rutas) {
@@ -123,7 +129,14 @@ export function RutasScreen({ navigation }: Props = {}) {
         </View>
       ) : null}
 
+      {error && rutas ? (
+        <View testID="aviso-error-refresh" style={styles.avisoErrorSync}>
+          <Text style={styles.avisoErrorSyncTexto}>{error}</Text>
+        </View>
+      ) : null}
+
       <FlatList
+        testID="lista-rutas"
         data={rutas}
         keyExtractor={(ruta) => String(ruta.id)}
         contentContainerStyle={styles.lista}

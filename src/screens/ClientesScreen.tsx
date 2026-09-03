@@ -24,11 +24,9 @@ import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type { ClienteCobradorPublic } from "../types/cobrador";
 
-type Props = { navigation?: { navigate(screen: "Clientes"): void } };
-
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
 
-export function ClientesScreen(_props: Props = {}) {
+export function ClientesScreen() {
   const { rutaActiva } = useRutaActiva();
   const { api, logout } = useSession();
   const { abrir } = usePantallaActiva();
@@ -92,8 +90,19 @@ export function ClientesScreen(_props: Props = {}) {
       setMensaje("Nombre, apellido y teléfono son obligatorios.");
       return;
     }
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    if (
+      latitud.trim() === "" ||
+      longitud.trim() === "" ||
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      lat === 0 ||
+      lng === 0
+    ) {
       setMensaje("Las coordenadas no son válidas.");
+      return;
+    }
+    if (tope.trim() !== "" && (!Number.isFinite(Number(tope)) || Number(tope) < 0)) {
+      setMensaje("El tope de deuda debe ser un número válido.");
       return;
     }
     const input = {

@@ -44,8 +44,10 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
           />
         </View>
       );
-    // "prestamo" aún no tiene vista propia en el overlay; se cierra para no
-    // dejar la capa activa sin contenido.
+    // "prestamo" no tiene vista propia en el overlay (código muerto hoy: nadie
+    // abre {tipo:"prestamo"}). Se devuelve null sin llamar onCerrar para no
+    // ejecutar side-effects en el render; si se habilitara el tipo, deberá
+    // añadirse aquí su case.
     default:
       return null;
   }

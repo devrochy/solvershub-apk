@@ -10,7 +10,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
@@ -24,7 +23,6 @@ import {
 } from "../features/navegacion/navegacion";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import { usePosicion } from "../features/trayectoria/use-posicion";
-import type { RootStackParamList, RootTabParamList } from "../navigation/types";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
@@ -32,12 +30,7 @@ import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
 
-type Props = { navigation?: StackNavigation };
-type StackNavigation = {
-  navigate(screen: "Cliente", params: RootStackParamList["Cliente"]): void;
-};
-
-export function DiaScreen({ navigation }: Props = {}) {
+export function DiaScreen() {
   const { rutaActiva } = useRutaActiva();
   const rutaId = rutaActiva?.rutaId ?? 0;
   const { abrir: abrirPantallaActiva } = usePantallaActiva();
@@ -53,7 +46,10 @@ export function DiaScreen({ navigation }: Props = {}) {
   const [gastoDescripcion, setGastoDescripcion] = useState("");
   const [gastoValor, setGastoValor] = useState("");
   const [gastoEnviando, setGastoEnviando] = useState(false);
-  const [gastoMensaje, setGastoMensaje] = useState<string | null>(null);
+  const [gastoMensaje, setGastoMensaje] = useState<{
+    texto: string;
+    esError: boolean;
+  } | null>(null);
   const {
     evidencias,
     cargando: evidenciasCargando,
@@ -94,6 +90,9 @@ export function DiaScreen({ navigation }: Props = {}) {
   );
 
   const cargar = useCallback(async () => {
+    if (!rutaId) {
+      return;
+    }
     setError(null);
     setOfflineCache(false);
     try {
@@ -121,11 +120,17 @@ export function DiaScreen({ navigation }: Props = {}) {
   }, [api, logout, rutaId, precargarClientes]);
 
   useEffect(() => {
+    if (!rutaId) {
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
-  }, [cargar]);
+  }, [cargar, rutaId]);
 
   useEffect(() => {
+    if (!rutaId) {
+      return;
+    }
     // Auditoría de apertura de la ruta del día (HU-41): registra el momento y
     // las coordenadas en que el cobrador abre la ruta. Fire-and-forget.
     api
@@ -134,6 +139,9 @@ export function DiaScreen({ navigation }: Props = {}) {
   }, [api, rutaId]);
 
   useEffect(() => {
+    if (!rutaId) {
+      return;
+    }
     // Re-fetch periódico: la lista del día se va actualizando a medida que se
     // registran visitas (HU-56). No interfiere con el pull-to-refresh ni con
     // el modo offline (cargar() ya maneja la caída al cache).
@@ -141,12 +149,12 @@ export function DiaScreen({ navigation }: Props = {}) {
       void cargar();
     }, 30000);
     return () => clearInterval(intervalo);
-  }, [cargar]);
+  }, [cargar, rutaId]);
 
   async function registrarGasto() {
     const valor = Number(gastoValor);
     if (!gastoDescripcion.trim() || !Number.isFinite(valor) || valor <= 0) {
-      setGastoMensaje("Ingresa descripción y un valor válido.");
+      setGastoMensaje({ texto: "Ingresa descripción y un valor válido.", esError: true });
       return;
     }
     setGastoEnviando(true);
@@ -159,16 +167,19 @@ export function DiaScreen({ navigation }: Props = {}) {
       setGastoValor("");
       evidencias.forEach((e) => quitar(e.uri));
       setGastoAbierto(false);
-      setGastoMensaje("Gasto registrado.");
+      setGastoMensaje({ texto: "Gasto registrado.", esError: false });
     } catch (err) {
       if (esErrorDeRed(err)) {
         await offline.encolar("gasto", { ...input, evidencias: evidenciasOffline });
         setGastoDescripcion("");
         setGastoValor("");
         setGastoAbierto(false);
-        setGastoMensaje("Guardado sin conexión (se sincronizará).");
+        setGastoMensaje({
+          texto: "Guardado sin conexión (se sincronizará).",
+          esError: false,
+        });
       } else {
-        setGastoMensaje("No se pudo registrar el gasto.");
+        setGastoMensaje({ texto: "No se pudo registrar el gasto.", esError: true });
       }
     } finally {
       setGastoEnviando(false);
@@ -414,7 +425,15 @@ export function DiaScreen({ navigation }: Props = {}) {
           max={MAX_EVIDENCIAS}
         />
         {gastoMensaje ? (
-          <Text style={styles.gastoMensaje}>{gastoMensaje}</Text>
+          <Text
+            testID="gasto-mensaje"
+            style={[
+              styles.gastoMensaje,
+              gastoMensaje.esError ? styles.gastoMensajeError : null,
+            ]}
+          >
+            {gastoMensaje.texto}
+          </Text>
         ) : null}
       </ModalConFooter>
 
@@ -548,4 +567,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   gastoMensaje: { color: "#16a34a", fontSize: 13 },
+  gastoMensajeError: { color: "#dc2626" },
 });

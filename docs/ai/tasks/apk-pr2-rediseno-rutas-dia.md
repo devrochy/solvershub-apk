@@ -1,9 +1,10 @@
 # Tarea: APK PR2 — Dashboard y detalle de ruta, +Nuevo cliente y Cobros del día
 
 - **Origen:** Rediseño APK aprobado 2026-09-03.
-- **Estado:** completado (2026-09-03) — `scripts/check.sh` verde.
-- **Rama:** `feature/rediseno-rutas-dia` (base `develop` @ `5dd7d66`).
+- **Estado:** completado (2026-09-03) — `scripts/check.sh` verde (237 tests).
+- **Rama:** `feature/rediseno-rutas-dia` (base `develop` @ `35a6271`).
 - **Fecha inicio:** 2026-09-03
+- **PR:** https://github.com/devrochy/app-cobranza-apk/pull/25
 
 ## Objetivo
 Rediseñar la sección Rutas (dashboard por ruta + detalle con notas), la sección Clientes (+Nuevo cliente) y la sección Día (Cobros del día + gastos en modal), manteniendo el menú inferior siempre visible (patrón B1 ya implementado).
@@ -49,3 +50,16 @@ Rediseñar la sección Rutas (dashboard por ruta + detalle con notas), la secci�
 - [x] B3: RutasScreen dashboard + detalle ruta + notas + header CobraIA flotante.
 - [x] B4: ClientesScreen +Nuevo cliente (`POST /cobrador/rutas/:rutaId/clientes`).
 - [x] B5: DiaScreen Cobros del día + gastos modal + auto-préstamo visita.
+
+## Correcciones de code-review (veredicto: RECHAZADO → corregido, re-check)
+- [x] Crítico: "Consultar" no navegaba en producción (`navigation` nunca se pasaba a `RutasScreen`). Fix: `useNavigation<BottomTabNavigationProp<RootTabParamList, "Rutas">>` dentro del screen.
+- [x] Importante: DiaScreen disparaba requests con `rutaId=0` sin ruta activa. Fix: guards `if (!rutaId) return` en los 3 efectos y en `cargar`.
+- [x] Importante: coordenadas vacías → se enviaban `0,0`. Fix: validar `trim() !== ""` y lat/lng no cero.
+- [x] Importante: `topeMaximoDeuda` NaN/negativo. Fix: `Number.isFinite` y `>= 0`.
+- [x] Importante: un KPI fallido tumbaba todo el dashboard. Fix: `Promise.allSettled` por ruta (tarjeta con KPIs 0 si falla parcial).
+- [x] Menor: error de pull-to-refresh invisible con rutas cargadas → aviso inline (`aviso-error-refresh`).
+- [x] Menor: `guardarNota` mostraba "No se pudo guardar" si fallaba el re-fetch tras crear. Fix: aislar el guardado del re-fetch (`void cargar()`).
+- [x] Menor: `gastoMensaje` siempre verde. Fix: `{texto, esError}` + estilo rojo para errores (`gasto-mensaje`).
+- [x] Menor: props muertas (`navigation` en DiaScreen, `_props` en ClientesScreen) eliminadas.
+- [x] Menor: comentario engañoso en OverlayDetalle "prestamo" corregido.
+- [x] Backlog: duplicación de "en mora" registrada en `backlog.md`.

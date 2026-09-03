@@ -167,4 +167,25 @@ describe("RutaDetalleScreen", () => {
     await fireEvent.press(getByTestId("btn-cerrar-detalle"));
     expect(onCerrar).toHaveBeenCalled();
   });
+
+  it("NO muestra 'No se pudo guardar la nota' si la nota se creó pero el re-fetch falla", async () => {
+    const crearNota = jest.fn().mockResolvedValue({ id: 2 });
+    const listarNotas = jest
+      .fn()
+      .mockResolvedValueOnce(notas)
+      .mockRejectedValueOnce(new Error("red"));
+    const { getByTestId, queryByText } = await renderDetalle({
+      ...apiBase(),
+      crearNota,
+      listarNotas,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-agregar-nota")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-agregar-nota"));
+    await fireEvent.changeText(getByTestId("nota-textarea"), "Nueva nota");
+    await fireEvent.press(getByTestId("nota-guardar"));
+
+    await waitFor(() => expect(crearNota).toHaveBeenCalledWith(6, "Nueva nota"));
+    expect(queryByText("No se pudo guardar la nota.")).toBeNull();
+  });
 });

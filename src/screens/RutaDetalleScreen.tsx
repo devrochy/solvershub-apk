@@ -100,14 +100,17 @@ export function RutaDetalleScreen({
     setNotaMensaje(null);
     try {
       await api.crearNota(rutaId, notaTexto.trim());
-      setNotaTexto("");
-      setNotaAbierta(false);
-      await cargar();
     } catch {
       setNotaMensaje("No se pudo guardar la nota.");
-    } finally {
       setNotaEnviando(false);
+      return;
     }
+    setNotaTexto("");
+    setNotaAbierta(false);
+    setNotaEnviando(false);
+    // Re-fetch en segundo plano; si falla, la nota ya se guardó y la lista
+    // se actualizará en la próxima apertura.
+    void cargar();
   }
 
   if (!clientes || !dia || !notas || estatus === null) {

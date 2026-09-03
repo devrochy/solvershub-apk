@@ -110,7 +110,6 @@ async function renderConApi(
     login: jest.fn(),
     logout: jest.fn(),
   };
-  const navigation = { navigate: jest.fn() } as never;
   return render(
     <PantallaActivaProvider>
       <OfflineContext.Provider value={offline}>
@@ -127,7 +126,7 @@ async function renderConApi(
             setRutaActiva: jest.fn(),
           }}
         >
-          <DiaScreen navigation={navigation} />
+          <DiaScreen />
         </RutaActivaContext.Provider>
       </SessionContext.Provider>
       </OfflineContext.Provider>
@@ -479,6 +478,21 @@ describe("DiaScreen — cobros del día", () => {
     );
   });
 
+  it("muestra el error de validación del gasto en rojo (no en verde de éxito)", async () => {
+    const registrarGasto = jest.fn();
+    const { getByTestId, getByText } = await renderConApi({ registrarGasto });
+
+    await waitFor(() => expect(getByTestId("nuevo-gasto")).toBeTruthy());
+    await fireEvent.press(getByTestId("nuevo-gasto"));
+    await fireEvent.press(getByTestId("gasto-guardar"));
+
+    expect(
+      getByText("Ingresa descripción y un valor válido."),
+    ).toBeTruthy();
+    expect(getByTestId("gasto-mensaje")).toHaveStyle({ color: "#dc2626" });
+    expect(registrarGasto).not.toHaveBeenCalled();
+  });
+
   it("al tocar un cliente del día abre el detalle con prestamoAutoSeleccionado", async () => {
     (useTrayectoria as jest.Mock).mockReturnValue({
       activa: true,
@@ -519,7 +533,6 @@ describe("DiaScreen — cobros del día", () => {
       login: jest.fn(),
       logout: jest.fn(),
     };
-    const navigation = { navigate: jest.fn() } as never;
     const { getByTestId } = await render(
       <PantallaActivaProvider>
         <OfflineContext.Provider value={offlineValor}>
@@ -537,7 +550,7 @@ describe("DiaScreen — cobros del día", () => {
               }}
             >
               <ContenidoTab>
-                <DiaScreen navigation={navigation} />
+                <DiaScreen />
               </ContenidoTab>
             </RutaActivaContext.Provider>
           </SessionContext.Provider>
@@ -556,5 +569,37 @@ describe("DiaScreen — cobros del día", () => {
         prestamoAutoSeleccionado: true,
       }),
     );
+  });
+});
+
+describe("DiaScreen — sin ruta activa", () => {
+  it("NO dispara requests con rutaId=0 (dia ni apertura) sin ruta activa", async () => {
+    const dia = jest.fn();
+    const registrarApertura = jest.fn();
+    const valor: SessionValue = {
+      cobrador: { id: 20, usuario: "c1", nombre: "C", apellido: "L", rol: "cobrador" },
+      loading: false,
+      api: { dia, registrarApertura } as unknown as SessionValue["api"],
+      login: jest.fn(),
+      logout: jest.fn(),
+    };
+    await render(
+      <PantallaActivaProvider>
+        <OfflineContext.Provider value={offlineValor}>
+          <SessionContext.Provider value={valor}>
+            <RutaActivaContext.Provider
+              value={{ rutaActiva: null, setRutaActiva: jest.fn() }}
+            >
+              <ContenidoTab>
+                <DiaScreen />
+              </ContenidoTab>
+            </RutaActivaContext.Provider>
+          </SessionContext.Provider>
+        </OfflineContext.Provider>
+      </PantallaActivaProvider>,
+    );
+
+    expect(dia).not.toHaveBeenCalled();
+    expect(registrarApertura).not.toHaveBeenCalled();
   });
 });

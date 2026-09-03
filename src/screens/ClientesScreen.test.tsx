@@ -43,7 +43,6 @@ const cliente = {
 
 async function renderConRutaActiva(
   api: Partial<SessionValue["api"]>,
-  navigate: jest.Mock = jest.fn(),
   rutaActiva: {
     rutaId: number;
     rutaNombre: string;
@@ -65,7 +64,6 @@ async function renderConRutaActiva(
     login: jest.fn(),
     logout: jest.fn(),
   };
-  const navigation = { navigate } as never;
   return render(
     <PantallaActivaProvider>
       <OfflineContext.Provider value={offline}>
@@ -74,7 +72,7 @@ async function renderConRutaActiva(
           value={{ rutaActiva, setRutaActiva: jest.fn() }}
         >
           <ContenidoTab>
-            <ClientesScreen navigation={navigation} />
+            <ClientesScreen />
           </ContenidoTab>
         </RutaActivaContext.Provider>
       </SessionContext.Provider>
@@ -116,7 +114,6 @@ describe("ClientesScreen", () => {
   it("muestra mensaje si no hay ruta activa", async () => {
     const { getByText } = await renderConRutaActiva(
       { listarClientesDeRuta: jest.fn() },
-      jest.fn(),
       null,
     );
 
@@ -200,10 +197,52 @@ describe("ClientesScreen", () => {
   it("el botón '+ Cliente' solo se muestra con ruta activa", async () => {
     const { queryByTestId } = await renderConRutaActiva(
       { listarClientesDeRuta: jest.fn() },
-      jest.fn(),
       null,
     );
 
     expect(queryByTestId("btn-nuevo-cliente")).toBeNull();
+  });
+
+  it("NO envía coordenadas 0,0 si el usuario deja vacío el campo latitud/longitud", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const { getByTestId, getByText } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono"), "+5917000111");
+    await fireEvent.changeText(getByTestId("cliente-latitud"), "");
+    await fireEvent.changeText(getByTestId("cliente-longitud"), "");
+
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    expect(crearCliente).not.toHaveBeenCalled();
+    expect(getByText("Las coordenadas no son válidas.")).toBeTruthy();
+  });
+
+  it("NO envía un tope de deuda NaN ni negativo", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const { getByTestId, getByText } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono"), "+5917000111");
+    await fireEvent.changeText(getByTestId("cliente-tope"), "-100");
+
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    expect(crearCliente).not.toHaveBeenCalled();
+    expect(getByText("El tope de deuda debe ser un número válido.")).toBeTruthy();
   });
 });

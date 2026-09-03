@@ -1,9 +1,14 @@
-import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { RutasScreen } from "./RutasScreen";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
 import { PantallaActivaContext } from "../navigation/pantalla-activa-context";
+
+const mockNavigate = jest.fn();
+jest.mock("@react-navigation/native", () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 const ruta = {
   id: 6,
@@ -47,7 +52,6 @@ function apiConRuta(kpis: { clientes: unknown[]; dia: unknown } = { clientes: []
 
 async function renderConRutas(
   api: Partial<SessionValue["api"]>,
-  navigate: jest.Mock = jest.fn(),
   setRutaActiva: jest.Mock = jest.fn(),
   abrir: jest.Mock = jest.fn(),
 ) {
@@ -64,13 +68,12 @@ async function renderConRutas(
     login: jest.fn(),
     logout: jest.fn(),
   };
-  const navigation = { navigate } as never;
   return render(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
         <RutaActivaContext.Provider value={{ rutaActiva: null, setRutaActiva }}>
           <PantallaActivaContext.Provider value={{ pantalla: null, abrir, cerrar: jest.fn() }}>
-            <RutasScreen navigation={navigation} />
+            <RutasScreen />
           </PantallaActivaContext.Provider>
         </RutaActivaContext.Provider>
       </SessionContext.Provider>
@@ -128,13 +131,8 @@ describe("RutasScreen — dashboard de rutas", () => {
   });
 
   it("el botón Consultar fija la ruta activa y navega al tab Clientes", async () => {
-    const navigate = jest.fn();
     const setRutaActiva = jest.fn();
-    const { getByTestId } = await renderConRutas(
-      apiConRuta(),
-      navigate,
-      setRutaActiva,
-    );
+    const { getByTestId } = await renderConRutas(apiConRuta(), setRutaActiva);
 
     await waitFor(() => expect(getByTestId("consultar-6")).toBeTruthy());
     await fireEvent.press(getByTestId("consultar-6"));
@@ -148,12 +146,12 @@ describe("RutasScreen — dashboard de rutas", () => {
         config: { rutaId: 6, periodoLiquidacion: "diario", cupoDefault: 1500 },
       }),
     );
-    expect(navigate).toHaveBeenCalledWith("Clientes");
+    expect(mockNavigate).toHaveBeenCalledWith("Clientes");
   });
 
   it("tocar la tarjeta abre el detalle de la ruta en el overlay", async () => {
     const abrir = jest.fn();
-    const { getByTestId } = await renderConRutas(apiConRuta(), jest.fn(), jest.fn(), abrir);
+    const { getByTestId } = await renderConRutas(apiConRuta(), jest.fn(), abrir);
 
     await waitFor(() => expect(getByTestId("ruta-6")).toBeTruthy());
     await fireEvent.press(getByTestId("ruta-6"));
@@ -194,6 +192,39 @@ describe("RutasScreen — dashboard de rutas", () => {
     await waitFor(() => expect(getByTestId("ruta-6")).toBeTruthy());
   });
 
+  it("NO tumba todo el dashboard si falla el KPI de una sola ruta (allSettled)", async () => {
+    const misRutas = jest.fn().mockResolvedValue([ruta]);
+    const { getByTestId } = await renderConRutas({
+      misRutas,
+      listarClientesDeRuta: jest.fn().mockRejectedValue(new Error("red")),
+      dia: jest.fn().mockResolvedValue(diaVacio),
+    });
+
+    // La tarjeta sigue mostrándose con KPIs en 0 (fallo parcial, no total).
+    await waitFor(() => expect(getByTestId("ruta-6")).toBeTruthy());
+    expect(getByTestId("kpi-clientes-6").props.children).toBe(0);
+    expect(getByTestId("kpi-dia-6").props.children).toBe(0);
+    expect(getByTestId("kpi-mora-6").props.children).toBe(0);
+  });
+
+  it("muestra un aviso si el pull-to-refresh falla con rutas ya cargadas", async () => {
+    const misRutas = jest
+      .fn()
+      .mockResolvedValueOnce([ruta])
+      .mockRejectedValueOnce(new Error("red"));
+    const { getByTestId } = await renderConRutas({
+      misRutas,
+      listarClientesDeRuta: jest.fn().mockResolvedValue([]),
+      dia: jest.fn().mockResolvedValue(diaVacio),
+    });
+
+    await waitFor(() => expect(getByTestId("ruta-6")).toBeTruthy());
+    await act(async () => {
+      getByTestId("lista-rutas").props.refreshControl.props.onRefresh();
+    });
+    await waitFor(() => expect(getByTestId("aviso-error-refresh")).toBeTruthy());
+  });
+
   it("muestra el badge de eventos sin subir", async () => {
     const offlineConPendientes: OfflineValue = { ...offline, sinSubir: 2 };
     const valor: SessionValue = {
@@ -209,7 +240,6 @@ describe("RutasScreen — dashboard de rutas", () => {
       login: jest.fn(),
       logout: jest.fn(),
     };
-    const navigation = { navigate: jest.fn() } as never;
     const { getByTestId } = await render(
       <OfflineContext.Provider value={offlineConPendientes}>
         <SessionContext.Provider value={valor}>
@@ -219,7 +249,7 @@ describe("RutasScreen — dashboard de rutas", () => {
             <PantallaActivaContext.Provider
               value={{ pantalla: null, abrir: jest.fn(), cerrar: jest.fn() }}
             >
-              <RutasScreen navigation={navigation} />
+              <RutasScreen />
             </PantallaActivaContext.Provider>
           </RutaActivaContext.Provider>
         </SessionContext.Provider>

@@ -36,3 +36,8 @@
 - Detectado en: rediseño B3 (2026-09-03)
 - Descripción: el detalle de ruta (`RutaDetalleScreen`) muestra el botón "Editar" pero es **solo lectura** (avisa "La edición de ruta se realiza desde el panel"); el permiso `actualizar_ruta` del cobrador aún no se expone en la APK. Habilitar la edición real cuando el rol del cobrador lo permita.
 - Prioridad sugerida: media
+
+## Cálculo de "en mora" duplicado (RutasScreen + RutaDetalleScreen)
+- Detectado en: code-review PR2 rediseño rutas-dia (2026-09-03)
+- Descripción: el conteo `clientes.filter(c => c.color === "rojo")` se repite en `RutasScreen` (KPIs de dashboard) y `RutaDetalleScreen` (KPI en mora). Candidato a un helper `contarEnMora(clientes)` compartido.
+- Prioridad sugerida: baja
