@@ -256,4 +256,34 @@ describe("cobradorApi", () => {
     expect(opts.body.getAll("foto_facial")).toHaveLength(1);
     expect(opts.body.getAll("documento_frente")).toHaveLength(1);
   });
+
+  it("actualizarCliente hace PATCH al cliente con lat/lng", async () => {
+    request.mockResolvedValue({ id: 2 });
+
+    await api.actualizarCliente(6, 2, {
+      latitud: -17.79,
+      longitud: -63.19,
+    });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitud: -17.79, longitud: -63.19 }),
+    });
+  });
+
+  it("actualizarCliente acepta lat/lng de domicilio", async () => {
+    request.mockResolvedValue({ id: 2 });
+
+    await api.actualizarCliente(6, 2, {
+      latitudDomicilio: -17.8,
+      longitudDomicilio: -63.2,
+    });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitudDomicilio: -17.8, longitudDomicilio: -63.2 }),
+    });
+  });
 });

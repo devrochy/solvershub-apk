@@ -29,6 +29,8 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
             nombre={pantalla.nombre}
             latitud={pantalla.latitud}
             longitud={pantalla.longitud}
+            latitudDomicilio={pantalla.latitudDomicilio}
+            longitudDomicilio={pantalla.longitudDomicilio}
             prestamoAutoSeleccionado={pantalla.prestamoAutoSeleccionado}
             onCerrar={onCerrar}
           />

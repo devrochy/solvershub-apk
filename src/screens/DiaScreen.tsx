@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
-import { ColorBadge } from "../components/ColorBadge";
+import { fondoDeEstado } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { TrayectosLista } from "../components/TrayectosLista";
@@ -355,7 +355,11 @@ export function DiaScreen() {
           return (
             <Pressable
               testID={`cliente-${item.clienteId}`}
-              style={[styles.tarjeta, !listaHabilitada && styles.tarjetaBloqueada]}
+              style={[
+                styles.tarjeta,
+                { backgroundColor: fondoDeEstado(item.color) },
+                !listaHabilitada && styles.tarjetaBloqueada,
+              ]}
               disabled={!listaHabilitada}
               onPress={() =>
                 abrirPantallaActiva({
@@ -383,7 +387,6 @@ export function DiaScreen() {
                   </Pressable>
                 ) : null}
               </View>
-              <ColorBadge color={item.color} />
             </Pressable>
           );
         }}
@@ -469,7 +472,6 @@ const styles = StyleSheet.create({
   },
   botonGastosTexto: { color: "#2563eb", fontWeight: "700", fontSize: 14 },
   headerTitulo: { fontSize: 17, fontWeight: "700", color: "#334155" },
-  headerEspacio: { width: 84 },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   acciones: { marginBottom: 8, gap: 8 },

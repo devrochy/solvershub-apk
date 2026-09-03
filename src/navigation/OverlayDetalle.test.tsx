@@ -54,6 +54,10 @@ describe("OverlayDetalle", () => {
       rutaId: 6,
       clienteId: 12,
       nombre: "Juan",
+      latitud: -17.78,
+      longitud: -63.18,
+      latitudDomicilio: -17.79,
+      longitudDomicilio: -63.19,
       prestamoAutoSeleccionado: true,
     };
     await render(<OverlayDetalle pantalla={pantalla} onCerrar={jest.fn()} />);
@@ -61,6 +65,10 @@ describe("OverlayDetalle", () => {
       expect.objectContaining({
         rutaId: 6,
         clienteId: 12,
+        latitud: -17.78,
+        longitud: -63.18,
+        latitudDomicilio: -17.79,
+        longitudDomicilio: -63.19,
         prestamoAutoSeleccionado: true,
         onCerrar: expect.any(Function),
       }),

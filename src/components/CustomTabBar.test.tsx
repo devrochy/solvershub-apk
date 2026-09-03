@@ -17,17 +17,17 @@ function propsDe(
     state: {
       index,
       routes: [
-        { key: "rutas", name: "Rutas" },
+        { key: "ruta", name: "Ruta" },
         { key: "dia", name: "Dia" },
         { key: "clientes", name: "Clientes" },
       ],
-      routeNames: ["Rutas", "Dia", "Clientes"],
+      routeNames: ["Ruta", "Dia", "Clientes"],
       key: "tab",
       stale: false,
       type: "tab",
     } as never,
     descriptors: {
-      rutas: { options: { title: "Rutas" } } as never,
+      ruta: { options: { title: "Ruta" } } as never,
       dia: { options: { title: "Día" } } as never,
       clientes: { options: { title: "Clientes" } } as never,
     },
@@ -46,7 +46,7 @@ describe("CustomTabBar", () => {
         <CustomTabBar {...propsDe(0)} />
       </PantallaActivaProvider>,
     );
-    expect(getByTestId("tab-Rutas")).toBeTruthy();
+    expect(getByTestId("tab-Ruta")).toBeTruthy();
     expect(getByTestId("tab-central")).toBeTruthy();
     expect(getByTestId("tab-Clientes")).toBeTruthy();
     expect(getByText("Día")).toBeTruthy();

@@ -15,6 +15,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { MaterialIcons } from "@expo/vector-icons";
 import { captureRef } from "react-native-view-shot";
 import { shareAsync } from "expo-sharing";
+import * as Location from "expo-location";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
@@ -64,6 +65,8 @@ export interface ClienteScreenDirectProps {
   nombre: string;
   latitud?: number;
   longitud?: number;
+  latitudDomicilio?: number;
+  longitudDomicilio?: number;
   prestamoAutoSeleccionado?: boolean;
   onCerrar?(): void;
 }
@@ -71,6 +74,7 @@ export interface ClienteScreenDirectProps {
 type ModalActivo =
   | "ninguno"
   | "editar"
+  | "ubicacion"
   | "prestamo"
   | "pago"
   | "no_pago"
@@ -100,29 +104,10 @@ function esPendienteOArrasada(cuota: CuotaPublic): boolean {
   return cuota.estatus === "pendiente" || cuota.estatus === "atrasada";
 }
 
-const COLOR_RIESGO_HEADER: Record<string, string> = {
-  verde: "#16a34a",
-  rojo: "#dc2626",
-  azul: "#2563eb",
-  blanco: "#64748b",
-};
-
-function colorDeRiesgo(color: string): string {
-  return COLOR_RIESGO_HEADER[color] ?? "#2563eb";
-}
-
-function coordenadaDeTexto(valor: string): number | undefined {
-  if (!valor.trim()) {
-    return undefined;
-  }
-  const n = Number(valor);
-  return Number.isFinite(n) ? n : undefined;
-}
-
 export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const params =
     "route" in props ? props.route.params : (props as ClienteScreenDirectProps);
-  const { rutaId, clienteId, latitud, longitud, prestamoAutoSeleccionado } = params;
+  const { rutaId, clienteId, latitud, longitud, latitudDomicilio, longitudDomicilio, prestamoAutoSeleccionado } = params;
   const onCerrar = "onCerrar" in props ? props.onCerrar : undefined;
   const { api, logout } = useSession();
   const offline = useOffline();
@@ -159,6 +144,13 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const [edicion, setEdicion] = useState<CambioClienteInput>({});
   const [edicionOriginal, setEdicionOriginal] = useState<CambioClienteInput>({});
   const [editando, setEditando] = useState(false);
+
+  // Editar ubicación (N6): campo (negocio/domicilio), dirección a buscar y envío.
+  const [ubicacionCampo, setUbicacionCampo] = useState<"negocio" | "domicilio">("negocio");
+  const [ubicacionDireccion, setUbicacionDireccion] = useState("");
+  const [ubicacionBuscando, setUbicacionBuscando] = useState(false);
+  const [ubicacionEnviando, setUbicacionEnviando] = useState(false);
+  const [ubicacionMensaje, setUbicacionMensaje] = useState<string | null>(null);
 
   // Formulario nuevo préstamo.
   const [prestamoValor, setPrestamoValor] = useState("");
@@ -446,6 +438,85 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setModal("editar");
   }
 
+  function abrirEditarUbicacion() {
+    setUbicacionMensaje(null);
+    setUbicacionDireccion("");
+    setUbicacionCampo("negocio");
+    setEdicion((e) => ({
+      ...e,
+      latitud: typeof latitud === "number" ? latitud : e.latitud,
+      longitud: typeof longitud === "number" ? longitud : e.longitud,
+      latitudDomicilio:
+        typeof latitudDomicilio === "number" ? latitudDomicilio : e.latitudDomicilio,
+      longitudDomicilio:
+        typeof longitudDomicilio === "number" ? longitudDomicilio : e.longitudDomicilio,
+    }));
+    setModal("ubicacion");
+  }
+
+  async function buscarUbicacionDireccion() {
+    if (!ubicacionDireccion.trim()) {
+      setUbicacionMensaje("Escribe una dirección para buscar.");
+      return;
+    }
+    setUbicacionBuscando(true);
+    setUbicacionMensaje(null);
+    try {
+      const resultados = await Location.geocodeAsync(ubicacionDireccion.trim());
+      if (resultados.length === 0) {
+        setUbicacionMensaje("No se encontró la dirección.");
+        return;
+      }
+      const mejor = resultados[0];
+      if (ubicacionCampo === "domicilio") {
+        setEdicion((e) => ({
+          ...e,
+          latitudDomicilio: mejor.latitude,
+          longitudDomicilio: mejor.longitude,
+        }));
+      } else {
+        setEdicion((e) => ({
+          ...e,
+          latitud: mejor.latitude,
+          longitud: mejor.longitude,
+        }));
+      }
+    } catch {
+      setUbicacionMensaje("No se pudo buscar la dirección.");
+    } finally {
+      setUbicacionBuscando(false);
+    }
+  }
+
+  async function guardarUbicacion() {
+    const lat = ubicacionCampo === "domicilio" ? edicion.latitudDomicilio : edicion.latitud;
+    const lng = ubicacionCampo === "domicilio" ? edicion.longitudDomicilio : edicion.longitud;
+    if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+      setUbicacionMensaje("Arrastra el marcador para fijar la ubicación.");
+      return;
+    }
+    setUbicacionEnviando(true);
+    setUbicacionMensaje(null);
+    try {
+      const input =
+        ubicacionCampo === "domicilio"
+          ? { latitudDomicilio: lat, longitudDomicilio: lng }
+          : { latitud: lat, longitud: lng };
+      await api.actualizarCliente(rutaId, clienteId, input);
+      setModal("ninguno");
+      setMensaje("Ubicación actualizada.");
+      await cargar();
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setUbicacionMensaje("No se pudo guardar la ubicación.");
+      }
+    } finally {
+      setUbicacionEnviando(false);
+    }
+  }
+
   async function guardarCambioCliente() {
     const input = camposCambiados(edicion, edicionOriginal);
     if (Object.keys(input).length === 0) {
@@ -650,32 +721,22 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const cuotasCanvas = estadoPrestamo ? clasificarCuotas(estadoPrestamo.cuotas) : [];
   const docFrenteUrl = tarjeta.documentoFrenteUrl ?? null;
   const docReversoUrl = tarjeta.documentoReversoUrl ?? null;
-  const latNegocio = edicion.latitud ?? COORD_DEFAULT.lat;
-  const lngNegocio = edicion.longitud ?? COORD_DEFAULT.lng;
-  const latDomicilio = edicion.latitudDomicilio ?? COORD_DEFAULT.lat;
-  const lngDomicilio = edicion.longitudDomicilio ?? COORD_DEFAULT.lng;
 
   return (
     <>
       <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header: título "Información del cliente" a la izquierda + Editar a la derecha */}
-        <View
-          testID="header-cliente"
-          style={[styles.header, { backgroundColor: colorDeRiesgo(tarjeta.color) }]}
-        >
+        {/* Header neutro de la vista: back + título, sin Editar (N5) */}
+        <View testID="header-cliente" style={styles.header}>
           {onCerrar ? (
             <Pressable testID="btn-back-cliente" style={styles.headerAccionIzq} onPress={onCerrar}>
-              <MaterialIcons name="arrow-back" size={22} color="#ffffff" />
+              <MaterialIcons name="arrow-back" size={22} color="#334155" />
             </Pressable>
           ) : (
             <View style={styles.headerAccionIzq} />
           )}
           <Text style={styles.headerTitulo}>Información del cliente</Text>
-          <Pressable testID="btn-editar-cliente" style={styles.headerAccionDerecha} onPress={abrirEditar}>
-            <MaterialIcons name="edit" size={18} color="#ffffff" />
-            <Text style={styles.headerAccionTexto}>Editar</Text>
-          </Pressable>
+          <View style={styles.headerAccionDerecha} />
         </View>
 
         {mensaje && modal === "ninguno" ? (
@@ -684,8 +745,17 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           </View>
         ) : null}
 
-        {/* Tarjeta principal del cliente */}
+        {/* Tarjeta principal del cliente con header propio: nombre + Editar */}
         <View style={styles.tarjeta}>
+          <View style={styles.tarjetaHeader}>
+            <Text style={styles.tarjetaHeaderNombre} numberOfLines={1}>
+              {tarjeta.nombre}
+            </Text>
+            <Pressable testID="btn-editar-cliente" style={styles.tarjetaHeaderEditar} onPress={abrirEditar}>
+              <MaterialIcons name="edit" size={16} color="#2563eb" />
+              <Text style={styles.tarjetaHeaderEditarTexto}>Editar</Text>
+            </Pressable>
+          </View>
           <View style={styles.filaSuperior}>
             <Pressable testID="btn-avatar" onPress={() => setModal("avatar")}>
               <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={64} />
@@ -778,7 +848,6 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             </View>
           </View>
 
-          <Text style={styles.nombre}>{tarjeta.nombre}</Text>
           {tarjeta.negocio ? (
             <Text style={styles.detalle}>Negocio: {tarjeta.negocio}</Text>
           ) : null}
@@ -808,7 +877,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
               <Pressable
                 testID="btn-editar-ubicacion"
                 style={styles.editarUbicacion}
-                onPress={abrirEditar}
+                onPress={abrirEditarUbicacion}
               >
                 <MaterialIcons name="edit-location" size={16} color="#2563eb" />
                 <Text style={styles.editarUbicacionTexto}>Editar ubicación</Text>
@@ -1075,75 +1144,111 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           onChange={(v) => setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))}
           placeholder="Número de WhatsApp"
         />
-        <Text style={styles.label}>Ubicación del negocio</Text>
-        <MapaPin
-          testID="mapa-pin-negocio"
-          latitud={latNegocio}
-          longitud={lngNegocio}
-          onChange={(latN, lngN) =>
-            setEdicion((e) => ({ ...e, latitud: latN, longitud: lngN }))
-          }
-        />
-        <View style={styles.filaCoordenadas}>
-          <TextInput
-            testID="editar-latitud"
-            style={[styles.input, styles.inputCoordenada]}
-            placeholder="Latitud negocio"
-            keyboardType="decimal-pad"
-            value={edicion.latitud != null ? String(edicion.latitud) : ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, latitud: coordenadaDeTexto(v) }))
-            }
-          />
-          <TextInput
-            testID="editar-longitud"
-            style={[styles.input, styles.inputCoordenada]}
-            placeholder="Longitud negocio"
-            keyboardType="decimal-pad"
-            value={edicion.longitud != null ? String(edicion.longitud) : ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, longitud: coordenadaDeTexto(v) }))
-            }
-          />
-        </View>
-        <Text style={styles.label}>Ubicación del domicilio</Text>
-        <MapaPin
-          testID="mapa-pin-domicilio"
-          latitud={latDomicilio}
-          longitud={lngDomicilio}
-          onChange={(latD, lngD) =>
-            setEdicion((e) => ({
-              ...e,
-              latitudDomicilio: latD,
-              longitudDomicilio: lngD,
-            }))
-          }
-        />
-        <View style={styles.filaCoordenadas}>
-          <TextInput
-            testID="editar-latitud-domicilio"
-            style={[styles.input, styles.inputCoordenada]}
-            placeholder="Latitud domicilio"
-            keyboardType="decimal-pad"
-            value={edicion.latitudDomicilio != null ? String(edicion.latitudDomicilio) : ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, latitudDomicilio: coordenadaDeTexto(v) }))
-            }
-          />
-          <TextInput
-            testID="editar-longitud-domicilio"
-            style={[styles.input, styles.inputCoordenada]}
-            placeholder="Longitud domicilio"
-            keyboardType="decimal-pad"
-            value={edicion.longitudDomicilio != null ? String(edicion.longitudDomicilio) : ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, longitudDomicilio: coordenadaDeTexto(v) }))
-            }
-          />
-        </View>
+        <Text style={styles.notaUbicacion}>
+          La ubicación del negocio y del domicilio se edita desde la tarjeta del
+          cliente (opción Editar ubicación).
+        </Text>
         {mensaje && modal === "editar" ? (
           <Text testID="mensaje-editar" style={styles.mensajeModal}>
             {mensaje}
+          </Text>
+        ) : null}
+      </ModalConFooter>
+
+      {/* Modal: editar ubicación (N6) */}
+      <ModalConFooter
+        visible={modal === "ubicacion"}
+        titulo="Editar ubicación"
+        onCerrar={() => {
+          setModal("ninguno");
+          setUbicacionMensaje(null);
+        }}
+        onCancelar={() => {
+          setModal("ninguno");
+          setUbicacionMensaje(null);
+        }}
+        onConfirmar={() => void guardarUbicacion()}
+        confirmando={ubicacionEnviando}
+        confirmarTestID="guardar-ubicacion"
+        testID="ubicacion-form"
+      >
+        <View style={styles.chips}>
+          <Pressable
+            testID="ubicacion-negocio"
+            style={[styles.chip, ubicacionCampo === "negocio" && styles.chipActivo]}
+            onPress={() => {
+              setUbicacionCampo("negocio");
+              setUbicacionMensaje(null);
+            }}
+          >
+            <Text style={ubicacionCampo === "negocio" ? styles.chipTextoActivo : styles.chipTexto}>
+              Negocio
+            </Text>
+          </Pressable>
+          <Pressable
+            testID="ubicacion-domicilio"
+            style={[styles.chip, ubicacionCampo === "domicilio" && styles.chipActivo]}
+            onPress={() => {
+              setUbicacionCampo("domicilio");
+              setUbicacionMensaje(null);
+            }}
+          >
+            <Text style={ubicacionCampo === "domicilio" ? styles.chipTextoActivo : styles.chipTexto}>
+              Domicilio
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.filaBusqueda}>
+          <TextInput
+            testID="ubicacion-direccion"
+            style={[styles.input, styles.inputBusqueda]}
+            placeholder="Buscar por dirección"
+            value={ubicacionDireccion}
+            onChangeText={setUbicacionDireccion}
+          />
+          <Pressable
+            testID="ubicacion-buscar"
+            style={styles.botonBuscar}
+            disabled={ubicacionBuscando}
+            onPress={() => void buscarUbicacionDireccion()}
+          >
+            {ubicacionBuscando ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <MaterialIcons name="search" size={18} color="#ffffff" />
+            )}
+          </Pressable>
+        </View>
+
+        <MapaPin
+          testID="mapa-pin-ubicacion"
+          latitud={
+            ubicacionCampo === "domicilio"
+              ? edicion.latitudDomicilio ?? COORD_DEFAULT.lat
+              : edicion.latitud ?? COORD_DEFAULT.lat
+          }
+          longitud={
+            ubicacionCampo === "domicilio"
+              ? edicion.longitudDomicilio ?? COORD_DEFAULT.lng
+              : edicion.longitud ?? COORD_DEFAULT.lng
+          }
+          onChange={(latU, lngU) => {
+            if (ubicacionCampo === "domicilio") {
+              setEdicion((e) => ({
+                ...e,
+                latitudDomicilio: latU,
+                longitudDomicilio: lngU,
+              }));
+            } else {
+              setEdicion((e) => ({ ...e, latitud: latU, longitud: lngU }));
+            }
+          }}
+        />
+
+        {ubicacionMensaje ? (
+          <Text testID="mensaje-ubicacion" style={styles.mensajeModal}>
+            {ubicacionMensaje}
           </Text>
         ) : null}
       </ModalConFooter>
@@ -1576,6 +1681,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
   },
   headerAccionIzq: {
     flexDirection: "row",
@@ -1590,14 +1698,22 @@ const styles = StyleSheet.create({
     width: 72,
     justifyContent: "flex-end",
   },
-  headerAccionTexto: { color: "#ffffff", fontSize: 14, fontWeight: "600" },
   headerTitulo: {
     flex: 1,
     fontSize: 17,
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#334155",
     textAlign: "center",
   },
+  tarjetaHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 8,
+  },
+  tarjetaHeaderNombre: { fontSize: 16, fontWeight: "700", color: "#334155", flex: 1 },
+  tarjetaHeaderEditar: { flexDirection: "row", alignItems: "center", gap: 4 },
+  tarjetaHeaderEditarTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
   banner: {
     backgroundColor: "#eff6ff",
     borderWidth: 1,
@@ -1671,12 +1787,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#f1f5f9",
     paddingTop: 10,
+    flexDirection: "row",
+    gap: 8,
   },
   comoLlegar: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    alignSelf: "flex-start",
     borderWidth: 1,
     borderColor: "#a5f3fc",
     backgroundColor: "#ecfeff",
@@ -1690,14 +1807,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    alignSelf: "flex-start",
     borderWidth: 1,
     borderColor: "#bfdbfe",
     backgroundColor: "#eff6ff",
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginTop: 8,
   },
   editarUbicacionTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
   seccionMapa: { gap: 8 },
@@ -1749,7 +1864,6 @@ const styles = StyleSheet.create({
   },
   botonNuevoTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
   seccionTitulo: { fontSize: 15, fontWeight: "700", color: "#334155" },
-  seccionEspacio: { width: 84 },
   sinPrestamos: { color: "#64748b", fontSize: 13, marginTop: 10 },
   prestamoItem: {
     flexDirection: "row",
@@ -1852,6 +1966,16 @@ const styles = StyleSheet.create({
   },
   filaCoordenadas: { flexDirection: "row", gap: 8 },
   inputCoordenada: { flex: 1 },
+  filaBusqueda: { flexDirection: "row", gap: 8 },
+  inputBusqueda: { flex: 1 },
+  botonBuscar: {
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+  },
+  notaUbicacion: { color: "#64748b", fontSize: 12, marginTop: 4 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   chip: {
     borderWidth: 1,

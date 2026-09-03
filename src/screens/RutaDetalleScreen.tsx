@@ -10,10 +10,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ModalConFooter } from "../components/ModalConFooter";
+import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
+import { useRutaActiva } from "../session/ruta-activa-context";
 import type {
   ClienteCobradorPublic,
   DiaApkPublic,
@@ -21,9 +25,9 @@ import type {
 } from "../types/cobrador";
 
 export interface RutaDetalleScreenProps {
-  rutaId: number;
-  rutaNombre: string;
-  onCerrar(): void;
+  rutaId?: number;
+  rutaNombre?: string;
+  onCerrar?(): void;
 }
 
 function formatoFecha(iso: string): string {
@@ -41,17 +45,24 @@ function formatoFecha(iso: string): string {
 }
 
 /**
- * Detalle de ruta (B3): información de la ruta con KPIs (total clientes,
+ * Detalle de ruta (B3/N3): información de la ruta con KPIs (total clientes,
  * clientes del día, en mora, estado) y sección de notas con alta desde un
- * modal. La edición de ruta es solo lectura por ahora (se registra en backlog);
- * la edición real se realiza desde el panel admin.
+ * modal. Se usa como pestaña "Ruta" del menú (lee la ruta activa del contexto)
+ * y, opcionalmente, como overlay con props. La edición de ruta es solo lectura
+ * por ahora (backlog); la edición real se realiza desde el panel admin.
  */
 export function RutaDetalleScreen({
-  rutaId,
-  rutaNombre,
+  rutaId: rutaIdProp,
+  rutaNombre: rutaNombreProp,
   onCerrar,
-}: RutaDetalleScreenProps) {
+}: RutaDetalleScreenProps = {}) {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { api, logout } = useSession();
+  const { rutaActiva } = useRutaActiva();
+
+  const rutaId = rutaIdProp ?? rutaActiva?.rutaId ?? 0;
+  const rutaNombre = rutaNombreProp ?? rutaActiva?.rutaNombre ?? "";
+  const cerrar = onCerrar ?? (() => navigation.navigate("SeleccionRuta"));
 
   const [clientes, setClientes] = useState<ClienteCobradorPublic[] | null>(null);
   const [dia, setDia] = useState<DiaApkPublic | null>(null);
@@ -66,6 +77,9 @@ export function RutaDetalleScreen({
   const [avisoEdicion, setAvisoEdicion] = useState(false);
 
   const cargar = useCallback(async () => {
+    if (!rutaId) {
+      return;
+    }
     setError(null);
     try {
       const [misRutas, listaClientes, diaRuta, listaNotas] = await Promise.all([
@@ -114,6 +128,19 @@ export function RutaDetalleScreen({
     void cargar();
   }
 
+  if (!rutaId) {
+    return (
+      <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
+        <View style={styles.sinRuta}>
+          <Text style={styles.sinRutaTexto}>Selecciona una ruta para ver su información.</Text>
+          <Pressable testID="btn-ir-seleccion" style={styles.botonSinRuta} onPress={cerrar}>
+            <Text style={styles.botonSinRutaTexto}>Seleccionar ruta</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!clientes || !dia || !notas || estatus === null) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
@@ -123,7 +150,7 @@ export function RutaDetalleScreen({
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <Pressable testID="btn-back-ruta" style={styles.headerIzquierda} onPress={onCerrar}>
+        <Pressable testID="btn-back-ruta" style={styles.headerIzquierda} onPress={cerrar}>
           <MaterialIcons name="arrow-back" size={22} color="#334155" />
         </Pressable>
         <Text style={styles.headerTitulo} numberOfLines={1}>
@@ -233,6 +260,15 @@ export function RutaDetalleScreen({
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  sinRuta: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
+  sinRutaTexto: { color: "#64748b", fontSize: 15, textAlign: "center" },
+  botonSinRuta: {
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  botonSinRutaTexto: { color: "#ffffff", fontWeight: "600" },
   header: {
     flexDirection: "row",
     alignItems: "center",

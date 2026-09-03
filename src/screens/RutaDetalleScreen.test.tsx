@@ -1,6 +1,11 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { RutaDetalleScreen } from "./RutaDetalleScreen";
 import { SessionContext, SessionValue } from "../session/session-context";
+import { RutaActivaContext } from "../session/ruta-activa-context";
+
+jest.mock("@react-navigation/native", () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+}));
 
 const dia = {
   clientes: [
@@ -80,7 +85,20 @@ async function renderDetalle(
   };
   return render(
     <SessionContext.Provider value={valor}>
-      <RutaDetalleScreen rutaId={6} rutaNombre="Ruta Centro" onCerrar={onCerrar} />
+      <RutaActivaContext.Provider
+        value={{
+          rutaActiva: {
+            rutaId: 6,
+            rutaNombre: "Ruta Centro",
+            tipoInteres: 20,
+            numCuotas: 8,
+            config: {} as never,
+          },
+          setRutaActiva: jest.fn(),
+        }}
+      >
+        <RutaDetalleScreen rutaId={6} rutaNombre="Ruta Centro" onCerrar={onCerrar} />
+      </RutaActivaContext.Provider>
     </SessionContext.Provider>,
   );
 }
@@ -187,5 +205,33 @@ describe("RutaDetalleScreen", () => {
 
     await waitFor(() => expect(crearNota).toHaveBeenCalledWith(6, "Nueva nota"));
     expect(queryByText("No se pudo guardar la nota.")).toBeNull();
+  });
+
+  it("muestra el estado 'sin ruta' y el botón para seleccionar cuando no hay ruta activa", async () => {
+    const valor: SessionValue = {
+      cobrador: {
+        id: 20,
+        usuario: "cobrador1",
+        nombre: "Carlos",
+        apellido: "López",
+        rol: "cobrador",
+      },
+      loading: false,
+      api: apiBase() as unknown as SessionValue["api"],
+      login: jest.fn(),
+      logout: jest.fn(),
+    };
+    const { getByTestId, getByText } = await render(
+      <SessionContext.Provider value={valor}>
+        <RutaActivaContext.Provider value={{ rutaActiva: null, setRutaActiva: jest.fn() }}>
+          <RutaDetalleScreen />
+        </RutaActivaContext.Provider>
+      </SessionContext.Provider>,
+    );
+
+    expect(
+      getByText("Selecciona una ruta para ver su información."),
+    ).toBeTruthy();
+    expect(getByTestId("btn-ir-seleccion")).toBeTruthy();
   });
 });

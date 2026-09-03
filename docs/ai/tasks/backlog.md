@@ -41,3 +41,13 @@
 - Detectado en: code-review PR2 rediseño rutas-dia (2026-09-03)
 - Descripción: el conteo `clientes.filter(c => c.color === "rojo")` se repite en `RutasScreen` (KPIs de dashboard) y `RutaDetalleScreen` (KPI en mora). Candidato a un helper `contarEnMora(clientes)` compartido.
 - Prioridad sugerida: baja
+
+## Mapa "Cómo llegar" no refleja la nueva ubicación tras guardar (N6)
+- Detectado en: code-review apk-navegacion-ruta-rediseno (2026-09-03)
+- Descripción: tras guardar la ubicación (PATCH actualizarCliente), `ClienteTarjetaPublic` no expone lat/lng, así que el mapa "Cómo llegar" del detalle sigue usando las props fijas al abrir el overlay. Candidato a exponer latitud/longitud/latitudDomicilio en la tarjeta del backend (PR #91) para refrescar el pin.
+- Prioridad sugerida: media
+
+## SeleccionRutaScreen dispara 2 requests por ruta al montar
+- Detectado en: code-review apk-navegacion-ruta-rediseno (2026-09-03)
+- Descripción: con N rutas son 2N llamadas en paralelo (clientes + día por ruta). Aceptable hoy por la decisión de "solo datos existentes"; revisar si crece el número de rutas.
+- Prioridad sugerida: baja

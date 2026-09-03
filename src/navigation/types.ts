@@ -1,13 +1,14 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
 
 export type RootTabParamList = {
-  Rutas: undefined;
-  Clientes: undefined;
+  Ruta: undefined;
   Dia: undefined;
+  Clientes: undefined;
 };
 
 export type RootStackParamList = {
   Login: undefined;
+  SeleccionRuta: undefined;
   Main: NavigatorScreenParams<RootTabParamList> | undefined;
   Cliente: {
     rutaId: number;
@@ -15,6 +16,8 @@ export type RootStackParamList = {
     nombre: string;
     latitud?: number;
     longitud?: number;
+    latitudDomicilio?: number;
+    longitudDomicilio?: number;
     prestamoAutoSeleccionado?: boolean;
   };
   Prestamo: {

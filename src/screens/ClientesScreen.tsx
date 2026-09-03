@@ -18,7 +18,7 @@ import { apiErrorStatus } from "../api/client";
 import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
-import { ColorBadge } from "../components/ColorBadge";
+import { fondoDeEstado } from "../components/ColorBadge";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
 import {
@@ -271,7 +271,7 @@ export function ClientesScreen() {
         renderItem={({ item }) => (
           <Pressable
             testID={`cliente-${item.id}`}
-            style={styles.tarjeta}
+            style={[styles.tarjeta, { backgroundColor: fondoDeEstado(item.colorRiesgo) }]}
             onPress={() =>
               abrir({
                 tipo: "cliente",
@@ -280,6 +280,8 @@ export function ClientesScreen() {
                 nombre: nombreCompleto(item),
                 latitud: item.latitud,
                 longitud: item.longitud,
+                latitudDomicilio: item.latitudDomicilio ?? undefined,
+                longitudDomicilio: item.longitudDomicilio ?? undefined,
               })
             }
           >
@@ -291,7 +293,6 @@ export function ClientesScreen() {
               ) : null}
               <Text style={styles.clienteTelefono}>{item.telefonoWhatsapp}</Text>
             </View>
-            <ColorBadge color={item.colorRiesgo} />
           </Pressable>
         )}
       />
@@ -506,7 +507,6 @@ const styles = StyleSheet.create({
   headerInfo: { flex: 1 },
   headerTitulo: { fontSize: 18, fontWeight: "700", color: "#334155" },
   headerDetalle: { color: "#64748b", fontSize: 13 },
-  headerEspacio: { width: 84 },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   tarjeta: {

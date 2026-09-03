@@ -10,11 +10,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
-import { usePantallaActiva } from "../navigation/pantalla-activa-context";
-import type { RootTabParamList } from "../navigation/types";
+import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
@@ -27,17 +26,15 @@ interface RutaKpi {
 }
 
 /**
- * Dashboard de rutas (B3): tarjetas por ruta con KPIs de cartera (total
- * clientes, clientes del día, en mora) calculados con datos existentes
- * (mis-rutas + clientes de ruta + día). Tocar la tarjeta abre el detalle de la
- * ruta en el overlay; "Consultar" navega al tab de clientes. El header CobraIA
- * vive en la esquina inferior derecha, flotante sobre el contenido.
+ * Selección de ruta (N1): pantalla de stack mostrada tras el login SIN tab
+ * bar. Lista las rutas del cobrador con KPIs de cartera. Al tocar una ruta se
+ * fija como ruta activa y se navega al Main (tabs), que abre por defecto en
+ * la pestaña "Día".
  */
-export function RutasScreen() {
-  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList, "Rutas">>();
+export function SeleccionRutaScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { api, cobrador, logout } = useSession();
   const { setRutaActiva } = useRutaActiva();
-  const { abrir } = usePantallaActiva();
   const offline = useOffline();
   const [rutas, setRutas] = useState<RutaApkPublic[] | null>(null);
   const [kpis, setKpis] = useState<Record<number, RutaKpi>>({});
@@ -88,7 +85,7 @@ export function RutasScreen() {
     setRefrescando(false);
   }
 
-  function consultar(ruta: RutaApkPublic) {
+  function seleccionarRuta(ruta: RutaApkPublic) {
     setRutaActiva({
       rutaId: ruta.id,
       rutaNombre: ruta.nombre,
@@ -96,7 +93,7 @@ export function RutasScreen() {
       numCuotas: ruta.numCuotas,
       config: ruta.config,
     });
-    navigation.navigate("Clientes");
+    navigation.navigate("Main");
   }
 
   if (!rutas) {
@@ -105,11 +102,12 @@ export function RutasScreen() {
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
-      <View style={styles.header} testID="header-rutas">
+      <View style={styles.header} testID="header-seleccion-ruta">
         <View style={styles.headerTitulo}>
           <Text style={styles.bienvenida}>
             Hola, {cobrador?.nombre ?? "cobrador"}
           </Text>
+          <Text style={styles.subtitulo}>Selecciona una ruta</Text>
         </View>
         <View style={styles.headerDerecha}>
           {offline.sinSubir > 0 ? (
@@ -153,65 +151,49 @@ export function RutasScreen() {
             enMora: 0,
           };
           const activa = item.estatus === "activo";
-          const colorBorde = activa ? "#16a34a" : "#dc2626";
+          const colorRuta = activa ? "#16a34a" : "#dc2626";
           return (
-            <View
+            <Pressable
+              testID={`ruta-${item.id}`}
               style={[
                 styles.tarjeta,
-                { borderColor: colorBorde },
+                { borderColor: colorRuta },
                 !activa && styles.tarjetaInactiva,
               ]}
+              onPress={() => seleccionarRuta(item)}
             >
-              <View style={[styles.tarjetaHeader, { backgroundColor: colorBorde }]}>
-                <Text style={styles.tarjetaHeaderTexto}>
-                  {activa ? "Activa" : "Inactiva"}
-                </Text>
+              <View style={[styles.tarjetaHeader, { backgroundColor: colorRuta }]}>
+                <Text style={styles.tarjetaHeaderTexto}>{item.nombre}</Text>
               </View>
-              <Pressable
-                testID={`ruta-${item.id}`}
-                style={styles.tarjetaCuerpo}
-                onPress={() =>
-                  abrir({ tipo: "ruta", rutaId: item.id, rutaNombre: item.nombre })
-                }
-              >
-                <View style={styles.tarjetaInfo}>
-                  <Text style={styles.rutaNombre}>{item.nombre}</Text>
-                  <Text style={[styles.estatus, { color: colorBorde }]}>{item.estatus}</Text>
-                </View>
+              <View style={styles.tarjetaCuerpo}>
                 <View style={styles.kpis}>
                   <View style={styles.kpi}>
-                    <MaterialIcons name="people" size={18} color="#2563eb" />
+                    <MaterialIcons name="people" size={26} color="#2563eb" />
                     <Text style={styles.kpiValor} testID={`kpi-clientes-${item.id}`}>
                       {kpi.totalClientes}
                     </Text>
                     <Text style={styles.kpiEtiqueta}>clientes</Text>
                   </View>
                   <View style={styles.kpi}>
-                    <MaterialIcons name="today" size={18} color="#0891b2" />
+                    <MaterialIcons name="today" size={26} color="#0891b2" />
                     <Text style={styles.kpiValor} testID={`kpi-dia-${item.id}`}>
                       {kpi.clientesDia}
                     </Text>
                     <Text style={styles.kpiEtiqueta}>del día</Text>
                   </View>
                   <View style={styles.kpi}>
-                    <MaterialIcons name="warning" size={18} color="#dc2626" />
+                    <MaterialIcons name="warning" size={26} color="#dc2626" />
                     <Text style={styles.kpiValor} testID={`kpi-mora-${item.id}`}>
                       {kpi.enMora}
                     </Text>
                     <Text style={styles.kpiEtiqueta}>en mora</Text>
                   </View>
                 </View>
-              </Pressable>
-              <View style={styles.footer}>
-                <Pressable
-                  testID={`consultar-${item.id}`}
-                  style={styles.botonConsultar}
-                  onPress={() => consultar(item)}
-                >
-                  <Text style={styles.botonConsultarTexto}>Consultar</Text>
-                </Pressable>
               </View>
-            </View>
+              <View style={styles.chevron}>
+                <MaterialIcons name="chevron-right" size={28} color="#94a3b8" />
+              </View>
+            </Pressable>
           );
         }}
       />
@@ -236,6 +218,7 @@ const styles = StyleSheet.create({
   },
   headerTitulo: { flex: 1 },
   bienvenida: { fontSize: 18, fontWeight: "700" },
+  subtitulo: { color: "#64748b", fontSize: 13, marginTop: 2 },
   headerDerecha: { flexDirection: "row", alignItems: "center", gap: 10 },
   badge: {
     backgroundColor: "#f59e0b",
@@ -256,7 +239,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   avisoErrorSyncTexto: { color: "#991b1b", fontSize: 13, fontWeight: "600" },
-  lista: { padding: 16, gap: 10, paddingBottom: 72 },
+  lista: { padding: 16, gap: 12, paddingBottom: 72 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   tarjeta: {
     backgroundColor: "#ffffff",
@@ -267,35 +250,22 @@ const styles = StyleSheet.create({
   },
   tarjetaHeader: {
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
-  tarjetaHeaderTexto: { color: "#ffffff", fontWeight: "700", fontSize: 12 },
+  tarjetaHeaderTexto: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
   tarjetaInactiva: { opacity: 0.75 },
-  tarjetaCuerpo: { padding: 16, gap: 12 },
-  tarjetaInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  rutaNombre: { fontSize: 16, fontWeight: "600" },
-  estatus: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
+  tarjetaCuerpo: { padding: 16 },
   kpis: { flexDirection: "row", gap: 10 },
   kpi: { flex: 1, alignItems: "center", gap: 2 },
   kpiValor: { fontSize: 18, fontWeight: "800", color: "#0f172a" },
   kpiEtiqueta: { fontSize: 11, color: "#64748b", fontWeight: "600" },
-  footer: {
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-    padding: 10,
-    alignItems: "flex-end",
+  chevron: {
+    position: "absolute",
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
   },
-  botonConsultar: {
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-  },
-  botonConsultarTexto: { color: "#ffffff", fontWeight: "600", fontSize: 13 },
   cobraiaFlotante: {
     position: "absolute",
     bottom: 90,

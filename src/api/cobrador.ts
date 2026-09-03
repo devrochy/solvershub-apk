@@ -28,6 +28,16 @@ export interface CobradorApi {
   misRutas(): Promise<RutaApkPublic[]>;
   dia(rutaId: number): Promise<DiaApkPublic>;
   generarTrayecto(rutaId: number): Promise<unknown>;
+  actualizarCliente(
+    rutaId: number,
+    clienteId: number,
+    input: {
+      latitud?: number;
+      longitud?: number;
+      latitudDomicilio?: number | null;
+      longitudDomicilio?: number | null;
+    },
+  ): Promise<ClienteCobradorPublic>;
   registrarVisitaPago(
     rutaId: number,
     input: RegistrarVisitaInput,
@@ -104,6 +114,25 @@ export interface CobradorApi {
 export function cobradorApi(client: ApiClient): CobradorApi {
   return {
     misRutas: () => client.request<RutaApkPublic[]>("/cobrador/mis-rutas"),
+
+    actualizarCliente: (
+      rutaId: number,
+      clienteId: number,
+      input: {
+        latitud?: number;
+        longitud?: number;
+        latitudDomicilio?: number | null;
+        longitudDomicilio?: number | null;
+      },
+    ) =>
+      client.request<ClienteCobradorPublic>(
+        `/cobrador/rutas/${rutaId}/clientes/${clienteId}`,
+        {
+          method: "PATCH",
+          headers: JSON_HEADERS,
+          body: jsonBody(input),
+        },
+      ),
 
     dia: (rutaId: number) =>
       client.request<DiaApkPublic>(`/cobrador/rutas/${rutaId}/dia`),
