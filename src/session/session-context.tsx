@@ -9,28 +9,28 @@ import {
 } from "react";
 import { cobradorApi, CobradorApi } from "../api/cobrador";
 import { ApiClient } from "../api/client";
-import { apiLogin } from "../api/auth";
+import { apiLogin, RolLogin } from "../api/auth";
 import {
   clearSession,
   readProfile,
   sessionGateway,
   writeProfile,
   writeSession,
-  type CobradorPerfil,
+  type UsuarioPerfil,
 } from "./token-store";
 
 export interface SessionValue {
-  cobrador: CobradorPerfil | null;
+  cobrador: UsuarioPerfil | null;
   loading: boolean;
   api: CobradorApi;
-  login(usuario: string, password: string): Promise<void>;
+  login(usuario: string, password: string, rol?: RolLogin): Promise<void>;
   logout(): Promise<void>;
 }
 
 export const SessionContext = createContext<SessionValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [cobrador, setCobrador] = useState<CobradorPerfil | null>(null);
+  const [cobrador, setCobrador] = useState<UsuarioPerfil | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,12 +53,30 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const api = useMemo(() => cobradorApi(new ApiClient(sessionGateway)), []);
 
-  const login = useCallback(async (usuario: string, password: string) => {
-    const result = await apiLogin(usuario, password);
-    await writeSession(result);
-    await writeProfile(result.cobrador);
-    setCobrador(result.cobrador);
-  }, []);
+  const login = useCallback(
+    async (usuario: string, password: string, rol: RolLogin = "cobrador") => {
+      const result = await apiLogin(usuario, password, rol);
+      const perfilSesion: UsuarioPerfil = rol === "socio"
+        ? {
+            id: result.socio?.id ?? 0,
+            usuario: result.socio?.usuario ?? usuario,
+            nombre: result.socio?.nombre ?? "",
+            apellido: result.socio?.apellido ?? "",
+            rol,
+          }
+        : {
+            id: result.cobrador?.id ?? 0,
+            usuario: result.cobrador?.usuario ?? usuario,
+            nombre: result.cobrador?.nombre ?? "",
+            apellido: result.cobrador?.apellido ?? "",
+            rol,
+          };
+      await writeSession(result);
+      await writeProfile(perfilSesion);
+      setCobrador(perfilSesion);
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     await clearSession();

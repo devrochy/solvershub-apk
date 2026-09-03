@@ -26,11 +26,16 @@ function aEvidencia(
   };
 }
 
+export type FuenteEvidencia = "libreria" | "camara";
+
 export interface UseEvidenciasClienteResult {
   evidencias: EvidenciaClienteSeleccionada[];
   cargando: boolean;
   error: string | null;
-  agregar(campo: "foto_facial" | "documento_frente"): Promise<void>;
+  agregar(
+    campo: "foto_facial" | "documento_frente",
+    fuente?: FuenteEvidencia,
+  ): Promise<EvidenciaClienteSeleccionada | null>;
   quitar(campo: "foto_facial" | "documento_frente"): void;
   resetError(): void;
 }
@@ -44,28 +49,43 @@ export function useEvidenciasCliente(): UseEvidenciasClienteResult {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function agregar(campo: "foto_facial" | "documento_frente") {
-    const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  async function agregar(
+    campo: "foto_facial" | "documento_frente",
+    fuente: FuenteEvidencia = "libreria",
+  ): Promise<EvidenciaClienteSeleccionada | null> {
+    const permiso =
+      fuente === "camara"
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permiso.granted) {
       setError("Se necesita permiso para acceder a tus fotos.");
-      return;
+      return null;
     }
     setCargando(true);
     setError(null);
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 0.7,
-      });
+      const result =
+        fuente === "camara"
+          ? await ImagePicker.launchCameraAsync({
+              mediaTypes: ["images"],
+              quality: 0.7,
+            })
+          : await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ["images"],
+              quality: 0.7,
+            });
       if (!result.canceled && result.assets[0]) {
         const evidencia = aEvidencia(campo, result.assets[0]);
         setEvidencias((prev) => [
           ...prev.filter((e) => e.campo !== campo),
           evidencia,
         ]);
+        return evidencia;
       }
+      return null;
     } catch {
       setError("No se pudo seleccionar la imagen.");
+      return null;
     } finally {
       setCargando(false);
     }

@@ -6,11 +6,14 @@ const ACCESS_KEY = "cobranza_access_token";
 const REFRESH_KEY = "cobranza_refresh_token";
 const PROFILE_KEY = "cobranza_cobrador_profile";
 
-export interface CobradorPerfil {
+export type RolUsuario = "cobrador" | "socio";
+
+export interface UsuarioPerfil {
   id: number;
   usuario: string;
   nombre: string;
   apellido: string;
+  rol: RolUsuario;
 }
 
 export interface StoredSession {
@@ -68,13 +71,13 @@ export async function readSession(): Promise<StoredSession | null> {
   return { accessToken, refreshToken };
 }
 
-export async function readProfile(): Promise<CobradorPerfil | null> {
+export async function readProfile(): Promise<UsuarioPerfil | null> {
   const raw = await getItem(PROFILE_KEY);
   if (!raw) {
     return null;
   }
   try {
-    return JSON.parse(raw) as CobradorPerfil;
+    return JSON.parse(raw) as UsuarioPerfil;
   } catch {
     return null;
   }
@@ -87,7 +90,7 @@ export async function writeSession(pair: TokenPair): Promise<void> {
   ]);
 }
 
-export async function writeProfile(perfil: CobradorPerfil): Promise<void> {
+export async function writeProfile(perfil: UsuarioPerfil): Promise<void> {
   await setItem(PROFILE_KEY, JSON.stringify(perfil));
 }
 

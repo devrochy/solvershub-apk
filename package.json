@@ -17,6 +17,7 @@
     "expo-image-picker": "~57.0.14",
     "expo-location": "~57.0.14",
     "expo-secure-store": "~57.0.2",
+    "expo-sharing": "~57.0.17",
     "expo-status-bar": "~57.0.1",
     "jose": "^6.2.10",
     "react": "19.2.3",
@@ -24,6 +25,7 @@
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
+    "react-native-view-shot": "5.1.0",
     "react-native-web": "^0.21.2",
     "react-native-webview": "13.16.1"
   },

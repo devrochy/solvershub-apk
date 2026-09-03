@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -11,11 +11,16 @@ import {
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { MaterialIcons } from "@expo/vector-icons";
+import { captureRef } from "react-native-view-shot";
+import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge } from "../components/ColorBadge";
 import { MapaCliente } from "../components/MapaCliente";
+import { MapaPin } from "../components/MapaPin";
+import { ModalConFooter } from "../components/ModalConFooter";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
 import {
   cambioClientePayload,
@@ -24,13 +29,17 @@ import {
   edicionDesdeTarjeta,
   type CambioClienteInput,
 } from "../features/cliente/cambio-cliente";
+import {
+  useEvidenciasCliente,
+  type FuenteEvidencia,
+} from "../features/cliente/use-evidencias-cliente";
 import { abrirNavegacion } from "../features/navegacion/navegacion";
 import {
   enlaceWhatsApp,
   textoReportePrestamo,
 } from "../features/estado-cuenta/estado-cuenta";
 import { validarPrestamo } from "../features/prestamo/registrar-prestamo";
-import { useEvidenciasCliente } from "../features/cliente/use-evidencias-cliente";
+import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
@@ -40,17 +49,68 @@ import { useRutaActiva } from "../session/ruta-activa-context";
 import type {
   ClienteTarjetaPublic,
   CuotaPublic,
+  DetalleCuotaPublic,
+  EstadoCuentaPrestamoPublic,
   PrestamoPublic,
 } from "../types/cobrador";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Cliente">;
 
+export interface ClienteScreenDirectProps {
+  rutaId: number;
+  clienteId: number;
+  nombre: string;
+  latitud?: number;
+  longitud?: number;
+  prestamoAutoSeleccionado?: boolean;
+  onCerrar?(): void;
+}
+
+type ModalActivo =
+  | "ninguno"
+  | "editar"
+  | "prestamo"
+  | "pago"
+  | "no_pago"
+  | "avatar"
+  | "cuota"
+  | "documento";
+
+const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
+
+const COLORES_CANVAS: Record<TipoCuotaCanvas, { fondo: string; borde: string }> = {
+  pagada: { fondo: "#dcfce7", borde: "#16a34a" },
+  actual: { fondo: "#dbeafe", borde: "#2563eb" },
+  en_mora: { fondo: "#fee2e2", borde: "#dc2626" },
+  futura: { fondo: "#f1f5f9", borde: "#cbd5e1" },
+  abonada: { fondo: "#fef9c3", borde: "#d97706" },
+};
+
+const ETIQUETA_CANVAS: Record<TipoCuotaCanvas, string> = {
+  pagada: "Pagada",
+  actual: "Cuota actual",
+  en_mora: "En mora",
+  futura: "Futura",
+  abonada: "Abonada",
+};
+
 function esPendienteOArrasada(cuota: CuotaPublic): boolean {
   return cuota.estatus === "pendiente" || cuota.estatus === "atrasada";
 }
 
-export function ClienteScreen({ route, navigation }: Props) {
-  const { rutaId, clienteId, latitud, longitud } = route.params;
+function coordenadaDeTexto(valor: string): number | undefined {
+  if (!valor.trim()) {
+    return undefined;
+  }
+  const n = Number(valor);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
+  const params =
+    "route" in props ? props.route.params : (props as ClienteScreenDirectProps);
+  const { rutaId, clienteId, latitud, longitud, prestamoAutoSeleccionado } = params;
+  const onCerrar = "onCerrar" in props ? props.onCerrar : undefined;
   const { api, logout } = useSession();
   const offline = useOffline();
   const { rutaActiva } = useRutaActiva();
@@ -59,73 +119,52 @@ export function ClienteScreen({ route, navigation }: Props) {
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [modo, setModo] = useState<"pago" | "no_pago" | "editar" | "prestamo" | "evidencias" | null>(null);
+  // Modales (máquina de estados: solo uno activo a la vez).
+  const [modal, setModal] = useState<ModalActivo>("ninguno");
+  const [modalDocumento, setModalDocumento] = useState<"frente" | "reverso">("frente");
+
+  // Acordeón de préstamos.
+  const [prestamoSeleccionadoId, setPrestamoSeleccionadoId] = useState<number | null>(null);
+  const [estadoPrestamo, setEstadoPrestamo] = useState<EstadoCuentaPrestamoPublic | null>(null);
+  const [estadoPrestamoCargando, setEstadoPrestamoCargando] = useState(false);
+
+  // Detalle de cuota.
+  const [detalleCuota, setDetalleCuota] = useState<DetalleCuotaPublic | null>(null);
+  const [detalleCuotaCargando, setDetalleCuotaCargando] = useState(false);
+
+  // Formulario pago/no_pago.
   const [valor, setValor] = useState("");
-  const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>(
-    "efectivo",
-  );
-  const [motivoNoPago, setMotivoNoPago] = useState<
-    (typeof MOTIVOS_NO_PAGO)[number]
-  >("no_esta");
+  const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>("efectivo");
+  const [motivoNoPago, setMotivoNoPago] = useState<(typeof MOTIVOS_NO_PAGO)[number]>("no_esta");
   const [tipoPago, setTipoPago] = useState<"cuota" | "abono">("cuota");
   const [fechaPrometida, setFechaPrometida] = useState("");
   const [valorPrometido, setValorPrometido] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
+
+  // Formulario editar cliente.
   const [edicion, setEdicion] = useState<CambioClienteInput>({});
   const [edicionOriginal, setEdicionOriginal] = useState<CambioClienteInput>({});
   const [editando, setEditando] = useState(false);
-  const [detalleAbierto, setDetalleAbierto] = useState(true);
+
+  // Formulario nuevo préstamo.
   const [prestamoValor, setPrestamoValor] = useState("");
   const [prestamoCuotas, setPrestamoCuotas] = useState("");
   const [prestamoDias, setPrestamoDias] = useState("");
   const [prestamoInteres, setPrestamoInteres] = useState("");
   const [prestamoEnviando, setPrestamoEnviando] = useState(false);
   const [prestamoMensaje, setPrestamoMensaje] = useState<string | null>(null);
-  const [cuotaEditando, setCuotaEditando] = useState<CuotaPublic | null>(null);
-  const [cuotaEliminando, setCuotaEliminando] = useState<CuotaPublic | null>(null);
-  const [cuotaNuevoValor, setCuotaNuevoValor] = useState("");
-  const [cuotaPassword, setCuotaPassword] = useState("");
-  const [cuotaMotivo, setCuotaMotivo] = useState("");
-  const [cuotaEnviando, setCuotaEnviando] = useState(false);
-  const [cuotaMensaje, setCuotaMensaje] = useState<string | null>(null);
 
+  // Evidencias (avatar + documento).
   const evidenciasCliente = useEvidenciasCliente();
   const [evidenciasEnviando, setEvidenciasEnviando] = useState(false);
-  const [evidenciasMensaje, setEvidenciasMensaje] = useState<string | null>(null);
 
-  // Máquina de estados: solo un formulario activo a la vez (A2).
-  function abrirModo(
-    m: "pago" | "no_pago" | "editar" | "prestamo" | "evidencias",
-  ): void {
-    setCuotaEditando(null);
-    setCuotaEliminando(null);
-    setCuotaMensaje(null);
-    setModo(m);
-  }
+  // Mapa "Cómo llegar".
+  const [mapaAbierto, setMapaAbierto] = useState(false);
 
-  async function guardarEvidenciasCliente() {
-    if (evidenciasCliente.evidencias.length === 0) {
-      return;
-    }
-    setEvidenciasEnviando(true);
-    setEvidenciasMensaje(null);
-    try {
-      await api.agregarEvidenciasCliente(rutaId, clienteId, evidenciasCliente.evidencias);
-      setEvidenciasMensaje("Evidencias guardadas.");
-      evidenciasCliente.quitar("foto_facial");
-      evidenciasCliente.quitar("documento_frente");
-      await cargar();
-    } catch (err) {
-      if (apiErrorStatus(err) === 401) {
-        await logout();
-      } else {
-        setEvidenciasMensaje("No se pudieron guardar las evidencias.");
-      }
-    } finally {
-      setEvidenciasEnviando(false);
-    }
-  }
+  // WhatsApp con screenshot.
+  const [compartiendo, setCompartiendo] = useState(false);
+  const refDetalle = useRef<View | null>(null);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -136,6 +175,15 @@ export function ClienteScreen({ route, navigation }: Props) {
       ]);
       setTarjeta(t);
       setPrestamos(p);
+      if (prestamoAutoSeleccionado) {
+        setPrestamoSeleccionadoId((actual) => {
+          if (actual != null) {
+            return actual;
+          }
+          const vigente = p.find((x) => x.estatus === "vigente") ?? p[0];
+          return vigente?.id ?? null;
+        });
+      }
       await guardarCliente(rutaId, clienteId, { tarjeta: t, prestamos: p });
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
@@ -145,6 +193,17 @@ export function ClienteScreen({ route, navigation }: Props) {
         if (cache) {
           setTarjeta(cache.tarjeta);
           setPrestamos(cache.prestamos);
+          if (prestamoAutoSeleccionado) {
+            setPrestamoSeleccionadoId((actual) => {
+              if (actual != null) {
+                return actual;
+              }
+              const vigente =
+                cache.prestamos.find((x) => x.estatus === "vigente") ??
+                cache.prestamos[0];
+              return vigente?.id ?? null;
+            });
+          }
         } else {
           setError("No se pudo cargar el cliente.");
         }
@@ -152,29 +211,86 @@ export function ClienteScreen({ route, navigation }: Props) {
         setError("No se pudo cargar el cliente.");
       }
     }
-  }, [api, rutaId, clienteId, logout]);
+  }, [api, rutaId, clienteId, logout, prestamoAutoSeleccionado]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
   }, [cargar]);
 
-  const prestamoVigente = useMemo(
-    () => prestamos.find((p) => p.estatus === "vigente") ?? prestamos[0],
-    [prestamos],
+  const prestamoSeleccionado = useMemo(
+    () => prestamos.find((p) => p.id === prestamoSeleccionadoId) ?? null,
+    [prestamos, prestamoSeleccionadoId],
   );
 
   const cuotaPorPagar = useMemo(
-    () => prestamoVigente?.cuotas.find(esPendienteOArrasada),
-    [prestamoVigente],
+    () => prestamoSeleccionado?.cuotas.find(esPendienteOArrasada),
+    [prestamoSeleccionado],
   );
 
-  async function enviarVisita() {
-    if (!prestamoVigente) {
-      setMensaje("El cliente no tiene préstamos vigentes.");
+  // Carga el estado de cuenta del préstamo seleccionado (canvas con abonos/saldo).
+  const prestamoDetalleId = prestamoSeleccionado?.id ?? null;
+  useEffect(() => {
+    if (prestamoDetalleId == null) {
       return;
     }
-    if (modo === "pago") {
+    let activo = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- inicio de carga del detalle
+    setEstadoPrestamoCargando(true);
+    api
+      .obtenerEstadoCuentaPrestamo(rutaId, prestamoDetalleId)
+      .then((estado) => {
+        if (activo) {
+          setEstadoPrestamo(estado);
+        }
+      })
+      .catch((err) => {
+        if (apiErrorStatus(err) === 401) {
+          void logout();
+        } else if (activo) {
+          setEstadoPrestamo(null);
+        }
+      })
+      .finally(() => {
+        if (activo) {
+          setEstadoPrestamoCargando(false);
+        }
+      });
+    return () => {
+      activo = false;
+    };
+  }, [api, rutaId, logout, prestamoDetalleId]);
+
+  const proximoCobro = useMemo(() => {
+    const activos = prestamos.filter((p) => p.estatus === "vigente");
+    let total = 0;
+    let cuentasPendientes = 0;
+    for (const p of activos) {
+      const cuota = p.cuotas.find(esPendienteOArrasada);
+      if (cuota) {
+        total += cuota.valorEsperado;
+        cuentasPendientes += 1;
+      }
+    }
+    return { total, cuentasPendientes };
+  }, [prestamos]);
+
+  function onPrestamoPress(id: number) {
+    if (prestamoSeleccionadoId === id) {
+      setPrestamoSeleccionadoId(null);
+      return;
+    }
+    setEstadoPrestamo(null);
+    setEstadoPrestamoCargando(true);
+    setPrestamoSeleccionadoId(id);
+  }
+
+  async function enviarVisita() {
+    if (!prestamoSeleccionado) {
+      setMensaje("Selecciona un préstamo.");
+      return;
+    }
+    if (modal === "pago") {
       if (tipoPago === "cuota" && !cuotaPorPagar) {
         setMensaje("Sin cuotas pendientes para este préstamo.");
         return;
@@ -188,7 +304,7 @@ export function ClienteScreen({ route, navigation }: Props) {
       setEnviando(true);
       setMensaje(null);
       const input = {
-        prestamoId: prestamoVigente.id,
+        prestamoId: prestamoSeleccionado.id,
         clienteId,
         resultado: "pago" as const,
         tipoPago,
@@ -198,7 +314,7 @@ export function ClienteScreen({ route, navigation }: Props) {
       };
       try {
         await api.registrarVisitaPago(rutaId, input);
-        setModo(null);
+        setModal("ninguno");
         setValor("");
         setMensaje("Pago registrado.");
         await cargar();
@@ -210,7 +326,7 @@ export function ClienteScreen({ route, navigation }: Props) {
             `pago-${input.prestamoId}-${input.clienteId}-${input.cuotaId ?? "abono"}`,
           );
           if (encolado) {
-            setModo(null);
+            setModal("ninguno");
             setValor("");
             setMensaje("Guardado sin conexión (se sincronizará).");
           } else {
@@ -246,7 +362,7 @@ export function ClienteScreen({ route, navigation }: Props) {
       setEnviando(true);
       setMensaje(null);
       const input = {
-        prestamoId: prestamoVigente.id,
+        prestamoId: prestamoSeleccionado.id,
         clienteId,
         resultado: "no_pago" as const,
         motivoNoPago,
@@ -255,7 +371,7 @@ export function ClienteScreen({ route, navigation }: Props) {
       };
       try {
         await api.registrarVisitaNoPago(rutaId, input);
-        setModo(null);
+        setModal("ninguno");
         setFechaPrometida("");
         setValorPrometido("");
         setMensaje("Visita registrada.");
@@ -267,7 +383,7 @@ export function ClienteScreen({ route, navigation }: Props) {
             `no_pago-${input.prestamoId}-${input.clienteId}`,
           );
           if (encolado) {
-            setModo(null);
+            setModal("ninguno");
             setFechaPrometida("");
             setValorPrometido("");
             setMensaje("Guardado sin conexión (se sincronizará).");
@@ -283,6 +399,34 @@ export function ClienteScreen({ route, navigation }: Props) {
         setEnviando(false);
       }
     }
+  }
+
+  function abrirPago() {
+    setMensaje(null);
+    setTipoPago("cuota");
+    setMetodoPago("efectivo");
+    setValor(cuotaPorPagar ? String(cuotaPorPagar.valorEsperado) : "");
+    setModal("pago");
+  }
+
+  function abrirNoPago() {
+    setMensaje(null);
+    setMotivoNoPago("no_esta");
+    setFechaPrometida("");
+    setValorPrometido("");
+    setModal("no_pago");
+  }
+
+  function abrirEditar() {
+    setMensaje(null);
+    const actual: CambioClienteInput = {
+      ...edicionDesdeTarjeta(tarjeta as ClienteTarjetaPublic),
+      latitud: typeof latitud === "number" ? latitud : undefined,
+      longitud: typeof longitud === "number" ? longitud : undefined,
+    };
+    setEdicion(actual);
+    setEdicionOriginal(actual);
+    setModal("editar");
   }
 
   async function guardarCambioCliente() {
@@ -303,22 +447,28 @@ export function ClienteScreen({ route, navigation }: Props) {
         setEdicionOriginal({ ...input });
         // A4: reflejar el cambio en la tarjeta local para que cabecera y
         // WhatsApp usen los datos nuevos (antes quedaba stale).
-        setTarjeta((actual) =>
-          actual
-            ? {
-                ...actual,
-                nombre:
-                  input.nombre !== undefined
-                    ? `${input.nombre} ${actual.nombre.split(" ").slice(1).join(" ")}`.trim()
-                    : actual.nombre,
-                negocio: input.negocio !== undefined ? input.negocio : actual.negocio,
-                telefonoWhatsapp:
-                  input.telefonoWhatsapp !== undefined
-                    ? input.telefonoWhatsapp
-                    : actual.telefonoWhatsapp,
-              }
-            : actual,
-        );
+        setTarjeta((actual) => {
+          if (!actual) {
+            return actual;
+          }
+          const [nombreViejo = "", ...apellidosViejos] = actual.nombre.split(" ");
+          const nombreNuevo =
+            input.nombre !== undefined ? input.nombre : nombreViejo;
+          const apellidoNuevo =
+            input.apellido !== undefined
+              ? input.apellido
+              : apellidosViejos.join(" ");
+          return {
+            ...actual,
+            nombre: `${nombreNuevo} ${apellidoNuevo}`.trim(),
+            negocio: input.negocio !== undefined ? input.negocio : actual.negocio,
+            telefonoWhatsapp:
+              input.telefonoWhatsapp !== undefined
+                ? input.telefonoWhatsapp
+                : actual.telefonoWhatsapp,
+          };
+        });
+        setModal("ninguno");
         setMensaje("Cambio enviado (se sincronizará).");
       } else {
         setMensaje("Ya hay un cambio pendiente por sincronizar.");
@@ -326,6 +476,17 @@ export function ClienteScreen({ route, navigation }: Props) {
     } finally {
       setEditando(false);
     }
+  }
+
+  function abrirNuevoPrestamo() {
+    setMensaje(null);
+    setPrestamoMensaje(null);
+    setPrestamoInteres(rutaActiva ? String(rutaActiva.tipoInteres) : "");
+    setPrestamoCuotas(rutaActiva ? String(rutaActiva.numCuotas) : "");
+    const cupo = rutaActiva?.config.cupoDefault;
+    setPrestamoValor(cupo ? String(cupo) : "");
+    setPrestamoDias("");
+    setModal("prestamo");
   }
 
   async function guardarPrestamo() {
@@ -351,57 +512,98 @@ export function ClienteScreen({ route, navigation }: Props) {
           ? { tipoInteres: Number(prestamoInteres) }
           : {}),
       });
-      setModo(null);
+      setModal("ninguno");
       setPrestamoValor("");
       setPrestamoCuotas("");
       setPrestamoDias("");
       setPrestamoInteres("");
       setPrestamoMensaje("Préstamo registrado.");
       await cargar();
-    } catch {
-      setPrestamoMensaje("No se pudo registrar el préstamo.");
+    } catch (err) {
+      if (esErrorDeRed(err)) {
+        setPrestamoMensaje("Sin conexión. El préstamo no se guardó; revisa tu conexión e inténtalo de nuevo.");
+      } else {
+        setPrestamoMensaje("No se pudo registrar el préstamo.");
+      }
     } finally {
       setPrestamoEnviando(false);
     }
   }
 
-  async function guardarCuota() {
-    if (!cuotaPassword.trim() || !cuotaMotivo.trim()) {
-      setCuotaMensaje("La contraseña y el motivo son obligatorios.");
+  async function abrirDetalleCuota(cuotaId: number) {
+    if (!prestamoSeleccionado) {
       return;
     }
-    setCuotaEnviando(true);
-    setCuotaMensaje(null);
+    setDetalleCuota(null);
+    setDetalleCuotaCargando(true);
+    setModal("cuota");
     try {
-      if (cuotaEditando) {
-        const valor = Number(cuotaNuevoValor);
-        if (!cuotaNuevoValor.trim() || !Number.isFinite(valor) || valor <= 0) {
-          setCuotaMensaje("Ingresa un valor de cuota válido.");
-          setCuotaEnviando(false);
-          return;
-        }
-        await api.editarCuota(rutaId, cuotaEditando.id, {
-          valorEsperado: valor,
-          password: cuotaPassword,
-          motivo: cuotaMotivo,
-        });
-        setCuotaEditando(null);
-      } else if (cuotaEliminando) {
-        await api.eliminarCuota(rutaId, cuotaEliminando.id, {
-          password: cuotaPassword,
-          motivo: cuotaMotivo,
-        });
-        setCuotaEliminando(null);
-      }
-      setCuotaPassword("");
-      setCuotaMotivo("");
-      setCuotaNuevoValor("");
-      setCuotaMensaje("Cuota actualizada.");
-      await cargar();
+      setDetalleCuota(
+        await api.detalleCuota(rutaId, prestamoSeleccionado.id, cuotaId),
+      );
     } catch {
-      setCuotaMensaje("No se pudo actualizar la cuota.");
+      setDetalleCuota(null);
     } finally {
-      setCuotaEnviando(false);
+      setDetalleCuotaCargando(false);
+    }
+  }
+
+  async function elegirEvidencia(
+    campo: "foto_facial" | "documento_frente",
+    fuente: FuenteEvidencia,
+  ) {
+    const evidencia = await evidenciasCliente.agregar(campo, fuente);
+    if (evidencia) {
+      await guardarEvidencia(evidencia);
+    }
+  }
+
+  async function guardarEvidencia(evidencia: {
+    campo: "foto_facial" | "documento_frente";
+    uri: string;
+    name: string;
+    type: string;
+  }) {
+    setEvidenciasEnviando(true);
+    setMensaje(null);
+    try {
+      await api.agregarEvidenciasCliente(rutaId, clienteId, [evidencia]);
+      evidenciasCliente.quitar(evidencia.campo);
+      setModal("ninguno");
+      setMensaje(
+        evidencia.campo === "foto_facial"
+          ? "Foto actualizada."
+          : "Documento actualizado.",
+      );
+      await cargar();
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setMensaje("No se pudo guardar la evidencia.");
+      }
+    } finally {
+      setEvidenciasEnviando(false);
+    }
+  }
+
+  async function compartirDetalle() {
+    if (!prestamoSeleccionado || !tarjeta) {
+      return;
+    }
+    setCompartiendo(true);
+    try {
+      const uri = await captureRef(refDetalle, { format: "png", quality: 0.8 });
+      await shareAsync(uri, {
+        mimeType: "image/png",
+        dialogTitle: "Estado de cuenta del préstamo",
+      });
+    } catch {
+      // Fallback: si no se puede capturar/compartir, envía el reporte de texto.
+      const texto = textoReportePrestamo(prestamoSeleccionado, tarjeta);
+      await Linking.openURL(enlaceWhatsApp(tarjeta.telefonoWhatsapp, texto));
+    } finally {
+      setCompartiendo(false);
     }
   }
 
@@ -409,683 +611,1085 @@ export function ClienteScreen({ route, navigation }: Props) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
+  const tieneCoordenadas =
+    typeof latitud === "number" && typeof longitud === "number";
+  const prestamosVisibles =
+    prestamoSeleccionadoId == null
+      ? prestamos
+      : prestamos.filter((p) => p.id === prestamoSeleccionadoId);
+  const cuotasCanvas = estadoPrestamo ? clasificarCuotas(estadoPrestamo.cuotas) : [];
+  const docFrenteUrl = tarjeta.documentoFrenteUrl ?? null;
+  const latNegocio = edicion.latitud ?? COORD_DEFAULT.lat;
+  const lngNegocio = edicion.longitud ?? COORD_DEFAULT.lng;
+  const latDomicilio = edicion.latitudDomicilio ?? COORD_DEFAULT.lat;
+  const lngDomicilio = edicion.longitudDomicilio ?? COORD_DEFAULT.lng;
+
   return (
-    <ScrollView style={styles.contenedor} contentContainerStyle={styles.scroll}>
-      <View style={styles.tarjetaInfo}>
-        {tarjeta.fotoUrl ? <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={72} /> : null}
-        <View style={styles.fila}>
-          <Text style={styles.nombre}>{tarjeta.nombre}</Text>
-          <ColorBadge color={tarjeta.color} />
+    <>
+      <ScrollView style={styles.contenedor} contentContainerStyle={styles.scroll}>
+        {/* Header: enlace Editar a la izquierda + título */}
+        <View style={styles.header}>
+          <Pressable testID="btn-editar-cliente" style={styles.headerAccion} onPress={abrirEditar}>
+            <MaterialIcons name="edit" size={16} color="#2563eb" />
+            <Text style={styles.headerAccionTexto}>Editar</Text>
+          </Pressable>
+          <Text style={styles.headerTitulo}>Detalle del cliente</Text>
+          {onCerrar ? (
+            <Pressable testID="btn-cerrar-detalle" style={styles.headerAccionDerecha} onPress={onCerrar}>
+              <MaterialIcons name="close" size={22} color="#475569" />
+            </Pressable>
+          ) : (
+            <View style={styles.headerAccionDerecha} />
+          )}
         </View>
-        {tarjeta.negocio ? (
-          <Text style={styles.detalle}>Negocio: {tarjeta.negocio}</Text>
+
+        {mensaje && modal === "ninguno" ? (
+          <View testID="banner-mensaje" style={styles.banner}>
+            <Text style={styles.bannerTexto}>{mensaje}</Text>
+          </View>
         ) : null}
-        <Text style={styles.detalle}>WhatsApp: {tarjeta.telefonoWhatsapp}</Text>
-        {tarjeta.tipoPago ? (
-          <Text style={styles.detalle}>Tipo de pago: {tarjeta.tipoPago}</Text>
-        ) : null}
-        <Text style={styles.detalle}>
-          Saldo pendiente: {tarjeta.saldoPendiente} | Mora: {tarjeta.diasMora} días
-        </Text>
-        {typeof latitud === "number" && typeof longitud === "number" ? (
-          <>
+
+        {/* Tarjeta principal del cliente */}
+        <View style={styles.tarjeta}>
+          <View style={styles.filaSuperior}>
+            <Pressable testID="btn-avatar" onPress={() => setModal("avatar")}>
+              <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={64} />
+            </Pressable>
+
+            {/* Tarjeta de documento: frontal y reverso */}
+            <View style={styles.documento}>
+              <View style={styles.documentoFilaTitulo}>
+                <Text style={styles.documentoTitulo}>Documento</Text>
+                <ColorBadge color={tarjeta.color} />
+              </View>
+              <View style={styles.documentoMiniaturas}>
+                <Pressable
+                  testID="doc-frente"
+                  style={styles.miniatura}
+                  onPress={() => {
+                    setModalDocumento("frente");
+                    setModal("documento");
+                  }}
+                >
+                  {docFrenteUrl ? (
+                    <Image
+                      source={{ uri: docFrenteUrl }}
+                      style={styles.miniaturaImagen}
+                    />
+                  ) : (
+                    <View style={styles.miniaturaPlaceholder}>
+                      <MaterialIcons name="badge" size={22} color="#94a3b8" />
+                    </View>
+                  )}
+                  <View
+                    testID="doc-frente-badge"
+                    style={[
+                      styles.badgeDoc,
+                      docFrenteUrl ? styles.badgeVerificado : styles.badgePendiente,
+                    ]}
+                  >
+                    {docFrenteUrl ? (
+                      <MaterialIcons name="check" size={11} color="#16a34a" />
+                    ) : null}
+                    <Text
+                      style={[
+                        docFrenteUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
+                      ]}
+                    >
+                      {docFrenteUrl ? "Verificado" : "Pendiente"}
+                    </Text>
+                  </View>
+                  <Text style={styles.miniaturaEtiqueta}>Frente</Text>
+                </Pressable>
+                <Pressable
+                  testID="doc-reverso"
+                  style={styles.miniatura}
+                  onPress={() => {
+                    setModalDocumento("reverso");
+                    setModal("documento");
+                  }}
+                >
+                  <View style={styles.miniaturaPlaceholder}>
+                    <MaterialIcons name="badge" size={22} color="#94a3b8" />
+                  </View>
+                  <View
+                    testID="doc-reverso-badge"
+                    style={[styles.badgeDoc, styles.badgePendiente]}
+                  >
+                    <Text style={styles.badgePendienteTexto}>Pendiente</Text>
+                  </View>
+                  <Text style={styles.miniaturaEtiqueta}>Reverso</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+
+          <Text style={styles.nombre}>{tarjeta.nombre}</Text>
+          {tarjeta.negocio ? (
+            <Text style={styles.detalle}>Negocio: {tarjeta.negocio}</Text>
+          ) : null}
+          <Text style={styles.detalle}>WhatsApp: {tarjeta.telefonoWhatsapp}</Text>
+          {tarjeta.tipoPago ? (
+            <Text style={styles.detalle}>Tipo de pago: {tarjeta.tipoPago}</Text>
+          ) : null}
+          <Text style={styles.detalle}>
+            Saldo pendiente: {tarjeta.saldoPendiente} | Mora: {tarjeta.diasMora} días
+          </Text>
+
+          {tieneCoordenadas ? (
+            <View style={styles.footerTarjeta}>
+              <Pressable
+                testID="btn-como-llegar"
+                style={[styles.comoLlegar, mapaAbierto && styles.comoLlegarActivo]}
+                onPress={() => setMapaAbierto((abierto) => !abierto)}
+              >
+                <MaterialIcons name="directions" size={16} color="#0891b2" />
+                <Text style={styles.comoLlegarTexto}>Cómo llegar</Text>
+                <MaterialIcons
+                  name={mapaAbierto ? "expand-less" : "expand-more"}
+                  size={18}
+                  color="#0891b2"
+                />
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+
+        {mapaAbierto && tieneCoordenadas ? (
+          <View style={styles.seccionMapa}>
             <MapaCliente latitud={latitud} longitud={longitud} nombre={tarjeta.nombre} />
             <View style={styles.navegacion}>
-            <Pressable
-              testID="navegar-maps"
-              style={[styles.botonPrimario, styles.botonNavegar]}
-              onPress={() => abrirNavegacion(latitud, longitud, "maps")}
-            >
-              <Text style={styles.botonTexto}>Google Maps</Text>
-            </Pressable>
-            <Pressable
-              testID="navegar-waze"
-              style={[styles.botonPrimario, styles.botonNavegar]}
-              onPress={() => abrirNavegacion(latitud, longitud, "waze")}
-            >
-              <Text style={styles.botonTexto}>Waze</Text>
-            </Pressable>
+              <Pressable
+                testID="navegar-maps"
+                style={[styles.botonNavegar]}
+                onPress={() => abrirNavegacion(latitud, longitud, "maps")}
+              >
+                <MaterialIcons name="map" size={16} color="#ffffff" />
+                <Text style={styles.botonNavegarTexto}>Google Maps</Text>
+              </Pressable>
+              <Pressable
+                testID="navegar-waze"
+                style={[styles.botonNavegar, styles.botonWaze]}
+                onPress={() => abrirNavegacion(latitud, longitud, "waze")}
+              >
+                <MaterialIcons name="navigation" size={16} color="#ffffff" />
+                <Text style={styles.botonNavegarTexto}>Waze</Text>
+              </Pressable>
+            </View>
           </View>
-          </>
         ) : null}
-      </View>
 
-      {prestamos.length > 0 ? (
+        {/* Notificación de próximo cobro */}
+        {proximoCobro.total > 0 ? (
+          <View testID="notif-proximo-cobro" style={styles.notificacion}>
+            <MaterialIcons name="notifications-active" size={20} color="#2563eb" />
+            <View style={styles.notificacionContenido}>
+              <Text style={styles.notificacionTitulo}>Próximo cobro</Text>
+              <Text style={styles.notificacionDetalle}>
+                ${proximoCobro.total} · {proximoCobro.cuentasPendientes}{" "}
+                {proximoCobro.cuentasPendientes === 1 ? "préstamo" : "préstamos"} con
+                cuota por cobrar
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
+        {/* Sección de préstamos (acordeón) */}
         <View style={styles.seccion}>
-          <Text style={styles.seccionTitulo}>Préstamos</Text>
-          {prestamos.map((p) => (
+          <View style={styles.seccionHeader}>
             <Pressable
-              key={p.id}
-              testID={`prestamo-item-${p.id}`}
-              style={styles.prestamoItem}
-              onPress={() =>
-                navigation.navigate("Prestamo", {
-                  rutaId,
-                  prestamoId: p.id,
-                  clienteNombre: tarjeta.nombre,
-                  telefonoWhatsapp: tarjeta.telefonoWhatsapp,
-                  valor: p.valor,
-                  numCuotas: p.numCuotas,
-                })
-              }
+              testID="btn-nuevo-prestamo"
+              style={styles.botonNuevo}
+              onPress={abrirNuevoPrestamo}
             >
-              <View style={styles.prestamoInfo}>
-                <Text style={styles.prestamoValor}>
-                  {p.valor} · {p.numCuotas} cuotas
+              <MaterialIcons name="add" size={16} color="#2563eb" />
+              <Text style={styles.botonNuevoTexto}>+ Nuevo</Text>
+            </Pressable>
+            <Text style={styles.seccionTitulo}>Préstamos</Text>
+            <View style={styles.seccionEspacio} />
+          </View>
+
+          {prestamosVisibles.length === 0 ? (
+            <Text style={styles.sinPrestamos}>Este cliente no tiene préstamos.</Text>
+          ) : (
+            prestamosVisibles.map((p) => {
+              const seleccionado = p.id === prestamoSeleccionadoId;
+              return (
+                <Pressable
+                  key={p.id}
+                  testID={`prestamo-item-${p.id}`}
+                  style={[styles.prestamoItem, seleccionado && styles.prestamoItemSeleccionado]}
+                  onPress={() => onPrestamoPress(p.id)}
+                >
+                  <View style={styles.prestamoInfo}>
+                    <Text style={styles.prestamoValor}>
+                      {p.valor} · {p.numCuotas} cuotas
+                    </Text>
+                    <Text style={styles.prestamoDetalle}>
+                      {p.tipoInteres}% interés · cada {p.diasEntreCuotas} días
+                    </Text>
+                    <Text style={styles.prestamoEstatus}>{p.estatus}</Text>
+                  </View>
+                  {seleccionado ? (
+                    <View testID={`check-prestamo-${p.id}`}>
+                      <MaterialIcons name="check-circle" size={22} color="#16a34a" />
+                    </View>
+                  ) : null}
+                  <ColorBadge
+                    color={
+                      p.estatus === "vigente" || p.estatus === "liquidado"
+                        ? "verde"
+                        : "blanco"
+                    }
+                  />
+                </Pressable>
+              );
+            })
+          )}
+        </View>
+
+        {/* Detalle del préstamo seleccionado */}
+        {prestamoSeleccionado ? (
+          <View ref={refDetalle} collapsable={false} testID="detalle-prestamo" style={styles.detallePrestamo}>
+            <Text style={styles.detalleTitulo}>Préstamo #{prestamoSeleccionado.id}</Text>
+            {estadoPrestamoCargando ? (
+              <ActivityIndicator style={styles.detalleCarga} />
+            ) : estadoPrestamo ? (
+              <>
+                <Text style={styles.detalleLinea}>
+                  Valor: {estadoPrestamo.valor} {estadoPrestamo.moneda} · Cuotas:{" "}
+                  {estadoPrestamo.numCuotas} · Interés: {estadoPrestamo.tipoInteres}%
                 </Text>
-                <Text style={styles.prestamoEstatus}>{p.estatus}</Text>
-              </View>
-              <ColorBadge
-                color={
-                  p.estatus === "vigente" || p.estatus === "liquidado"
-                    ? "verde"
-                    : "blanco"
-                }
-              />
+                <Text style={styles.detalleLinea}>
+                  Abonos totales: {estadoPrestamo.totalAbonos} · Saldo:{" "}
+                  {estadoPrestamo.saldoPendiente}
+                </Text>
+
+                <View style={styles.leyenda}>
+                  {(
+                    [
+                      ["pagada", "Pagada"],
+                      ["actual", "Cuota actual"],
+                      ["en_mora", "En mora"],
+                      ["futura", "Futura"],
+                    ] as [TipoCuotaCanvas, string][]
+                  ).map(([tipo, texto]) => (
+                    <View key={tipo} style={styles.leyendaItem}>
+                      <View
+                        style={[styles.leyendaColor, { backgroundColor: COLORES_CANVAS[tipo].borde }]}
+                      />
+                      <Text style={styles.leyendaTexto}>{texto}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <View style={styles.canvas}>
+                  {cuotasCanvas.map((cuota) => {
+                    const color = COLORES_CANVAS[cuota.tipo];
+                    return (
+                      <Pressable
+                        key={cuota.cuotaId}
+                        testID={`cuota-${cuota.numeroCuota}`}
+                        style={[
+                          styles.cuadro,
+                          { backgroundColor: color.fondo, borderColor: color.borde },
+                        ]}
+                        onPress={() => void abrirDetalleCuota(cuota.cuotaId)}
+                      >
+                        <Text style={styles.cuadroNumero}>{cuota.numeroCuota}</Text>
+                        <Text style={styles.cuadroValor}>
+                          {cuota.valorEsperado} {estadoPrestamo.moneda}
+                        </Text>
+                        <Text style={styles.cuadroFecha}>{cuota.fechaVencimiento}</Text>
+                        {cuota.saldoPendiente > 0 && cuota.saldoPendiente < cuota.valorEsperado ? (
+                          <Text style={styles.cuadroSaldo}>
+                            Falta: {cuota.saldoPendiente}
+                          </Text>
+                        ) : null}
+                        {cuota.abonosAcumulados > 0 ? (
+                          <Text style={styles.cuadroAbono}>
+                            Abonado: {cuota.abonosAcumulados}
+                          </Text>
+                        ) : null}
+                        <View style={[styles.cuadroEtiqueta, { borderColor: color.borde }]}>
+                          <Text style={[styles.cuadroEtiquetaTexto, { color: color.borde }]}>
+                            {ETIQUETA_CANVAS[cuota.tipo]}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            ) : (
+              <Text style={styles.detalleError}>
+                No se pudo cargar el detalle del préstamo.
+              </Text>
+            )}
+
+            <Pressable
+              testID="btn-whatsapp"
+              style={[styles.botonWhatsApp, compartiendo && styles.deshabilitado]}
+              disabled={compartiendo}
+              onPress={() => void compartirDetalle()}
+            >
+              {compartiendo ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <>
+                  <MaterialIcons name="chat" size={16} color="#ffffff" />
+                  <Text style={styles.botonWhatsAppTexto}>Enviar por WhatsApp</Text>
+                </>
+              )}
+            </Pressable>
+
+            {/* Acciones solo con préstamo seleccionado */}
+            <View style={styles.acciones}>
+              <Pressable
+                testID="btn-pago"
+                style={[styles.botonAccion, styles.botonPago]}
+                onPress={abrirPago}
+              >
+                <Text style={styles.botonAccionTexto}>Registrar pago</Text>
+                <MaterialIcons name="check" size={18} color="#ffffff" />
+              </Pressable>
+              <Pressable
+                testID="btn-no-pago"
+                style={[styles.botonAccion, styles.botonNoPago]}
+                onPress={abrirNoPago}
+              >
+                <Text style={styles.botonAccionTexto}>Registrar no pago</Text>
+                <MaterialIcons name="close" size={18} color="#ffffff" />
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+      </ScrollView>
+
+      {/* Modal: editar cliente */}
+      <ModalConFooter
+        visible={modal === "editar"}
+        titulo="Editar cliente"
+        onCerrar={() => {
+          setModal("ninguno");
+          setMensaje(null);
+        }}
+        onCancelar={() => {
+          setModal("ninguno");
+          setMensaje(null);
+        }}
+        onConfirmar={() => void guardarCambioCliente()}
+        confirmando={editando}
+        confirmarTestID="guardar-cambio-cliente"
+        testID="editar-cliente-form"
+      >
+        <Text style={styles.label}>Nombre</Text>
+        <TextInput
+          testID="editar-nombre"
+          style={styles.input}
+          placeholder="Nombre"
+          value={edicion.nombre ?? ""}
+          onChangeText={(v) => setEdicion((e) => ({ ...e, nombre: v }))}
+        />
+        <Text style={styles.label}>Apellido</Text>
+        <TextInput
+          testID="editar-apellido"
+          style={styles.input}
+          placeholder="Apellido"
+          value={edicion.apellido ?? ""}
+          onChangeText={(v) => setEdicion((e) => ({ ...e, apellido: v }))}
+        />
+        <Text style={styles.label}>Negocio</Text>
+        <TextInput
+          testID="editar-negocio"
+          style={styles.input}
+          placeholder="Negocio"
+          value={edicion.negocio ?? ""}
+          onChangeText={(v) => setEdicion((e) => ({ ...e, negocio: v }))}
+        />
+        <Text style={styles.label}>WhatsApp</Text>
+        <TextInput
+          testID="editar-telefono"
+          style={styles.input}
+          placeholder="WhatsApp"
+          keyboardType="phone-pad"
+          value={edicion.telefonoWhatsapp ?? ""}
+          onChangeText={(v) => setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))}
+        />
+        <Text style={styles.label}>Ubicación del negocio</Text>
+        <MapaPin
+          testID="mapa-pin-negocio"
+          latitud={latNegocio}
+          longitud={lngNegocio}
+          onChange={(latN, lngN) =>
+            setEdicion((e) => ({ ...e, latitud: latN, longitud: lngN }))
+          }
+        />
+        <View style={styles.filaCoordenadas}>
+          <TextInput
+            testID="editar-latitud"
+            style={[styles.input, styles.inputCoordenada]}
+            placeholder="Latitud negocio"
+            keyboardType="decimal-pad"
+            value={edicion.latitud != null ? String(edicion.latitud) : ""}
+            onChangeText={(v) =>
+              setEdicion((e) => ({ ...e, latitud: coordenadaDeTexto(v) }))
+            }
+          />
+          <TextInput
+            testID="editar-longitud"
+            style={[styles.input, styles.inputCoordenada]}
+            placeholder="Longitud negocio"
+            keyboardType="decimal-pad"
+            value={edicion.longitud != null ? String(edicion.longitud) : ""}
+            onChangeText={(v) =>
+              setEdicion((e) => ({ ...e, longitud: coordenadaDeTexto(v) }))
+            }
+          />
+        </View>
+        <Text style={styles.label}>Ubicación del domicilio</Text>
+        <MapaPin
+          testID="mapa-pin-domicilio"
+          latitud={latDomicilio}
+          longitud={lngDomicilio}
+          onChange={(latD, lngD) =>
+            setEdicion((e) => ({
+              ...e,
+              latitudDomicilio: latD,
+              longitudDomicilio: lngD,
+            }))
+          }
+        />
+        <View style={styles.filaCoordenadas}>
+          <TextInput
+            testID="editar-latitud-domicilio"
+            style={[styles.input, styles.inputCoordenada]}
+            placeholder="Latitud domicilio"
+            keyboardType="decimal-pad"
+            value={edicion.latitudDomicilio != null ? String(edicion.latitudDomicilio) : ""}
+            onChangeText={(v) =>
+              setEdicion((e) => ({ ...e, latitudDomicilio: coordenadaDeTexto(v) }))
+            }
+          />
+          <TextInput
+            testID="editar-longitud-domicilio"
+            style={[styles.input, styles.inputCoordenada]}
+            placeholder="Longitud domicilio"
+            keyboardType="decimal-pad"
+            value={edicion.longitudDomicilio != null ? String(edicion.longitudDomicilio) : ""}
+            onChangeText={(v) =>
+              setEdicion((e) => ({ ...e, longitudDomicilio: coordenadaDeTexto(v) }))
+            }
+          />
+        </View>
+        {mensaje && modal === "editar" ? (
+          <Text testID="mensaje-editar" style={styles.mensajeModal}>
+            {mensaje}
+          </Text>
+        ) : null}
+      </ModalConFooter>
+
+      {/* Modal: nuevo préstamo */}
+      <ModalConFooter
+        visible={modal === "prestamo"}
+        titulo="Nuevo préstamo"
+        onCerrar={() => setModal("ninguno")}
+        onCancelar={() => setModal("ninguno")}
+        onConfirmar={() => void guardarPrestamo()}
+        confirmando={prestamoEnviando}
+        confirmarTestID="guardar-prestamo"
+        testID="prestamo-form"
+      >
+        <Text style={styles.label}>Valor</Text>
+        <TextInput
+          testID="prestamo-valor"
+          style={styles.input}
+          placeholder="Valor"
+          keyboardType="decimal-pad"
+          value={prestamoValor}
+          onChangeText={setPrestamoValor}
+        />
+        <Text style={styles.label}>Número de cuotas</Text>
+        <TextInput
+          testID="prestamo-cuotas"
+          style={styles.input}
+          placeholder="Número de cuotas"
+          keyboardType="number-pad"
+          value={prestamoCuotas}
+          onChangeText={setPrestamoCuotas}
+        />
+        <Text style={styles.label}>Días entre cuotas</Text>
+        <TextInput
+          testID="prestamo-dias"
+          style={styles.input}
+          placeholder="Días entre cuotas"
+          keyboardType="number-pad"
+          value={prestamoDias}
+          onChangeText={setPrestamoDias}
+        />
+        <Text style={styles.label}>Tipo de interés (%) — opcional</Text>
+        <TextInput
+          testID="prestamo-interes"
+          style={styles.input}
+          placeholder="Tipo de interés (%) — opcional"
+          keyboardType="decimal-pad"
+          value={prestamoInteres}
+          onChangeText={setPrestamoInteres}
+        />
+        {prestamoMensaje ? <Text style={styles.mensaje}>{prestamoMensaje}</Text> : null}
+      </ModalConFooter>
+
+      {/* Modal: avatar */}
+      <ModalConFooter
+        visible={modal === "avatar"}
+        titulo="Foto del cliente"
+        onCerrar={() => {
+          setModal("ninguno");
+          evidenciasCliente.resetError();
+        }}
+        testID="avatar-modal"
+      >
+        {tarjeta.fotoUrl ? (
+          <Image
+            testID="avatar-foto-actual"
+            source={{ uri: tarjeta.fotoUrl }}
+            style={styles.evidenciaPreview}
+          />
+        ) : (
+          <View style={styles.evidenciaVacio}>
+            <MaterialIcons name="person" size={32} color="#94a3b8" />
+            <Text style={styles.evidenciaVacioTexto}>Este cliente no tiene foto.</Text>
+          </View>
+        )}
+        <Pressable
+          testID="avatar-libreria"
+          style={[styles.botonEvidencia]}
+          disabled={evidenciasEnviando || evidenciasCliente.cargando}
+          onPress={() => void elegirEvidencia("foto_facial", "libreria")}
+        >
+          <MaterialIcons name="photo-library" size={16} color="#2563eb" />
+          <Text style={styles.botonEvidenciaTexto}>Cargar desde librería</Text>
+        </Pressable>
+        <Pressable
+          testID="avatar-camara"
+          style={styles.botonEvidencia}
+          disabled={evidenciasEnviando || evidenciasCliente.cargando}
+          onPress={() => void elegirEvidencia("foto_facial", "camara")}
+        >
+          <MaterialIcons name="photo-camera" size={16} color="#2563eb" />
+          <Text style={styles.botonEvidenciaTexto}>Tomar foto con cámara</Text>
+        </Pressable>
+        {evidenciasCliente.cargando || evidenciasEnviando ? (
+          <ActivityIndicator />
+        ) : null}
+        {evidenciasCliente.error ? (
+          <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
+        ) : null}
+      </ModalConFooter>
+
+      {/* Modal: documento */}
+      <ModalConFooter
+        visible={modal === "documento"}
+        titulo={modalDocumento === "frente" ? "Documento — frente" : "Documento — reverso"}
+        onCerrar={() => {
+          setModal("ninguno");
+          evidenciasCliente.resetError();
+        }}
+        testID="documento-modal"
+      >
+        {modalDocumento === "frente" && docFrenteUrl ? (
+          <Image
+            testID="documento-foto-actual"
+            source={{ uri: docFrenteUrl }}
+            style={styles.evidenciaPreview}
+          />
+        ) : (
+          <View style={styles.evidenciaVacio}>
+            <MaterialIcons name="badge" size={32} color="#94a3b8" />
+            <Text style={styles.evidenciaVacioTexto}>
+              {modalDocumento === "frente"
+                ? "El frente del documento aún no está cargado."
+                : "El reverso del documento aún no está disponible."}
+            </Text>
+          </View>
+        )}
+        <Pressable
+          testID="documento-libreria"
+          style={styles.botonEvidencia}
+          disabled={evidenciasEnviando || evidenciasCliente.cargando}
+          onPress={() => void elegirEvidencia("documento_frente", "libreria")}
+        >
+          <MaterialIcons name="photo-library" size={16} color="#2563eb" />
+          <Text style={styles.botonEvidenciaTexto}>Cargar desde librería</Text>
+        </Pressable>
+        <Pressable
+          testID="documento-camara"
+          style={styles.botonEvidencia}
+          disabled={evidenciasEnviando || evidenciasCliente.cargando}
+          onPress={() => void elegirEvidencia("documento_frente", "camara")}
+        >
+          <MaterialIcons name="photo-camera" size={16} color="#2563eb" />
+          <Text style={styles.botonEvidenciaTexto}>Tomar foto con cámara</Text>
+        </Pressable>
+        {evidenciasCliente.cargando || evidenciasEnviando ? (
+          <ActivityIndicator />
+        ) : null}
+        {evidenciasCliente.error ? (
+          <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
+        ) : null}
+      </ModalConFooter>
+
+      {/* Modal: detalle de cuota */}
+      <ModalConFooter
+        visible={modal === "cuota"}
+        titulo="Detalle de cuota"
+        onCerrar={() => setModal("ninguno")}
+        onCancelar={() => setModal("ninguno")}
+        labelCancelar="Cerrar"
+        testID="cuota-dialog"
+      >
+        {detalleCuotaCargando ? (
+          <ActivityIndicator />
+        ) : detalleCuota ? (
+          <>
+            <View style={styles.cuotaResumen}>
+              <Text style={styles.cuotaLinea}>
+                Cuota {detalleCuota.numeroCuota} — {detalleCuota.valorEsperado} (
+                {detalleCuota.estatus})
+              </Text>
+              <Text style={styles.cuotaFecha}>Vence {detalleCuota.fechaVencimiento}</Text>
+            </View>
+            <Text style={styles.cuotaSubtitulo}>Pagos</Text>
+            {detalleCuota.pagos.length === 0 ? (
+              <Text style={styles.cuotaVacio}>Sin pagos registrados.</Text>
+            ) : (
+              detalleCuota.pagos.map((pago) => (
+                <View key={pago.id} style={styles.pagoItem}>
+                  <Text style={styles.pagoTexto}>
+                    ${pago.valor} · {pago.metodoPago ?? "—"}
+                  </Text>
+                  <Text style={styles.pagoFecha}>{pago.fecha}</Text>
+                </View>
+              ))
+            )}
+            <Text style={styles.cuotaLinea}>
+              Abonos acumulados: {detalleCuota.abonosAcumulados}
+            </Text>
+            <Text style={styles.cuotaLinea}>
+              Saldo pendiente: {detalleCuota.saldoPendiente}
+            </Text>
+            {detalleCuota.ultimaVisita ? (
+              <>
+                <Text style={styles.cuotaSubtitulo}>Última visita</Text>
+                <Text style={styles.cuotaLinea}>
+                  Resultado: {detalleCuota.ultimaVisita.resultado}
+                  {detalleCuota.ultimaVisita.motivoNoPago
+                    ? ` (${detalleCuota.ultimaVisita.motivoNoPago})`
+                    : ""}{" "}
+                  · {detalleCuota.ultimaVisita.fecha}
+                </Text>
+              </>
+            ) : null}
+          </>
+        ) : (
+          <Text style={styles.errorTexto}>No se pudo cargar el detalle de la cuota.</Text>
+        )}
+      </ModalConFooter>
+
+      {/* Modal: registrar pago */}
+      <ModalConFooter
+        visible={modal === "pago"}
+        titulo="Registrar pago"
+        onCerrar={() => {
+          setModal("ninguno");
+          setMensaje(null);
+        }}
+        onCancelar={() => {
+          setModal("ninguno");
+          setMensaje(null);
+        }}
+        onConfirmar={() => void enviarVisita()}
+        confirmando={enviando}
+        confirmarTestID="guardar-visita"
+        testID="form-pago"
+      >
+        <Text style={styles.label}>Tipo</Text>
+        <View style={styles.chips}>
+          <Pressable
+            testID="tipo-cuota"
+            style={[styles.chip, tipoPago === "cuota" && styles.chipActivo]}
+            onPress={() => setTipoPago("cuota")}
+          >
+            <Text style={tipoPago === "cuota" ? styles.chipTextoActivo : styles.chipTexto}>
+              Pago de cuota
+            </Text>
+          </Pressable>
+          <Pressable
+            testID="tipo-abono"
+            style={[styles.chip, tipoPago === "abono" && styles.chipActivo]}
+            onPress={() => setTipoPago("abono")}
+          >
+            <Text style={tipoPago === "abono" ? styles.chipTextoActivo : styles.chipTexto}>
+              Abono parcial
+            </Text>
+          </Pressable>
+        </View>
+        {tipoPago === "cuota" && cuotaPorPagar ? (
+          <Text style={styles.detalle}>
+            Cuota {cuotaPorPagar.numeroCuota} — {cuotaPorPagar.valorEsperado}
+          </Text>
+        ) : null}
+        <Text style={styles.label}>Valor</Text>
+        <TextInput
+          testID="pago-valor"
+          style={styles.input}
+          placeholder="Valor"
+          keyboardType="decimal-pad"
+          value={valor}
+          onChangeText={setValor}
+        />
+        <Text style={styles.label}>Método</Text>
+        <View style={styles.chips}>
+          {METODOS_PAGO.map((metodo) => (
+            <Pressable
+              key={metodo}
+              style={[styles.chip, metodoPago === metodo && styles.chipActivo]}
+              onPress={() => setMetodoPago(metodo)}
+            >
+              <Text style={metodoPago === metodo ? styles.chipTextoActivo : styles.chipTexto}>
+                {metodo}
+              </Text>
             </Pressable>
           ))}
         </View>
-      ) : null}
-
-      {prestamoVigente && cuotaPorPagar ? (
-        <View style={styles.seccion}>
-          <Text style={styles.seccionTitulo}>Próxima cuota</Text>
-          <Text style={styles.detalle}>
-            Cuota {cuotaPorPagar.numeroCuota} — {cuotaPorPagar.valorEsperado}{" "}
-            ({cuotaPorPagar.estatus})
+        {mensaje && modal === "pago" ? (
+          <Text testID="mensaje-pago" style={styles.mensajeModal}>
+            {mensaje}
           </Text>
-        </View>
-      ) : prestamoVigente ? (
-        <Text style={styles.sinCuotas}>Sin cuotas pendientes para este préstamo.</Text>
-      ) : null}
+        ) : null}
+      </ModalConFooter>
 
-      {prestamoVigente ? (
-        <View style={styles.seccion}>
-          <View style={styles.seccionFila}>
-            <Text style={styles.seccionTitulo}>Estado de cuenta</Text>
+      {/* Modal: registrar no pago */}
+      <ModalConFooter
+        visible={modal === "no_pago"}
+        titulo="Registrar no pago"
+        onCerrar={() => {
+          setModal("ninguno");
+          setMensaje(null);
+        }}
+        onCancelar={() => {
+          setModal("ninguno");
+          setMensaje(null);
+        }}
+        onConfirmar={() => void enviarVisita()}
+        confirmando={enviando}
+        confirmarTestID="guardar-visita"
+        testID="form-no-pago"
+      >
+        <Text style={styles.label}>Motivo de no pago</Text>
+        <View style={styles.chips}>
+          {MOTIVOS_NO_PAGO.map((motivo) => (
             <Pressable
-              testID="btn-detalle-estado-cuenta"
-              onPress={() => setDetalleAbierto((abierto) => !abierto)}
+              key={motivo}
+              style={[styles.chip, motivoNoPago === motivo && styles.chipActivo]}
+              onPress={() => setMotivoNoPago(motivo)}
             >
-              <Text style={styles.detalleBoton}>
-                {detalleAbierto ? "Ocultar" : "Ver detalle"}
+              <Text style={motivoNoPago === motivo ? styles.chipTextoActivo : styles.chipTexto}>
+                {motivo}
               </Text>
             </Pressable>
-          </View>
-          <Pressable
-            testID="btn-canvas-prestamo"
-            style={[styles.botonPrimario, styles.botonPrestamo]}
-            onPress={() =>
-              navigation.navigate("Prestamo", {
-                rutaId,
-                prestamoId: prestamoVigente.id,
-                clienteNombre: tarjeta.nombre,
-                telefonoWhatsapp: tarjeta.telefonoWhatsapp,
-                valor: prestamoVigente.valor,
-                numCuotas: prestamoVigente.numCuotas,
-              })
-            }
-          >
-            <Text style={styles.botonTexto}>Ver canvas de cuotas</Text>
-          </Pressable>
-          {detalleAbierto ? (
-            <View
-              testID="estado-cuenta"
-              accessibilityState={{ expanded: true }}
-            >
-              {prestamoVigente.cuotas.map((cuota) => (
-                <View
-                  key={cuota.id}
-                  style={[styles.recuadroCuota, cuota.estatus === "atrasada" && styles.recuadroCuotaMora]}
-                  testID={`cuota-${cuota.id}`}
-                >
-                  <Text style={styles.cuotaLinea}>
-                    Cuota {cuota.numeroCuota} — {cuota.valorEsperado} ({cuota.estatus})
-                  </Text>
-                  <Text style={styles.cuotaFecha}>
-                    Vence {cuota.fechaVencimiento}
-                  </Text>
-                  <View style={styles.cuotaAcciones}>
-                    <Pressable
-                      testID={`btn-editar-cuota-${cuota.id}`}
-                      style={styles.botonCuota}
-                      onPress={() => {
-                        setCuotaEditando(cuota);
-                        setCuotaEliminando(null);
-                        setCuotaNuevoValor(String(cuota.valorEsperado));
-                        setCuotaPassword("");
-                        setCuotaMotivo("");
-                        setCuotaMensaje(null);
-                      }}
-                    >
-                      <Text style={styles.botonCuotaTexto}>Editar</Text>
-                    </Pressable>
-                    <Pressable
-                      testID={`btn-eliminar-cuota-${cuota.id}`}
-                      style={[styles.botonCuota, styles.botonCuotaPeligro]}
-                      onPress={() => {
-                        setCuotaEliminando(cuota);
-                        setCuotaEditando(null);
-                        setCuotaPassword("");
-                        setCuotaMotivo("");
-                        setCuotaMensaje(null);
-                      }}
-                    >
-                      <Text style={styles.botonCuotaTexto}>Eliminar</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              ))}
-              <Pressable
-                testID="btn-whatsapp"
-                style={[styles.botonPrimario, styles.botonWhatsApp]}
-                onPress={() => {
-                  const texto = textoReportePrestamo(prestamoVigente, tarjeta);
-                  void Linking.openURL(
-                    enlaceWhatsApp(tarjeta.telefonoWhatsapp, texto),
-                  );
-                }}
-              >
-                <Text style={styles.botonTexto}>Enviar por WhatsApp</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <View
-              testID="estado-cuenta"
-              accessibilityState={{ expanded: false }}
-            />
-          )}
+          ))}
         </View>
-      ) : null}
-
-      <View style={styles.acciones}>
-        <Pressable
-          testID="btn-nuevo-prestamo"
-          style={[styles.botonPrimario, styles.botonPrestamo]}
-          onPress={() => {
-            abrirModo("prestamo");
-            setMensaje(null);
-            setPrestamoMensaje(null);
-            // Autocompletado desde la ruta activa (defaults de la ruta).
-            setPrestamoInteres(rutaActiva ? String(rutaActiva.tipoInteres) : "");
-            setPrestamoCuotas(rutaActiva ? String(rutaActiva.numCuotas) : "");
-            const cupo = rutaActiva?.config.cupoDefault;
-            setPrestamoValor(cupo ? String(cupo) : "");
-            setPrestamoDias("");
-          }}
-        >
-          <Text style={styles.botonTexto}>Nuevo préstamo</Text>
-        </Pressable>
-        <Pressable
-          testID="btn-editar-cliente"
-          style={[styles.botonPrimario, styles.botonEditar]}
-          onPress={() => {
-            abrirModo("editar");
-            setMensaje(null);
-            const actual = edicionDesdeTarjeta(tarjeta);
-            setEdicion(actual);
-            setEdicionOriginal(actual);
-          }}
-        >
-          <Text style={styles.botonTexto}>Editar datos</Text>
-        </Pressable>
-        <Pressable
-          testID="btn-pago"
-          style={[styles.botonPrimario, styles.botonPago]}
-          onPress={() => {
-            abrirModo("pago");
-            setMensaje(null);
-            if (cuotaPorPagar) {
-              setValor(String(cuotaPorPagar.valorEsperado));
-            }
-          }}
-        >
-          <Text style={styles.botonTexto}>Registrar pago</Text>
-        </Pressable>
-        <Pressable
-          testID="btn-no-pago"
-          style={[styles.botonPrimario, styles.botonNoPago]}
-          onPress={() => {
-            abrirModo("no_pago");
-            setMensaje(null);
-          }}
-        >
-          <Text style={styles.botonTexto}>Registrar no pago</Text>
-        </Pressable>
-        <Pressable
-          testID="btn-evidencias"
-          style={[styles.botonPrimario, styles.botonEvidencias]}
-          onPress={() => abrirModo("evidencias")}
-        >
-          <Text style={styles.botonTexto}>Foto / documento</Text>
-        </Pressable>
-      </View>
-
-      {modo === "evidencias" ? (
-        <View testID="evidencias-form" style={styles.form}>
-          <Text style={styles.formTitulo}>Foto y documento del cliente</Text>
-          <Text style={styles.detalle}>Selecciona la foto facial y el documento de identidad.</Text>
-          <Pressable
-            testID="evidencia-foto"
-            style={[styles.botonPrimario, styles.botonPrestamo]}
-            onPress={() => void evidenciasCliente.agregar("foto_facial")}
-          >
-            <Text style={styles.botonTexto}>
-              {evidenciasCliente.evidencias.find((e) => e.campo === "foto_facial")
-                ? "Foto seleccionada (cambiar)"
-                : "Seleccionar foto"}
-            </Text>
-          </Pressable>
-          <Pressable
-            testID="evidencia-documento"
-            style={[styles.botonPrimario, styles.botonPrestamo]}
-            onPress={() => void evidenciasCliente.agregar("documento_frente")}
-          >
-            <Text style={styles.botonTexto}>
-              {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
-                ? "Documento seleccionado (cambiar)"
-                : "Seleccionar documento"}
-            </Text>
-          </Pressable>
-          {evidenciasCliente.error ? (
-            <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
-          ) : null}
-          <Pressable
-            testID="guardar-evidencias"
-            style={[styles.botonPrimario, styles.botonPrestamo, evidenciasCliente.evidencias.length === 0 && styles.deshabilitado]}
-            disabled={evidenciasCliente.evidencias.length === 0 || evidenciasEnviando}
-            onPress={guardarEvidenciasCliente}
-          >
-            {evidenciasEnviando ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.botonTexto}>Guardar evidencias</Text>
-            )}
-          </Pressable>
-          {evidenciasMensaje ? <Text style={styles.errorTexto}>{evidenciasMensaje}</Text> : null}
-        </View>
-      ) : null}
-
-      {modo === "pago" ? (
-        <View testID="form-pago" style={styles.form}>
-          <Text style={styles.formTitulo}>Registro de pago</Text>
-          <Text style={styles.label}>Tipo</Text>
-          <View style={styles.chips}>
-            <Pressable
-              testID="tipo-cuota"
-              style={[styles.chip, tipoPago === "cuota" && styles.chipActivo]}
-              onPress={() => setTipoPago("cuota")}
-            >
-              <Text
-                style={
-                  tipoPago === "cuota" ? styles.chipTextoActivo : styles.chipTexto
-                }
-              >
-                Pago de cuota
-              </Text>
-            </Pressable>
-            <Pressable
-              testID="tipo-abono"
-              style={[styles.chip, tipoPago === "abono" && styles.chipActivo]}
-              onPress={() => setTipoPago("abono")}
-            >
-              <Text
-                style={
-                  tipoPago === "abono" ? styles.chipTextoActivo : styles.chipTexto
-                }
-              >
-                Abono parcial
-              </Text>
-            </Pressable>
-          </View>
-          {tipoPago === "cuota" && cuotaPorPagar ? (
-            <Text style={styles.detalle}>
-              Cuota {cuotaPorPagar.numeroCuota} — {cuotaPorPagar.valorEsperado}
-            </Text>
-          ) : null}
-          <TextInput
-            testID="pago-valor"
-            style={styles.input}
-            placeholder="Valor"
-            keyboardType="decimal-pad"
-            value={valor}
-            onChangeText={setValor}
-          />
-          <Text style={styles.label}>Método</Text>
-          <View style={styles.chips}>
-            {METODOS_PAGO.map((metodo) => (
-              <Pressable
-                key={metodo}
-                style={[styles.chip, metodoPago === metodo && styles.chipActivo]}
-                onPress={() => setMetodoPago(metodo)}
-              >
-                <Text
-                  style={
-                    metodoPago === metodo ? styles.chipTextoActivo : styles.chipTexto
-                  }
-                >
-                  {metodo}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-      ) : null}
-
-      {modo === "no_pago" ? (
-        <View testID="form-no-pago" style={styles.form}>
-          <Text style={styles.formTitulo}>Motivo de no pago</Text>
-          <View style={styles.chips}>
-            {MOTIVOS_NO_PAGO.map((motivo) => (
-              <Pressable
-                key={motivo}
-                style={[styles.chip, motivoNoPago === motivo && styles.chipActivo]}
-                onPress={() => setMotivoNoPago(motivo)}
-              >
-                <Text
-                  style={
-                    motivoNoPago === motivo ? styles.chipTextoActivo : styles.chipTexto
-                  }
-                >
-                  {motivo}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <Text style={styles.label}>Promesa de pago (solo para compromiso_de_pago)</Text>
-          {motivoNoPago === "compromiso_de_pago" ? (
-            <>
-              <TextInput
-                testID="fecha-prometida"
-                style={styles.input}
-                placeholder="Fecha prometida (AAAA-MM-DD)"
-                autoCapitalize="none"
-                value={fechaPrometida}
-                onChangeText={setFechaPrometida}
-              />
-              <TextInput
-                testID="valor-prometido"
-                style={styles.input}
-                placeholder="Valor prometido"
-                keyboardType="decimal-pad"
-                value={valorPrometido}
-                onChangeText={setValorPrometido}
-              />
-            </>
-          ) : (
-            <Text style={styles.promesaNota}>
-              Cambia el motivo a compromiso_de_pago para registrar una promesa.
-            </Text>
-          )}
-        </View>
-      ) : null}
-
-      {modo === "prestamo" ? (
-        <View testID="prestamo-form" style={styles.form}>
-          <Text style={styles.formTitulo}>Nuevo préstamo</Text>
-          <TextInput
-            testID="prestamo-valor"
-            style={styles.input}
-            placeholder="Valor"
-            keyboardType="decimal-pad"
-            value={prestamoValor}
-            onChangeText={setPrestamoValor}
-          />
-          <TextInput
-            testID="prestamo-cuotas"
-            style={styles.input}
-            placeholder="Número de cuotas"
-            keyboardType="number-pad"
-            value={prestamoCuotas}
-            onChangeText={setPrestamoCuotas}
-          />
-          <TextInput
-            testID="prestamo-dias"
-            style={styles.input}
-            placeholder="Días entre cuotas"
-            keyboardType="number-pad"
-            value={prestamoDias}
-            onChangeText={setPrestamoDias}
-          />
-          <TextInput
-            testID="prestamo-interes"
-            style={styles.input}
-            placeholder="Tipo de interés (%) — opcional"
-            keyboardType="decimal-pad"
-            value={prestamoInteres}
-            onChangeText={setPrestamoInteres}
-          />
-          {prestamoMensaje ? (
-            <Text style={styles.mensaje}>{prestamoMensaje}</Text>
-          ) : null}
-          <Pressable
-            testID="guardar-prestamo"
-            style={[styles.botonPrimario, prestamoEnviando && styles.deshabilitado]}
-            disabled={prestamoEnviando}
-            onPress={guardarPrestamo}
-          >
-            {prestamoEnviando ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.botonTexto}>Guardar préstamo</Text>
-            )}
-          </Pressable>
-        </View>
-      ) : null}
-
-      {cuotaEditando || cuotaEliminando ? (
-        <View testID="cuota-dialog" style={styles.form}>
-          <Text style={styles.formTitulo}>
-            {cuotaEditando ? "Editar cuota" : "Eliminar cuota"}
-          </Text>
-          {cuotaEditando ? (
+        <Text style={styles.label}>Promesa de pago (solo para compromiso_de_pago)</Text>
+        {motivoNoPago === "compromiso_de_pago" ? (
+          <>
             <TextInput
-              testID="cuota-nuevo-valor"
+              testID="fecha-prometida"
               style={styles.input}
-              placeholder="Nuevo valor"
-              keyboardType="decimal-pad"
-              value={cuotaNuevoValor}
-              onChangeText={setCuotaNuevoValor}
+              placeholder="Fecha prometida (AAAA-MM-DD)"
+              autoCapitalize="none"
+              value={fechaPrometida}
+              onChangeText={setFechaPrometida}
             />
-          ) : null}
-          <TextInput
-            testID="audit-password"
-            style={styles.input}
-            placeholder="Contraseña (re-autenticación)"
-            secureTextEntry
-            value={cuotaPassword}
-            onChangeText={setCuotaPassword}
-          />
-          <TextInput
-            testID="audit-motivo"
-            style={styles.input}
-            placeholder="Motivo"
-            value={cuotaMotivo}
-            onChangeText={setCuotaMotivo}
-          />
-          {cuotaMensaje ? <Text style={styles.mensaje}>{cuotaMensaje}</Text> : null}
-          <Pressable
-            testID="guardar-cuota"
-            style={[styles.botonPrimario, cuotaEnviando && styles.deshabilitado]}
-            disabled={cuotaEnviando}
-            onPress={guardarCuota}
-          >
-            {cuotaEnviando ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.botonTexto}>
-                {cuotaEditando ? "Guardar cambios" : "Confirmar eliminación"}
-              </Text>
-            )}
-          </Pressable>
-        </View>
-      ) : null}
-
-      {modo === "editar" ? (
-        <View testID="editar-cliente-form" style={styles.form}>
-          <Text style={styles.formTitulo}>Editar datos del cliente</Text>
-          <TextInput
-            testID="editar-nombre"
-            style={styles.input}
-            placeholder="Nombre"
-            value={edicion.nombre ?? ""}
-            onChangeText={(v) => setEdicion((e) => ({ ...e, nombre: v }))}
-          />
-          <TextInput
-            testID="editar-negocio"
-            style={styles.input}
-            placeholder="Negocio"
-            value={edicion.negocio ?? ""}
-            onChangeText={(v) => setEdicion((e) => ({ ...e, negocio: v }))}
-          />
-          <TextInput
-            testID="editar-telefono"
-            style={styles.input}
-            placeholder="WhatsApp"
-            keyboardType="phone-pad"
-            value={edicion.telefonoWhatsapp ?? ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))
-            }
-          />
-          {mensaje ? <Text style={styles.mensaje}>{mensaje}</Text> : null}
-          <Pressable
-            testID="guardar-cambio-cliente"
-            style={[styles.botonPrimario, editando && styles.deshabilitado]}
-            disabled={editando}
-            onPress={guardarCambioCliente}
-          >
-            {editando ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.botonTexto}>Guardar cambios</Text>
-            )}
-          </Pressable>
-        </View>
-      ) : null}
-
-      {modo === "pago" || modo === "no_pago" ? (
-        <>
-          {mensaje ? <Text style={styles.mensaje}>{mensaje}</Text> : null}
-          <Pressable
-            testID="guardar-visita"
-            style={[styles.botonPrimario, enviando && styles.deshabilitado]}
-            disabled={enviando}
-            onPress={enviarVisita}
-          >
-            {enviando ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.botonTexto}>Guardar</Text>
-            )}
-          </Pressable>
-        </>
-      ) : null}
-    </ScrollView>
+            <TextInput
+              testID="valor-prometido"
+              style={styles.input}
+              placeholder="Valor prometido"
+              keyboardType="decimal-pad"
+              value={valorPrometido}
+              onChangeText={setValorPrometido}
+            />
+          </>
+        ) : (
+          <Text style={styles.promesaNota}>
+            Cambia el motivo a compromiso_de_pago para registrar una promesa.
+          </Text>
+        )}
+        {mensaje && modal === "no_pago" ? (
+          <Text testID="mensaje-no-pago" style={styles.mensajeModal}>
+            {mensaje}
+          </Text>
+        ) : null}
+      </ModalConFooter>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
   scroll: { padding: 16, gap: 12 },
-  tarjetaInfo: {
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerAccion: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    width: 72,
+  },
+  headerAccionDerecha: { width: 36, alignItems: "flex-end" },
+  headerAccionTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
+  headerTitulo: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#334155",
+    textAlign: "center",
+  },
+  banner: {
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  bannerTexto: { color: "#1d4ed8", fontSize: 13, fontWeight: "500" },
+  mensajeModal: { color: "#dc2626", fontSize: 13, fontWeight: "500", marginTop: 8 },
+  tarjeta: {
     backgroundColor: "#ffffff",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    gap: 6,
+  },
+  filaSuperior: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 14,
+  },
+  documento: { flex: 1 },
+  documentoFilaTitulo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  documentoTitulo: { fontSize: 12, fontWeight: "700", color: "#475569" },
+  documentoMiniaturas: { flexDirection: "row", gap: 10, marginTop: 6 },
+  miniatura: { alignItems: "center", gap: 4, flex: 1 },
+  miniaturaImagen: {
+    width: 72,
+    height: 48,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    gap: 4,
   },
-  fila: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  miniaturaPlaceholder: {
+    width: 72,
+    height: 48,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderStyle: "dashed",
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
   },
-  nombre: { fontSize: 18, fontWeight: "700" },
+  miniaturaEtiqueta: { fontSize: 10, color: "#64748b", fontWeight: "600" },
+  badgeDoc: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  badgeVerificado: { backgroundColor: "#dcfce7" },
+  badgePendiente: { backgroundColor: "#fef3c7" },
+  badgeVerificadoTexto: { color: "#16a34a", fontSize: 10, fontWeight: "700" },
+  badgePendienteTexto: { color: "#b45309", fontSize: 10, fontWeight: "700" },
+  nombre: { fontSize: 18, fontWeight: "700", color: "#1e293b", marginTop: 8 },
   detalle: { color: "#475569", fontSize: 14 },
-  seccion: { marginTop: 4 },
-  seccionFila: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  footerTarjeta: {
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+    paddingTop: 10,
   },
-  detalleBoton: { color: "#2563eb", fontSize: 13, fontWeight: "600" },
-  seccionTitulo: { fontSize: 14, fontWeight: "700", color: "#334155" },
-  sinCuotas: { color: "#64748b", fontSize: 13, marginTop: 4 },
+  comoLlegar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "#a5f3fc",
+    backgroundColor: "#ecfeff",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  comoLlegarActivo: { borderColor: "#67e8f9" },
+  comoLlegarTexto: { color: "#0891b2", fontWeight: "600", fontSize: 13 },
+  seccionMapa: { gap: 8 },
+  navegacion: { flexDirection: "row", gap: 10 },
+  botonNavegar: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#0891b2",
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  botonWaze: { backgroundColor: "#1d4ed8" },
+  botonNavegarTexto: { color: "#ffffff", fontWeight: "600", fontSize: 13 },
+  notificacion: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  notificacionContenido: { flex: 1 },
+  notificacionTitulo: { fontSize: 13, fontWeight: "700", color: "#1e40af" },
+  notificacionDetalle: { fontSize: 12, color: "#3b82f6", marginTop: 2 },
+  seccion: { marginTop: 4 },
+  seccionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  botonNuevo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    width: 84,
+  },
+  botonNuevoTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
+  seccionTitulo: { fontSize: 15, fontWeight: "700", color: "#334155" },
+  seccionEspacio: { width: 84 },
+  sinPrestamos: { color: "#64748b", fontSize: 13, marginTop: 10 },
   prestamoItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 8,
     backgroundColor: "#ffffff",
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e2e8f0",
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginTop: 8,
   },
+  prestamoItemSeleccionado: {
+    borderColor: "#86efac",
+    borderWidth: 2,
+    backgroundColor: "#f0fdf4",
+  },
   prestamoInfo: { flex: 1, marginRight: 8 },
-  prestamoValor: { fontSize: 14, fontWeight: "600", color: "#334155" },
-  prestamoEstatus: { color: "#64748b", fontSize: 12, marginTop: 2 },
-  recuadroCuota: {
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 6,
-  },
-  recuadroCuotaMora: { borderColor: "#fca5a5", backgroundColor: "#fef2f2" },
-  cuotaLinea: { fontSize: 14, fontWeight: "600" },
-  cuotaFecha: { color: "#64748b", fontSize: 12, marginTop: 2 },
-  cuotaAcciones: { flexDirection: "row", gap: 8, marginTop: 6 },
-  botonCuota: {
-    borderWidth: 1,
-    borderColor: "#2563eb",
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  botonCuotaPeligro: { borderColor: "#dc2626" },
-  botonCuotaTexto: { color: "#2563eb", fontSize: 12, fontWeight: "600" },
-  botonWhatsApp: { backgroundColor: "#16a34a", marginTop: 10, flex: 0 },
-  acciones: { flexDirection: "row", gap: 10, marginTop: 8 },
-  navegacion: { flexDirection: "row", gap: 10, marginTop: 10 },
-  botonNavegar: { backgroundColor: "#0891b2", paddingVertical: 8 },
-  botonPrimario: {
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: "center",
-    flex: 1,
-  },
-  botonPago: { backgroundColor: "#16a34a" },
-  botonNoPago: { backgroundColor: "#d97706" },
-  botonEditar: { backgroundColor: "#64748b" },
-  botonEvidencias: { backgroundColor: "#0891b2" },
-  botonPrestamo: { backgroundColor: "#7c3aed" },
-  botonTexto: { color: "#ffffff", fontWeight: "600" },
-  deshabilitado: { backgroundColor: "#93c5fd" },
-  form: {
+  prestamoValor: { fontSize: 14, fontWeight: "700", color: "#1e293b" },
+  prestamoDetalle: { color: "#64748b", fontSize: 12, marginTop: 2 },
+  prestamoEstatus: { color: "#475569", fontSize: 12, marginTop: 2, fontWeight: "600" },
+  detallePrestamo: {
     backgroundColor: "#ffffff",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
     gap: 8,
     marginTop: 4,
   },
-  formTitulo: { fontSize: 15, fontWeight: "700" },
-  label: { fontSize: 13, color: "#475569", marginTop: 4 },
+  detalleTitulo: { fontSize: 15, fontWeight: "700", color: "#1e293b" },
+  detalleLinea: { color: "#475569", fontSize: 13 },
+  detalleCarga: { marginVertical: 16 },
+  detalleError: { color: "#dc2626", fontSize: 13 },
+  leyenda: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  leyendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  leyendaColor: { width: 12, height: 12, borderRadius: 999 },
+  leyendaTexto: { color: "#475569", fontSize: 11 },
+  canvas: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  cuadro: {
+    width: "22%",
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 8,
+    alignItems: "center",
+    gap: 2,
+  },
+  cuadroNumero: { fontSize: 16, fontWeight: "700", color: "#334155" },
+  cuadroValor: { fontSize: 11, color: "#475569", fontWeight: "600" },
+  cuadroFecha: { fontSize: 9, color: "#64748b" },
+  cuadroAbono: { fontSize: 9, color: "#16a34a", fontWeight: "600" },
+  cuadroSaldo: { fontSize: 9, color: "#2563eb", fontWeight: "600" },
+  cuadroEtiqueta: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    marginTop: 2,
+  },
+  cuadroEtiquetaTexto: { fontSize: 9, fontWeight: "600" },
+  botonWhatsApp: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#16a34a",
+    borderRadius: 10,
+    paddingVertical: 12,
+    marginTop: 6,
+  },
+  botonWhatsAppTexto: { color: "#ffffff", fontSize: 14, fontWeight: "600" },
+  acciones: { flexDirection: "row", gap: 10, marginTop: 2 },
+  botonAccion: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    borderRadius: 10,
+    paddingVertical: 12,
+  },
+  botonPago: { backgroundColor: "#16a34a" },
+  botonNoPago: { backgroundColor: "#d97706" },
+  botonAccionTexto: { color: "#ffffff", fontWeight: "600" },
+  deshabilitado: { opacity: 0.5 },
+  label: { fontSize: 13, color: "#475569", marginTop: 2 },
   input: {
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
+    color: "#1e293b",
   },
+  filaCoordenadas: { flexDirection: "row", gap: 8 },
+  inputCoordenada: { flex: 1 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   chip: {
     borderWidth: 1,
@@ -1098,6 +1702,50 @@ const styles = StyleSheet.create({
   chipTexto: { color: "#334155", fontSize: 13 },
   chipTextoActivo: { color: "#ffffff", fontSize: 13 },
   promesaNota: { color: "#64748b", fontSize: 13 },
-  mensaje: { color: "#16a34a", fontSize: 14, marginTop: 4 },
-  errorTexto: { color: "#dc2626", fontSize: 13, marginTop: 4 },
+  mensaje: { color: "#16a34a", fontSize: 14, marginTop: 2 },
+  errorTexto: { color: "#dc2626", fontSize: 13, marginTop: 2 },
+  evidenciaPreview: {
+    width: "100%",
+    height: 160,
+    borderRadius: 12,
+    resizeMode: "cover",
+  },
+  evidenciaVacio: {
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 16,
+  },
+  evidenciaVacioTexto: { color: "#64748b", fontSize: 13 },
+  botonEvidencia: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#2563eb",
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  botonEvidenciaTexto: { color: "#2563eb", fontWeight: "600" },
+  cuotaResumen: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 10,
+    padding: 10,
+    gap: 2,
+  },
+  cuotaLinea: { color: "#334155", fontSize: 14, fontWeight: "600" },
+  cuotaFecha: { color: "#64748b", fontSize: 12 },
+  cuotaSubtitulo: { fontSize: 13, fontWeight: "700", color: "#475569", marginTop: 4 },
+  cuotaVacio: { color: "#94a3b8", fontSize: 13 },
+  pagoItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  pagoTexto: { color: "#334155", fontSize: 13, fontWeight: "600" },
+  pagoFecha: { color: "#64748b", fontSize: 12 },
 });

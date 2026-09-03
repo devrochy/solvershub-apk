@@ -5,17 +5,25 @@ export interface CambioClienteInput {
   apellido?: string;
   negocio?: string | null;
   telefonoWhatsapp?: string;
+  latitud?: number;
+  longitud?: number;
+  latitudDomicilio?: number | null;
+  longitudDomicilio?: number | null;
 }
 
 /**
- * Prellena la edición desde la tarjeta actual del cliente (solo los campos
- * editables básicos que la APK expone).
+ * Prellena la edición desde la tarjeta actual del cliente: nombre completo,
+ * apellido derivado (última(s) palabra(s) del nombre), negocio y WhatsApp.
+ * Las coordenadas (negocio/domicilio) se completan en la pantalla desde las
+ * props de navegación cuando están disponibles.
  */
 export function edicionDesdeTarjeta(
   tarjeta: ClienteTarjetaPublic,
 ): CambioClienteInput {
+  const partes = tarjeta.nombre.trim().split(/\s+/);
   return {
     nombre: tarjeta.nombre,
+    apellido: partes.length > 1 ? partes.slice(1).join(" ") : "",
     negocio: tarjeta.negocio,
     telefonoWhatsapp: tarjeta.telefonoWhatsapp,
   };
@@ -42,6 +50,10 @@ const CAMBIABLES: Array<keyof CambioClienteInput> = [
   "apellido",
   "negocio",
   "telefonoWhatsapp",
+  "latitud",
+  "longitud",
+  "latitudDomicilio",
+  "longitudDomicilio",
 ];
 
 /**
@@ -55,7 +67,10 @@ export function camposCambiados(
 ): CambioClienteInput {
   const cambiados: CambioClienteInput = {};
   for (const clave of CAMBIABLES) {
-    const valor = actual[clave];
+    let valor = actual[clave];
+    if (clave === "negocio" && valor === "") {
+      valor = null;
+    }
     if (valor !== original[clave]) {
       (cambiados as Record<keyof CambioClienteInput, unknown>)[clave] = valor;
     }

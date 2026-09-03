@@ -5,6 +5,7 @@ import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
+import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import * as useEvidenciasModule from "../features/gastos/use-evidencias";
 
 jest.mock("../features/navegacion/navegacion", () => ({
@@ -86,7 +87,7 @@ async function renderConApi(
   offline = offlineValor,
 ) {
   const valor: SessionValue = {
-    cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L" },
+    cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L", rol: "cobrador" },
     loading: false,
     api: {
       dia: jest.fn().mockResolvedValue({ clientes: [], trayectos: null }),
@@ -98,7 +99,8 @@ async function renderConApi(
   };
   const navigation = { navigate: jest.fn() } as never;
   return render(
-    <OfflineContext.Provider value={offline}>
+    <PantallaActivaProvider>
+      <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
         <RutaActivaContext.Provider
           value={{
@@ -115,7 +117,8 @@ async function renderConApi(
           <DiaScreen navigation={navigation} />
         </RutaActivaContext.Provider>
       </SessionContext.Provider>
-    </OfflineContext.Provider>,
+      </OfflineContext.Provider>
+    </PantallaActivaProvider>,
   );
 }
 

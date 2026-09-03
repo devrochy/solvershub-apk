@@ -23,8 +23,40 @@ describe("cambio-cliente (payload del evento offline)", () => {
   it("edicionDesdeTarjeta prellena nombre, negocio y WhatsApp", () => {
     expect(edicionDesdeTarjeta(tarjeta)).toEqual({
       nombre: "Juan",
+      apellido: "",
       negocio: "Tienda",
       telefonoWhatsapp: "+59170000001",
+    });
+  });
+
+  it("edicionDesdeTarjeta deriva el apellido de la última palabra del nombre", () => {
+    const tarjetaCompleta: ClienteTarjetaPublic = {
+      ...tarjeta,
+      nombre: "Juan Carlos Perez",
+    };
+    expect(edicionDesdeTarjeta(tarjetaCompleta)).toEqual({
+      nombre: "Juan Carlos Perez",
+      apellido: "Carlos Perez",
+      negocio: "Tienda",
+      telefonoWhatsapp: "+59170000001",
+    });
+  });
+
+  it("camposCambiados incluye latitud/longitud y domicilio cuando difieren", () => {
+    const original = edicionDesdeTarjeta(tarjeta);
+    const edicion = {
+      ...original,
+      latitud: -17.78,
+      longitud: -63.18,
+      latitudDomicilio: -17.79,
+      longitudDomicilio: -63.19,
+    };
+
+    expect(camposCambiados(edicion, original)).toEqual({
+      latitud: -17.78,
+      longitud: -63.18,
+      latitudDomicilio: -17.79,
+      longitudDomicilio: -63.19,
     });
   });
 

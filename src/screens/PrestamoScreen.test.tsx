@@ -46,7 +46,7 @@ async function renderConEstado(
   }> = {},
 ) {
   const valor: SessionValue = {
-    cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López" },
+    cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López", rol: "cobrador" },
     loading: false,
     api: api as SessionValue["api"],
     login: jest.fn(),
