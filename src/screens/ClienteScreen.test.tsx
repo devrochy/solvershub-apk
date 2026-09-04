@@ -166,7 +166,13 @@ async function renderConApi(
               rutaNombre: "Ruta Centro",
               tipoInteres: 20,
               numCuotas: 8,
-              config: { rutaId: 6, cupoDefault: 1500, cuotasMinimasPrestamo: 1 } as never,
+              config: {
+                rutaId: 6,
+                cupoDefault: 1500,
+                cuotasMinimasPrestamo: 1,
+                eliminarPagosApk: true,
+                eliminarAbonosApk: true,
+              } as never,
             },
             setRutaActiva: jest.fn(),
           }}
@@ -186,20 +192,50 @@ async function renderConApi(
   );
 }
 
-describe("ClienteScreen — modales de pago/no pago", () => {
+describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota)", () => {
+  // Abre el préstamo, toca la cuota y despliega la acción indicada.
+  async function abrirModalConAccion(accion: "accion-pago" | "accion-no-pago") {
+    const { getByTestId } = await renderConApi({}, offlineValor, {
+      prestamoAutoSeleccionado: true,
+    });
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId(accion)).toBeTruthy());
+    await fireEvent.press(getByTestId(accion));
+    return { getByTestId, getByText: getByTestId };
+  }
+
+  const detalleCuotaFixture = (estatus = "pendiente") => ({
+    cuotaId: 10,
+    numeroCuota: 1,
+    valorEsperado: 300,
+    fechaVencimiento: "2026-08-08",
+    estatus,
+    abonosAcumulados: 0,
+    saldoPendiente: 300,
+    pagos: [],
+    abonos: [],
+    ultimaVisita: null,
+  });
+
   it("registra un abono parcial con tipoPago abono sin cuotaId", async () => {
     const registrarVisitaPago = jest.fn().mockResolvedValue({ id: 1 });
     const { getByTestId } = await renderConApi(
-      { registrarVisitaPago },
+      {
+        registrarVisitaPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
       offlineValor,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-pago"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
     await fireEvent.press(getByTestId("tipo-abono"));
     await fireEvent.changeText(getByTestId("pago-valor"), "100");
-    await fireEvent.press(getByTestId("guardar-visita"));
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
 
     await waitFor(() =>
       expect(registrarVisitaPago).toHaveBeenCalledWith(6, {
@@ -217,18 +253,23 @@ describe("ClienteScreen — modales de pago/no pago", () => {
   it("registra una visita no-pago con promesa de pago (compromiso_de_pago)", async () => {
     const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: 1 });
     const { getByTestId, getByText } = await renderConApi(
-      { registrarVisitaNoPago },
+      {
+        registrarVisitaNoPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
       offlineValor,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-no-pago")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-no-pago"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-no-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-no-pago"));
     await fireEvent.press(getByText("compromiso_de_pago"));
     const manana = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     await fireEvent.changeText(getByTestId("fecha-prometida"), manana);
     await fireEvent.changeText(getByTestId("valor-prometido"), "150");
-    await fireEvent.press(getByTestId("guardar-visita"));
+    await fireEvent.press(getByTestId("guardar-no-pago"));
 
     await waitFor(() =>
       expect(registrarVisitaNoPago).toHaveBeenCalledWith(6, {
@@ -245,15 +286,20 @@ describe("ClienteScreen — modales de pago/no pago", () => {
   it("exige fecha prometida para compromiso de pago", async () => {
     const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: 1 });
     const { getByTestId, getByText } = await renderConApi(
-      { registrarVisitaNoPago },
+      {
+        registrarVisitaNoPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
       offlineValor,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-no-pago")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-no-pago"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-no-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-no-pago"));
     await fireEvent.press(getByText("compromiso_de_pago"));
-    await fireEvent.press(getByTestId("guardar-visita"));
+    await fireEvent.press(getByTestId("guardar-no-pago"));
 
     await waitFor(() =>
       expect(
@@ -269,15 +315,20 @@ describe("ClienteScreen — modales de pago/no pago", () => {
     const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
     const registrarVisitaPago = jest.fn().mockRejectedValue(errorRed);
     const { getByTestId } = await renderConApi(
-      { registrarVisitaPago },
+      {
+        registrarVisitaPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
       offlineConError,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-pago"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
     await fireEvent.changeText(getByTestId("pago-valor"), "300");
-    await fireEvent.press(getByTestId("guardar-visita"));
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
 
     await waitFor(() =>
       expect(encolarSiNoExiste).toHaveBeenCalledWith(
@@ -302,15 +353,20 @@ describe("ClienteScreen — modales de pago/no pago", () => {
     const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
     const registrarVisitaPago = jest.fn().mockRejectedValue(errorRed);
     const { getByTestId, getByText } = await renderConApi(
-      { registrarVisitaPago },
+      {
+        registrarVisitaPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
       offlineConError,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-pago"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
     await fireEvent.changeText(getByTestId("pago-valor"), "300");
-    await fireEvent.press(getByTestId("guardar-visita"));
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
 
     await waitFor(() =>
       expect(
@@ -325,16 +381,21 @@ describe("ClienteScreen — modales de pago/no pago", () => {
     const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
     const registrarVisitaPago = jest.fn().mockRejectedValue(errorRed);
     const { getByTestId } = await renderConApi(
-      { registrarVisitaPago },
+      {
+        registrarVisitaPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
       offlineConError,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-pago"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
     await fireEvent.press(getByTestId("tipo-abono"));
     await fireEvent.changeText(getByTestId("pago-valor"), "100");
-    await fireEvent.press(getByTestId("guardar-visita"));
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
 
     await waitFor(() =>
       expect(encolarSiNoExiste).toHaveBeenCalledWith(
@@ -351,14 +412,19 @@ describe("ClienteScreen — modales de pago/no pago", () => {
     const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
     const registrarVisitaNoPago = jest.fn().mockRejectedValue(errorRed);
     const { getByTestId } = await renderConApi(
-      { registrarVisitaNoPago },
+      {
+        registrarVisitaNoPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
       offlineConError,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-no-pago")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-no-pago"));
-    await fireEvent.press(getByTestId("guardar-visita"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-no-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-no-pago"));
+    await fireEvent.press(getByTestId("guardar-no-pago"));
 
     await waitFor(() =>
       expect(encolarSiNoExiste).toHaveBeenCalledWith(
@@ -369,35 +435,88 @@ describe("ClienteScreen — modales de pago/no pago", () => {
     );
   });
 
-  it("no permite pagar una cuota si el préstamo no tiene cuotas pendientes", async () => {
-    const prestamoPagado = {
-      ...prestamo,
-      cuotas: [{ ...prestamo.cuotas[0], estatus: "pagada" as const }],
-    };
-    const registrarVisitaPago = jest.fn();
-    const { getByTestId, getByText } = await renderConApi(
+  it("cuota pagada no muestra acciones de pago/no pago", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi(
       {
-        listarPrestamosDeCliente: jest.fn().mockResolvedValue([prestamoPagado]),
-        obtenerEstadoCuentaPrestamo: jest
-          .fn()
-          .mockResolvedValue(estadoCuentaDe(prestamoPagado)),
-        registrarVisitaPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture("pagada")),
       },
       offlineValor,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-pago"));
-    await fireEvent.changeText(getByTestId("pago-valor"), "300");
-    await fireEvent.press(getByTestId("guardar-visita"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("cuota-dialog")).toBeTruthy());
+
+    expect(queryByTestId("accion-pago")).toBeNull();
+    expect(queryByTestId("accion-no-pago")).toBeNull();
+  });
+
+  it("borra un pago no liquidado (password + motivo) desde la modal de cuota", async () => {
+    const eliminarPago = jest.fn().mockResolvedValue({ id: 50 });
+    const { getByTestId } = await renderConApi(
+      {
+        eliminarPago,
+        detalleCuota: jest.fn().mockResolvedValue({
+          cuotaId: 10,
+          numeroCuota: 1,
+          valorEsperado: 300,
+          fechaVencimiento: "2026-08-08",
+          estatus: "pendiente",
+          abonosAcumulados: 0,
+          saldoPendiente: 300,
+          pagos: [{ id: 50, valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
+          abonos: [],
+          ultimaVisita: null,
+        }),
+      },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("borrar-pago-50")).toBeTruthy());
+    await fireEvent.press(getByTestId("borrar-pago-50"));
+
+    expect(getByTestId("borrar-confirm")).toBeTruthy();
+    await fireEvent.changeText(getByTestId("borrar-password"), "secreto");
+    await fireEvent.changeText(getByTestId("borrar-motivo"), "registro erróneo");
+    await fireEvent.press(getByTestId("borrar-confirmar"));
 
     await waitFor(() =>
-      expect(
-        getByText("Sin cuotas pendientes para este préstamo."),
-      ).toBeTruthy(),
+      expect(eliminarPago).toHaveBeenCalledWith(6, 50, {
+        password: "secreto",
+        motivo: "registro erróneo",
+      }),
     );
-    expect(registrarVisitaPago).not.toHaveBeenCalled();
+  });
+
+  it("no ofrece borrar un pago ya liquidado", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi(
+      {
+        detalleCuota: jest.fn().mockResolvedValue({
+          cuotaId: 10,
+          numeroCuota: 1,
+          valorEsperado: 300,
+          fechaVencimiento: "2026-08-08",
+          estatus: "pendiente",
+          abonosAcumulados: 0,
+          saldoPendiente: 300,
+          pagos: [{ id: 60, valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: true }],
+          abonos: [],
+          ultimaVisita: null,
+        }),
+      },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("cuota-dialog")).toBeTruthy());
+
+    expect(queryByTestId("borrar-pago-60")).toBeNull();
   });
 });
 
@@ -961,14 +1080,14 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
   it("el modal de detalle de cuota llama detalleCuota con los ids correctos", async () => {
     const detalleCuota = jest.fn().mockResolvedValue({
       cuotaId: 10,
-      prestamoId: 1,
       numeroCuota: 1,
       valorEsperado: 300,
       fechaVencimiento: "2026-08-08",
       estatus: "pendiente",
-      pagos: [{ id: 1, valor: 300, metodoPago: "efectivo", fecha: "2026-08-08" }],
       abonosAcumulados: 0,
       saldoPendiente: 300,
+      pagos: [{ id: 1, valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
+      abonos: [],
       ultimaVisita: null,
     });
     const { getByTestId } = await renderConApi(
@@ -999,19 +1118,31 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
     expect(queryByTestId("editar-cliente-form")).toBeNull();
   });
 
-  it("abrir pago cierra el modal de préstamo", async () => {
+  it("abrir pago dentro de la modal de cuota no abre un modal de préstamo nuevo", async () => {
     const { getByTestId, queryByTestId } = await renderConApi(
-      {},
+      {
+        detalleCuota: jest.fn().mockResolvedValue({
+          cuotaId: 10,
+          numeroCuota: 1,
+          valorEsperado: 300,
+          fechaVencimiento: "2026-08-08",
+          estatus: "pendiente",
+          abonosAcumulados: 0,
+          saldoPendiente: 300,
+          pagos: [],
+          abonos: [],
+          ultimaVisita: null,
+        }),
+      },
       offlineValor,
       { prestamoAutoSeleccionado: true },
     );
 
-    await waitFor(() => expect(getByTestId("btn-pago")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
 
-    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
-    expect(getByTestId("prestamo-form")).toBeTruthy();
-
-    await fireEvent.press(getByTestId("btn-pago"));
     expect(getByTestId("form-pago")).toBeTruthy();
     expect(queryByTestId("prestamo-form")).toBeNull();
   });

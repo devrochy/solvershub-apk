@@ -102,6 +102,11 @@ export interface CobradorApi {
     abonoId: number,
     input: { password: string; motivo: string },
   ): Promise<{ id: number }>;
+  eliminarPago(
+    rutaId: number,
+    pagoId: number,
+    input: { password: string; motivo: string },
+  ): Promise<{ id: number }>;
   registrarApertura(
     rutaId: number,
     input: { latitud?: number; longitud?: number },
@@ -299,6 +304,17 @@ export function cobradorApi(client: ApiClient): CobradorApi {
       input: { password: string; motivo: string },
     ) =>
       client.request<{ id: number }>(`/cobrador/rutas/${rutaId}/abonos/${abonoId}`, {
+        method: "DELETE",
+        headers: JSON_HEADERS,
+        body: jsonBody(input),
+      }),
+
+    eliminarPago: (
+      rutaId: number,
+      pagoId: number,
+      input: { password: string; motivo: string },
+    ) =>
+      client.request<{ id: number }>(`/cobrador/rutas/${rutaId}/pagos/${pagoId}`, {
         method: "DELETE",
         headers: JSON_HEADERS,
         body: jsonBody(input),

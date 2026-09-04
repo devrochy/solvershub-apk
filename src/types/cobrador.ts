@@ -203,8 +203,17 @@ export interface PrestamoPublic {
 export interface PagoCuotaPublic {
   id: number;
   valor: number;
-  metodoPago: string | null;
-  fecha: string;
+  metodoPago: string;
+  fechaHora: string;
+  registradoPor: number | null;
+  liquidado: boolean;
+}
+
+export interface AbonoCuotaPublic {
+  id: number;
+  valor: number;
+  fechaHora: string;
+  liquidado: boolean;
 }
 
 export interface UltimaVisitaCuotaPublic {
@@ -215,14 +224,14 @@ export interface UltimaVisitaCuotaPublic {
 
 export interface DetalleCuotaPublic {
   cuotaId: number;
-  prestamoId: number;
   numeroCuota: number;
   valorEsperado: number;
   fechaVencimiento: string;
   estatus: CuotaEstatus;
-  pagos: PagoCuotaPublic[];
   abonosAcumulados: number;
   saldoPendiente: number;
+  pagos: PagoCuotaPublic[];
+  abonos: AbonoCuotaPublic[];
   ultimaVisita: UltimaVisitaCuotaPublic | null;
 }
 
