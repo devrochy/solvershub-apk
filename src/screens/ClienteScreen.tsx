@@ -990,7 +990,21 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {/* Detalle del préstamo seleccionado */}
         {prestamoSeleccionado ? (
           <View style={styles.detallePrestamo}>
-            <Text style={styles.detalleTitulo}>Préstamo #{prestamoSeleccionado.id}</Text>
+            <View style={styles.detalleTituloFila}>
+              <Pressable
+                testID="btn-whatsapp"
+                style={styles.iconoWhatsApp}
+                disabled={compartiendo}
+                onPress={() => void compartirDetalle()}
+              >
+                {compartiendo ? (
+                  <ActivityIndicator size="small" color="#25D366" />
+                ) : (
+                  <MaterialIcons name="chat" size={18} color="#25D366" />
+                )}
+              </Pressable>
+              <Text style={styles.detalleTitulo}>Préstamo #{prestamoSeleccionado.id}</Text>
+            </View>
             {estadoPrestamoCargando ? (
               <ActivityIndicator style={styles.detalleCarga} />
             ) : estadoPrestamo ? (
@@ -1070,22 +1084,6 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 No se pudo cargar el detalle del préstamo.
               </Text>
             )}
-
-            <Pressable
-              testID="btn-whatsapp"
-              style={[styles.botonWhatsApp, compartiendo && styles.deshabilitado]}
-              disabled={compartiendo}
-              onPress={() => void compartirDetalle()}
-            >
-              {compartiendo ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <>
-                  <MaterialIcons name="chat" size={16} color="#ffffff" />
-                  <Text style={styles.botonWhatsAppTexto}>Enviar por WhatsApp</Text>
-                </>
-              )}
-            </Pressable>
 
             {/* Acciones solo con préstamo seleccionado */}
             <View style={styles.acciones}>
@@ -1496,8 +1494,6 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         visible={modal === "cuota"}
         titulo="Detalle de cuota"
         onCerrar={() => setModal("ninguno")}
-        onCancelar={() => setModal("ninguno")}
-        labelCancelar="Cerrar"
         testID="cuota-dialog"
       >
         {detalleCuotaCargando ? (
@@ -1949,6 +1945,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   detalleTitulo: { fontSize: 15, fontWeight: "700", color: "#1e293b" },
+  detalleTituloFila: { flexDirection: "row", alignItems: "center", gap: 8 },
+  iconoWhatsApp: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ecfdf5",
+  },
   detalleLinea: { color: "#475569", fontSize: 13 },
   detalleCarga: { marginVertical: 16 },
   detalleError: { color: "#dc2626", fontSize: 13 },
@@ -2041,9 +2046,10 @@ const styles = StyleSheet.create({
   errorTexto: { color: "#dc2626", fontSize: 13, marginTop: 2 },
   evidenciaPreview: {
     width: "100%",
-    height: 160,
+    height: 200,
     borderRadius: 12,
-    resizeMode: "cover",
+    resizeMode: "contain",
+    backgroundColor: "#f8fafc",
   },
   evidenciaVacio: {
     alignItems: "center",

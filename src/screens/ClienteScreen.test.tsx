@@ -752,6 +752,41 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     expect(getByTestId("documento-modal")).toBeTruthy();
   });
 
+  it("preview de documento muestra la imagen completa (resizeMode contain)", async () => {
+    const tarjetaConFrente = { ...tarjeta, documentoFrenteUrl: "https://cdn.test/frente.jpg" };
+    const { getByTestId } = await renderConApi({
+      tarjeta: jest.fn().mockResolvedValue(tarjetaConFrente),
+    });
+
+    await waitFor(() => expect(getByTestId("doc-frente")).toBeTruthy());
+    await fireEvent.press(getByTestId("doc-frente"));
+
+    await waitFor(() => expect(getByTestId("documento-foto-actual")).toBeTruthy());
+    expect(getByTestId("documento-foto-actual")).toHaveStyle({ resizeMode: "contain" });
+  });
+
+  it("icono WhatsApp en el header del préstamo sin botón inferior", async () => {
+    const { getByTestId, queryByText } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("prestamo-item-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("prestamo-item-1"));
+    await waitFor(() => expect(getByTestId("btn-whatsapp")).toBeTruthy());
+
+    expect(queryByText("Enviar por WhatsApp")).toBeNull();
+  });
+
+  it("la modal de cuota no muestra botón Cerrar (solo la X)", async () => {
+    const { getByTestId, queryByText } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("prestamo-item-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("prestamo-item-1"));
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+
+    await waitFor(() => expect(getByTestId("cuota-dialog")).toBeTruthy());
+    expect(queryByText("Cerrar")).toBeNull();
+  });
+
   it("desde el modal de reverso previsualiza y sube documento_reverso al tocar Guardar", async () => {
     const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: 2 });
     const { getByTestId, getByText } = await renderConApi({ agregarEvidenciasCliente });
