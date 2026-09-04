@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import { apiErrorStatus } from "../api/client";
+import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
@@ -185,6 +185,11 @@ export function ClientesScreen() {
     const lng = Number(longitud);
     const digitosTelefono = telefono.replace(/\D/g, "");
     if (!nombre.trim() || !apellido.trim() || digitosTelefono.length < 7) {
+      console.log("[crear-cliente] bloqueado: campos obligatorios", {
+        nombre: nombre.trim(),
+        apellido: apellido.trim(),
+        digitosTelefono: digitosTelefono.length,
+      });
       setMensaje("Nombre, apellido y un teléfono válido son obligatorios.");
       return;
     }
@@ -196,10 +201,12 @@ export function ClientesScreen() {
       lat === 0 ||
       lng === 0
     ) {
+      console.log("[crear-cliente] bloqueado: coordenadas inválidas", { latitud, longitud });
       setMensaje("Las coordenadas no son válidas.");
       return;
     }
     if (tope.trim() !== "" && (!Number.isFinite(Number(tope)) || Number(tope) < 0)) {
+      console.log("[crear-cliente] bloqueado: tope inválido", { tope });
       setMensaje("El tope de deuda debe ser un número válido.");
       return;
     }
@@ -210,6 +217,7 @@ export function ClientesScreen() {
       rutaActiva.config.reconocimientoFacialActivo &&
       !camposEvidencia.has("foto_facial")
     ) {
+      console.log("[crear-cliente] bloqueado: falta foto_facial");
       setMensaje("Esta ruta exige la foto del cliente (foto facial).");
       return;
     }
@@ -217,6 +225,7 @@ export function ClientesScreen() {
       rutaActiva.config.registroDocumentoCliente &&
       !camposEvidencia.has("documento_frente")
     ) {
+      console.log("[crear-cliente] bloqueado: falta documento_frente");
       setMensaje("Esta ruta exige el documento (frente).");
       return;
     }
@@ -232,7 +241,20 @@ export function ClientesScreen() {
     setCreando(true);
     setMensaje(null);
     try {
+      console.log("[crear-cliente] enviando", {
+        rutaId: rutaActiva.rutaId,
+        nombre: input.nombre,
+        telefonoWhatsapp: input.telefonoWhatsapp,
+        lat,
+        lng,
+        evidencias: evidenciasCliente.evidencias.map((e) => ({
+          campo: e.campo,
+          tipo: e.type,
+          uri: e.uri.slice(0, 60),
+        })),
+      });
       await api.crearCliente(rutaActiva.rutaId, input, evidenciasCliente.evidencias);
+      console.log("[crear-cliente] creado OK");
       setCreadoOk(true);
       setNombre("");
       setApellido("");
@@ -245,6 +267,12 @@ export function ClientesScreen() {
       evidenciasCliente.quitar("documento_reverso");
       await cargar();
     } catch (err) {
+      console.error("[crear-cliente] error", {
+        name: err instanceof Error ? err.name : typeof err,
+        message: err instanceof Error ? err.message : String(err),
+        status: apiErrorStatus(err),
+        esErrorDeRed: esErrorDeRed(err),
+      });
       if (apiErrorStatus(err) === 401) {
         await logout();
       } else if (apiErrorStatus(err) === 413) {

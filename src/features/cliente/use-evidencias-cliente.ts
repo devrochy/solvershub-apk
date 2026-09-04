@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 
 export type CampoEvidenciaCliente =
   | "foto_facial"
@@ -11,6 +12,45 @@ export interface EvidenciaClienteSeleccionada {
   uri: string;
   name: string;
   type: string;
+}
+
+const DIMENSION_MAX = 1280;
+const COMPRESION = 0.7;
+
+/**
+ * Reduce y comprime la foto elegida (A6): limita el lado mayor a 1280px y la
+ * comprime a JPEG quality 0.7. El túnel de pruebas (cloudflared) cae con
+ * timeouts cuando el multipart es grande; con fotos de cámara (~6MB) la
+ * creación de cliente no llegaba a completarse. Reducidas (~200-500KB cada
+ * una) el upload es rápido. Si el resize falla, devuelve la URI original.
+ */
+async function reducirImagen(
+  uri: string,
+  width: number,
+  height: number,
+): Promise<string> {
+  const ladoMayor = Math.max(width, height);
+  const escala = ladoMayor > DIMENSION_MAX ? DIMENSION_MAX / ladoMayor : 1;
+  try {
+    const acciones =
+      escala < 1
+        ? [
+            {
+              resize: {
+                width: Math.round(width * escala),
+                height: Math.round(height * escala),
+              },
+            },
+          ]
+        : [];
+    const resultado = await manipulateAsync(uri, acciones, {
+      compress: COMPRESION,
+      format: SaveFormat.JPEG,
+    });
+    return resultado.uri;
+  } catch {
+    return uri;
+  }
 }
 
 function aEvidencia(
@@ -81,12 +121,19 @@ export function useEvidenciasCliente(): UseEvidenciasClienteResult {
               quality: 0.6,
             });
       if (!result.canceled && result.assets[0]) {
-        const evidencia = aEvidencia(campo, result.assets[0]);
+        const asset = result.assets[0];
+        const evidencia = aEvidencia(campo, asset);
+        const uriReducida = await reducirImagen(
+          evidencia.uri,
+          asset.width ?? 0,
+          asset.height ?? 0,
+        );
+        const final = { ...evidencia, uri: uriReducida };
         setEvidencias((prev) => [
           ...prev.filter((e) => e.campo !== campo),
-          evidencia,
+          final,
         ]);
-        return evidencia;
+        return final;
       }
       return null;
     } catch {
