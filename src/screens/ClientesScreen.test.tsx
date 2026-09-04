@@ -1,5 +1,6 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ClientesScreen } from "./ClientesScreen";
+import { ApiError } from "../api/client";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
@@ -384,5 +385,53 @@ describe("ClientesScreen", () => {
 
     expect(crearCliente).not.toHaveBeenCalled();
     expect(getByText("Esta ruta exige la foto del cliente (foto facial).")).toBeTruthy();
+  });
+
+  it("muestra un mensaje claro si el backend rechaza por fotos demasiado grandes (413)", async () => {
+    const crearCliente = jest
+      .fn()
+      .mockRejectedValue(new ApiError(413, '{"message":"File too large"}'));
+    const { getByTestId, getByText } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    await waitFor(() =>
+      expect(
+        getByText("Las fotos son demasiado grandes (máx. 15MB cada una)."),
+      ).toBeTruthy(),
+    );
+  });
+
+  it("muestra el mensaje del backend si viene en el cuerpo (400 con array)", async () => {
+    const crearCliente = jest
+      .fn()
+      .mockRejectedValue(
+        new ApiError(400, '{"message":["El teléfono de WhatsApp no es válido"]}'),
+      );
+    const { getByTestId, getByText } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    await waitFor(() =>
+      expect(getByText("El teléfono de WhatsApp no es válido")).toBeTruthy(),
+    );
   });
 });

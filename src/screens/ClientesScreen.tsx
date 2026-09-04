@@ -247,6 +247,21 @@ export function ClientesScreen() {
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
+      } else if (apiErrorStatus(err) === 413) {
+        setMensaje("Las fotos son demasiado grandes (máx. 15MB cada una).");
+      } else if (err instanceof Error && err.message && err.message.startsWith("{")) {
+        try {
+          const cuerpo = JSON.parse(err.message) as {
+            message?: string | string[];
+          };
+          if (Array.isArray(cuerpo.message)) {
+            setMensaje(cuerpo.message.join(", "));
+          } else {
+            setMensaje(cuerpo.message ?? "No se pudo crear el cliente.");
+          }
+        } catch {
+          setMensaje("No se pudo crear el cliente.");
+        }
       } else {
         setMensaje("No se pudo crear el cliente.");
       }

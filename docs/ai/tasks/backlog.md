@@ -51,3 +51,8 @@
 - Detectado en: code-review apk-navegacion-ruta-rediseno (2026-09-03)
 - Descripción: con N rutas son 2N llamadas en paralelo (clientes + día por ruta). Aceptable hoy por la decisión de "solo datos existentes"; revisar si crece el número de rutas.
 - Prioridad sugerida: baja
+
+## inicialesDe en Avatar.tsx (código muerto)
+- Detectado en: code-review fix 413/avatar (2026-09-04)
+- Descripción: `inicialesDe` está exportada y testeada pero ningún componente la usa (el Avatar renderiza el icono person). Eliminar o reutilizar en el backlog.
+- Prioridad sugerida: baja

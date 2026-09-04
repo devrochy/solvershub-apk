@@ -74,11 +74,11 @@ export function useEvidenciasCliente(): UseEvidenciasClienteResult {
         fuente === "camara"
           ? await ImagePicker.launchCameraAsync({
               mediaTypes: ["images"],
-              quality: 0.7,
+              quality: 0.6,
             })
           : await ImagePicker.launchImageLibraryAsync({
               mediaTypes: ["images"],
-              quality: 0.7,
+              quality: 0.6,
             });
       if (!result.canceled && result.assets[0]) {
         const evidencia = aEvidencia(campo, result.assets[0]);
