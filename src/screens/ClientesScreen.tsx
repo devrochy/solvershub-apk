@@ -193,6 +193,23 @@ export function ClientesScreen() {
       setMensaje("El tope de deuda debe ser un número válido.");
       return;
     }
+    const camposEvidencia = new Set(
+      evidenciasCliente.evidencias.map((e) => e.campo),
+    );
+    if (
+      rutaActiva.config.reconocimientoFacialActivo &&
+      !camposEvidencia.has("foto_facial")
+    ) {
+      setMensaje("Esta ruta exige la foto del cliente (foto facial).");
+      return;
+    }
+    if (
+      rutaActiva.config.registroDocumentoCliente &&
+      !camposEvidencia.has("documento_frente")
+    ) {
+      setMensaje("Esta ruta exige el documento (frente).");
+      return;
+    }
     const input = {
       nombre: nombre.trim(),
       apellido: apellido.trim(),
@@ -316,38 +333,54 @@ export function ClientesScreen() {
           <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
             {/* Avatar editable + documento frente/reverso en la misma fila */}
             <View style={styles.filaSuperior}>
-              <Pressable
-                testID="cliente-avatar-btn"
-                style={styles.avatarEditable}
-                disabled={evidenciasCliente.cargando}
-                onPress={() => elegirEvidencia("foto_facial", "libreria")}
-              >
-                {(() => {
-                  const foto = evidenciasCliente.evidencias.find(
-                    (e) => e.campo === "foto_facial",
-                  );
-                  if (foto) {
-                    return (
-                      <Image
-                        testID="cliente-avatar-preview"
-                        source={{ uri: foto.uri }}
-                        style={styles.avatarImagen}
-                      />
+              <View style={styles.avatarEditable}>
+                <Pressable
+                  testID="cliente-avatar-btn"
+                  disabled={evidenciasCliente.cargando}
+                  onPress={() => elegirEvidencia("foto_facial", "libreria")}
+                >
+                  {(() => {
+                    const foto = evidenciasCliente.evidencias.find(
+                      (e) => e.campo === "foto_facial",
                     );
-                  }
-                  return (
-                    <Avatar nombre={nombre || apellido || "?"} fotoUrl={null} size={72} />
-                  );
-                })()}
-                <View style={styles.avatarOverlay}>
-                  <MaterialIcons name="photo-camera" size={18} color="#ffffff" />
+                    if (foto) {
+                      return (
+                        <Image
+                          testID="cliente-avatar-preview"
+                          source={{ uri: foto.uri }}
+                          style={styles.avatarImagen}
+                        />
+                      );
+                    }
+                    return (
+                      <Avatar nombre={nombre || apellido || "?"} fotoUrl={null} size={72} />
+                    );
+                  })()}
+                </Pressable>
+                <View style={styles.filaFuentes}>
+                  <Pressable
+                    testID="cliente-avatar-libreria"
+                    style={styles.botonFuente}
+                    disabled={evidenciasCliente.cargando}
+                    onPress={() => elegirEvidencia("foto_facial", "libreria")}
+                  >
+                    <MaterialIcons name="photo-library" size={14} color="#2563eb" />
+                  </Pressable>
+                  <Pressable
+                    testID="cliente-avatar-camara"
+                    style={styles.botonFuente}
+                    disabled={evidenciasCliente.cargando}
+                    onPress={() => elegirEvidencia("foto_facial", "camara")}
+                  >
+                    <MaterialIcons name="photo-camera" size={14} color="#2563eb" />
+                  </Pressable>
                 </View>
                 <Text style={styles.avatarEtiqueta}>
                   {evidenciasCliente.evidencias.find((e) => e.campo === "foto_facial")
                     ? "Foto ✓"
                     : "Foto"}
                 </Text>
-              </Pressable>
+              </View>
 
               <View style={styles.documentoNuevo}>
                 <Text style={styles.documentoNuevoTitulo}>Documento</Text>
@@ -377,6 +410,26 @@ export function ClientesScreen() {
                         ? "Reverso ✓"
                         : "Reverso"}
                     </Text>
+                  </Pressable>
+                </View>
+                <View style={styles.documentoFuentes}>
+                  <Pressable
+                    testID="cliente-doc-frente-camara"
+                    style={styles.botonDocCamara}
+                    disabled={evidenciasCliente.cargando}
+                    onPress={() => elegirEvidencia("documento_frente", "camara")}
+                  >
+                    <MaterialIcons name="photo-camera" size={14} color="#2563eb" />
+                    <Text style={styles.botonDocCamaraTexto}>Frente</Text>
+                  </Pressable>
+                  <Pressable
+                    testID="cliente-doc-reverso-camara"
+                    style={styles.botonDocCamara}
+                    disabled={evidenciasCliente.cargando}
+                    onPress={() => elegirEvidencia("documento_reverso", "camara")}
+                  >
+                    <MaterialIcons name="photo-camera" size={14} color="#2563eb" />
+                    <Text style={styles.botonDocCamaraTexto}>Reverso</Text>
                   </Pressable>
                 </View>
               </View>
@@ -538,13 +591,16 @@ const styles = StyleSheet.create({
   filaSuperior: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   avatarEditable: { alignItems: "center", gap: 4 },
   avatarImagen: { width: 72, height: 72, borderRadius: 36 },
-  avatarOverlay: {
-    position: "absolute",
-    bottom: 6,
-    right: 0,
-    backgroundColor: "#2563eb",
-    borderRadius: 999,
-    padding: 5,
+  filaFuentes: { flexDirection: "row", gap: 6 },
+  botonFuente: {
+    width: 34,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 8,
+    backgroundColor: "#eff6ff",
   },
   avatarEtiqueta: { fontSize: 12, color: "#2563eb", fontWeight: "600" },
   documentoNuevo: { flex: 1, gap: 6 },
@@ -562,6 +618,20 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   botonDocTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
+  documentoFuentes: { flexDirection: "row", gap: 8 },
+  botonDocCamara: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 8,
+    paddingVertical: 6,
+    backgroundColor: "#eff6ff",
+  },
+  botonDocCamaraTexto: { color: "#2563eb", fontWeight: "600", fontSize: 12 },
   filaBusqueda: { flexDirection: "row", gap: 8 },
   inputBusqueda: { flex: 1 },
   botonBuscar: {

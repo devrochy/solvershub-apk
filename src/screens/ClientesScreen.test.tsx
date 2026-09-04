@@ -325,4 +325,59 @@ describe("ClientesScreen", () => {
     expect(getByTestId("cliente-latitud").props.value).toBe("-17.4");
     expect(getByTestId("cliente-longitud").props.value).toBe("-66.1");
   });
+
+  it("ofrece cámara y librería para la foto del avatar en el nuevo cliente", async () => {
+    const { getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    expect(getByTestId("cliente-avatar-libreria")).toBeTruthy();
+    expect(getByTestId("cliente-avatar-camara")).toBeTruthy();
+  });
+
+  it("ofrece cámara para el documento frente y reverso", async () => {
+    const { getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    expect(getByTestId("cliente-doc-frente-camara")).toBeTruthy();
+    expect(getByTestId("cliente-doc-reverso-camara")).toBeTruthy();
+  });
+
+  it("avisa que la ruta exige foto y documento antes de crear si faltan", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const { getByTestId, getByText } = await renderConRutaActiva(
+      {
+        listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+        crearCliente,
+      },
+      {
+        rutaId: 6,
+        rutaNombre: "Ruta Centro",
+        tipoInteres: 20,
+        numCuotas: 8,
+        config: {
+          reconocimientoFacialActivo: true,
+          registroDocumentoCliente: true,
+        } as never,
+      },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    expect(crearCliente).not.toHaveBeenCalled();
+    expect(getByText("Esta ruta exige la foto del cliente (foto facial).")).toBeTruthy();
+  });
 });

@@ -69,3 +69,10 @@ cliente (header neutro + tarjeta con header propio + edición sin ubicaciones +
 - Screenshot del préstamo: canvas con fondo blanco (`canvasScreenshot`).
 - Tests: subida parcial (backend), canvas fondo blanco, tarjeta lineal.
 - `scripts/check.sh` APK verde (262 tests) + backend verde (856 tests).
+
+## Iteración 4 — Cámara, validación evidencias, avatar por ruta (2026-09-03)
+- Nuevo cliente: opciones de cámara y librería para avatar y documento frente/reverso (antes solo librería).
+- Crear cliente: validación previa de evidencias requeridas por la config de la ruta (foto facial y/o documento frente) con mensajes claros; el backend rechazaba con 400 genérico.
+- `urlArchivo`: normaliza paths absolutos del filesystem (cache viejo) extrayendo `/uploads/...` — el avatar en Centro/Manizales no cargaba si el celular tenía cache previo al fix.
+- Gasto: se registra desde la APK y se aprueba en el panel admin (verificado, no es bug).
+- `scripts/check.sh` APK verde (266 tests).
