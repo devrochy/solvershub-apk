@@ -89,3 +89,14 @@ cliente (header neutro + tarjeta con header propio + edición sin ubicaciones +
 - **Crear cliente no llegaba al backend**: el túnel cloudflared descarta multipart grandes por timeout. Verificado: 2 fotos de 6MB → 104s/201 (al límite); ~300KB → 5.8s/201. Fix: `use-evidencias-cliente` reduce a máx 1280px del lado mayor + JPEG compress 0.7 (`expo-image-manipulator`, +test). Resultado ~200-500KB por foto.
 - **Logs diagnósticos**: `guardarNuevoCliente` loguea cada validación que bloquea y el error completo (name/message/status/esErrorDeRed).
 - `scripts/check.sh` APK verde (274 tests) + backend verde.
+
+## 2026-09-04 (2) — multipart compatible con el fetch de Expo SDK 57
+- **Causa raíz real de "No se pudo crear el cliente"**: Expo SDK 57 usa el fetch
+  de Winter, que rechaza las partes `{ uri, name, type }` de React Native con
+  "Unsupported FormDataPart implementation" (error de red, nunca llegaba al
+  backend). El timeout del túnel era secundario.
+- **Fix**: `src/api/multipart.ts` (`construirMultipart`) arma el multipart a mano
+  (campos + archivos con Content-Type/filename) y lo envía como `Uint8Array`
+  con boundary, leyendo bytes vía `expo-file-system`. Aplica a `crearCliente`,
+  `agregarEvidenciasCliente` y `registrarGasto`. `client.ts` acepta Uint8Array.
+- Verificado: multipart idéntico al de la APK → 201 en backend real.
