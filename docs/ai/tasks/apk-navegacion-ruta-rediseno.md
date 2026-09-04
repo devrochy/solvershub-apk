@@ -83,3 +83,9 @@ cliente (header neutro + tarjeta con header propio + edición sin ubicaciones +
 - Backend seed: placeholders de foto/documento pasan de JPEG 1x1 (invisible)
   a PNG 160x160 visible — los avatares en Centro/Manizales ahora se ven.
 - `scripts/check.sh` APK verde (266 tests) + backend verde.
+
+## 2026-09-04 — avatar icono uniforme y crear cliente con fotos reducidas
+- **Avatares**: se eliminó la silueta del seed (backend) — todas las rutas muestran el icono persona. El `Avatar` mantiene onError→icono y reseteo al cambiar `fotoUrl`.
+- **Crear cliente no llegaba al backend**: el túnel cloudflared descarta multipart grandes por timeout. Verificado: 2 fotos de 6MB → 104s/201 (al límite); ~300KB → 5.8s/201. Fix: `use-evidencias-cliente` reduce a máx 1280px del lado mayor + JPEG compress 0.7 (`expo-image-manipulator`, +test). Resultado ~200-500KB por foto.
+- **Logs diagnósticos**: `guardarNuevoCliente` loguea cada validación que bloquea y el error completo (name/message/status/esErrorDeRed).
+- `scripts/check.sh` APK verde (274 tests) + backend verde.
