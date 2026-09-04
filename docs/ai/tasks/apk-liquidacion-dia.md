@@ -41,6 +41,6 @@ compartir).
   logout; mensajes de éxito en verde.
 - Code-review: `listar` del backend ahora incluye detalle (PR #96), y
   `visitaRegistrada` cuenta pago/abono o no pago (commit en ese PR).
-- Tests: `client.test.ts` (requestBytes x3), `cobrador.test.ts` (x3),
-  `DiaScreen.test.tsx` (liquidación x4). `scripts/check.sh` APK verde (293).
+- Tests: `client.test.ts` (requestBytes x5), `cobrador.test.ts` (x3),
+  `DiaScreen.test.tsx` (liquidación x4). `scripts/check.sh` APK verde (295).
 - Backlog: doble capa de permisos `generar_reporte` (APK).

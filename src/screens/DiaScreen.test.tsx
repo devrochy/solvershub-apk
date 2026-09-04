@@ -625,10 +625,15 @@ describe("DiaScreen — liquidación del día", () => {
     { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: true },
   ];
 
+  const hoyLocal = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+
   const liquidacionFixture = {
     id: 5,
     rutaId: 6,
-    fecha: "2026-09-04",
+    fecha: hoyLocal(),
     periodo: "diario",
     cajaAnterior: 1000,
     cajaActual: 1300,
@@ -643,8 +648,8 @@ describe("DiaScreen — liquidación del día", () => {
     comisionValor: 60,
     comentario: null,
     createdAt: "2026-09-04T20:00:00Z",
-    pagos: [{ id: 1, clienteId: 1, clienteNombre: "Juan", valor: 300, metodoPago: "efectivo", fechaHora: "2026-09-04T14:00:00Z", liquidado: true }],
-    abonos: [{ id: 2, clienteId: 2, clienteNombre: "Ana", valor: 100, metodoPago: "efectivo", fechaHora: "2026-09-04T15:00:00Z", liquidado: true }],
+    pagos: [{ id: 1, clienteId: 1, clienteNombre: "Juan", valor: 300, metodoPago: "efectivo", fechaHora: `${hoyLocal()}T14:00:00Z`, liquidado: true }],
+    abonos: [{ id: 2, clienteId: 2, clienteNombre: "Ana", valor: 100, metodoPago: "efectivo", fechaHora: `${hoyLocal()}T15:00:00Z`, liquidado: true }],
   };
 
   it("habilita el botón solo cuando todos los clientes del día tienen visita", async () => {

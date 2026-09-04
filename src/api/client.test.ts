@@ -186,6 +186,24 @@ describe("ApiClient", () => {
 
       await expect(client.requestBytes("/x")).rejects.toMatchObject({ status: 500 });
     });
+
+    it("lanza 401 sin fetch si no hay sesión", async () => {
+      (gateway.getTokens as jest.Mock).mockResolvedValue(null);
+
+      await expect(client.requestBytes("/x")).rejects.toMatchObject({ status: 401 });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("limpia la sesión y lanza 401 si el refresh falla", async () => {
+      (gateway.getTokens as jest.Mock).mockResolvedValue({
+        accessToken: token(Math.floor(Date.now() / 1000) - 60),
+        refreshToken: "r1",
+      });
+      fetchMock.mockResolvedValue(new Response(null, { status: 401 }));
+
+      await expect(client.requestBytes("/x")).rejects.toMatchObject({ status: 401 });
+      expect(gateway.clear).toHaveBeenCalled();
+    });
   });
 });
 
