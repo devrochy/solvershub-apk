@@ -76,8 +76,6 @@ type ModalActivo =
   | "editar"
   | "ubicacion"
   | "prestamo"
-  | "pago"
-  | "no_pago"
   | "avatar"
   | "cuota"
   | "documento";
@@ -100,8 +98,17 @@ const ETIQUETA_CANVAS: Record<TipoCuotaCanvas, string> = {
   abonada: "Abonada",
 };
 
-function esPendienteOArrasada(cuota: CuotaPublic): boolean {
-  return cuota.estatus === "pendiente" || cuota.estatus === "atrasada";
+function esPendienteOAtrasada(estatus: string): boolean {
+  return estatus === "pendiente" || estatus === "atrasada";
+}
+
+function formatearFechaHora(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    return iso;
+  }
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
@@ -129,8 +136,20 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   // Detalle de cuota.
   const [detalleCuota, setDetalleCuota] = useState<DetalleCuotaPublic | null>(null);
   const [detalleCuotaCargando, setDetalleCuotaCargando] = useState(false);
+  // Acción desplegada dentro de la modal de cuota (registrar pago/no pago).
+  const [accionCuota, setAccionCuota] = useState<"ninguno" | "pago" | "no_pago">("ninguno");
+  // Borrar pago/abono desde la modal de cuota.
+  const [borrarTarget, setBorrarTarget] = useState<{
+    tipo: "pago" | "abono";
+    id: number;
+    valor: number;
+  } | null>(null);
+  const [borrarPassword, setBorrarPassword] = useState("");
+  const [borrarMotivo, setBorrarMotivo] = useState("");
+  const [borrando, setBorrando] = useState(false);
+  const [borrarMensaje, setBorrarMensaje] = useState<string | null>(null);
 
-  // Formulario pago/no_pago.
+  // Formulario pago/no_pago (dentro de la modal de cuota).
   const [valor, setValor] = useState("");
   const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>("efectivo");
   const [motivoNoPago, setMotivoNoPago] = useState<(typeof MOTIVOS_NO_PAGO)[number]>("no_esta");
@@ -229,7 +248,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   );
 
   const cuotaPorPagar = useMemo(
-    () => prestamoSeleccionado?.cuotas.find(esPendienteOArrasada),
+    () =>
+      prestamoSeleccionado?.cuotas.find((c) => esPendienteOAtrasada(c.estatus)),
     [prestamoSeleccionado],
   );
 
@@ -271,7 +291,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     let total = 0;
     let cuentasPendientes = 0;
     for (const p of activos) {
-      const cuota = p.cuotas.find(esPendienteOArrasada);
+      const cuota = p.cuotas.find((c) => esPendienteOAtrasada(c.estatus));
       if (cuota) {
         total += cuota.valorEsperado;
         cuentasPendientes += 1;
@@ -290,16 +310,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setPrestamoSeleccionadoId(id);
   }
 
-  async function enviarVisita() {
+  async function enviarAccionCuota() {
     if (!prestamoSeleccionado) {
       setMensaje("Selecciona un préstamo.");
       return;
     }
-    if (modal === "pago") {
-      if (tipoPago === "cuota" && !cuotaPorPagar) {
-        setMensaje("Sin cuotas pendientes para este préstamo.");
-        return;
-      }
+    if (accionCuota === "pago") {
       const monto = Number(valor);
       const errorMonto = validarMonto(monto);
       if (errorMonto) {
@@ -313,15 +329,17 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         clienteId,
         resultado: "pago" as const,
         tipoPago,
-        cuotaId: tipoPago === "cuota" ? cuotaPorPagar?.id : undefined,
+        cuotaId: tipoPago === "cuota" ? detalleCuota?.cuotaId : undefined,
         valor: monto,
         metodoPago,
       };
       try {
         await api.registrarVisitaPago(rutaId, input);
-        setModal("ninguno");
+        setAccionCuota("ninguno");
         setValor("");
         setMensaje("Pago registrado.");
+        await recargarDetalleCuota();
+        await recargarEstadoPrestamo();
         await cargar();
       } catch (err) {
         if (apiErrorStatus(err) === 401) {
@@ -333,7 +351,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             `pago-${input.prestamoId}-${input.clienteId}-${input.cuotaId ?? "abono"}`,
           );
           if (encolado) {
-            setModal("ninguno");
+            setAccionCuota("ninguno");
             setValor("");
             setMensaje("Guardado sin conexión (se sincronizará).");
           } else {
@@ -347,7 +365,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       } finally {
         setEnviando(false);
       }
-    } else {
+      return;
+    }
+    if (accionCuota === "no_pago") {
       const esCompromiso = motivoNoPago === "compromiso_de_pago";
       const errorFecha = validarFechaPrometida(fechaPrometida);
       if (errorFecha) {
@@ -378,10 +398,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       };
       try {
         await api.registrarVisitaNoPago(rutaId, input);
-        setModal("ninguno");
+        setAccionCuota("ninguno");
         setFechaPrometida("");
         setValorPrometido("");
         setMensaje("Visita registrada.");
+        await recargarDetalleCuota();
+        await recargarEstadoPrestamo();
       } catch (err) {
         if (apiErrorStatus(err) === 401) {
           await logout();
@@ -392,7 +414,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             `no_pago-${input.prestamoId}-${input.clienteId}`,
           );
           if (encolado) {
-            setModal("ninguno");
+            setAccionCuota("ninguno");
             setFechaPrometida("");
             setValorPrometido("");
             setMensaje("Guardado sin conexión (se sincronizará).");
@@ -410,20 +432,104 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     }
   }
 
-  function abrirPago() {
+  function toggleAccionCuota(accion: "pago" | "no_pago") {
+    setBorrarTarget(null);
+    setBorrarMensaje(null);
+    if (accionCuota === accion) {
+      setAccionCuota("ninguno");
+      setMensaje(null);
+      return;
+    }
     setMensaje(null);
-    setTipoPago("cuota");
-    setMetodoPago("efectivo");
-    setValor(cuotaPorPagar ? String(cuotaPorPagar.valorEsperado) : "");
-    setModal("pago");
+    if (accion === "pago") {
+      setTipoPago("cuota");
+      setMetodoPago("efectivo");
+      setValor(detalleCuota ? String(detalleCuota.valorEsperado) : "");
+    } else {
+      setMotivoNoPago("no_esta");
+      setFechaPrometida("");
+      setValorPrometido("");
+    }
+    setAccionCuota(accion);
   }
 
-  function abrirNoPago() {
+  function cerrarCuota() {
+    setAccionCuota("ninguno");
+    setBorrarTarget(null);
     setMensaje(null);
-    setMotivoNoPago("no_esta");
-    setFechaPrometida("");
-    setValorPrometido("");
-    setModal("no_pago");
+    setModal("ninguno");
+  }
+
+  function iniciarBorrarPago(pago: { id: number; valor: number }) {
+    setAccionCuota("ninguno");
+    setMensaje(null);
+    setBorrarTarget({ tipo: "pago", id: pago.id, valor: pago.valor });
+    setBorrarPassword("");
+    setBorrarMotivo("");
+    setBorrarMensaje(null);
+  }
+
+  function iniciarBorrarAbono(abono: { id: number; valor: number }) {
+    setAccionCuota("ninguno");
+    setMensaje(null);
+    setBorrarTarget({ tipo: "abono", id: abono.id, valor: abono.valor });
+    setBorrarPassword("");
+    setBorrarMotivo("");
+    setBorrarMensaje(null);
+  }
+
+  function cancelarBorrar() {
+    setBorrarTarget(null);
+    setBorrarMensaje(null);
+  }
+
+  async function confirmarBorrar() {
+    if (!borrarTarget) {
+      return;
+    }
+    if (!borrarPassword || !borrarMotivo.trim()) {
+      setBorrarMensaje("Password y motivo son obligatorios.");
+      return;
+    }
+    setBorrando(true);
+    setBorrarMensaje(null);
+    try {
+      const input = { password: borrarPassword, motivo: borrarMotivo.trim() };
+      if (borrarTarget.tipo === "pago") {
+        await api.eliminarPago(rutaId, borrarTarget.id, input);
+      } else {
+        await api.eliminarAbono(rutaId, borrarTarget.id, input);
+      }
+      setBorrarTarget(null);
+      setBorrarPassword("");
+      setBorrarMotivo("");
+      setMensaje(
+        borrarTarget.tipo === "pago"
+          ? "Pago eliminado."
+          : "Abono eliminado.",
+      );
+      await recargarDetalleCuota();
+      await recargarEstadoPrestamo();
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else if (esErrorDeRed(err)) {
+        setBorrarMensaje("Se requiere conexión para eliminar.");
+      } else if (err instanceof Error && err.message) {
+        try {
+          const cuerpo = JSON.parse(err.message) as { message?: string };
+          setBorrarMensaje(
+            typeof cuerpo.message === "string" ? cuerpo.message : "No se pudo eliminar.",
+          );
+        } catch {
+          setBorrarMensaje("No se pudo eliminar.");
+        }
+      } else {
+        setBorrarMensaje("No se pudo eliminar.");
+      }
+    } finally {
+      setBorrando(false);
+    }
   }
 
   function abrirEditar() {
@@ -628,6 +734,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     if (!prestamoSeleccionado) {
       return;
     }
+    setAccionCuota("ninguno");
+    setBorrarTarget(null);
     setDetalleCuota(null);
     setDetalleCuotaCargando(true);
     setModal("cuota");
@@ -639,6 +747,35 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       setDetalleCuota(null);
     } finally {
       setDetalleCuotaCargando(false);
+    }
+  }
+
+  async function recargarDetalleCuota() {
+    if (!prestamoSeleccionado || !detalleCuota) {
+      return;
+    }
+    setDetalleCuotaCargando(true);
+    try {
+      setDetalleCuota(
+        await api.detalleCuota(rutaId, prestamoSeleccionado.id, detalleCuota.cuotaId),
+      );
+    } catch {
+      // Se conserva el detalle previo si falla la recarga.
+    } finally {
+      setDetalleCuotaCargando(false);
+    }
+  }
+
+  async function recargarEstadoPrestamo() {
+    if (!prestamoSeleccionado) {
+      return;
+    }
+    try {
+      setEstadoPrestamo(
+        await api.obtenerEstadoCuentaPrestamo(rutaId, prestamoSeleccionado.id),
+      );
+    } catch {
+      // Se conserva el estado previo si falla la recarga.
     }
   }
 
@@ -1084,26 +1221,6 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 No se pudo cargar el detalle del préstamo.
               </Text>
             )}
-
-            {/* Acciones solo con préstamo seleccionado */}
-            <View style={styles.acciones}>
-              <Pressable
-                testID="btn-pago"
-                style={[styles.botonAccion, styles.botonPago]}
-                onPress={abrirPago}
-              >
-                <Text style={styles.botonAccionTexto}>Registrar pago</Text>
-                <MaterialIcons name="check" size={18} color="#ffffff" />
-              </Pressable>
-              <Pressable
-                testID="btn-no-pago"
-                style={[styles.botonAccion, styles.botonNoPago]}
-                onPress={abrirNoPago}
-              >
-                <Text style={styles.botonAccionTexto}>Registrar no pago</Text>
-                <MaterialIcons name="close" size={18} color="#ffffff" />
-              </Pressable>
-            </View>
           </View>
         ) : null}
       </ScrollView>
@@ -1489,195 +1606,332 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {mensaje ? <Text style={styles.errorTexto}>{mensaje}</Text> : null}
       </ModalConFooter>
 
-      {/* Modal: detalle de cuota */}
+      {/* Modal: detalle de cuota (rediseñada): detalle con scroll, acciones abajo,
+      formularios desplegables y borrar pago/abono (solo no liquidado). */}
       <ModalConFooter
         visible={modal === "cuota"}
         titulo="Detalle de cuota"
-        onCerrar={() => setModal("ninguno")}
+        onCerrar={cerrarCuota}
         testID="cuota-dialog"
       >
         {detalleCuotaCargando ? (
           <ActivityIndicator />
         ) : detalleCuota ? (
-          <>
-            <View style={styles.cuotaResumen}>
-              <Text style={styles.cuotaLinea}>
-                Cuota {detalleCuota.numeroCuota} — {detalleCuota.valorEsperado} (
-                {detalleCuota.estatus})
-              </Text>
-              <Text style={styles.cuotaFecha}>Vence {detalleCuota.fechaVencimiento}</Text>
-            </View>
-            <Text style={styles.cuotaSubtitulo}>Pagos</Text>
-            {detalleCuota.pagos.length === 0 ? (
-              <Text style={styles.cuotaVacio}>Sin pagos registrados.</Text>
-            ) : (
-              detalleCuota.pagos.map((pago) => (
-                <View key={pago.id} style={styles.pagoItem}>
-                  <Text style={styles.pagoTexto}>
-                    ${pago.valor} · {pago.metodoPago ?? "—"}
-                  </Text>
-                  <Text style={styles.pagoFecha}>{pago.fecha}</Text>
-                </View>
-              ))
-            )}
-            <Text style={styles.cuotaLinea}>
-              Abonos acumulados: {detalleCuota.abonosAcumulados}
-            </Text>
-            <Text style={styles.cuotaLinea}>
-              Saldo pendiente: {detalleCuota.saldoPendiente}
-            </Text>
-            {detalleCuota.ultimaVisita ? (
+          (() => {
+            const cuotaAccionable = esPendienteOAtrasada(detalleCuota.estatus);
+            const puedeEliminarPago = Boolean(rutaActiva?.config.eliminarPagosApk);
+            const puedeEliminarAbono = Boolean(rutaActiva?.config.eliminarAbonosApk);
+            return (
               <>
-                <Text style={styles.cuotaSubtitulo}>Última visita</Text>
-                <Text style={styles.cuotaLinea}>
-                  Resultado: {detalleCuota.ultimaVisita.resultado}
-                  {detalleCuota.ultimaVisita.motivoNoPago
-                    ? ` (${detalleCuota.ultimaVisita.motivoNoPago})`
-                    : ""}{" "}
-                  · {detalleCuota.ultimaVisita.fecha}
-                </Text>
+                <ScrollView style={styles.cuotaScroll}>
+                  <View style={styles.cuotaResumen}>
+                    <Text style={styles.cuotaLinea}>
+                      Cuota {detalleCuota.numeroCuota} — {detalleCuota.valorEsperado} (
+                      {detalleCuota.estatus})
+                    </Text>
+                    <Text style={styles.cuotaFecha}>
+                      Vence {detalleCuota.fechaVencimiento}
+                    </Text>
+                  </View>
+
+                  <Text style={styles.cuotaSubtitulo}>Pagos</Text>
+                  {detalleCuota.pagos.length === 0 ? (
+                    <Text style={styles.cuotaVacio}>Sin pagos registrados.</Text>
+                  ) : (
+                    detalleCuota.pagos.map((pago) => (
+                      <View key={pago.id} style={styles.filaItemBorrable}>
+                        <View style={styles.filaItemTexto}>
+                          <Text style={styles.pagoTexto}>
+                            ${pago.valor} · {pago.metodoPago ?? "—"}
+                          </Text>
+                          <Text style={styles.pagoFecha}>
+                            {formatearFechaHora(pago.fechaHora)}
+                            {pago.liquidado ? " · liquidado" : ""}
+                          </Text>
+                        </View>
+                        {!pago.liquidado && puedeEliminarPago ? (
+                          <Pressable
+                            testID={`borrar-pago-${pago.id}`}
+                            style={styles.botonBorrar}
+                            onPress={() => iniciarBorrarPago(pago)}
+                          >
+                            <MaterialIcons name="delete-outline" size={16} color="#dc2626" />
+                          </Pressable>
+                        ) : null}
+                      </View>
+                    ))
+                  )}
+
+                  <Text style={styles.cuotaSubtitulo}>Abonos del préstamo</Text>
+                  {detalleCuota.abonos.length === 0 ? (
+                    <Text style={styles.cuotaVacio}>Sin abonos registrados.</Text>
+                  ) : (
+                    detalleCuota.abonos.map((abono) => (
+                      <View key={abono.id} style={styles.filaItemBorrable}>
+                        <View style={styles.filaItemTexto}>
+                          <Text style={styles.pagoTexto}>${abono.valor}</Text>
+                          <Text style={styles.pagoFecha}>
+                            {formatearFechaHora(abono.fechaHora)}
+                            {abono.liquidado ? " · liquidado" : ""}
+                          </Text>
+                        </View>
+                        {!abono.liquidado && puedeEliminarAbono ? (
+                          <Pressable
+                            testID={`borrar-abono-${abono.id}`}
+                            style={styles.botonBorrar}
+                            onPress={() => iniciarBorrarAbono(abono)}
+                          >
+                            <MaterialIcons name="delete-outline" size={16} color="#dc2626" />
+                          </Pressable>
+                        ) : null}
+                      </View>
+                    ))
+                  )}
+
+                  <Text style={styles.cuotaLinea}>
+                    Abonos acumulados: {detalleCuota.abonosAcumulados}
+                  </Text>
+                  <Text style={styles.cuotaLinea}>
+                    Saldo pendiente: {detalleCuota.saldoPendiente}
+                  </Text>
+                  {detalleCuota.ultimaVisita ? (
+                    <>
+                      <Text style={styles.cuotaSubtitulo}>Última visita</Text>
+                      <Text style={styles.cuotaLinea}>
+                        Resultado: {detalleCuota.ultimaVisita.resultado}
+                        {detalleCuota.ultimaVisita.motivoNoPago
+                          ? ` (${detalleCuota.ultimaVisita.motivoNoPago})`
+                          : ""}{" "}
+                        · {detalleCuota.ultimaVisita.fecha}
+                      </Text>
+                    </>
+                  ) : null}
+                </ScrollView>
+
+                {mensaje ? (
+                  <Text testID="cuota-mensaje" style={styles.mensajeModal}>
+                    {mensaje}
+                  </Text>
+                ) : null}
+
+                {/* Confirmación de borrado de pago/abono */}
+                {borrarTarget ? (
+                  <View style={styles.borrarPanel} testID="borrar-confirm">
+                    <Text style={styles.cuotaLinea}>
+                      Eliminar {borrarTarget.tipo} de ${borrarTarget.valor} — este cambio
+                      requiere tu contraseña y un motivo.
+                    </Text>
+                    <Text style={styles.label}>Password</Text>
+                    <TextInput
+                      testID="borrar-password"
+                      style={styles.input}
+                      placeholder="Tu contraseña"
+                      secureTextEntry
+                      value={borrarPassword}
+                      onChangeText={setBorrarPassword}
+                    />
+                    <Text style={styles.label}>Motivo</Text>
+                    <TextInput
+                      testID="borrar-motivo"
+                      style={styles.input}
+                      placeholder="Motivo de la eliminación"
+                      value={borrarMotivo}
+                      onChangeText={setBorrarMotivo}
+                    />
+                    {borrarMensaje ? (
+                      <Text style={styles.mensajeModal}>{borrarMensaje}</Text>
+                    ) : null}
+                    <View style={styles.borrarAcciones}>
+                      <Pressable
+                        testID="borrar-cancelar"
+                        style={styles.botonCancelarLinea}
+                        disabled={borrando}
+                        onPress={cancelarBorrar}
+                      >
+                        <Text style={styles.botonCancelarLineaTexto}>Cancelar</Text>
+                      </Pressable>
+                      <Pressable
+                        testID="borrar-confirmar"
+                        style={[styles.botonConfirmarLinea, borrando && styles.deshabilitado]}
+                        disabled={borrando}
+                        onPress={() => void confirmarBorrar()}
+                      >
+                        {borrando ? (
+                          <ActivityIndicator color="#ffffff" />
+                        ) : (
+                          <Text style={styles.botonConfirmarLineaTexto}>Eliminar</Text>
+                        )}
+                      </Pressable>
+                    </View>
+                  </View>
+                ) : null}
+
+                {/* Formulario desplegable: registrar pago (pago de cuota / abono parcial) */}
+                {accionCuota === "pago" ? (
+                  <View testID="form-pago" style={styles.formPanel}>
+                    <Text style={styles.label}>Tipo</Text>
+                    <View style={styles.chips}>
+                      <Pressable
+                        testID="tipo-cuota"
+                        style={[styles.chip, tipoPago === "cuota" && styles.chipActivo]}
+                        onPress={() => setTipoPago("cuota")}
+                      >
+                        <Text
+                          style={tipoPago === "cuota" ? styles.chipTextoActivo : styles.chipTexto}
+                        >
+                          Pago de cuota
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        testID="tipo-abono"
+                        style={[styles.chip, tipoPago === "abono" && styles.chipActivo]}
+                        onPress={() => setTipoPago("abono")}
+                      >
+                        <Text
+                          style={tipoPago === "abono" ? styles.chipTextoActivo : styles.chipTexto}
+                        >
+                          Abono parcial
+                        </Text>
+                      </Pressable>
+                    </View>
+                    <Text style={styles.label}>Valor</Text>
+                    <TextInput
+                      testID="pago-valor"
+                      style={styles.input}
+                      placeholder="Valor"
+                      keyboardType="decimal-pad"
+                      value={valor}
+                      onChangeText={setValor}
+                    />
+                    <Text style={styles.label}>Método</Text>
+                    <View style={styles.chips}>
+                      {METODOS_PAGO.map((metodo) => (
+                        <Pressable
+                          key={metodo}
+                          style={[styles.chip, metodoPago === metodo && styles.chipActivo]}
+                          onPress={() => setMetodoPago(metodo)}
+                        >
+                          <Text
+                            style={metodoPago === metodo ? styles.chipTextoActivo : styles.chipTexto}
+                          >
+                            {metodo}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <Pressable
+                      testID="guardar-pago-cuota"
+                      style={[styles.botonConfirmarLinea, enviando && styles.deshabilitado]}
+                      disabled={enviando}
+                      onPress={() => void enviarAccionCuota()}
+                    >
+                      {enviando ? (
+                        <ActivityIndicator color="#ffffff" />
+                      ) : (
+                        <Text style={styles.botonConfirmarLineaTexto}>
+                          {tipoPago === "cuota" ? "Registrar pago" : "Registrar abono"}
+                        </Text>
+                      )}
+                    </Pressable>
+                  </View>
+                ) : null}
+
+                {/* Formulario desplegable: registrar no pago */}
+                {accionCuota === "no_pago" ? (
+                  <View testID="form-no-pago" style={styles.formPanel}>
+                    <Text style={styles.label}>Motivo de no pago</Text>
+                    <View style={styles.chips}>
+                      {MOTIVOS_NO_PAGO.map((motivo) => (
+                        <Pressable
+                          key={motivo}
+                          style={[styles.chip, motivoNoPago === motivo && styles.chipActivo]}
+                          onPress={() => setMotivoNoPago(motivo)}
+                        >
+                          <Text
+                            style={
+                              motivoNoPago === motivo ? styles.chipTextoActivo : styles.chipTexto
+                            }
+                          >
+                            {motivo}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    {motivoNoPago === "compromiso_de_pago" ? (
+                      <>
+                        <Text style={styles.label}>Fecha prometida</Text>
+                        <TextInput
+                          testID="fecha-prometida"
+                          style={styles.input}
+                          placeholder="AAAA-MM-DD"
+                          autoCapitalize="none"
+                          value={fechaPrometida}
+                          onChangeText={setFechaPrometida}
+                        />
+                        <Text style={styles.label}>Valor prometido</Text>
+                        <TextInput
+                          testID="valor-prometido"
+                          style={styles.input}
+                          placeholder="Valor prometido"
+                          keyboardType="decimal-pad"
+                          value={valorPrometido}
+                          onChangeText={setValorPrometido}
+                        />
+                      </>
+                    ) : (
+                      <Text style={styles.promesaNota}>
+                        Cambia el motivo a compromiso_de_pago para registrar una promesa.
+                      </Text>
+                    )}
+                    <Pressable
+                      testID="guardar-no-pago"
+                      style={[styles.botonConfirmarLinea, enviando && styles.deshabilitado]}
+                      disabled={enviando}
+                      onPress={() => void enviarAccionCuota()}
+                    >
+                      {enviando ? (
+                        <ActivityIndicator color="#ffffff" />
+                      ) : (
+                        <Text style={styles.botonConfirmarLineaTexto}>Registrar visita</Text>
+                      )}
+                    </Pressable>
+                  </View>
+                ) : null}
+
+                {/* Acciones en la parte inferior (solo cuota no paga) */}
+                {cuotaAccionable ? (
+                  <View style={styles.cuotaAcciones}>
+                    <Pressable
+                      testID="accion-pago"
+                      style={[
+                        styles.cuotaAccion,
+                        accionCuota === "pago" && styles.cuotaAccionActiva,
+                      ]}
+                      onPress={() => toggleAccionCuota("pago")}
+                    >
+                      <MaterialIcons name="payments" size={16} color="#ffffff" />
+                      <Text style={styles.cuotaAccionTexto}>Registrar pago</Text>
+                    </Pressable>
+                    <Pressable
+                      testID="accion-no-pago"
+                      style={[
+                        styles.cuotaAccion,
+                        styles.cuotaAccionNoPago,
+                        accionCuota === "no_pago" && styles.cuotaAccionActiva,
+                      ]}
+                      onPress={() => toggleAccionCuota("no_pago")}
+                    >
+                      <MaterialIcons name="block" size={16} color="#ffffff" />
+                      <Text style={styles.cuotaAccionTexto}>No pago</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
               </>
-            ) : null}
-          </>
+            );
+          })()
         ) : (
           <Text style={styles.errorTexto}>No se pudo cargar el detalle de la cuota.</Text>
         )}
-      </ModalConFooter>
-
-      {/* Modal: registrar pago */}
-      <ModalConFooter
-        visible={modal === "pago"}
-        titulo="Registrar pago"
-        onCerrar={() => {
-          setModal("ninguno");
-          setMensaje(null);
-        }}
-        onCancelar={() => {
-          setModal("ninguno");
-          setMensaje(null);
-        }}
-        onConfirmar={() => void enviarVisita()}
-        confirmando={enviando}
-        confirmarTestID="guardar-visita"
-        testID="form-pago"
-      >
-        <Text style={styles.label}>Tipo</Text>
-        <View style={styles.chips}>
-          <Pressable
-            testID="tipo-cuota"
-            style={[styles.chip, tipoPago === "cuota" && styles.chipActivo]}
-            onPress={() => setTipoPago("cuota")}
-          >
-            <Text style={tipoPago === "cuota" ? styles.chipTextoActivo : styles.chipTexto}>
-              Pago de cuota
-            </Text>
-          </Pressable>
-          <Pressable
-            testID="tipo-abono"
-            style={[styles.chip, tipoPago === "abono" && styles.chipActivo]}
-            onPress={() => setTipoPago("abono")}
-          >
-            <Text style={tipoPago === "abono" ? styles.chipTextoActivo : styles.chipTexto}>
-              Abono parcial
-            </Text>
-          </Pressable>
-        </View>
-        {tipoPago === "cuota" && cuotaPorPagar ? (
-          <Text style={styles.detalle}>
-            Cuota {cuotaPorPagar.numeroCuota} — {cuotaPorPagar.valorEsperado}
-          </Text>
-        ) : null}
-        <Text style={styles.label}>Valor</Text>
-        <TextInput
-          testID="pago-valor"
-          style={styles.input}
-          placeholder="Valor"
-          keyboardType="decimal-pad"
-          value={valor}
-          onChangeText={setValor}
-        />
-        <Text style={styles.label}>Método</Text>
-        <View style={styles.chips}>
-          {METODOS_PAGO.map((metodo) => (
-            <Pressable
-              key={metodo}
-              style={[styles.chip, metodoPago === metodo && styles.chipActivo]}
-              onPress={() => setMetodoPago(metodo)}
-            >
-              <Text style={metodoPago === metodo ? styles.chipTextoActivo : styles.chipTexto}>
-                {metodo}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-        {mensaje && modal === "pago" ? (
-          <Text testID="mensaje-pago" style={styles.mensajeModal}>
-            {mensaje}
-          </Text>
-        ) : null}
-      </ModalConFooter>
-
-      {/* Modal: registrar no pago */}
-      <ModalConFooter
-        visible={modal === "no_pago"}
-        titulo="Registrar no pago"
-        onCerrar={() => {
-          setModal("ninguno");
-          setMensaje(null);
-        }}
-        onCancelar={() => {
-          setModal("ninguno");
-          setMensaje(null);
-        }}
-        onConfirmar={() => void enviarVisita()}
-        confirmando={enviando}
-        confirmarTestID="guardar-visita"
-        testID="form-no-pago"
-      >
-        <Text style={styles.label}>Motivo de no pago</Text>
-        <View style={styles.chips}>
-          {MOTIVOS_NO_PAGO.map((motivo) => (
-            <Pressable
-              key={motivo}
-              style={[styles.chip, motivoNoPago === motivo && styles.chipActivo]}
-              onPress={() => setMotivoNoPago(motivo)}
-            >
-              <Text style={motivoNoPago === motivo ? styles.chipTextoActivo : styles.chipTexto}>
-                {motivo}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-        <Text style={styles.label}>Promesa de pago (solo para compromiso_de_pago)</Text>
-        {motivoNoPago === "compromiso_de_pago" ? (
-          <>
-            <TextInput
-              testID="fecha-prometida"
-              style={styles.input}
-              placeholder="Fecha prometida (AAAA-MM-DD)"
-              autoCapitalize="none"
-              value={fechaPrometida}
-              onChangeText={setFechaPrometida}
-            />
-            <TextInput
-              testID="valor-prometido"
-              style={styles.input}
-              placeholder="Valor prometido"
-              keyboardType="decimal-pad"
-              value={valorPrometido}
-              onChangeText={setValorPrometido}
-            />
-          </>
-        ) : (
-          <Text style={styles.promesaNota}>
-            Cambia el motivo a compromiso_de_pago para registrar una promesa.
-          </Text>
-        )}
-        {mensaje && modal === "no_pago" ? (
-          <Text testID="mensaje-no-pago" style={styles.mensajeModal}>
-            {mensaje}
-          </Text>
-        ) : null}
       </ModalConFooter>
     </>
   );
@@ -2089,4 +2343,72 @@ const styles = StyleSheet.create({
   },
   pagoTexto: { color: "#334155", fontSize: 13, fontWeight: "600" },
   pagoFecha: { color: "#64748b", fontSize: 12 },
+  cuotaScroll: { maxHeight: 260 },
+  filaItemBorrable: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    gap: 8,
+  },
+  filaItemTexto: { flex: 1 },
+  botonBorrar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fef2f2",
+  },
+  borrarPanel: {
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: "#fff7f7",
+    gap: 6,
+  },
+  borrarAcciones: { flexDirection: "row", gap: 10, marginTop: 4 },
+  botonCancelarLinea: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  botonCancelarLineaTexto: { color: "#475569", fontWeight: "600" },
+  botonConfirmarLinea: {
+    flex: 1,
+    backgroundColor: "#2563eb",
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  botonConfirmarLineaTexto: { color: "#ffffff", fontWeight: "600" },
+  formPanel: {
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: "#eff6ff",
+    gap: 6,
+  },
+  cuotaAcciones: { flexDirection: "row", gap: 10, marginTop: 4 },
+  cuotaAccion: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#16a34a",
+    borderRadius: 10,
+    paddingVertical: 11,
+  },
+  cuotaAccionNoPago: { backgroundColor: "#dc2626" },
+  cuotaAccionActiva: { opacity: 0.85 },
+  cuotaAccionTexto: { color: "#ffffff", fontWeight: "700" },
 });
