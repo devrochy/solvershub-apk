@@ -1,3 +1,9 @@
+jest.mock("expo-file-system", () => ({
+  File: jest.fn().mockImplementation(() => ({
+    bytes: () => Promise.resolve(new Uint8Array([9, 9, 9])),
+  })),
+}));
+
 import { cobradorApi } from "./cobrador";
 
 describe("cobradorApi", () => {
@@ -53,7 +59,7 @@ describe("cobradorApi", () => {
     });
   });
 
-  it("registrarGasto construye FormData con descripcion, valor y evidencias", async () => {
+  it("registrarGasto construye multipart con descripcion, valor y evidencias", async () => {
     request.mockResolvedValue({ id: 1 });
 
     await api.registrarGasto(
@@ -64,12 +70,17 @@ describe("cobradorApi", () => {
 
     const [, opts] = request.mock.calls[0] as [
       string,
-      { method: string; body: FormData },
+      { method: string; headers: Record<string, string>; body: Uint8Array },
     ];
     expect(opts.method).toBe("POST");
-    expect(opts.body).toBeInstanceOf(FormData);
-    expect(opts.body.get("descripcion")).toBe("Combustible");
-    expect(opts.body.get("valor")).toBe("50");
+    expect(opts.headers["Content-Type"]).toMatch(/^multipart\/form-data; boundary=/);
+    const texto = new TextDecoder().decode(opts.body);
+    expect(texto).toContain(`name="descripcion"`);
+    expect(texto).toContain("Combustible");
+    expect(texto).toContain(`name="valor"`);
+    expect(texto).toContain("50");
+    expect(texto).toContain(`name="evidencias"; filename="x.jpg"`);
+    expect(texto).toContain("Content-Type: image/jpeg");
   });
 
   it("registrarTrayectoriaReal hace POST con los puntos", async () => {
@@ -242,19 +253,22 @@ describe("cobradorApi", () => {
 
     const [, opts] = request.mock.calls[0] as [
       string,
-      { method: string; body: FormData },
+      { method: string; headers: Record<string, string>; body: Uint8Array },
     ];
     expect(opts.method).toBe("POST");
-    expect(opts.body).toBeInstanceOf(FormData);
-    expect(opts.body.get("nombre")).toBe("Ana");
-    expect(opts.body.get("apellido")).toBe("Ríos");
-    expect(opts.body.get("negocio")).toBe("Tienda");
-    expect(opts.body.get("telefonoWhatsapp")).toBe("+5917000111");
-    expect(opts.body.get("latitud")).toBe("-17.78");
-    expect(opts.body.get("longitud")).toBe("-63.18");
-    expect(opts.body.get("topeMaximoDeuda")).toBe("1500");
-    expect(opts.body.getAll("foto_facial")).toHaveLength(1);
-    expect(opts.body.getAll("documento_frente")).toHaveLength(1);
+    expect(opts.headers["Content-Type"]).toMatch(/^multipart\/form-data; boundary=/);
+    const texto = new TextDecoder().decode(opts.body);
+    expect(texto).toContain(`name="nombre"`);
+    expect(texto).toContain("Ana");
+    expect(texto).toContain("Ríos");
+    expect(texto).toContain("Tienda");
+    expect(texto).toContain("+5917000111");
+    expect(texto).toContain("-17.78");
+    expect(texto).toContain("-63.18");
+    expect(texto).toContain("1500");
+    expect(texto).toContain(`name="foto_facial"; filename="f.jpg"`);
+    expect(texto).toContain(`name="documento_frente"; filename="d.jpg"`);
+    expect(texto).toContain("Content-Type: image/jpeg");
   });
 
   it("actualizarCliente hace PATCH al cliente con lat/lng", async () => {
