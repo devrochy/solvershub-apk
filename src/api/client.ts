@@ -35,17 +35,9 @@ export class ApiClient {
   constructor(private readonly gateway: SessionGateway) {}
 
   async request<T>(path: string, init: RequestOptions = {}): Promise<T> {
-    let pair = await this.gateway.getTokens();
+    const pair = await this.pairAutenticado();
     if (!pair) {
-      throw new ApiError(401, "Sin sesión");
-    }
-
-    if (isAccessTokenExpired(pair.accessToken)) {
-      const refreshed = await this.tryRefresh(pair.refreshToken);
-      if (!refreshed) {
-        throw new ApiError(401, "Sesión expirada");
-      }
-      pair = refreshed;
+      throw new ApiError(401, "Sesión expirada");
     }
 
     const res = await this.rawFetch(path, init, pair.accessToken);
@@ -53,7 +45,7 @@ export class ApiClient {
     if (res.status === 401) {
       const refreshed = await this.tryRefresh(pair.refreshToken);
       if (!refreshed) {
-        throw new ApiError(401, "Sesión expirada");
+        throw new ApiError(401, "No autorizado");
       }
       const retry = await this.rawFetch(path, init, refreshed.accessToken);
       if (retry.status === 401) {
@@ -63,6 +55,55 @@ export class ApiClient {
     }
 
     return this.toJson<T>(res);
+  }
+
+  /** Petición que devuelve el body como bytes (p. ej. un PDF). */
+  async requestBytes(path: string): Promise<Uint8Array> {
+    const pair = await this.pairAutenticado();
+    if (!pair) {
+      throw new ApiError(401, "Sesión expirada");
+    }
+
+    const res = await this.rawFetch(path, {}, pair.accessToken);
+
+    if (res.status === 401) {
+      const refreshed = await this.tryRefresh(pair.refreshToken);
+      if (!refreshed) {
+        throw new ApiError(401, "No autorizado");
+      }
+      const retry = await this.rawFetch(path, {}, refreshed.accessToken);
+      if (retry.status === 401) {
+        throw new ApiError(401, "No autorizado");
+      }
+      return this.aBytes(retry);
+    }
+
+    return this.aBytes(res);
+  }
+
+  /** Token vigente (con refresh si el access expiró localmente). */
+  private async pairAutenticado(): Promise<TokenPair | null> {
+    let pair = await this.gateway.getTokens();
+    if (!pair) {
+      return null;
+    }
+    if (isAccessTokenExpired(pair.accessToken)) {
+      const refreshed = await this.tryRefresh(pair.refreshToken);
+      if (!refreshed) {
+        return null;
+      }
+      pair = refreshed;
+    }
+    return pair;
+  }
+
+  private async aBytes(res: Response): Promise<Uint8Array> {
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new ApiError(res.status, body || res.statusText);
+    }
+    const buffer = await res.arrayBuffer();
+    return new Uint8Array(buffer);
   }
 
   private rawFetch(

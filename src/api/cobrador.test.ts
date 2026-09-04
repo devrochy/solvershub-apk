@@ -8,7 +8,8 @@ import { cobradorApi } from "./cobrador";
 
 describe("cobradorApi", () => {
   const request = jest.fn();
-  const api = cobradorApi({ request } as never);
+  const requestBytes = jest.fn();
+  const api = cobradorApi({ request, requestBytes } as never);
 
   beforeEach(() => jest.clearAllMocks());
 
@@ -229,6 +230,37 @@ describe("cobradorApi", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nota: "Comprar combustible" }),
     });
+  });
+
+  it("generarLiquidacion hace POST al endpoint de liquidaciones", async () => {
+    request.mockResolvedValue({ id: 5 });
+
+    await api.generarLiquidacion(6, { comentario: "cierre" });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/liquidaciones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comentario: "cierre" }),
+    });
+  });
+
+  it("listarLiquidaciones llama a GET de liquidaciones de la ruta", async () => {
+    request.mockResolvedValue([]);
+
+    await api.listarLiquidaciones(6);
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/liquidaciones");
+  });
+
+  it("exportarLiquidacionPdf usa requestBytes en el endpoint export-pdf", async () => {
+    requestBytes.mockResolvedValue(new Uint8Array([37, 80, 68, 70]));
+
+    const bytes = await api.exportarLiquidacionPdf(6, 5);
+
+    expect(requestBytes).toHaveBeenCalledWith(
+      "/cobrador/rutas/6/liquidaciones/5/export-pdf",
+    );
+    expect(Array.from(bytes)).toEqual([37, 80, 68, 70]);
   });
 
   it("crearCliente hace POST multipart con los datos y evidencias", async () => {

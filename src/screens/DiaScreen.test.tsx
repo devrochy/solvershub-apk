@@ -83,8 +83,22 @@ jest.mock("./ClienteScreen", () => {
   };
 });
 
+jest.mock("expo-file-system", () => ({
+  File: jest.fn().mockImplementation((...uris: string[]) => ({
+    uri: uris.join("/"),
+    write: jest.fn().mockResolvedValue(undefined),
+  })),
+  Paths: { cache: "file:///cache" },
+}));
+
+jest.mock("expo-sharing", () => ({
+  shareAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { ClienteScreen } from "./ClienteScreen";
 import { ContenidoTab } from "../navigation/ContenidoTab";
+import { shareAsync } from "expo-sharing";
+import { File } from "expo-file-system";
 
 const offlineValor: OfflineValue = {
   isOnline: true,
@@ -98,6 +112,7 @@ const offlineValor: OfflineValue = {
 async function renderConApi(
   api: Partial<SessionValue["api"]>,
   offline = offlineValor,
+  config: Record<string, unknown> = {},
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L", rol: "cobrador" },
@@ -121,7 +136,7 @@ async function renderConApi(
               rutaNombre: "Ruta",
               tipoInteres: 20,
               numCuotas: 8,
-              config: {} as never,
+              config: config as never,
             },
             setRutaActiva: jest.fn(),
           }}
@@ -215,7 +230,7 @@ describe("DiaScreen — gasto offline", () => {
 
 describe("DiaScreen — cache del día", () => {
   const dia = {
-    clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const }],
+    clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const }],
     trayectos: null,
   };
 
@@ -252,8 +267,8 @@ describe("DiaScreen — cache del día", () => {
   it("precachea tarjeta y préstamos de cada cliente del día", async () => {
     (cache.guardarDia as jest.Mock).mockResolvedValue(undefined);
     const clientes = [
-      { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
-      { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo" as const },
+      { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
+      { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false as const },
     ];
     const api = {
       dia: jest.fn().mockResolvedValue({ clientes, trayectos: null }),
@@ -285,7 +300,7 @@ describe("DiaScreen — navegación externa", () => {
     });
     const dia = {
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
       ],
       trayectos: { id: 1, rutaId: 6, fecha: "2026-09-02", ordenClientes: [], waypoints: [], distanciaEstimadaKm: 1, tiempoEstimadoMin: 1, tipo: "planificada" },
     };
@@ -302,7 +317,7 @@ describe("DiaScreen — navegación externa", () => {
     (coordenadaDeCliente as jest.Mock).mockReturnValue(null);
     const dia = {
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
       ],
       trayectos: null,
     };
@@ -324,7 +339,7 @@ describe("DiaScreen — re-fetch periódico (día en vivo)", () => {
 
   it("recarga la lista del día automáticamente al pasar el intervalo", async () => {
     const dia = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const }],
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const }],
       trayectos: null,
     });
     const { getByText } = await renderConApi({ dia });
@@ -388,7 +403,7 @@ describe("DiaScreen — trayectoria offline", () => {
 describe("DiaScreen — gating de la lista del día", () => {
   it("bloquea la lista y permite generar el trayecto si no existe", async () => {
     const dia = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const }],
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const }],
       trayectos: null,
     });
     const generarTrayecto = jest.fn().mockResolvedValue([]);
@@ -406,8 +421,8 @@ describe("DiaScreen — ver trayectos generados", () => {
   it("abre la lista de trayectos desde el botón y muestra las paradas en orden", async () => {
     const dia = jest.fn().mockResolvedValue({
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
-        { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo" as const },
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
+        { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false as const },
       ],
       trayectos: {
         id: 1,
@@ -437,7 +452,7 @@ describe("DiaScreen — ver trayectos generados", () => {
 
   it("no muestra el botón de trayectos si no hay trayecto generado", async () => {
     const dia = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const }],
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const }],
       trayectos: null,
     });
     const { queryByTestId } = await renderConApi({ dia });
@@ -503,7 +518,7 @@ describe("DiaScreen — cobros del día", () => {
     });
     const dia = jest.fn().mockResolvedValue({
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
       ],
       trayectos: {
         id: 1,
@@ -601,5 +616,109 @@ describe("DiaScreen — sin ruta activa", () => {
 
     expect(dia).not.toHaveBeenCalled();
     expect(registrarApertura).not.toHaveBeenCalled();
+  });
+});
+
+describe("DiaScreen — liquidación del día", () => {
+  const clientesConVisita = [
+    { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: true },
+    { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: true },
+  ];
+
+  const liquidacionFixture = {
+    id: 5,
+    rutaId: 6,
+    fecha: "2026-09-04",
+    periodo: "diario",
+    cajaAnterior: 1000,
+    cajaActual: 1300,
+    estimadoACobrar: 2000,
+    totalInyeccion: 0,
+    totalCobradoPeriodo: 600,
+    totalCobradoDia: 600,
+    totalPrestado: 0,
+    totalGastos: 0,
+    sumaCartera: 1400,
+    comisionPorcentaje: 10,
+    comisionValor: 60,
+    comentario: null,
+    createdAt: "2026-09-04T20:00:00Z",
+    pagos: [{ id: 1, clienteId: 1, clienteNombre: "Juan", valor: 300, metodoPago: "efectivo", fechaHora: "2026-09-04T14:00:00Z", liquidado: true }],
+    abonos: [{ id: 2, clienteId: 2, clienteNombre: "Ana", valor: 100, metodoPago: "efectivo", fechaHora: "2026-09-04T15:00:00Z", liquidado: true }],
+  };
+
+  it("habilita el botón solo cuando todos los clientes del día tienen visita", async () => {
+    const { getByTestId } = await renderConApi(
+      {
+        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+      },
+      offlineValor,
+      { generarReportesApk: true },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
+    expect(getByTestId("btn-liquidacion")).not.toBeDisabled();
+  });
+
+  it("bloquea el botón si algún cliente no tiene visita", async () => {
+    const { getByTestId } = await renderConApi(
+      {
+        dia: jest.fn().mockResolvedValue({
+          clientes: [{ ...clientesConVisita[0], visitaRegistrada: false }],
+          trayectos: null,
+        }),
+      },
+      offlineValor,
+      { generarReportesApk: true },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
+    expect(getByTestId("btn-liquidacion")).toBeDisabled();
+  });
+
+  it("genera la liquidación y muestra el detalle con pagos/abonos", async () => {
+    const generarLiquidacion = jest.fn().mockResolvedValue(liquidacionFixture);
+    const { getByTestId, getByText, getAllByText } = await renderConApi(
+      {
+        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        listarLiquidaciones: jest.fn().mockResolvedValue([]),
+        generarLiquidacion,
+      },
+      offlineValor,
+      { generarReportesApk: true },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-liquidacion"));
+    await waitFor(() => expect(getByTestId("generar-liquidacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("generar-liquidacion"));
+
+    await waitFor(() => expect(generarLiquidacion).toHaveBeenCalledWith(6, {}));
+    expect(getByText("Pagos del día")).toBeTruthy();
+    expect(getAllByText(/Juan/).length).toBeGreaterThan(0);
+    expect(getByText("Abonos del día")).toBeTruthy();
+    expect(getByTestId("descargar-pdf")).toBeTruthy();
+  });
+
+  it("descarga el resumen en PDF y lo comparte", async () => {
+    (File as unknown as jest.Mock).mockClear();
+    (shareAsync as jest.Mock).mockClear();
+    const { getByTestId } = await renderConApi(
+      {
+        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        listarLiquidaciones: jest.fn().mockResolvedValue([liquidacionFixture]),
+        exportarLiquidacionPdf: jest.fn().mockResolvedValue(new Uint8Array([37, 80, 68, 70])),
+      },
+      offlineValor,
+      { generarReportesApk: true },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-liquidacion"));
+    await waitFor(() => expect(getByTestId("descargar-pdf")).toBeTruthy());
+    await fireEvent.press(getByTestId("descargar-pdf"));
+
+    await waitFor(() => expect(shareAsync).toHaveBeenCalled());
+    expect(File).toHaveBeenCalled();
   });
 });

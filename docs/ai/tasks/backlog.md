@@ -56,3 +56,11 @@
 - Detectado en: code-review fix 413/avatar (2026-09-04)
 - Descripción: `inicialesDe` está exportada y testeada pero ningún componente la usa (el Avatar renderiza el icono person). Eliminar o reutilizar en el backlog.
 - Prioridad sugerida: baja
+
+## Doble capa de permisos en liquidación del día (APK)
+- Detectado en: code-review apk-liquidacion-dia (2026-09-04)
+- Descripción: la APK gatea el botón con `config.generarReportesApk`, pero el
+  backend exige además el permiso `generar_reporte` de la matriz del cobrador.
+  Si el permiso falta, el botón se muestra y el backend responde 403. Mejor
+  gatear también por `rutaActiva.permisos` (requiere exponer permisos en el
+  contexto RutaActiva). Prioridad: baja.
