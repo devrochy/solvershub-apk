@@ -131,9 +131,31 @@ export interface ClienteTarjetaPublic {
   fotoUrl: string | null;
   /** URL del frente del documento de identidad (si el backend la expone). */
   documentoFrenteUrl?: string | null;
+  /** URL del reverso del documento de identidad (si el backend la expone). */
+  documentoReversoUrl?: string | null;
   tipoPago: string | null;
   saldoPendiente: number;
   diasMora: number;
+}
+
+export interface RutaNotaPublic {
+  id: number;
+  rutaId: number;
+  nota: string;
+  creadoPorRol: string;
+  creadoPorId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CrearClienteInput {
+  nombre: string;
+  apellido: string;
+  negocio?: string;
+  telefonoWhatsapp: string;
+  latitud: number;
+  longitud: number;
+  topeMaximoDeuda?: number;
 }
 
 export interface ClienteCobradorPublic {

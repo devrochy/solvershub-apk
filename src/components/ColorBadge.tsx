@@ -7,6 +7,23 @@ const COLORES: Record<string, string> = {
   blanco: "#94a3b8",
 };
 
+const FONDOS: Record<string, string> = {
+  verde: "#dcfce7",
+  rojo: "#fee2e2",
+  azul: "#dbeafe",
+  blanco: "#f1f5f9",
+};
+
+/** Color sólido de un estado (verde/rojo/azul/blanco). */
+export function colorDeEstado(color: string): string {
+  return COLORES[color] ?? "#94a3b8";
+}
+
+/** Fondo suave de tarjeta según el estado del cliente (N4). */
+export function fondoDeEstado(color: string): string {
+  return FONDOS[color] ?? "#f1f5f9";
+}
+
 /**
  * Indicador de color de una tarjeta/cliente: un punto circular del color
  * semántico, sin texto (A8). Aplica en listas de clientes, lista del día y

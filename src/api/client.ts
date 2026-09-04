@@ -21,7 +21,7 @@ export interface SessionGateway {
 export interface RequestOptions {
   method?: string;
   headers?: Record<string, string>;
-  body?: string | FormData;
+  body?: string | FormData | Uint8Array | ArrayBuffer;
 }
 
 /**
@@ -76,7 +76,7 @@ export class ApiClient {
         ...init.headers,
         Authorization: `Bearer ${accessToken}`,
       },
-      body: init.body,
+      body: init.body as BodyInit,
     });
   }
 

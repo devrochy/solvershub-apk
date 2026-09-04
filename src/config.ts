@@ -12,7 +12,9 @@ export function authUrl(path: string): string {
 /**
  * Resuelve una ruta de archivo (p. ej. `/uploads/clientes/foto.jpg`) a una URL
  * absoluta del backend para usarla en <Image>. Si ya es una URL completa
- * (https://…), la devuelve tal cual. Si es vacía/null, devuelve null.
+ * (https://…), la devuelve tal cual. Si es un path absoluto del filesystem del
+ * backend (p. ej. `/Users/.../uploads/...` de cachés viejas), extrae la parte
+ * servible `/uploads/...`. Si es vacía/null, devuelve null.
  */
 export function urlArchivo(ruta: string | null | undefined): string | null {
   if (!ruta) {
@@ -21,5 +23,8 @@ export function urlArchivo(ruta: string | null | undefined): string | null {
   if (ruta.startsWith("http://") || ruta.startsWith("https://")) {
     return ruta;
   }
-  return `${API_URL}${ruta.startsWith("/") ? ruta : `/${ruta}`}`;
+  const servible = ruta.includes("/uploads/")
+    ? ruta.slice(ruta.indexOf("/uploads/"))
+    : ruta;
+  return `${API_URL}${servible.startsWith("/") ? servible : `/${servible}`}`;
 }

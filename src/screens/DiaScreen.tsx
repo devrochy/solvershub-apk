@@ -10,11 +10,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
-import { ColorBadge } from "../components/ColorBadge";
+import { fondoDeEstado } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
+import { ModalConFooter } from "../components/ModalConFooter";
 import { TrayectosLista } from "../components/TrayectosLista";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import {
@@ -23,7 +23,6 @@ import {
 } from "../features/navegacion/navegacion";
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import { usePosicion } from "../features/trayectoria/use-posicion";
-import type { RootStackParamList, RootTabParamList } from "../navigation/types";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
@@ -31,12 +30,7 @@ import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
 
-type Props = { navigation?: StackNavigation };
-type StackNavigation = {
-  navigate(screen: "Cliente", params: RootStackParamList["Cliente"]): void;
-};
-
-export function DiaScreen({ navigation }: Props = {}) {
+export function DiaScreen() {
   const { rutaActiva } = useRutaActiva();
   const rutaId = rutaActiva?.rutaId ?? 0;
   const { abrir: abrirPantallaActiva } = usePantallaActiva();
@@ -52,7 +46,10 @@ export function DiaScreen({ navigation }: Props = {}) {
   const [gastoDescripcion, setGastoDescripcion] = useState("");
   const [gastoValor, setGastoValor] = useState("");
   const [gastoEnviando, setGastoEnviando] = useState(false);
-  const [gastoMensaje, setGastoMensaje] = useState<string | null>(null);
+  const [gastoMensaje, setGastoMensaje] = useState<{
+    texto: string;
+    esError: boolean;
+  } | null>(null);
   const {
     evidencias,
     cargando: evidenciasCargando,
@@ -93,6 +90,9 @@ export function DiaScreen({ navigation }: Props = {}) {
   );
 
   const cargar = useCallback(async () => {
+    if (!rutaId) {
+      return;
+    }
     setError(null);
     setOfflineCache(false);
     try {
@@ -120,11 +120,17 @@ export function DiaScreen({ navigation }: Props = {}) {
   }, [api, logout, rutaId, precargarClientes]);
 
   useEffect(() => {
+    if (!rutaId) {
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
-  }, [cargar]);
+  }, [cargar, rutaId]);
 
   useEffect(() => {
+    if (!rutaId) {
+      return;
+    }
     // Auditoría de apertura de la ruta del día (HU-41): registra el momento y
     // las coordenadas en que el cobrador abre la ruta. Fire-and-forget.
     api
@@ -133,6 +139,9 @@ export function DiaScreen({ navigation }: Props = {}) {
   }, [api, rutaId]);
 
   useEffect(() => {
+    if (!rutaId) {
+      return;
+    }
     // Re-fetch periódico: la lista del día se va actualizando a medida que se
     // registran visitas (HU-56). No interfiere con el pull-to-refresh ni con
     // el modo offline (cargar() ya maneja la caída al cache).
@@ -140,12 +149,12 @@ export function DiaScreen({ navigation }: Props = {}) {
       void cargar();
     }, 30000);
     return () => clearInterval(intervalo);
-  }, [cargar]);
+  }, [cargar, rutaId]);
 
   async function registrarGasto() {
     const valor = Number(gastoValor);
     if (!gastoDescripcion.trim() || !Number.isFinite(valor) || valor <= 0) {
-      setGastoMensaje("Ingresa descripción y un valor válido.");
+      setGastoMensaje({ texto: "Ingresa descripción y un valor válido.", esError: true });
       return;
     }
     setGastoEnviando(true);
@@ -158,16 +167,19 @@ export function DiaScreen({ navigation }: Props = {}) {
       setGastoValor("");
       evidencias.forEach((e) => quitar(e.uri));
       setGastoAbierto(false);
-      setGastoMensaje("Gasto registrado.");
+      setGastoMensaje({ texto: "Gasto registrado.", esError: false });
     } catch (err) {
       if (esErrorDeRed(err)) {
         await offline.encolar("gasto", { ...input, evidencias: evidenciasOffline });
         setGastoDescripcion("");
         setGastoValor("");
         setGastoAbierto(false);
-        setGastoMensaje("Guardado sin conexión (se sincronizará).");
+        setGastoMensaje({
+          texto: "Guardado sin conexión (se sincronizará).",
+          esError: false,
+        });
       } else {
-        setGastoMensaje("No se pudo registrar el gasto.");
+        setGastoMensaje({ texto: "No se pudo registrar el gasto.", esError: true });
       }
     } finally {
       setGastoEnviando(false);
@@ -239,6 +251,19 @@ export function DiaScreen({ navigation }: Props = {}) {
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
+      <View style={styles.header} testID="header-dia">
+        <Text style={styles.headerTitulo}>Cobros del día</Text>
+        <Pressable
+          testID="nuevo-gasto"
+          style={styles.botonGastos}
+          onPress={() => {
+            setGastoAbierto(true);
+            setGastoMensaje(null);
+          }}
+        >
+          <Text style={styles.botonGastosTexto}>+ Gastos</Text>
+        </Pressable>
+      </View>
       <FlatList
         data={clientes}
         keyExtractor={(cliente) => String(cliente.clienteId)}
@@ -311,13 +336,6 @@ export function DiaScreen({ navigation }: Props = {}) {
                 </Text>
               </View>
             ) : null}
-            <Pressable
-              testID="nuevo-gasto"
-              style={styles.botonPrimario}
-              onPress={() => setGastoAbierto((abierto) => !abierto)}
-            >
-              <Text style={styles.botonPrimarioTexto}>Registrar gasto</Text>
-            </Pressable>
             {trayectos ? (
               <Pressable
                 testID="ver-trayectos"
@@ -337,7 +355,11 @@ export function DiaScreen({ navigation }: Props = {}) {
           return (
             <Pressable
               testID={`cliente-${item.clienteId}`}
-              style={[styles.tarjeta, !listaHabilitada && styles.tarjetaBloqueada]}
+              style={[
+                styles.tarjeta,
+                { backgroundColor: fondoDeEstado(item.color) },
+                !listaHabilitada && styles.tarjetaBloqueada,
+              ]}
               disabled={!listaHabilitada}
               onPress={() =>
                 abrirPantallaActiva({
@@ -365,56 +387,57 @@ export function DiaScreen({ navigation }: Props = {}) {
                   </Pressable>
                 ) : null}
               </View>
-              <ColorBadge color={item.color} />
             </Pressable>
           );
         }}
       />
 
-      {gastoAbierto ? (
-        <View testID="gasto-form" style={styles.gastoForm}>
-          <Text style={styles.gastoTitulo}>Nuevo gasto</Text>
-          <TextInput
-            testID="gasto-descripcion"
-            style={styles.input}
-            placeholder="Descripción"
-            value={gastoDescripcion}
-            onChangeText={setGastoDescripcion}
-          />
-          <TextInput
-            testID="gasto-valor"
-            style={styles.input}
-            placeholder="Valor"
-            keyboardType="decimal-pad"
-            value={gastoValor}
-            onChangeText={setGastoValor}
-          />
-          <EvidenciaPicker
-            evidencias={evidencias}
-            cargando={evidenciasCargando}
-            error={evidenciasError}
-            onAgregarLibreria={agregarDesdeLibreria}
-            onAgregarCamara={agregarDesdeCamara}
-            onQuitar={quitar}
-            max={MAX_EVIDENCIAS}
-          />
-          {gastoMensaje ? (
-            <Text style={styles.gastoMensaje}>{gastoMensaje}</Text>
-          ) : null}
-          <Pressable
-            testID="gasto-guardar"
-            style={[styles.botonPrimario, gastoEnviando && styles.deshabilitado]}
-            disabled={gastoEnviando}
-            onPress={registrarGasto}
+      <ModalConFooter
+        visible={gastoAbierto}
+        titulo="Nuevo gasto"
+        onCerrar={() => setGastoAbierto(false)}
+        onCancelar={() => setGastoAbierto(false)}
+        onConfirmar={registrarGasto}
+        confirmando={gastoEnviando}
+        confirmarTestID="gasto-guardar"
+        testID="gasto-form"
+      >
+        <TextInput
+          testID="gasto-descripcion"
+          style={styles.input}
+          placeholder="Descripción"
+          value={gastoDescripcion}
+          onChangeText={setGastoDescripcion}
+        />
+        <TextInput
+          testID="gasto-valor"
+          style={styles.input}
+          placeholder="Valor"
+          keyboardType="decimal-pad"
+          value={gastoValor}
+          onChangeText={setGastoValor}
+        />
+        <EvidenciaPicker
+          evidencias={evidencias}
+          cargando={evidenciasCargando}
+          error={evidenciasError}
+          onAgregarLibreria={agregarDesdeLibreria}
+          onAgregarCamara={agregarDesdeCamara}
+          onQuitar={quitar}
+          max={MAX_EVIDENCIAS}
+        />
+        {gastoMensaje ? (
+          <Text
+            testID="gasto-mensaje"
+            style={[
+              styles.gastoMensaje,
+              gastoMensaje.esError ? styles.gastoMensajeError : null,
+            ]}
           >
-            {gastoEnviando ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.botonPrimarioTexto}>Guardar</Text>
-            )}
-          </Pressable>
-        </View>
-      ) : null}
+            {gastoMensaje.texto}
+          </Text>
+        ) : null}
+      </ModalConFooter>
 
       {trayectosAbierto && trayectos ? (
         <View style={styles.trayectosOverlay}>
@@ -431,6 +454,24 @@ export function DiaScreen({ navigation }: Props = {}) {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+  },
+  botonGastos: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    width: 84,
+  },
+  botonGastosTexto: { color: "#2563eb", fontWeight: "700", fontSize: 14 },
+  headerTitulo: { fontSize: 17, fontWeight: "700", color: "#334155" },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   acciones: { marginBottom: 8, gap: 8 },
@@ -518,14 +559,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   llegarTexto: { color: "#ffffff", fontWeight: "600", fontSize: 12 },
-  gastoForm: {
-    backgroundColor: "#ffffff",
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-    padding: 16,
-    gap: 10,
-  },
-  gastoTitulo: { fontSize: 16, fontWeight: "700" },
   input: {
     borderWidth: 1,
     borderColor: "#cbd5e1",
@@ -535,4 +568,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   gastoMensaje: { color: "#16a34a", fontSize: 13 },
+  gastoMensajeError: { color: "#dc2626" },
 });

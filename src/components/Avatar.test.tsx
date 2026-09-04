@@ -1,5 +1,7 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import { Avatar, inicialesDe } from "./Avatar";
+
+beforeEach(() => jest.clearAllMocks());
 
 describe("inicialesDe", () => {
   it("extrae iniciales de la primera y última palabra", () => {
@@ -28,5 +30,29 @@ describe("Avatar", () => {
     const { getByTestId, getByText } = await render(<Avatar nombre="Laura Martínez" />);
     expect(getByTestId("avatar-icono")).toBeTruthy();
     expect(getByText("person")).toBeTruthy();
+  });
+
+  it("muestra el icono person si la foto falla al cargar (onError)", async () => {
+    const { getByTestId, queryByTestId } = await render(
+      <Avatar nombre="Laura" fotoUrl="https://cdn.test/rota.jpg" />,
+    );
+    const foto = queryByTestId("avatar-foto");
+    if (foto) {
+      await fireEvent(foto, "error");
+    }
+    expect(getByTestId("avatar-icono")).toBeTruthy();
+    expect(queryByTestId("avatar-foto")).toBeNull();
+  });
+
+  it("reintenta la foto nueva cuando cambia fotoUrl tras un error", async () => {
+    const { getByTestId, rerender } = await render(
+      <Avatar nombre="Laura" fotoUrl="https://cdn.test/rota.jpg" />,
+    );
+    const foto = getByTestId("avatar-foto");
+    await fireEvent(foto, "error");
+    expect(getByTestId("avatar-icono")).toBeTruthy();
+
+    await rerender(<Avatar nombre="Laura" fotoUrl="https://cdn.test/nueva.jpg" />);
+    expect(getByTestId("avatar-foto")).toBeTruthy();
   });
 });

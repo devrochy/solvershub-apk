@@ -1,6 +1,7 @@
 import type {
   ClienteCobradorPublic,
   ClienteTarjetaPublic,
+  CrearClienteInput,
   CuotaPublic,
   DetalleCuotaPublic,
   DiaApkPublic,
@@ -12,9 +13,11 @@ import type {
   RegistrarTrayectoriaRealInput,
   RegistrarVisitaInput,
   RutaApkPublic,
+  RutaNotaPublic,
   VisitaPublic,
 } from "../types/cobrador";
 import type { ApiClient } from "./client";
+import { construirMultipart } from "./multipart";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
@@ -26,6 +29,16 @@ export interface CobradorApi {
   misRutas(): Promise<RutaApkPublic[]>;
   dia(rutaId: number): Promise<DiaApkPublic>;
   generarTrayecto(rutaId: number): Promise<unknown>;
+  actualizarCliente(
+    rutaId: number,
+    clienteId: number,
+    input: {
+      latitud?: number;
+      longitud?: number;
+      latitudDomicilio?: number | null;
+      longitudDomicilio?: number | null;
+    },
+  ): Promise<ClienteCobradorPublic>;
   registrarVisitaPago(
     rutaId: number,
     input: RegistrarVisitaInput,
@@ -47,9 +60,16 @@ export interface CobradorApi {
   agregarEvidenciasCliente(
     rutaId: number,
     clienteId: number,
-    evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+    evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
   ): Promise<{ clienteId: number }>;
   listarClientesDeRuta(rutaId: number): Promise<ClienteCobradorPublic[]>;
+  crearCliente(
+    rutaId: number,
+    input: CrearClienteInput,
+    evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
+  ): Promise<ClienteCobradorPublic>;
+  listarNotas(rutaId: number): Promise<RutaNotaPublic[]>;
+  crearNota(rutaId: number, nota: string): Promise<RutaNotaPublic>;
   obtenerEstadoCuentaPrestamo(
     rutaId: number,
     prestamoId: number,
@@ -96,6 +116,25 @@ export function cobradorApi(client: ApiClient): CobradorApi {
   return {
     misRutas: () => client.request<RutaApkPublic[]>("/cobrador/mis-rutas"),
 
+    actualizarCliente: (
+      rutaId: number,
+      clienteId: number,
+      input: {
+        latitud?: number;
+        longitud?: number;
+        latitudDomicilio?: number | null;
+        longitudDomicilio?: number | null;
+      },
+    ) =>
+      client.request<ClienteCobradorPublic>(
+        `/cobrador/rutas/${rutaId}/clientes/${clienteId}`,
+        {
+          method: "PATCH",
+          headers: JSON_HEADERS,
+          body: jsonBody(input),
+        },
+      ),
+
     dia: (rutaId: number) =>
       client.request<DiaApkPublic>(`/cobrador/rutas/${rutaId}/dia`),
 
@@ -118,24 +157,19 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         body: jsonBody(input),
       }),
 
-    registrarGasto: (
+    registrarGasto: async (
       rutaId: number,
       input: RegistrarGastoInput,
       evidencias: { uri: string; name: string; type: string }[],
     ) => {
-      const form = new FormData();
-      form.append("descripcion", input.descripcion);
-      form.append("valor", String(input.valor));
-      for (const archivo of evidencias) {
-        form.append("evidencias", {
-          uri: archivo.uri,
-          name: archivo.name,
-          type: archivo.type,
-        } as unknown as Blob);
-      }
+      const { body, boundary } = await construirMultipart(
+        { descripcion: input.descripcion, valor: String(input.valor) },
+        evidencias.map((archivo) => ({ campo: "evidencias", ...archivo })),
+      );
       return client.request<GastoPublic>(`/cobrador/rutas/${rutaId}/gastos`, {
         method: "POST",
-        body: form,
+        body,
+        headers: { "Content-Type": `multipart/form-data; boundary=${boundary}` },
       });
     },
 
@@ -157,27 +191,63 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         `/cobrador/rutas/${rutaId}/clientes/${clienteId}/tarjeta`,
       ),
 
-    agregarEvidenciasCliente: (
+    agregarEvidenciasCliente: async (
       rutaId: number,
       clienteId: number,
-      evidencias: { campo: "foto_facial" | "documento_frente"; uri: string; name: string; type: string }[],
+      evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
     ) => {
-      const form = new FormData();
-      for (const e of evidencias) {
-        form.append(e.campo, {
-          uri: e.uri,
-          name: e.name,
-          type: e.type,
-        } as unknown as Blob);
-      }
+      const { body, boundary } = await construirMultipart({}, evidencias);
       return client.request<{ clienteId: number }>(
         `/cobrador/rutas/${rutaId}/clientes/${clienteId}/evidencias`,
-        { method: "POST", body: form },
+        {
+          method: "POST",
+          body,
+          headers: { "Content-Type": `multipart/form-data; boundary=${boundary}` },
+        },
       );
     },
 
     listarClientesDeRuta: (rutaId: number) =>
       client.request<ClienteCobradorPublic[]>(`/cobrador/rutas/${rutaId}/clientes`),
+
+    crearCliente: async (
+      rutaId: number,
+      input: CrearClienteInput,
+      evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
+    ) => {
+      const campos: Record<string, string> = {
+        nombre: input.nombre,
+        apellido: input.apellido,
+        telefonoWhatsapp: input.telefonoWhatsapp,
+        latitud: String(input.latitud),
+        longitud: String(input.longitud),
+      };
+      if (input.negocio) {
+        campos.negocio = input.negocio;
+      }
+      if (input.topeMaximoDeuda !== undefined) {
+        campos.topeMaximoDeuda = String(input.topeMaximoDeuda);
+      }
+      const { body, boundary } = await construirMultipart(campos, evidencias);
+      return client.request<ClienteCobradorPublic>(
+        `/cobrador/rutas/${rutaId}/clientes`,
+        {
+          method: "POST",
+          body,
+          headers: { "Content-Type": `multipart/form-data; boundary=${boundary}` },
+        },
+      );
+    },
+
+    listarNotas: (rutaId: number) =>
+      client.request<RutaNotaPublic[]>(`/cobrador/rutas/${rutaId}/notas`),
+
+    crearNota: (rutaId: number, nota: string) =>
+      client.request<RutaNotaPublic>(`/cobrador/rutas/${rutaId}/notas`, {
+        method: "POST",
+        headers: JSON_HEADERS,
+        body: jsonBody({ nota }),
+      }),
 
     obtenerEstadoCuentaPrestamo: (rutaId: number, prestamoId: number) =>
       client.request<EstadoCuentaPrestamoPublic>(

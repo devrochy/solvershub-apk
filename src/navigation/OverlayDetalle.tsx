@@ -1,5 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { ClienteScreen } from "../screens/ClienteScreen";
+import { RutaDetalleScreen } from "../screens/RutaDetalleScreen";
 import type { PantallaActiva } from "./pantalla-activa-context";
 
 export interface OverlayDetalleProps {
@@ -28,18 +29,35 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
             nombre={pantalla.nombre}
             latitud={pantalla.latitud}
             longitud={pantalla.longitud}
+            latitudDomicilio={pantalla.latitudDomicilio}
+            longitudDomicilio={pantalla.longitudDomicilio}
             prestamoAutoSeleccionado={pantalla.prestamoAutoSeleccionado}
             onCerrar={onCerrar}
           />
         </View>
       );
-    // "prestamo" y "ruta" aún no tienen vista propia en el overlay; se cierran
-    // para no dejar la capa activa sin contenido.
+    case "ruta":
+      return (
+        <View style={styles.capa}>
+          <RutaDetalleScreen
+            rutaId={pantalla.rutaId}
+            rutaNombre={pantalla.rutaNombre}
+            onCerrar={onCerrar}
+          />
+        </View>
+      );
+    // "prestamo" no tiene vista propia en el overlay (código muerto hoy: nadie
+    // abre {tipo:"prestamo"}). Se devuelve null sin llamar onCerrar para no
+    // ejecutar side-effects en el render; si se habilitara el tipo, deberá
+    // añadirse aquí su case.
     default:
       return null;
   }
 }
 
 const styles = StyleSheet.create({
-  capa: { flex: 1, backgroundColor: "#f8fafc" },
+  capa: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "#f8fafc",
+  },
 });

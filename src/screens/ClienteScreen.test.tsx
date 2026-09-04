@@ -131,6 +131,8 @@ function estadoCuentaDe(p: PrestamoPublic): EstadoCuentaPrestamoPublic {
 type ParametrosDetalle = {
   latitud?: number;
   longitud?: number;
+  latitudDomicilio?: number;
+  longitudDomicilio?: number;
   prestamoAutoSeleccionado?: boolean;
 };
 
@@ -448,34 +450,24 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
     expect(getByText(/se sincronizará/)).toBeTruthy();
   });
 
-  it("editar lat/lng desde el mapa del modal sincroniza los campos y encola el cambio", async () => {
-    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
-    const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
-    const { getByTestId } = await renderConApi({}, offlineConError);
-
-    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-editar-cliente"));
-
-    await fireEvent(
-      getByTestId("mapa-pin-negocio-webview"),
-      "message",
-      { nativeEvent: { data: JSON.stringify({ latitud: -17.79, longitud: -63.19 }) } },
+  it("el modal de editar ubicación sincroniza el mapa con el campo seleccionado", async () => {
+    const { getByTestId, getByText } = await renderConApi(
+      {},
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
     );
 
-    expect(getByTestId("editar-latitud").props.value).toBe("-17.79");
-    expect(getByTestId("editar-longitud").props.value).toBe("-63.19");
+    await waitFor(() => expect(getByTestId("btn-editar-ubicacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-ubicacion"));
 
-    await fireEvent.press(getByTestId("guardar-cambio-cliente"));
+    expect(getByTestId("ubicacion-form")).toBeTruthy();
+    expect(getByText("Negocio")).toBeTruthy();
+    expect(getByText("Domicilio")).toBeTruthy();
+    expect(getByTestId("mapa-pin-ubicacion-webview")).toBeTruthy();
 
-    await waitFor(() =>
-      expect(encolarSiNoExiste).toHaveBeenCalledWith(
-        "cambio_cliente",
-        expect.objectContaining({
-          input: expect.objectContaining({ latitud: -17.79, longitud: -63.19 }),
-        }),
-        "cambio_cliente-2",
-      ),
-    );
+    // Cambiar a domicilio mantiene el mapa embebido.
+    await fireEvent.press(getByTestId("ubicacion-domicilio"));
+    expect(getByTestId("mapa-pin-ubicacion-webview")).toBeTruthy();
   });
 
   it("tras editar el teléfono, el WhatsApp usa el número nuevo (no stale)", async () => {
@@ -490,7 +482,7 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
 
     await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
     await fireEvent.press(getByTestId("btn-editar-cliente"));
-    await fireEvent.changeText(getByTestId("editar-telefono"), "+59179999999");
+    await fireEvent.changeText(getByTestId("editar-telefono-numero"), "79999999");
     await fireEvent.press(getByTestId("guardar-cambio-cliente"));
 
     await waitFor(() => expect(getByTestId("btn-whatsapp")).toBeTruthy());
@@ -639,6 +631,17 @@ describe("ClienteScreen — WhatsApp con screenshot del detalle", () => {
     );
   });
 
+  it("el canvas del screenshot tiene fondo blanco", async () => {
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
+    expect(getByTestId("canvas-prestamo")).toHaveStyle({ backgroundColor: "#ffffff" });
+  });
+
   it("cae al enlace wa.me si no se puede capturar el screenshot", async () => {
     (captureRef as jest.Mock).mockRejectedValueOnce(new Error("captura falló"));
     jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
@@ -669,7 +672,7 @@ describe("ClienteScreen — WhatsApp con screenshot del detalle", () => {
 
     await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
     expect(getByTestId("btn-whatsapp")).toBeTruthy();
-    expect(getByTestId("detalle-prestamo")).toBeTruthy();
+    expect(getByTestId("canvas-prestamo")).toBeTruthy();
   });
 });
 
@@ -697,7 +700,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     expect(queryByText(/Tipo de pago:/)).toBeNull();
   });
 
-  it("el avatar abre un modal con opciones y sube la foto por evidencias", async () => {
+  it("el avatar abre un modal, previsualiza la imagen elegida y sube al tocar Guardar", async () => {
     const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: 2 });
     const { getByTestId } = await renderConApi({ agregarEvidenciasCliente });
 
@@ -706,6 +709,12 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     expect(getByTestId("avatar-modal")).toBeTruthy();
     await fireEvent.press(getByTestId("avatar-libreria"));
+
+    // Se previsualiza la imagen local antes de subir.
+    await waitFor(() => expect(getByTestId("avatar-preview")).toBeTruthy());
+    // Todavía no se sube: se sube al tocar "Guardar".
+    expect(agregarEvidenciasCliente).not.toHaveBeenCalled();
+    await fireEvent.press(getByTestId("avatar-guardar"));
 
     await waitFor(() =>
       expect(agregarEvidenciasCliente).toHaveBeenCalledWith(
@@ -741,6 +750,65 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     await fireEvent.press(getByTestId("doc-frente"));
 
     expect(getByTestId("documento-modal")).toBeTruthy();
+  });
+
+  it("desde el modal de reverso previsualiza y sube documento_reverso al tocar Guardar", async () => {
+    const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: 2 });
+    const { getByTestId, getByText } = await renderConApi({ agregarEvidenciasCliente });
+
+    await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
+    await fireEvent.press(getByTestId("doc-reverso"));
+
+    expect(getByText("Documento — reverso")).toBeTruthy();
+    await fireEvent.press(getByTestId("documento-libreria"));
+
+    await waitFor(() => expect(getByTestId("documento-preview")).toBeTruthy());
+    expect(agregarEvidenciasCliente).not.toHaveBeenCalled();
+    await fireEvent.press(getByTestId("documento-guardar"));
+
+    await waitFor(() =>
+      expect(agregarEvidenciasCliente).toHaveBeenCalledWith(
+        6,
+        2,
+        [expect.objectContaining({ campo: "documento_reverso" })],
+      ),
+    );
+  });
+
+  it("muestra Verificado en la miniatura del reverso cuando la tarjeta trae documentoReversoUrl", async () => {
+    const tarjetaConReverso = { ...tarjeta, documentoReversoUrl: "https://cdn.test/reverso.jpg" };
+    const { getByTestId, getByText } = await renderConApi({
+      tarjeta: jest.fn().mockResolvedValue(tarjetaConReverso),
+    });
+
+    await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
+    expect(getByText("Verificado")).toBeTruthy();
+  });
+
+  it("el header de la tarjeta usa el fondo del color de clasificación del cliente", async () => {
+    const tarjetaRoja = { ...tarjeta, color: "rojo" };
+    const { getByTestId } = await renderConApi({
+      tarjeta: jest.fn().mockResolvedValue(tarjetaRoja),
+    });
+
+    await waitFor(() => expect(getByTestId("header-tarjeta-cliente")).toBeTruthy());
+    expect(getByTestId("header-tarjeta-cliente")).toHaveStyle({ backgroundColor: "#dc2626" });
+  });
+
+  it("quita el punto de color de la tarjeta cédula (solo header de clasificación)", async () => {
+    const { queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(queryByTestId("tarjeta-cedula")).toBeTruthy());
+    // El punto (color-badge) no debe existir dentro de la tarjeta cédula.
+    expect(queryByTestId("color-badge-azul")).toBeNull();
+  });
+
+  it("muestra los documentos frente y reverso como iconos grandes en la cédula", async () => {
+    const { getByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("doc-frente")).toBeTruthy());
+    expect(getByTestId("doc-reverso")).toBeTruthy();
+    expect(getByTestId("tarjeta-cedula")).toBeTruthy();
   });
 });
 
@@ -822,15 +890,15 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
 
     await waitFor(() => expect(getByTestId("prestamo-item-1")).toBeTruthy());
     expect(getByTestId("prestamo-item-2")).toBeTruthy();
-    expect(queryByTestId("detalle-prestamo")).toBeNull();
+    expect(queryByTestId("canvas-prestamo")).toBeNull();
 
     await fireEvent.press(getByTestId("prestamo-item-1"));
-    await waitFor(() => expect(getByTestId("detalle-prestamo")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
     expect(queryByTestId("prestamo-item-2")).toBeNull();
     expect(getByTestId("check-prestamo-1")).toBeTruthy();
 
     await fireEvent.press(getByTestId("prestamo-item-1"));
-    expect(queryByTestId("detalle-prestamo")).toBeNull();
+    expect(queryByTestId("canvas-prestamo")).toBeNull();
     expect(getByTestId("prestamo-item-2")).toBeTruthy();
   });
 
@@ -847,11 +915,11 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
 
     await waitFor(() => expect(getByTestId("prestamo-item-1")).toBeTruthy());
     await fireEvent.press(getByTestId("prestamo-item-1"));
-    await waitFor(() => expect(getByTestId("detalle-prestamo")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
 
     await fireEvent.press(getByTestId("prestamo-item-1"));
     await fireEvent.press(getByTestId("prestamo-item-2"));
-    await waitFor(() => expect(getByTestId("detalle-prestamo")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
     expect(queryByTestId("prestamo-item-1")).toBeNull();
   });
 
@@ -932,5 +1000,91 @@ describe("ClienteScreen — lista de préstamos con color", () => {
     expect(getByTestId("prestamo-item-2")).toBeTruthy();
     expect(getAllByTestId("color-badge-verde").length).toBeGreaterThan(0);
     expect(getByTestId("color-badge-blanco")).toBeTruthy();
+  });
+});
+
+describe("ClienteScreen — header y editar ubicación", () => {
+  it("muestra 'Información del cliente' con header neutro y la tarjeta con nombre + editar", async () => {
+    const { getByText, getByTestId } = await renderConApi({
+      tarjeta: jest.fn().mockResolvedValue(tarjeta),
+    });
+
+    await waitFor(() => expect(getByText("Información del cliente")).toBeTruthy());
+    // Header de la vista neutro (blanco), no por clasificación.
+    expect(getByTestId("header-cliente")).toHaveStyle({ backgroundColor: "#ffffff" });
+    // La tarjeta tiene su propio header con el nombre del cliente + Editar.
+    expect(getByText(tarjeta.nombre)).toBeTruthy();
+    expect(getByTestId("btn-editar-cliente")).toBeTruthy();
+  });
+
+  it("el botón Editar ubicación abre el modal de ubicación junto a Cómo llegar", async () => {
+    const { getByTestId } = await renderConApi(
+      {},
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-editar-ubicacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-ubicacion"));
+
+    expect(getByTestId("ubicacion-form")).toBeTruthy();
+  });
+
+  it("guardar ubicación envía lat/lng del negocio al mover el pin (PATCH actualizarCliente)", async () => {
+    const actualizarCliente = jest.fn().mockResolvedValue({ id: 2 });
+    const { getByTestId } = await renderConApi(
+      { actualizarCliente },
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-editar-ubicacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-ubicacion"));
+
+    await fireEvent(
+      getByTestId("mapa-pin-ubicacion-webview"),
+      "message",
+      { nativeEvent: { data: JSON.stringify({ latitud: -17.79, longitud: -63.19 }) } },
+    );
+
+    await fireEvent.press(getByTestId("guardar-ubicacion"));
+
+    await waitFor(() =>
+      expect(actualizarCliente).toHaveBeenCalledWith(
+        6,
+        2,
+        { latitud: -17.79, longitud: -63.19 },
+      ),
+    );
+  });
+
+  it("guardar ubicación envía lat/lng del domicilio al cambiar de chip", async () => {
+    const actualizarCliente = jest.fn().mockResolvedValue({ id: 2 });
+    const { getByTestId } = await renderConApi(
+      { actualizarCliente },
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18, latitudDomicilio: -17.79, longitudDomicilio: -63.19 },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-editar-ubicacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-ubicacion"));
+
+    await fireEvent.press(getByTestId("ubicacion-domicilio"));
+
+    await fireEvent(
+      getByTestId("mapa-pin-ubicacion-webview"),
+      "message",
+      { nativeEvent: { data: JSON.stringify({ latitud: -17.8, longitud: -63.2 }) } },
+    );
+
+    await fireEvent.press(getByTestId("guardar-ubicacion"));
+
+    await waitFor(() =>
+      expect(actualizarCliente).toHaveBeenCalledWith(
+        6,
+        2,
+        { latitudDomicilio: -17.8, longitudDomicilio: -63.2 },
+      ),
+    );
   });
 });

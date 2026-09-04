@@ -10,14 +10,17 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { MaterialIcons } from "@expo/vector-icons";
 import { captureRef } from "react-native-view-shot";
 import { shareAsync } from "expo-sharing";
+import * as Location from "expo-location";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
+import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
-import { ColorBadge } from "../components/ColorBadge";
+import { ColorBadge, colorDeEstado } from "../components/ColorBadge";
 import { MapaCliente } from "../components/MapaCliente";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
@@ -62,6 +65,8 @@ export interface ClienteScreenDirectProps {
   nombre: string;
   latitud?: number;
   longitud?: number;
+  latitudDomicilio?: number;
+  longitudDomicilio?: number;
   prestamoAutoSeleccionado?: boolean;
   onCerrar?(): void;
 }
@@ -69,6 +74,7 @@ export interface ClienteScreenDirectProps {
 type ModalActivo =
   | "ninguno"
   | "editar"
+  | "ubicacion"
   | "prestamo"
   | "pago"
   | "no_pago"
@@ -98,18 +104,10 @@ function esPendienteOArrasada(cuota: CuotaPublic): boolean {
   return cuota.estatus === "pendiente" || cuota.estatus === "atrasada";
 }
 
-function coordenadaDeTexto(valor: string): number | undefined {
-  if (!valor.trim()) {
-    return undefined;
-  }
-  const n = Number(valor);
-  return Number.isFinite(n) ? n : undefined;
-}
-
 export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const params =
     "route" in props ? props.route.params : (props as ClienteScreenDirectProps);
-  const { rutaId, clienteId, latitud, longitud, prestamoAutoSeleccionado } = params;
+  const { rutaId, clienteId, latitud, longitud, latitudDomicilio, longitudDomicilio, prestamoAutoSeleccionado } = params;
   const onCerrar = "onCerrar" in props ? props.onCerrar : undefined;
   const { api, logout } = useSession();
   const offline = useOffline();
@@ -147,6 +145,13 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const [edicionOriginal, setEdicionOriginal] = useState<CambioClienteInput>({});
   const [editando, setEditando] = useState(false);
 
+  // Editar ubicación (N6): campo (negocio/domicilio), dirección a buscar y envío.
+  const [ubicacionCampo, setUbicacionCampo] = useState<"negocio" | "domicilio">("negocio");
+  const [ubicacionDireccion, setUbicacionDireccion] = useState("");
+  const [ubicacionBuscando, setUbicacionBuscando] = useState(false);
+  const [ubicacionEnviando, setUbicacionEnviando] = useState(false);
+  const [ubicacionMensaje, setUbicacionMensaje] = useState<string | null>(null);
+
   // Formulario nuevo préstamo.
   const [prestamoValor, setPrestamoValor] = useState("");
   const [prestamoCuotas, setPrestamoCuotas] = useState("");
@@ -164,7 +169,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   // WhatsApp con screenshot.
   const [compartiendo, setCompartiendo] = useState(false);
-  const refDetalle = useRef<View | null>(null);
+  const refCanvas = useRef<View | null>(null);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -319,7 +324,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setMensaje("Pago registrado.");
         await cargar();
       } catch (err) {
-        if (esErrorDeRed(err)) {
+        if (apiErrorStatus(err) === 401) {
+          await logout();
+        } else if (esErrorDeRed(err)) {
           const encolado = await offline.encolarSiNoExiste(
             "visita",
             input,
@@ -376,7 +383,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setValorPrometido("");
         setMensaje("Visita registrada.");
       } catch (err) {
-        if (esErrorDeRed(err)) {
+        if (apiErrorStatus(err) === 401) {
+          await logout();
+        } else if (esErrorDeRed(err)) {
           const encolado = await offline.encolarSiNoExiste(
             "visita",
             input,
@@ -429,6 +438,85 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setModal("editar");
   }
 
+  function abrirEditarUbicacion() {
+    setUbicacionMensaje(null);
+    setUbicacionDireccion("");
+    setUbicacionCampo("negocio");
+    setEdicion((e) => ({
+      ...e,
+      latitud: typeof latitud === "number" ? latitud : e.latitud,
+      longitud: typeof longitud === "number" ? longitud : e.longitud,
+      latitudDomicilio:
+        typeof latitudDomicilio === "number" ? latitudDomicilio : e.latitudDomicilio,
+      longitudDomicilio:
+        typeof longitudDomicilio === "number" ? longitudDomicilio : e.longitudDomicilio,
+    }));
+    setModal("ubicacion");
+  }
+
+  async function buscarUbicacionDireccion() {
+    if (!ubicacionDireccion.trim()) {
+      setUbicacionMensaje("Escribe una dirección para buscar.");
+      return;
+    }
+    setUbicacionBuscando(true);
+    setUbicacionMensaje(null);
+    try {
+      const resultados = await Location.geocodeAsync(ubicacionDireccion.trim());
+      if (resultados.length === 0) {
+        setUbicacionMensaje("No se encontró la dirección.");
+        return;
+      }
+      const mejor = resultados[0];
+      if (ubicacionCampo === "domicilio") {
+        setEdicion((e) => ({
+          ...e,
+          latitudDomicilio: mejor.latitude,
+          longitudDomicilio: mejor.longitude,
+        }));
+      } else {
+        setEdicion((e) => ({
+          ...e,
+          latitud: mejor.latitude,
+          longitud: mejor.longitude,
+        }));
+      }
+    } catch {
+      setUbicacionMensaje("No se pudo buscar la dirección.");
+    } finally {
+      setUbicacionBuscando(false);
+    }
+  }
+
+  async function guardarUbicacion() {
+    const lat = ubicacionCampo === "domicilio" ? edicion.latitudDomicilio : edicion.latitud;
+    const lng = ubicacionCampo === "domicilio" ? edicion.longitudDomicilio : edicion.longitud;
+    if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+      setUbicacionMensaje("Arrastra el marcador para fijar la ubicación.");
+      return;
+    }
+    setUbicacionEnviando(true);
+    setUbicacionMensaje(null);
+    try {
+      const input =
+        ubicacionCampo === "domicilio"
+          ? { latitudDomicilio: lat, longitudDomicilio: lng }
+          : { latitud: lat, longitud: lng };
+      await api.actualizarCliente(rutaId, clienteId, input);
+      setModal("ninguno");
+      setMensaje("Ubicación actualizada.");
+      await cargar();
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setUbicacionMensaje("No se pudo guardar la ubicación.");
+      }
+    } finally {
+      setUbicacionEnviando(false);
+    }
+  }
+
   async function guardarCambioCliente() {
     const input = camposCambiados(edicion, edicionOriginal);
     if (Object.keys(input).length === 0) {
@@ -472,6 +560,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setMensaje("Cambio enviado (se sincronizará).");
       } else {
         setMensaje("Ya hay un cambio pendiente por sincronizar.");
+      }
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setMensaje("No se pudo guardar el cambio.");
       }
     } finally {
       setEditando(false);
@@ -549,29 +643,36 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   async function elegirEvidencia(
-    campo: "foto_facial" | "documento_frente",
+    campo: "foto_facial" | "documento_frente" | "documento_reverso",
     fuente: FuenteEvidencia,
   ) {
-    const evidencia = await evidenciasCliente.agregar(campo, fuente);
-    if (evidencia) {
-      await guardarEvidencia(evidencia);
-    }
+    // Solo selecciona y previsualiza; la subida ocurre al tocar "Guardar".
+    setMensaje(null);
+    await evidenciasCliente.agregar(campo, fuente);
   }
 
-  async function guardarEvidencia(evidencia: {
-    campo: "foto_facial" | "documento_frente";
-    uri: string;
-    name: string;
-    type: string;
-  }) {
+  function evidenciasSeleccionadasPara(
+    campo: "foto_facial" | "documento_frente" | "documento_reverso",
+  ) {
+    return evidenciasCliente.evidencias.filter((e) => e.campo === campo);
+  }
+
+  async function guardarEvidenciaSeleccionada(
+    campo: "foto_facial" | "documento_frente" | "documento_reverso",
+  ) {
+    const pendiente = evidenciasSeleccionadasPara(campo)[0];
+    if (!pendiente) {
+      setMensaje("Selecciona una imagen primero.");
+      return;
+    }
     setEvidenciasEnviando(true);
     setMensaje(null);
     try {
-      await api.agregarEvidenciasCliente(rutaId, clienteId, [evidencia]);
-      evidenciasCliente.quitar(evidencia.campo);
+      await api.agregarEvidenciasCliente(rutaId, clienteId, [pendiente]);
+      evidenciasCliente.quitar(campo);
       setModal("ninguno");
       setMensaje(
-        evidencia.campo === "foto_facial"
+        campo === "foto_facial"
           ? "Foto actualizada."
           : "Documento actualizado.",
       );
@@ -593,7 +694,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     }
     setCompartiendo(true);
     try {
-      const uri = await captureRef(refDetalle, { format: "png", quality: 0.8 });
+      const uri = await captureRef(refCanvas, { format: "png", quality: 0.8 });
       await shareAsync(uri, {
         mimeType: "image/png",
         dialogTitle: "Estado de cuenta del préstamo",
@@ -619,28 +720,23 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       : prestamos.filter((p) => p.id === prestamoSeleccionadoId);
   const cuotasCanvas = estadoPrestamo ? clasificarCuotas(estadoPrestamo.cuotas) : [];
   const docFrenteUrl = tarjeta.documentoFrenteUrl ?? null;
-  const latNegocio = edicion.latitud ?? COORD_DEFAULT.lat;
-  const lngNegocio = edicion.longitud ?? COORD_DEFAULT.lng;
-  const latDomicilio = edicion.latitudDomicilio ?? COORD_DEFAULT.lat;
-  const lngDomicilio = edicion.longitudDomicilio ?? COORD_DEFAULT.lng;
+  const docReversoUrl = tarjeta.documentoReversoUrl ?? null;
 
   return (
     <>
-      <ScrollView style={styles.contenedor} contentContainerStyle={styles.scroll}>
-        {/* Header: enlace Editar a la izquierda + título */}
-        <View style={styles.header}>
-          <Pressable testID="btn-editar-cliente" style={styles.headerAccion} onPress={abrirEditar}>
-            <MaterialIcons name="edit" size={16} color="#2563eb" />
-            <Text style={styles.headerAccionTexto}>Editar</Text>
-          </Pressable>
-          <Text style={styles.headerTitulo}>Detalle del cliente</Text>
+      <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Header neutro de la vista: back + título, sin Editar (N5) */}
+        <View testID="header-cliente" style={styles.header}>
           {onCerrar ? (
-            <Pressable testID="btn-cerrar-detalle" style={styles.headerAccionDerecha} onPress={onCerrar}>
-              <MaterialIcons name="close" size={22} color="#475569" />
+            <Pressable testID="btn-back-cliente" style={styles.headerAccionIzq} onPress={onCerrar}>
+              <MaterialIcons name="arrow-back" size={22} color="#334155" />
             </Pressable>
           ) : (
-            <View style={styles.headerAccionDerecha} />
+            <View style={styles.headerAccionIzq} />
           )}
+          <Text style={styles.headerTitulo}>Información del cliente</Text>
+          <View style={styles.headerAccionDerecha} />
         </View>
 
         {mensaje && modal === "ninguno" ? (
@@ -649,93 +745,130 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           </View>
         ) : null}
 
-        {/* Tarjeta principal del cliente */}
-        <View style={styles.tarjeta}>
-          <View style={styles.filaSuperior}>
-            <Pressable testID="btn-avatar" onPress={() => setModal("avatar")}>
-              <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={64} />
+        {/* Tarjeta cédula/pasaporte: header con fondo por clasificación, foto grande
+            a la izquierda y datos a la derecha; documentos como iconos grandes. */}
+        <View testID="tarjeta-cedula" style={styles.tarjeta}>
+          <View
+            testID="header-tarjeta-cliente"
+            style={[styles.tarjetaHeader, { backgroundColor: colorDeEstado(tarjeta.color) }]}
+          >
+            <Text style={styles.tarjetaHeaderNombre} numberOfLines={1}>
+              {tarjeta.nombre}
+            </Text>
+            <Pressable testID="btn-editar-cliente" style={styles.tarjetaHeaderEditar} onPress={abrirEditar}>
+              <MaterialIcons name="edit" size={16} color="#ffffff" />
+              <Text style={styles.tarjetaHeaderEditarTexto}>Editar</Text>
             </Pressable>
+          </View>
 
-            {/* Tarjeta de documento: frontal y reverso */}
-            <View style={styles.documento}>
-              <View style={styles.documentoFilaTitulo}>
-                <Text style={styles.documentoTitulo}>Documento</Text>
-                <ColorBadge color={tarjeta.color} />
-              </View>
-              <View style={styles.documentoMiniaturas}>
-                <Pressable
-                  testID="doc-frente"
-                  style={styles.miniatura}
-                  onPress={() => {
-                    setModalDocumento("frente");
-                    setModal("documento");
-                  }}
-                >
-                  {docFrenteUrl ? (
-                    <Image
-                      source={{ uri: docFrenteUrl }}
-                      style={styles.miniaturaImagen}
-                    />
-                  ) : (
-                    <View style={styles.miniaturaPlaceholder}>
-                      <MaterialIcons name="badge" size={22} color="#94a3b8" />
-                    </View>
-                  )}
-                  <View
-                    testID="doc-frente-badge"
-                    style={[
-                      styles.badgeDoc,
-                      docFrenteUrl ? styles.badgeVerificado : styles.badgePendiente,
-                    ]}
-                  >
-                    {docFrenteUrl ? (
-                      <MaterialIcons name="check" size={11} color="#16a34a" />
-                    ) : null}
-                    <Text
-                      style={[
-                        docFrenteUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
-                      ]}
-                    >
-                      {docFrenteUrl ? "Verificado" : "Pendiente"}
-                    </Text>
-                  </View>
-                  <Text style={styles.miniaturaEtiqueta}>Frente</Text>
-                </Pressable>
-                <Pressable
-                  testID="doc-reverso"
-                  style={styles.miniatura}
-                  onPress={() => {
-                    setModalDocumento("reverso");
-                    setModal("documento");
-                  }}
-                >
-                  <View style={styles.miniaturaPlaceholder}>
-                    <MaterialIcons name="badge" size={22} color="#94a3b8" />
-                  </View>
-                  <View
-                    testID="doc-reverso-badge"
-                    style={[styles.badgeDoc, styles.badgePendiente]}
-                  >
-                    <Text style={styles.badgePendienteTexto}>Pendiente</Text>
-                  </View>
-                  <Text style={styles.miniaturaEtiqueta}>Reverso</Text>
-                </Pressable>
-              </View>
+          {/* Foto grande a la izquierda + datos a la derecha */}
+          <View style={styles.filaCedula}>
+            <Pressable testID="btn-avatar" onPress={() => setModal("avatar")}>
+              <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={92} />
+            </Pressable>
+            <View style={styles.datosCedula}>
+              {tarjeta.negocio ? (
+                <Text style={styles.datoCedulaLineal}>
+                  <Text style={styles.datoCedulaEtiqueta}>Negocio: </Text>
+                  <Text style={styles.datoCedulaValor}>{tarjeta.negocio}</Text>
+                </Text>
+              ) : null}
+              {tarjeta.tipoPago ? (
+                <Text style={styles.datoCedulaLineal}>
+                  <Text style={styles.datoCedulaEtiqueta}>Tipo de pago: </Text>
+                  <Text style={styles.datoCedulaValor}>{tarjeta.tipoPago}</Text>
+                </Text>
+              ) : null}
+              <Text style={styles.datoCedulaLineal}>
+                <Text style={styles.datoCedulaEtiqueta}>Saldo pendiente: </Text>
+                <Text style={styles.datoCedulaValor}>{tarjeta.saldoPendiente}</Text>
+              </Text>
+              <Text style={styles.datoCedulaLineal}>
+                <Text style={styles.datoCedulaEtiqueta}>Mora: </Text>
+                <Text style={styles.datoCedulaValor}>{tarjeta.diasMora} días</Text>
+              </Text>
+              <Text style={styles.datoCedulaLineal}>
+                <Text style={styles.datoCedulaEtiqueta}>WhatsApp: </Text>
+                <Text style={styles.datoCedulaValor}>{tarjeta.telefonoWhatsapp}</Text>
+              </Text>
             </View>
           </View>
 
-          <Text style={styles.nombre}>{tarjeta.nombre}</Text>
-          {tarjeta.negocio ? (
-            <Text style={styles.detalle}>Negocio: {tarjeta.negocio}</Text>
-          ) : null}
-          <Text style={styles.detalle}>WhatsApp: {tarjeta.telefonoWhatsapp}</Text>
-          {tarjeta.tipoPago ? (
-            <Text style={styles.detalle}>Tipo de pago: {tarjeta.tipoPago}</Text>
-          ) : null}
-          <Text style={styles.detalle}>
-            Saldo pendiente: {tarjeta.saldoPendiente} | Mora: {tarjeta.diasMora} días
-          </Text>
+          {/* Dos iconos grandes: documento frente y reverso */}
+          <View style={styles.documentosFila}>
+            <Pressable
+              testID="doc-frente"
+              style={styles.miniatura}
+              onPress={() => {
+                setModalDocumento("frente");
+                setModal("documento");
+              }}
+            >
+              {docFrenteUrl ? (
+                <Image source={{ uri: docFrenteUrl }} style={styles.miniaturaImagenGrande} />
+              ) : (
+                <View style={styles.miniaturaPlaceholderGrande}>
+                  <MaterialIcons name="badge" size={40} color="#94a3b8" />
+                </View>
+              )}
+              <View
+                testID="doc-frente-badge"
+                style={[
+                  styles.badgeDoc,
+                  docFrenteUrl ? styles.badgeVerificado : styles.badgePendiente,
+                ]}
+              >
+                {docFrenteUrl ? (
+                  <MaterialIcons name="check" size={11} color="#16a34a" />
+                ) : null}
+                <Text
+                  style={[
+                    docFrenteUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
+                  ]}
+                >
+                  {docFrenteUrl ? "Verificado" : "Pendiente"}
+                </Text>
+              </View>
+              <Text style={styles.miniaturaEtiqueta}>Frente</Text>
+            </Pressable>
+            <Pressable
+              testID="doc-reverso"
+              style={styles.miniatura}
+              onPress={() => {
+                setModalDocumento("reverso");
+                setModal("documento");
+              }}
+            >
+              {docReversoUrl ? (
+                <Image source={{ uri: docReversoUrl }} style={styles.miniaturaImagenGrande} />
+              ) : (
+                <View style={styles.miniaturaPlaceholderGrande}>
+                  <MaterialIcons name="badge" size={40} color="#94a3b8" />
+                </View>
+              )}
+              <View
+                testID="doc-reverso-badge"
+                style={[
+                  styles.badgeDoc,
+                  docReversoUrl ? styles.badgeVerificado : styles.badgePendiente,
+                ]}
+              >
+                {docReversoUrl ? (
+                  <MaterialIcons name="check" size={11} color="#16a34a" />
+                ) : null}
+                <Text
+                  style={[
+                    docReversoUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
+                  ]}
+                >
+                  {docReversoUrl ? "Verificado" : "Pendiente"}
+                </Text>
+              </View>
+              <Text style={styles.miniaturaEtiqueta}>Reverso</Text>
+            </Pressable>
+          </View>
 
+          {/* Fila de acciones: cómo llegar + editar ubicación */}
           {tieneCoordenadas ? (
             <View style={styles.footerTarjeta}>
               <Pressable
@@ -750,6 +883,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                   size={18}
                   color="#0891b2"
                 />
+              </Pressable>
+              <Pressable
+                testID="btn-editar-ubicacion"
+                style={styles.editarUbicacion}
+                onPress={abrirEditarUbicacion}
+              >
+                <MaterialIcons name="edit-location" size={16} color="#2563eb" />
+                <Text style={styles.editarUbicacionTexto}>Editar ubicación</Text>
               </Pressable>
             </View>
           ) : null}
@@ -797,16 +938,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {/* Sección de préstamos (acordeón) */}
         <View style={styles.seccion}>
           <View style={styles.seccionHeader}>
+            <Text style={styles.seccionTitulo}>Préstamos</Text>
             <Pressable
               testID="btn-nuevo-prestamo"
               style={styles.botonNuevo}
               onPress={abrirNuevoPrestamo}
             >
-              <MaterialIcons name="add" size={16} color="#2563eb" />
               <Text style={styles.botonNuevoTexto}>+ Nuevo</Text>
             </Pressable>
-            <Text style={styles.seccionTitulo}>Préstamos</Text>
-            <View style={styles.seccionEspacio} />
           </View>
 
           {prestamosVisibles.length === 0 ? (
@@ -850,12 +989,17 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
         {/* Detalle del préstamo seleccionado */}
         {prestamoSeleccionado ? (
-          <View ref={refDetalle} collapsable={false} testID="detalle-prestamo" style={styles.detallePrestamo}>
+          <View style={styles.detallePrestamo}>
             <Text style={styles.detalleTitulo}>Préstamo #{prestamoSeleccionado.id}</Text>
             {estadoPrestamoCargando ? (
               <ActivityIndicator style={styles.detalleCarga} />
             ) : estadoPrestamo ? (
-              <>
+              <View
+                ref={refCanvas}
+                collapsable={false}
+                testID="canvas-prestamo"
+                style={styles.canvasScreenshot}
+              >
                 <Text style={styles.detalleLinea}>
                   Valor: {estadoPrestamo.valor} {estadoPrestamo.moneda} · Cuotas:{" "}
                   {estadoPrestamo.numCuotas} · Interés: {estadoPrestamo.tipoInteres}%
@@ -920,7 +1064,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     );
                   })}
                 </View>
-              </>
+              </View>
             ) : (
               <Text style={styles.detalleError}>
                 No se pudo cargar el detalle del préstamo.
@@ -965,6 +1109,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           </View>
         ) : null}
       </ScrollView>
+      </SafeAreaView>
 
       {/* Modal: editar cliente */}
       <ModalConFooter
@@ -1008,83 +1153,117 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           onChangeText={(v) => setEdicion((e) => ({ ...e, negocio: v }))}
         />
         <Text style={styles.label}>WhatsApp</Text>
-        <TextInput
+        <CampoTelefono
           testID="editar-telefono"
-          style={styles.input}
-          placeholder="WhatsApp"
-          keyboardType="phone-pad"
-          value={edicion.telefonoWhatsapp ?? ""}
-          onChangeText={(v) => setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))}
+          valor={edicion.telefonoWhatsapp ?? ""}
+          onChange={(v) => setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))}
+          placeholder="Número de WhatsApp"
         />
-        <Text style={styles.label}>Ubicación del negocio</Text>
-        <MapaPin
-          testID="mapa-pin-negocio"
-          latitud={latNegocio}
-          longitud={lngNegocio}
-          onChange={(latN, lngN) =>
-            setEdicion((e) => ({ ...e, latitud: latN, longitud: lngN }))
-          }
-        />
-        <View style={styles.filaCoordenadas}>
-          <TextInput
-            testID="editar-latitud"
-            style={[styles.input, styles.inputCoordenada]}
-            placeholder="Latitud negocio"
-            keyboardType="decimal-pad"
-            value={edicion.latitud != null ? String(edicion.latitud) : ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, latitud: coordenadaDeTexto(v) }))
-            }
-          />
-          <TextInput
-            testID="editar-longitud"
-            style={[styles.input, styles.inputCoordenada]}
-            placeholder="Longitud negocio"
-            keyboardType="decimal-pad"
-            value={edicion.longitud != null ? String(edicion.longitud) : ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, longitud: coordenadaDeTexto(v) }))
-            }
-          />
-        </View>
-        <Text style={styles.label}>Ubicación del domicilio</Text>
-        <MapaPin
-          testID="mapa-pin-domicilio"
-          latitud={latDomicilio}
-          longitud={lngDomicilio}
-          onChange={(latD, lngD) =>
-            setEdicion((e) => ({
-              ...e,
-              latitudDomicilio: latD,
-              longitudDomicilio: lngD,
-            }))
-          }
-        />
-        <View style={styles.filaCoordenadas}>
-          <TextInput
-            testID="editar-latitud-domicilio"
-            style={[styles.input, styles.inputCoordenada]}
-            placeholder="Latitud domicilio"
-            keyboardType="decimal-pad"
-            value={edicion.latitudDomicilio != null ? String(edicion.latitudDomicilio) : ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, latitudDomicilio: coordenadaDeTexto(v) }))
-            }
-          />
-          <TextInput
-            testID="editar-longitud-domicilio"
-            style={[styles.input, styles.inputCoordenada]}
-            placeholder="Longitud domicilio"
-            keyboardType="decimal-pad"
-            value={edicion.longitudDomicilio != null ? String(edicion.longitudDomicilio) : ""}
-            onChangeText={(v) =>
-              setEdicion((e) => ({ ...e, longitudDomicilio: coordenadaDeTexto(v) }))
-            }
-          />
-        </View>
+        <Text style={styles.notaUbicacion}>
+          La ubicación del negocio y del domicilio se edita desde la tarjeta del
+          cliente (opción Editar ubicación).
+        </Text>
         {mensaje && modal === "editar" ? (
           <Text testID="mensaje-editar" style={styles.mensajeModal}>
             {mensaje}
+          </Text>
+        ) : null}
+      </ModalConFooter>
+
+      {/* Modal: editar ubicación (N6) */}
+      <ModalConFooter
+        visible={modal === "ubicacion"}
+        titulo="Editar ubicación"
+        onCerrar={() => {
+          setModal("ninguno");
+          setUbicacionMensaje(null);
+        }}
+        onCancelar={() => {
+          setModal("ninguno");
+          setUbicacionMensaje(null);
+        }}
+        onConfirmar={() => void guardarUbicacion()}
+        confirmando={ubicacionEnviando}
+        confirmarTestID="guardar-ubicacion"
+        testID="ubicacion-form"
+      >
+        <View style={styles.chips}>
+          <Pressable
+            testID="ubicacion-negocio"
+            style={[styles.chip, ubicacionCampo === "negocio" && styles.chipActivo]}
+            onPress={() => {
+              setUbicacionCampo("negocio");
+              setUbicacionMensaje(null);
+            }}
+          >
+            <Text style={ubicacionCampo === "negocio" ? styles.chipTextoActivo : styles.chipTexto}>
+              Negocio
+            </Text>
+          </Pressable>
+          <Pressable
+            testID="ubicacion-domicilio"
+            style={[styles.chip, ubicacionCampo === "domicilio" && styles.chipActivo]}
+            onPress={() => {
+              setUbicacionCampo("domicilio");
+              setUbicacionMensaje(null);
+            }}
+          >
+            <Text style={ubicacionCampo === "domicilio" ? styles.chipTextoActivo : styles.chipTexto}>
+              Domicilio
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.filaBusqueda}>
+          <TextInput
+            testID="ubicacion-direccion"
+            style={[styles.input, styles.inputBusqueda]}
+            placeholder="Buscar por dirección"
+            value={ubicacionDireccion}
+            onChangeText={setUbicacionDireccion}
+          />
+          <Pressable
+            testID="ubicacion-buscar"
+            style={styles.botonBuscar}
+            disabled={ubicacionBuscando}
+            onPress={() => void buscarUbicacionDireccion()}
+          >
+            {ubicacionBuscando ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <MaterialIcons name="search" size={18} color="#ffffff" />
+            )}
+          </Pressable>
+        </View>
+
+        <MapaPin
+          testID="mapa-pin-ubicacion"
+          latitud={
+            ubicacionCampo === "domicilio"
+              ? edicion.latitudDomicilio ?? COORD_DEFAULT.lat
+              : edicion.latitud ?? COORD_DEFAULT.lat
+          }
+          longitud={
+            ubicacionCampo === "domicilio"
+              ? edicion.longitudDomicilio ?? COORD_DEFAULT.lng
+              : edicion.longitud ?? COORD_DEFAULT.lng
+          }
+          onChange={(latU, lngU) => {
+            if (ubicacionCampo === "domicilio") {
+              setEdicion((e) => ({
+                ...e,
+                latitudDomicilio: latU,
+                longitudDomicilio: lngU,
+              }));
+            } else {
+              setEdicion((e) => ({ ...e, latitud: latU, longitud: lngU }));
+            }
+          }}
+        />
+
+        {ubicacionMensaje ? (
+          <Text testID="mensaje-ubicacion" style={styles.mensajeModal}>
+            {ubicacionMensaje}
           </Text>
         ) : null}
       </ModalConFooter>
@@ -1145,22 +1324,47 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         titulo="Foto del cliente"
         onCerrar={() => {
           setModal("ninguno");
+          evidenciasCliente.quitar("foto_facial");
           evidenciasCliente.resetError();
+          setMensaje(null);
         }}
+        onCancelar={() => {
+          setModal("ninguno");
+          evidenciasCliente.quitar("foto_facial");
+          evidenciasCliente.resetError();
+          setMensaje(null);
+        }}
+        onConfirmar={() => void guardarEvidenciaSeleccionada("foto_facial")}
+        confirmando={evidenciasEnviando}
+        confirmarTestID="avatar-guardar"
         testID="avatar-modal"
       >
-        {tarjeta.fotoUrl ? (
-          <Image
-            testID="avatar-foto-actual"
-            source={{ uri: tarjeta.fotoUrl }}
-            style={styles.evidenciaPreview}
-          />
-        ) : (
-          <View style={styles.evidenciaVacio}>
-            <MaterialIcons name="person" size={32} color="#94a3b8" />
-            <Text style={styles.evidenciaVacioTexto}>Este cliente no tiene foto.</Text>
-          </View>
-        )}
+        {(() => {
+          const pendiente = evidenciasSeleccionadasPara("foto_facial")[0];
+          if (pendiente) {
+            return (
+              <Image
+                testID="avatar-preview"
+                source={{ uri: pendiente.uri }}
+                style={styles.evidenciaPreview}
+              />
+            );
+          }
+          return tarjeta.fotoUrl ? (
+            <Image
+              testID="avatar-foto-actual"
+              source={{ uri: tarjeta.fotoUrl }}
+              style={styles.evidenciaPreview}
+            />
+          ) : (
+            <View style={styles.evidenciaVacio}>
+              <MaterialIcons name="person" size={32} color="#94a3b8" />
+              <Text style={styles.evidenciaVacioTexto}>
+                Este cliente no tiene foto.
+              </Text>
+            </View>
+          );
+        })()}
         <Pressable
           testID="avatar-libreria"
           style={[styles.botonEvidencia]}
@@ -1185,6 +1389,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {evidenciasCliente.error ? (
           <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
         ) : null}
+        {mensaje ? <Text style={styles.errorTexto}>{mensaje}</Text> : null}
       </ModalConFooter>
 
       {/* Modal: documento */}
@@ -1193,31 +1398,72 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         titulo={modalDocumento === "frente" ? "Documento — frente" : "Documento — reverso"}
         onCerrar={() => {
           setModal("ninguno");
+          evidenciasCliente.quitar(
+            modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+          );
           evidenciasCliente.resetError();
+          setMensaje(null);
         }}
+        onCancelar={() => {
+          setModal("ninguno");
+          evidenciasCliente.quitar(
+            modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+          );
+          evidenciasCliente.resetError();
+          setMensaje(null);
+        }}
+        onConfirmar={() =>
+          void guardarEvidenciaSeleccionada(
+            modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+          )
+        }
+        confirmando={evidenciasEnviando}
+        confirmarTestID="documento-guardar"
         testID="documento-modal"
       >
-        {modalDocumento === "frente" && docFrenteUrl ? (
-          <Image
-            testID="documento-foto-actual"
-            source={{ uri: docFrenteUrl }}
-            style={styles.evidenciaPreview}
-          />
-        ) : (
-          <View style={styles.evidenciaVacio}>
-            <MaterialIcons name="badge" size={32} color="#94a3b8" />
-            <Text style={styles.evidenciaVacioTexto}>
-              {modalDocumento === "frente"
-                ? "El frente del documento aún no está cargado."
-                : "El reverso del documento aún no está disponible."}
-            </Text>
-          </View>
-        )}
+        {(() => {
+          const campo = modalDocumento === "reverso" ? "documento_reverso" : "documento_frente";
+          const pendiente = evidenciasSeleccionadasPara(campo)[0];
+          const urlActual = modalDocumento === "reverso" ? docReversoUrl : docFrenteUrl;
+          if (pendiente) {
+            return (
+              <Image
+                testID="documento-preview"
+                source={{ uri: pendiente.uri }}
+                style={styles.evidenciaPreview}
+              />
+            );
+          }
+          if (urlActual) {
+            return (
+              <Image
+                testID="documento-foto-actual"
+                source={{ uri: urlActual }}
+                style={styles.evidenciaPreview}
+              />
+            );
+          }
+          return (
+            <View style={styles.evidenciaVacio}>
+              <MaterialIcons name="badge" size={32} color="#94a3b8" />
+              <Text style={styles.evidenciaVacioTexto}>
+                {modalDocumento === "frente"
+                  ? "El frente del documento aún no está cargado."
+                  : "El reverso del documento aún no está disponible."}
+              </Text>
+            </View>
+          );
+        })()}
         <Pressable
           testID="documento-libreria"
           style={styles.botonEvidencia}
           disabled={evidenciasEnviando || evidenciasCliente.cargando}
-          onPress={() => void elegirEvidencia("documento_frente", "libreria")}
+          onPress={() =>
+            void elegirEvidencia(
+              modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+              "libreria",
+            )
+          }
         >
           <MaterialIcons name="photo-library" size={16} color="#2563eb" />
           <Text style={styles.botonEvidenciaTexto}>Cargar desde librería</Text>
@@ -1226,7 +1472,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           testID="documento-camara"
           style={styles.botonEvidencia}
           disabled={evidenciasEnviando || evidenciasCliente.cargando}
-          onPress={() => void elegirEvidencia("documento_frente", "camara")}
+          onPress={() =>
+            void elegirEvidencia(
+              modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+              "camara",
+            )
+          }
         >
           <MaterialIcons name="photo-camera" size={16} color="#2563eb" />
           <Text style={styles.botonEvidenciaTexto}>Tomar foto con cámara</Text>
@@ -1237,6 +1488,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {evidenciasCliente.error ? (
           <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
         ) : null}
+        {mensaje ? <Text style={styles.errorTexto}>{mensaje}</Text> : null}
       </ModalConFooter>
 
       {/* Modal: detalle de cuota */}
@@ -1442,20 +1694,69 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
   },
-  headerAccion: {
+  headerAccionIzq: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     width: 72,
   },
-  headerAccionDerecha: { width: 36, alignItems: "flex-end" },
-  headerAccionTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
+  headerAccionDerecha: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    width: 72,
+    justifyContent: "flex-end",
+  },
   headerTitulo: {
+    flex: 1,
     fontSize: 17,
     fontWeight: "700",
     color: "#334155",
     textAlign: "center",
+  },
+  tarjetaHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    margin: -16,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  tarjetaHeaderNombre: { fontSize: 16, fontWeight: "700", color: "#ffffff", flex: 1 },
+  tarjetaHeaderEditar: { flexDirection: "row", alignItems: "center", gap: 4 },
+  tarjetaHeaderEditarTexto: { color: "#ffffff", fontSize: 14, fontWeight: "600" },
+  filaCedula: { flexDirection: "row", gap: 16, alignItems: "flex-start" },
+  datosCedula: { flex: 1, gap: 6 },
+  datoCedulaLineal: { fontSize: 14, color: "#1e293b", flexWrap: "wrap" },
+  datoCedulaEtiqueta: { fontWeight: "700", color: "#475569" },
+  datoCedulaValor: { fontWeight: "600", color: "#1e293b" },
+  documentosFila: { flexDirection: "row", gap: 14, marginTop: 16 },
+  miniaturaImagenGrande: {
+    width: 96,
+    height: 64,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  miniaturaPlaceholderGrande: {
+    width: 96,
+    height: 64,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
   },
   banner: {
     backgroundColor: "#eff6ff",
@@ -1471,6 +1772,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 16,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 10,
@@ -1523,19 +1825,19 @@ const styles = StyleSheet.create({
   badgePendiente: { backgroundColor: "#fef3c7" },
   badgeVerificadoTexto: { color: "#16a34a", fontSize: 10, fontWeight: "700" },
   badgePendienteTexto: { color: "#b45309", fontSize: 10, fontWeight: "700" },
-  nombre: { fontSize: 18, fontWeight: "700", color: "#1e293b", marginTop: 8 },
   detalle: { color: "#475569", fontSize: 14 },
   footerTarjeta: {
     marginTop: 10,
     borderTopWidth: 1,
     borderTopColor: "#f1f5f9",
     paddingTop: 10,
+    flexDirection: "row",
+    gap: 8,
   },
   comoLlegar: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    alignSelf: "flex-start",
     borderWidth: 1,
     borderColor: "#a5f3fc",
     backgroundColor: "#ecfeff",
@@ -1545,6 +1847,18 @@ const styles = StyleSheet.create({
   },
   comoLlegarActivo: { borderColor: "#67e8f9" },
   comoLlegarTexto: { color: "#0891b2", fontWeight: "600", fontSize: 13 },
+  editarUbicacion: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    backgroundColor: "#eff6ff",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  editarUbicacionTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
   seccionMapa: { gap: 8 },
   navegacion: { flexDirection: "row", gap: 10 },
   botonNavegar: {
@@ -1573,7 +1887,15 @@ const styles = StyleSheet.create({
   notificacionContenido: { flex: 1 },
   notificacionTitulo: { fontSize: 13, fontWeight: "700", color: "#1e40af" },
   notificacionDetalle: { fontSize: 12, color: "#3b82f6", marginTop: 2 },
-  seccion: { marginTop: 4 },
+  seccion: {
+    marginTop: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    padding: 14,
+    gap: 8,
+  },
   seccionHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -1583,11 +1905,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 2,
-    width: 84,
   },
   botonNuevoTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
   seccionTitulo: { fontSize: 15, fontWeight: "700", color: "#334155" },
-  seccionEspacio: { width: 84 },
   sinPrestamos: { color: "#64748b", fontSize: 13, marginTop: 10 },
   prestamoItem: {
     flexDirection: "row",
@@ -1611,6 +1931,11 @@ const styles = StyleSheet.create({
   prestamoValor: { fontSize: 14, fontWeight: "700", color: "#1e293b" },
   prestamoDetalle: { color: "#64748b", fontSize: 12, marginTop: 2 },
   prestamoEstatus: { color: "#475569", fontSize: 12, marginTop: 2, fontWeight: "600" },
+  canvasScreenshot: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 12,
+  },
   detallePrestamo: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
@@ -1690,6 +2015,16 @@ const styles = StyleSheet.create({
   },
   filaCoordenadas: { flexDirection: "row", gap: 8 },
   inputCoordenada: { flex: 1 },
+  filaBusqueda: { flexDirection: "row", gap: 8 },
+  inputBusqueda: { flex: 1 },
+  botonBuscar: {
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+  },
+  notaUbicacion: { color: "#64748b", fontSize: 12, marginTop: 4 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   chip: {
     borderWidth: 1,

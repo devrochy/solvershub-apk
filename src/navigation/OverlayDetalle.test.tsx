@@ -12,7 +12,18 @@ jest.mock("../screens/ClienteScreen", () => {
   };
 });
 
+jest.mock("../screens/RutaDetalleScreen", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    RutaDetalleScreen: jest.fn((props: Record<string, unknown>) =>
+      React.createElement(View, { testID: "mock-ruta" }),
+    ),
+  };
+});
+
 import { ClienteScreen } from "../screens/ClienteScreen";
+import { RutaDetalleScreen } from "../screens/RutaDetalleScreen";
 
 describe("OverlayDetalle", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -43,6 +54,10 @@ describe("OverlayDetalle", () => {
       rutaId: 6,
       clienteId: 12,
       nombre: "Juan",
+      latitud: -17.78,
+      longitud: -63.18,
+      latitudDomicilio: -17.79,
+      longitudDomicilio: -63.19,
       prestamoAutoSeleccionado: true,
     };
     await render(<OverlayDetalle pantalla={pantalla} onCerrar={jest.fn()} />);
@@ -50,9 +65,49 @@ describe("OverlayDetalle", () => {
       expect.objectContaining({
         rutaId: 6,
         clienteId: 12,
+        latitud: -17.78,
+        longitud: -63.18,
+        latitudDomicilio: -17.79,
+        longitudDomicilio: -63.19,
         prestamoAutoSeleccionado: true,
         onCerrar: expect.any(Function),
       }),
     );
+  });
+
+  it("renderiza el detalle de ruta cuando la pantalla activa es ruta", async () => {
+    const pantalla: PantallaActiva = {
+      tipo: "ruta",
+      rutaId: 6,
+      rutaNombre: "Ruta Centro",
+    };
+    const { getByTestId } = await render(
+      <OverlayDetalle pantalla={pantalla} onCerrar={jest.fn()} />,
+    );
+    expect(getByTestId("mock-ruta")).toBeTruthy();
+    expect((RutaDetalleScreen as jest.Mock).mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        rutaId: 6,
+        rutaNombre: "Ruta Centro",
+        onCerrar: expect.any(Function),
+      }),
+    );
+  });
+
+  it("no renderiza nada para una pantalla de préstamo sin vista propia", async () => {
+    const pantalla: PantallaActiva = {
+      tipo: "prestamo",
+      rutaId: 6,
+      prestamoId: 9,
+      clienteNombre: "Juan",
+      telefonoWhatsapp: "+5917000111",
+      valor: 500,
+      numCuotas: 4,
+    };
+    const { queryByTestId } = await render(
+      <OverlayDetalle pantalla={pantalla} onCerrar={jest.fn()} />,
+    );
+    expect(queryByTestId("mock-cliente")).toBeNull();
+    expect(queryByTestId("mock-ruta")).toBeNull();
   });
 });

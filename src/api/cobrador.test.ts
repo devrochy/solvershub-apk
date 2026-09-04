@@ -1,3 +1,9 @@
+jest.mock("expo-file-system", () => ({
+  File: jest.fn().mockImplementation(() => ({
+    bytes: () => Promise.resolve(new Uint8Array([9, 9, 9])),
+  })),
+}));
+
 import { cobradorApi } from "./cobrador";
 
 describe("cobradorApi", () => {
@@ -53,7 +59,7 @@ describe("cobradorApi", () => {
     });
   });
 
-  it("registrarGasto construye FormData con descripcion, valor y evidencias", async () => {
+  it("registrarGasto construye multipart con descripcion, valor y evidencias", async () => {
     request.mockResolvedValue({ id: 1 });
 
     await api.registrarGasto(
@@ -64,12 +70,17 @@ describe("cobradorApi", () => {
 
     const [, opts] = request.mock.calls[0] as [
       string,
-      { method: string; body: FormData },
+      { method: string; headers: Record<string, string>; body: Uint8Array },
     ];
     expect(opts.method).toBe("POST");
-    expect(opts.body).toBeInstanceOf(FormData);
-    expect(opts.body.get("descripcion")).toBe("Combustible");
-    expect(opts.body.get("valor")).toBe("50");
+    expect(opts.headers["Content-Type"]).toMatch(/^multipart\/form-data; boundary=/);
+    const texto = new TextDecoder().decode(opts.body);
+    expect(texto).toContain(`name="descripcion"`);
+    expect(texto).toContain("Combustible");
+    expect(texto).toContain(`name="valor"`);
+    expect(texto).toContain("50");
+    expect(texto).toContain(`name="evidencias"; filename="x.jpg"`);
+    expect(texto).toContain("Content-Type: image/jpeg");
   });
 
   it("registrarTrayectoriaReal hace POST con los puntos", async () => {
@@ -197,6 +208,96 @@ describe("cobradorApi", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ latitud: -17.78, longitud: -63.18 }),
+    });
+  });
+
+  it("listarNotas llama a GET de notas de la ruta", async () => {
+    request.mockResolvedValue([{ id: 1, nota: "Nota" }]);
+
+    await api.listarNotas(6);
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/notas");
+  });
+
+  it("crearNota hace POST con el texto de la nota", async () => {
+    request.mockResolvedValue({ id: 1, nota: "Comprar combustible" });
+
+    await api.crearNota(6, "Comprar combustible");
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/notas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nota: "Comprar combustible" }),
+    });
+  });
+
+  it("crearCliente hace POST multipart con los datos y evidencias", async () => {
+    request.mockResolvedValue({ id: 50 });
+
+    await api.crearCliente(
+      6,
+      {
+        nombre: "Ana",
+        apellido: "Ríos",
+        negocio: "Tienda",
+        telefonoWhatsapp: "+5917000111",
+        latitud: -17.78,
+        longitud: -63.18,
+        topeMaximoDeuda: 1500,
+      },
+      [
+        { campo: "foto_facial", uri: "file:///f.jpg", name: "f.jpg", type: "image/jpeg" },
+        { campo: "documento_frente", uri: "file:///d.jpg", name: "d.jpg", type: "image/jpeg" },
+      ],
+    );
+
+    const [, opts] = request.mock.calls[0] as [
+      string,
+      { method: string; headers: Record<string, string>; body: Uint8Array },
+    ];
+    expect(opts.method).toBe("POST");
+    expect(opts.headers["Content-Type"]).toMatch(/^multipart\/form-data; boundary=/);
+    const texto = new TextDecoder().decode(opts.body);
+    expect(texto).toContain(`name="nombre"`);
+    expect(texto).toContain("Ana");
+    expect(texto).toContain("Ríos");
+    expect(texto).toContain("Tienda");
+    expect(texto).toContain("+5917000111");
+    expect(texto).toContain("-17.78");
+    expect(texto).toContain("-63.18");
+    expect(texto).toContain("1500");
+    expect(texto).toContain(`name="foto_facial"; filename="f.jpg"`);
+    expect(texto).toContain(`name="documento_frente"; filename="d.jpg"`);
+    expect(texto).toContain("Content-Type: image/jpeg");
+  });
+
+  it("actualizarCliente hace PATCH al cliente con lat/lng", async () => {
+    request.mockResolvedValue({ id: 2 });
+
+    await api.actualizarCliente(6, 2, {
+      latitud: -17.79,
+      longitud: -63.19,
+    });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitud: -17.79, longitud: -63.19 }),
+    });
+  });
+
+  it("actualizarCliente acepta lat/lng de domicilio", async () => {
+    request.mockResolvedValue({ id: 2 });
+
+    await api.actualizarCliente(6, 2, {
+      latitudDomicilio: -17.8,
+      longitudDomicilio: -63.2,
+    });
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitudDomicilio: -17.8, longitudDomicilio: -63.2 }),
     });
   });
 });

@@ -52,6 +52,7 @@ export function ModalConFooter({
       <View style={styles.fondo}>
         <View style={styles.carta} testID={testID}>
           <View style={styles.header}>
+            <Text style={styles.titulo}>{titulo}</Text>
             <Pressable
               testID={cerrarTestID}
               style={styles.botonCerrar}
@@ -59,8 +60,6 @@ export function ModalConFooter({
             >
               <MaterialIcons name="close" size={22} color="#475569" />
             </Pressable>
-            <Text style={styles.titulo}>{titulo}</Text>
-            <View style={styles.espacioDerecha} />
           </View>
 
           <View style={styles.cuerpo}>{children}</View>
@@ -121,6 +120,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
@@ -129,18 +129,17 @@ const styles = StyleSheet.create({
   botonCerrar: {
     width: 36,
     height: 36,
-    alignItems: "flex-start",
+    alignItems: "flex-end",
     justifyContent: "center",
   },
   titulo: {
     flex: 1,
-    textAlign: "center",
+    textAlign: "left",
     fontSize: 16,
     fontWeight: "700",
     color: "#334155",
   },
-  espacioDerecha: { width: 36 },
-  cuerpo: { padding: 16, gap: 10 },
+  cuerpo: { padding: 16, gap: 10, flexShrink: 1 },
   footer: { flexDirection: "row", gap: 12, paddingHorizontal: 16, marginTop: 4 },
   boton: { flex: 1 },
   botonCancelar: {

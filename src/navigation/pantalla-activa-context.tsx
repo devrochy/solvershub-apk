@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
 export type PantallaActiva =
-  | { tipo: "cliente"; rutaId: number; clienteId: number; nombre: string; latitud?: number; longitud?: number; prestamoAutoSeleccionado?: boolean }
+  | { tipo: "cliente"; rutaId: number; clienteId: number; nombre: string; latitud?: number; longitud?: number; latitudDomicilio?: number; longitudDomicilio?: number; prestamoAutoSeleccionado?: boolean }
   | { tipo: "prestamo"; rutaId: number; prestamoId: number; clienteNombre: string; telefonoWhatsapp: string; valor: number; numCuotas: number }
   | { tipo: "ruta"; rutaId: number; rutaNombre: string };
 

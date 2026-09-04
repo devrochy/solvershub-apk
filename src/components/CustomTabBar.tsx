@@ -1,19 +1,22 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 
 const ICONOS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
-  Rutas: "map",
+  Ruta: "map",
   Dia: "today",
   Clientes: "people",
 };
 
 /**
- * Tab bar custom (A9): "Día" en el centro y sobresaliente (estilo FAB), con
- * iconos MaterialIcons + texto. Rutas y Clientes a los lados.
+ * Tab bar custom (A9/N1): "Día" en el centro y sobresaliente (estilo FAB), con
+ * "Ruta" a la izquierda y "Clientes" a la derecha. Al cambiar de tab se cierra
+ * el overlay de detalle para que el nuevo tab muestre su propia sección.
  */
 export function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
-  const orden = ["Rutas", "Dia", "Clientes"];
+  const { cerrar } = usePantallaActiva();
+  const orden = ["Ruta", "Dia", "Clientes"];
   const rutasOrdenadas = orden
     .map((name) => state.routes.find((r) => r.name === name))
     .filter((r): r is NonNullable<typeof r> => Boolean(r));
@@ -31,7 +34,13 @@ export function CustomTabBar({ state, descriptors, navigation, insets }: BottomT
             canPreventDefault: true,
           });
           if (!enfocado && !evento.defaultPrevented) {
+            // Al cambiar de tab, se cierra el detalle (overlay) si está abierto
+            // para que el nuevo tab muestre su propia sección.
+            cerrar();
             navigation.navigate(route.name);
+          } else if (enfocado) {
+            // Re-tocar el tab actual también cierra el detalle (volver a la lista).
+            cerrar();
           }
         };
 

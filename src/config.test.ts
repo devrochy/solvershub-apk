@@ -26,4 +26,10 @@ describe("urlArchivo", () => {
     expect(urlArchivo(undefined)).toBeNull();
     expect(urlArchivo("")).toBeNull();
   });
+
+  it("extrae la parte /uploads/ de un path absoluto del filesystem (cache viejo)", () => {
+    expect(
+      urlArchivo("/Users/roaguilar/Projects/app-cobranza/uploads/clientes/foto.jpg"),
+    ).toBe(`${API_URL}/uploads/clientes/foto.jpg`);
+  });
 });
