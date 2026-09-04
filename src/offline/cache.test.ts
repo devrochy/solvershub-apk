@@ -26,7 +26,7 @@ import {
   leerDia,
 } from "./cache";
 
-const dia: DiaApkPublic = { clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" }], trayectos: null };
+const dia: DiaApkPublic = { clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false }], trayectos: null };
 
 const tarjeta: ClienteTarjetaPublic = { clienteId: 1, rutaId: 6, nombre: "Juan", negocio: null, telefonoWhatsapp: "+59170000000", color: "azul", fotoUrl: null, tipoPago: null, saldoPendiente: 300, diasMora: 0 };
 

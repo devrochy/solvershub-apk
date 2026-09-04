@@ -132,7 +132,81 @@ describe("ApiClient", () => {
     });
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  describe("requestBytes", () => {
+    it("devuelve el body como bytes en una respuesta ok", async () => {
+      (gateway.getTokens as jest.Mock).mockResolvedValue({
+        accessToken: vigente(),
+        refreshToken: "r1",
+      });
+      fetchMock.mockResolvedValue(
+        new Response(new Uint8Array([37, 80, 68, 70]).buffer as ArrayBuffer, {
+          status: 200,
+        }),
+      );
+
+      const bytes = await client.requestBytes("/cobrador/rutas/6/liquidaciones/1/export-pdf");
+
+      expect(Array.from(bytes)).toEqual([37, 80, 68, 70]);
+      expect(fetchMock).toHaveBeenCalledWith(
+        "http://localhost:3000/cobrador/rutas/6/liquidaciones/1/export-pdf",
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: expect.any(String) }),
+        }),
+      );
+    });
+
+    it("refresca y reintenta ante un 401 del servidor", async () => {
+      (gateway.getTokens as jest.Mock).mockResolvedValue({
+        accessToken: vigente(),
+        refreshToken: "r1",
+      });
+      (gateway.saveTokens as jest.Mock).mockResolvedValue(undefined);
+      fetchMock
+        .mockResolvedValueOnce(new Response(null, { status: 401 }))
+        .mockResolvedValueOnce(
+          jsonResponse({ accessToken: vigente(), refreshToken: "r2" }),
+        )
+        .mockResolvedValueOnce(
+          new Response(new Uint8Array([1, 2]).buffer as ArrayBuffer, { status: 200 }),
+        );
+
+      const bytes = await client.requestBytes("/x");
+      expect(Array.from(bytes)).toEqual([1, 2]);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(fetchMock.mock.calls[1][0]).toContain("/auth/refresh");
+    });
+
+    it("lanza ApiError si la respuesta no es ok", async () => {
+      (gateway.getTokens as jest.Mock).mockResolvedValue({
+        accessToken: vigente(),
+        refreshToken: "r1",
+      });
+      fetchMock.mockResolvedValue(new Response("boom", { status: 500 }));
+
+      await expect(client.requestBytes("/x")).rejects.toMatchObject({ status: 500 });
+    });
+
+    it("lanza 401 sin fetch si no hay sesión", async () => {
+      (gateway.getTokens as jest.Mock).mockResolvedValue(null);
+
+      await expect(client.requestBytes("/x")).rejects.toMatchObject({ status: 401 });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("limpia la sesión y lanza 401 si el refresh falla", async () => {
+      (gateway.getTokens as jest.Mock).mockResolvedValue({
+        accessToken: token(Math.floor(Date.now() / 1000) - 60),
+        refreshToken: "r1",
+      });
+      fetchMock.mockResolvedValue(new Response(null, { status: 401 }));
+
+      await expect(client.requestBytes("/x")).rejects.toMatchObject({ status: 401 });
+      expect(gateway.clear).toHaveBeenCalled();
+    });
+  });
 });
+
 describe("esErrorDeRed", () => {
   it("devuelve true para un error que no es ApiError (fallo de red)", () => {
     expect(esErrorDeRed(new Error("Network request failed"))).toBe(true);

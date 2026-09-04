@@ -2,14 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Modal,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { File, Paths } from "expo-file-system";
+import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { fondoDeEstado } from "../components/ColorBadge";
@@ -28,7 +32,7 @@ import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
-import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
+import type { ClienteDiaPublic, LiquidacionPublic, TrayectoPublic } from "../types/cobrador";
 
 export function DiaScreen() {
   const { rutaActiva } = useRutaActiva();
@@ -64,6 +68,16 @@ export function DiaScreen() {
   const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
   const [trayectosAbierto, setTrayectosAbierto] = useState(false);
+
+  // Liquidación del día.
+  const [liquidacionAbierta, setLiquidacionAbierta] = useState(false);
+  const [liquidacion, setLiquidacion] = useState<LiquidacionPublic | null>(null);
+  const [liquidacionCargando, setLiquidacionCargando] = useState(false);
+  const [liquidacionMensaje, setLiquidacionMensaje] = useState<string | null>(null);
+  const [liquidacionMensajeOk, setLiquidacionMensajeOk] = useState(false);
+  const [generandoLiquidacion, setGenerandoLiquidacion] = useState(false);
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
+  const [pdfMensaje, setPdfMensaje] = useState<string | null>(null);
 
   const precargarClientes = useCallback(
     async (clientes: ClienteDiaPublic[]) => {
@@ -249,6 +263,107 @@ export function DiaScreen() {
   // A12: la lista de cobros solo se habilita con trayecto planificado Y GPS activo.
   const listaHabilitada = Boolean(trayectos) && trayectoria.activa;
 
+  const puedeLiquidarHoy =
+    Array.isArray(clientes) &&
+    clientes.length > 0 &&
+    clientes.every((cliente) => cliente.visitaRegistrada);
+
+  const liquidacionVisible = Boolean(rutaActiva?.config.generarReportesApk);
+
+  async function abrirLiquidacion() {
+    setLiquidacionMensaje(null);
+    setPdfMensaje(null);
+    setLiquidacionMensajeOk(false);
+    setLiquidacionAbierta(true);
+    setLiquidacionCargando(true);
+    try {
+      const lista = await api.listarLiquidaciones(rutaId);
+      const ahora = new Date();
+      const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-${String(ahora.getDate()).padStart(2, "0")}`;
+      const deHoy = lista.find((l) => l.fecha === hoy) ?? null;
+      setLiquidacion(deHoy);
+      if (!deHoy) {
+        setLiquidacionMensaje("Aún no hay liquidación de hoy. Genera la liquidación del día.");
+        setLiquidacionMensajeOk(true);
+      } else {
+        setLiquidacionMensajeOk(false);
+      }
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else {
+        setLiquidacionMensaje("No se pudieron cargar las liquidaciones.");
+      }
+    } finally {
+      setLiquidacionCargando(false);
+    }
+  }
+
+  function cerrarLiquidacion() {
+    setLiquidacionAbierta(false);
+    setLiquidacion(null);
+    setLiquidacionMensaje(null);
+    setPdfMensaje(null);
+  }
+
+  async function generarLiquidacion() {
+    setGenerandoLiquidacion(true);
+    setLiquidacionMensaje(null);
+    setLiquidacionMensajeOk(false);
+    try {
+      setLiquidacion(await api.generarLiquidacion(rutaId, {}));
+      setLiquidacionMensaje("Liquidación del día generada.");
+      setLiquidacionMensajeOk(true);
+    } catch (err) {
+      setLiquidacionMensajeOk(false);
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else if (err instanceof Error && err.message) {
+        try {
+          const cuerpo = JSON.parse(err.message) as { message?: string };
+          setLiquidacionMensaje(
+            typeof cuerpo.message === "string"
+              ? cuerpo.message
+              : "No se pudo generar la liquidación.",
+          );
+        } catch {
+          setLiquidacionMensaje("No se pudo generar la liquidación.");
+        }
+      } else {
+        setLiquidacionMensaje("No se pudo generar la liquidación.");
+      }
+    } finally {
+      setGenerandoLiquidacion(false);
+    }
+  }
+
+  async function descargarPdf() {
+    if (!liquidacion) {
+      return;
+    }
+    setDescargandoPdf(true);
+    setPdfMensaje(null);
+    try {
+      const bytes = await api.exportarLiquidacionPdf(rutaId, liquidacion.id);
+      const archivo = new File(Paths.cache, `liquidacion-${liquidacion.fecha}.pdf`);
+      await archivo.write(bytes);
+      await shareAsync(archivo.uri, {
+        mimeType: "application/pdf",
+        dialogTitle: "Resumen de liquidación",
+      });
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+      } else if (esErrorDeRed(err)) {
+        setPdfMensaje("Se requiere conexión para descargar el PDF.");
+      } else {
+        setPdfMensaje("No se pudo descargar el PDF.");
+      }
+    } finally {
+      setDescargandoPdf(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header} testID="header-dia">
@@ -343,6 +458,19 @@ export function DiaScreen() {
                 onPress={() => setTrayectosAbierto(true)}
               >
                 <Text style={styles.botonTrayectosTexto}>Ver trayectos</Text>
+              </Pressable>
+            ) : null}
+            {liquidacionVisible ? (
+              <Pressable
+                testID="btn-liquidacion"
+                style={[
+                  styles.botonLiquidacion,
+                  !puedeLiquidarHoy && styles.botonLiquidacionBloqueado,
+                ]}
+                disabled={!puedeLiquidarHoy}
+                onPress={() => void abrirLiquidacion()}
+              >
+                <Text style={styles.botonLiquidacionTexto}>Liquidación del día</Text>
               </Pressable>
             ) : null}
           </View>
@@ -448,6 +576,150 @@ export function DiaScreen() {
           />
         </View>
       ) : null}
+
+      {/* Modal a pantalla completa: liquidación del día */}
+      <Modal
+        visible={liquidacionAbierta}
+        animationType="slide"
+        onRequestClose={cerrarLiquidacion}
+      >
+        <SafeAreaView style={styles.liquidacionContenedor} edges={["top", "left", "right"]}>
+          <View style={styles.liquidacionHeader}>
+            <Text style={styles.liquidacionTitulo}>Liquidación del día</Text>
+            <Pressable testID="cerrar-liquidacion" style={styles.liquidacionCerrar} onPress={cerrarLiquidacion}>
+              <Text style={styles.liquidacionCerrarTexto}>✕</Text>
+            </Pressable>
+          </View>
+
+          {liquidacionCargando ? (
+            <ActivityIndicator style={styles.liquidacionCarga} />
+          ) : (
+            <ScrollView contentContainerStyle={styles.liquidacionScroll}>
+              {!puedeLiquidarHoy ? (
+                <Text style={styles.liquidacionAviso}>
+                  Registra la visita de todos los clientes del día para habilitar la liquidación.
+                </Text>
+              ) : null}
+
+              {liquidacion ? (
+                <>
+                  <View style={styles.liquidacionResumen}>
+                    <Text style={styles.liquidacionLinea}>
+                      Fecha: {liquidacion.fecha} · Periodo: {liquidacion.periodo}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Caja anterior: {liquidacion.cajaAnterior}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Caja actual: {liquidacion.cajaActual}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Estimado a cobrar: {liquidacion.estimadoACobrar}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Total cobrado día: {liquidacion.totalCobradoDia}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Total inyección: {liquidacion.totalInyeccion}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Total prestado: {liquidacion.totalPrestado}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Total gastos: {liquidacion.totalGastos}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Suma cartera: {liquidacion.sumaCartera}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Comisión: {liquidacion.comisionPorcentaje}% = {liquidacion.comisionValor}
+                    </Text>
+                    {liquidacion.comentario ? (
+                      <Text style={styles.liquidacionLinea}>
+                        Comentario: {liquidacion.comentario}
+                      </Text>
+                    ) : null}
+                  </View>
+
+                  <Text style={styles.liquidacionSubtitulo}>Pagos del día</Text>
+                  {liquidacion.pagos.length === 0 ? (
+                    <Text style={styles.liquidacionVacio}>Sin pagos registrados.</Text>
+                  ) : (
+                    liquidacion.pagos.map((p) => (
+                      <View key={p.id} style={styles.liquidacionItem}>
+                        <Text style={styles.liquidacionItemTexto}>
+                          {p.clienteNombre} · {p.valor} ({p.metodoPago})
+                        </Text>
+                      </View>
+                    ))
+                  )}
+
+                  <Text style={styles.liquidacionSubtitulo}>Abonos del día</Text>
+                  {liquidacion.abonos.length === 0 ? (
+                    <Text style={styles.liquidacionVacio}>Sin abonos registrados.</Text>
+                  ) : (
+                    liquidacion.abonos.map((a) => (
+                      <View key={a.id} style={styles.liquidacionItem}>
+                        <Text style={styles.liquidacionItemTexto}>
+                          {a.clienteNombre} · {a.valor} ({a.metodoPago})
+                        </Text>
+                      </View>
+                    ))
+                  )}
+
+                  <Pressable
+                    testID="descargar-pdf"
+                    style={[styles.botonLiquidacion, descargandoPdf && styles.deshabilitado]}
+                    disabled={descargandoPdf}
+                    onPress={() => void descargarPdf()}
+                  >
+                    {descargandoPdf ? (
+                      <ActivityIndicator color="#ffffff" />
+                    ) : (
+                      <Text style={styles.botonLiquidacionTexto}>Descargar PDF</Text>
+                    )}
+                  </Pressable>
+                </>
+              ) : (
+                <Text style={styles.liquidacionVacio}>
+                  Aún no hay liquidación para hoy.
+                </Text>
+              )}
+
+              {liquidacionMensaje ? (
+                <Text
+                  testID="liquidacion-mensaje"
+                  style={[
+                    liquidacionMensajeOk
+                      ? styles.liquidacionMensajeOk
+                      : styles.liquidacionMensaje,
+                  ]}
+                >
+                  {liquidacionMensaje}
+                </Text>
+              ) : null}
+              {pdfMensaje ? (
+                <Text style={styles.liquidacionMensaje}>{pdfMensaje}</Text>
+              ) : null}
+
+              {!liquidacion ? (
+                <Pressable
+                  testID="generar-liquidacion"
+                  style={[styles.botonLiquidacion, generandoLiquidacion && styles.deshabilitado]}
+                  disabled={generandoLiquidacion || !puedeLiquidarHoy}
+                  onPress={() => void generarLiquidacion()}
+                >
+                  {generandoLiquidacion ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text style={styles.botonLiquidacionTexto}>Generar liquidación</Text>
+                  )}
+                </Pressable>
+              ) : null}
+            </ScrollView>
+          )}
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -499,6 +771,61 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   botonTrayectosTexto: { color: "#ffffff", fontWeight: "600" },
+  botonLiquidacion: {
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  botonLiquidacionBloqueado: { opacity: 0.4 },
+  botonLiquidacionTexto: { color: "#ffffff", fontWeight: "600" },
+  liquidacionContenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  liquidacionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+  },
+  liquidacionTitulo: { fontSize: 16, fontWeight: "700", color: "#334155" },
+  liquidacionCerrar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f1f5f9",
+  },
+  liquidacionCerrarTexto: { color: "#475569", fontSize: 16 },
+  liquidacionCarga: { marginTop: 40 },
+  liquidacionScroll: { padding: 16, gap: 10 },
+  liquidacionAviso: { color: "#b45309", fontSize: 13, fontWeight: "600" },
+  liquidacionResumen: {
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    padding: 12,
+    gap: 3,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  liquidacionLinea: { color: "#334155", fontSize: 13, fontWeight: "500" },
+  liquidacionSubtitulo: { fontSize: 13, fontWeight: "700", color: "#475569", marginTop: 4 },
+  liquidacionVacio: { color: "#94a3b8", fontSize: 13 },
+  liquidacionItem: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "#ffffff",
+  },
+  liquidacionItemTexto: { color: "#334155", fontSize: 13 },
+  liquidacionMensaje: { color: "#dc2626", fontSize: 13, fontWeight: "500" },
+  liquidacionMensajeOk: { color: "#16a34a", fontSize: 13, fontWeight: "500" },
   trayectosOverlay: {
     position: "absolute",
     top: 0,

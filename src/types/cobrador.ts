@@ -62,6 +62,7 @@ export interface ClienteDiaPublic {
   nombre: string;
   enTrayecto: boolean;
   color: ColorListaDelDia;
+  visitaRegistrada: boolean;
 }
 
 export interface ParadaGeo {
@@ -233,6 +234,38 @@ export interface DetalleCuotaPublic {
   pagos: PagoCuotaPublic[];
   abonos: AbonoCuotaPublic[];
   ultimaVisita: UltimaVisitaCuotaPublic | null;
+}
+
+export interface ItemLiquidacionDetalle {
+  id: number;
+  clienteId: number;
+  clienteNombre: string;
+  valor: number;
+  metodoPago: string;
+  fechaHora: string;
+  liquidado: boolean;
+}
+
+export interface LiquidacionPublic {
+  id: number;
+  rutaId: number;
+  fecha: string;
+  periodo: string;
+  cajaAnterior: number;
+  cajaActual: number;
+  estimadoACobrar: number;
+  totalInyeccion: number;
+  totalCobradoPeriodo: number;
+  totalCobradoDia: number;
+  totalPrestado: number;
+  totalGastos: number;
+  sumaCartera: number;
+  comisionPorcentaje: number;
+  comisionValor: number;
+  comentario: string | null;
+  createdAt: string;
+  pagos: ItemLiquidacionDetalle[];
+  abonos: ItemLiquidacionDetalle[];
 }
 
 export interface CuotaEstado {

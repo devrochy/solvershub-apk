@@ -7,6 +7,7 @@ import type {
   DiaApkPublic,
   EstadoCuentaPrestamoPublic,
   GastoPublic,
+  LiquidacionPublic,
   PrestamoPublic,
   RegistrarGastoInput,
   RegistrarPrestamoInput,
@@ -107,6 +108,12 @@ export interface CobradorApi {
     pagoId: number,
     input: { password: string; motivo: string },
   ): Promise<{ id: number }>;
+  generarLiquidacion(
+    rutaId: number,
+    input: { comentario?: string | null },
+  ): Promise<LiquidacionPublic>;
+  listarLiquidaciones(rutaId: number): Promise<LiquidacionPublic[]>;
+  exportarLiquidacionPdf(rutaId: number, liquidacionId: number): Promise<Uint8Array>;
   registrarApertura(
     rutaId: number,
     input: { latitud?: number; longitud?: number },
@@ -319,6 +326,21 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
+
+    generarLiquidacion: (rutaId: number, input: { comentario?: string | null }) =>
+      client.request<LiquidacionPublic>(`/cobrador/rutas/${rutaId}/liquidaciones`, {
+        method: "POST",
+        headers: JSON_HEADERS,
+        body: jsonBody(input),
+      }),
+
+    listarLiquidaciones: (rutaId: number) =>
+      client.request<LiquidacionPublic[]>(`/cobrador/rutas/${rutaId}/liquidaciones`),
+
+    exportarLiquidacionPdf: (rutaId: number, liquidacionId: number) =>
+      client.requestBytes(
+        `/cobrador/rutas/${rutaId}/liquidaciones/${liquidacionId}/export-pdf`,
+      ),
 
     registrarApertura: (
       rutaId: number,
