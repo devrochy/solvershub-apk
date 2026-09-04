@@ -76,3 +76,10 @@ cliente (header neutro + tarjeta con header propio + edición sin ubicaciones +
 - `urlArchivo`: normaliza paths absolutos del filesystem (cache viejo) extrayendo `/uploads/...` — el avatar en Centro/Manizales no cargaba si el celular tenía cache previo al fix.
 - Gasto: se registra desde la APK y se aprueba en el panel admin (verificado, no es bug).
 - `scripts/check.sh` APK verde (266 tests).
+
+## Iteración 5 — UI de evidencias simplificada y avatares visibles (2026-09-04)
+- Nuevo cliente: un toque por campo (foto/frente/reverso) abre un modal de
+  fuente con Galería/Cámara (en vez de dos botones por campo).
+- Backend seed: placeholders de foto/documento pasan de JPEG 1x1 (invisible)
+  a PNG 160x160 visible — los avatares en Centro/Manizales ahora se ven.
+- `scripts/check.sh` APK verde (266 tests) + backend verde.

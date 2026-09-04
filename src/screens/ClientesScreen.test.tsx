@@ -334,11 +334,14 @@ describe("ClientesScreen", () => {
     await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
     await fireEvent.press(getByTestId("btn-nuevo-cliente"));
 
-    expect(getByTestId("cliente-avatar-libreria")).toBeTruthy();
-    expect(getByTestId("cliente-avatar-camara")).toBeTruthy();
+    expect(getByTestId("cliente-avatar-btn")).toBeTruthy();
+    await fireEvent.press(getByTestId("cliente-avatar-btn"));
+    expect(getByTestId("fuente-modal")).toBeTruthy();
+    expect(getByTestId("fuente-libreria")).toBeTruthy();
+    expect(getByTestId("fuente-camara")).toBeTruthy();
   });
 
-  it("ofrece cámara para el documento frente y reverso", async () => {
+  it("un toque en el documento frente abre el modal de fuente (galería/cámara)", async () => {
     const { getByTestId } = await renderConRutaActiva({
       listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
     });
@@ -346,8 +349,10 @@ describe("ClientesScreen", () => {
     await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
     await fireEvent.press(getByTestId("btn-nuevo-cliente"));
 
-    expect(getByTestId("cliente-doc-frente-camara")).toBeTruthy();
-    expect(getByTestId("cliente-doc-reverso-camara")).toBeTruthy();
+    expect(getByTestId("cliente-doc-frente")).toBeTruthy();
+    expect(getByTestId("cliente-doc-reverso")).toBeTruthy();
+    await fireEvent.press(getByTestId("cliente-doc-frente"));
+    expect(getByTestId("fuente-modal")).toBeTruthy();
   });
 
   it("avisa que la ruta exige foto y documento antes de crear si faltan", async () => {

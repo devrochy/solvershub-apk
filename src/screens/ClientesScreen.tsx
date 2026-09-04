@@ -55,6 +55,9 @@ export function ClientesScreen() {
   const [creadoOk, setCreadoOk] = useState(false);
   const [creando, setCreando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
+  // Modal de fuente de evidencia (galería/cámara) — compartido por foto y documentos.
+  const [fuenteAbierta, setFuenteAbierta] = useState(false);
+  const [fuenteCampo, setFuenteCampo] = useState<CampoEvidenciaCliente>("foto_facial");
   const evidenciasCliente = useEvidenciasCliente();
 
   const cargar = useCallback(async () => {
@@ -96,10 +99,17 @@ export function ClientesScreen() {
     setRefrescando(false);
   }
 
+  function abrirFuente(campo: CampoEvidenciaCliente) {
+    setFuenteCampo(campo);
+    setFuenteAbierta(true);
+    setMensaje(null);
+  }
+
   function elegirEvidencia(
     campo: CampoEvidenciaCliente,
     fuente: FuenteEvidencia,
   ) {
+    setFuenteAbierta(false);
     void evidenciasCliente.agregar(campo, fuente);
   }
 
@@ -331,13 +341,13 @@ export function ClientesScreen() {
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-            {/* Avatar editable + documento frente/reverso en la misma fila */}
+            {/* Foto + documento frente/reverso: un toque por campo abre la fuente */}
             <View style={styles.filaSuperior}>
               <View style={styles.avatarEditable}>
                 <Pressable
                   testID="cliente-avatar-btn"
                   disabled={evidenciasCliente.cargando}
-                  onPress={() => elegirEvidencia("foto_facial", "libreria")}
+                  onPress={() => abrirFuente("foto_facial")}
                 >
                   {(() => {
                     const foto = evidenciasCliente.evidencias.find(
@@ -357,24 +367,6 @@ export function ClientesScreen() {
                     );
                   })()}
                 </Pressable>
-                <View style={styles.filaFuentes}>
-                  <Pressable
-                    testID="cliente-avatar-libreria"
-                    style={styles.botonFuente}
-                    disabled={evidenciasCliente.cargando}
-                    onPress={() => elegirEvidencia("foto_facial", "libreria")}
-                  >
-                    <MaterialIcons name="photo-library" size={14} color="#2563eb" />
-                  </Pressable>
-                  <Pressable
-                    testID="cliente-avatar-camara"
-                    style={styles.botonFuente}
-                    disabled={evidenciasCliente.cargando}
-                    onPress={() => elegirEvidencia("foto_facial", "camara")}
-                  >
-                    <MaterialIcons name="photo-camera" size={14} color="#2563eb" />
-                  </Pressable>
-                </View>
                 <Text style={styles.avatarEtiqueta}>
                   {evidenciasCliente.evidencias.find((e) => e.campo === "foto_facial")
                     ? "Foto ✓"
@@ -389,7 +381,7 @@ export function ClientesScreen() {
                     testID="cliente-doc-frente"
                     style={styles.botonDoc}
                     disabled={evidenciasCliente.cargando}
-                    onPress={() => elegirEvidencia("documento_frente", "libreria")}
+                    onPress={() => abrirFuente("documento_frente")}
                   >
                     <MaterialIcons name="badge" size={16} color="#2563eb" />
                     <Text style={styles.botonDocTexto}>
@@ -402,7 +394,7 @@ export function ClientesScreen() {
                     testID="cliente-doc-reverso"
                     style={styles.botonDoc}
                     disabled={evidenciasCliente.cargando}
-                    onPress={() => elegirEvidencia("documento_reverso", "libreria")}
+                    onPress={() => abrirFuente("documento_reverso")}
                   >
                     <MaterialIcons name="badge" size={16} color="#2563eb" />
                     <Text style={styles.botonDocTexto}>
@@ -410,26 +402,6 @@ export function ClientesScreen() {
                         ? "Reverso ✓"
                         : "Reverso"}
                     </Text>
-                  </Pressable>
-                </View>
-                <View style={styles.documentoFuentes}>
-                  <Pressable
-                    testID="cliente-doc-frente-camara"
-                    style={styles.botonDocCamara}
-                    disabled={evidenciasCliente.cargando}
-                    onPress={() => elegirEvidencia("documento_frente", "camara")}
-                  >
-                    <MaterialIcons name="photo-camera" size={14} color="#2563eb" />
-                    <Text style={styles.botonDocCamaraTexto}>Frente</Text>
-                  </Pressable>
-                  <Pressable
-                    testID="cliente-doc-reverso-camara"
-                    style={styles.botonDocCamara}
-                    disabled={evidenciasCliente.cargando}
-                    onPress={() => elegirEvidencia("documento_reverso", "camara")}
-                  >
-                    <MaterialIcons name="photo-camera" size={14} color="#2563eb" />
-                    <Text style={styles.botonDocCamaraTexto}>Reverso</Text>
                   </Pressable>
                 </View>
               </View>
@@ -540,6 +512,44 @@ export function ClientesScreen() {
           </ScrollView>
         )}
       </ModalConFooter>
+
+      {/* Modal de fuente de evidencia: galería o cámara (una sola opción por toque) */}
+      <ModalConFooter
+        visible={fuenteAbierta}
+        titulo={
+          fuenteCampo === "foto_facial"
+            ? "Foto del cliente"
+            : fuenteCampo === "documento_frente"
+              ? "Documento — frente"
+              : "Documento — reverso"
+        }
+        onCerrar={() => setFuenteAbierta(false)}
+        onCancelar={() => setFuenteAbierta(false)}
+        testID="fuente-modal"
+      >
+        <Pressable
+          testID="fuente-libreria"
+          style={styles.botonFuenteModal}
+          disabled={evidenciasCliente.cargando}
+          onPress={() => elegirEvidencia(fuenteCampo, "libreria")}
+        >
+          <MaterialIcons name="photo-library" size={20} color="#2563eb" />
+          <Text style={styles.botonFuenteModalTexto}>Elegir de la galería</Text>
+        </Pressable>
+        <Pressable
+          testID="fuente-camara"
+          style={styles.botonFuenteModal}
+          disabled={evidenciasCliente.cargando}
+          onPress={() => elegirEvidencia(fuenteCampo, "camara")}
+        >
+          <MaterialIcons name="photo-camera" size={20} color="#2563eb" />
+          <Text style={styles.botonFuenteModalTexto}>Tomar foto</Text>
+        </Pressable>
+        {evidenciasCliente.cargando ? <ActivityIndicator color="#2563eb" /> : null}
+        {evidenciasCliente.error ? (
+          <Text style={styles.mensajeError}>{evidenciasCliente.error}</Text>
+        ) : null}
+      </ModalConFooter>
     </SafeAreaView>
   );
 }
@@ -591,17 +601,6 @@ const styles = StyleSheet.create({
   filaSuperior: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   avatarEditable: { alignItems: "center", gap: 4 },
   avatarImagen: { width: 72, height: 72, borderRadius: 36 },
-  filaFuentes: { flexDirection: "row", gap: 6 },
-  botonFuente: {
-    width: 34,
-    height: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#bfdbfe",
-    borderRadius: 8,
-    backgroundColor: "#eff6ff",
-  },
   avatarEtiqueta: { fontSize: 12, color: "#2563eb", fontWeight: "600" },
   documentoNuevo: { flex: 1, gap: 6 },
   documentoNuevoTitulo: { fontSize: 13, color: "#475569", fontWeight: "600" },
@@ -618,20 +617,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   botonDocTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
-  documentoFuentes: { flexDirection: "row", gap: 8 },
-  botonDocCamara: {
-    flex: 1,
+  botonFuenteModal: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
+    gap: 8,
     borderWidth: 1,
     borderColor: "#bfdbfe",
-    borderRadius: 8,
-    paddingVertical: 6,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     backgroundColor: "#eff6ff",
   },
-  botonDocCamaraTexto: { color: "#2563eb", fontWeight: "600", fontSize: 12 },
+  botonFuenteModalTexto: { color: "#2563eb", fontWeight: "600", fontSize: 15 },
   filaBusqueda: { flexDirection: "row", gap: 8 },
   inputBusqueda: { flex: 1 },
   botonBuscar: {
