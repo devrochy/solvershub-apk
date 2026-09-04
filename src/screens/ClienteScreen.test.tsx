@@ -1,5 +1,6 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ClienteScreen } from "./ClienteScreen";
+import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
@@ -517,6 +518,83 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     await waitFor(() => expect(getByTestId("cuota-dialog")).toBeTruthy());
 
     expect(queryByTestId("borrar-pago-60")).toBeNull();
+  });
+
+  it("borra un abono no liquidado desde la modal de cuota", async () => {
+    const eliminarAbono = jest.fn().mockResolvedValue({ id: 70 });
+    const { getByTestId } = await renderConApi(
+      {
+        eliminarAbono,
+        detalleCuota: jest.fn().mockResolvedValue({
+          cuotaId: 10,
+          numeroCuota: 1,
+          valorEsperado: 300,
+          fechaVencimiento: "2026-08-08",
+          estatus: "pendiente",
+          abonosAcumulados: 40,
+          saldoPendiente: 260,
+          pagos: [],
+          abonos: [{ id: 70, valor: 40, fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
+          ultimaVisita: null,
+        }),
+      },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("borrar-abono-70")).toBeTruthy());
+    await fireEvent.press(getByTestId("borrar-abono-70"));
+
+    await fireEvent.changeText(getByTestId("borrar-password"), "secreto");
+    await fireEvent.changeText(getByTestId("borrar-motivo"), "error");
+    await fireEvent.press(getByTestId("borrar-confirmar"));
+
+    await waitFor(() =>
+      expect(eliminarAbono).toHaveBeenCalledWith(6, 70, {
+        password: "secreto",
+        motivo: "error",
+      }),
+    );
+  });
+
+  it("muestra el mensaje del backend si el borrado de un pago es rechazado", async () => {
+    const eliminarPago = jest
+      .fn()
+      .mockRejectedValue(new ApiError(400, '{"message":"No se puede borrar un pago ya liquidado"}'));
+    const { getByTestId, getByText } = await renderConApi(
+      {
+        eliminarPago,
+        detalleCuota: jest.fn().mockResolvedValue({
+          cuotaId: 10,
+          numeroCuota: 1,
+          valorEsperado: 300,
+          fechaVencimiento: "2026-08-08",
+          estatus: "pendiente",
+          abonosAcumulados: 0,
+          saldoPendiente: 300,
+          pagos: [{ id: 80, valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
+          abonos: [],
+          ultimaVisita: null,
+        }),
+      },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("borrar-pago-80")).toBeTruthy());
+    await fireEvent.press(getByTestId("borrar-pago-80"));
+
+    await fireEvent.changeText(getByTestId("borrar-password"), "secreto");
+    await fireEvent.changeText(getByTestId("borrar-motivo"), "error");
+    await fireEvent.press(getByTestId("borrar-confirmar"));
+
+    await waitFor(() =>
+      expect(getByText("No se puede borrar un pago ya liquidado")).toBeTruthy(),
+    );
   });
 });
 

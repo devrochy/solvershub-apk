@@ -98,8 +98,8 @@ const ETIQUETA_CANVAS: Record<TipoCuotaCanvas, string> = {
   abonada: "Abonada",
 };
 
-function esPendienteOArrasada(cuota: CuotaPublic): boolean {
-  return cuota.estatus === "pendiente" || cuota.estatus === "atrasada";
+function esPendienteOAtrasada(estatus: string): boolean {
+  return estatus === "pendiente" || estatus === "atrasada";
 }
 
 function formatearFechaHora(iso: string): string {
@@ -248,7 +248,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   );
 
   const cuotaPorPagar = useMemo(
-    () => prestamoSeleccionado?.cuotas.find(esPendienteOArrasada),
+    () =>
+      prestamoSeleccionado?.cuotas.find((c) => esPendienteOAtrasada(c.estatus)),
     [prestamoSeleccionado],
   );
 
@@ -290,7 +291,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     let total = 0;
     let cuentasPendientes = 0;
     for (const p of activos) {
-      const cuota = p.cuotas.find(esPendienteOArrasada);
+      const cuota = p.cuotas.find((c) => esPendienteOAtrasada(c.estatus));
       if (cuota) {
         total += cuota.valorEsperado;
         cuentasPendientes += 1;
@@ -338,6 +339,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setValor("");
         setMensaje("Pago registrado.");
         await recargarDetalleCuota();
+        await recargarEstadoPrestamo();
         await cargar();
       } catch (err) {
         if (apiErrorStatus(err) === 401) {
@@ -401,6 +403,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setValorPrometido("");
         setMensaje("Visita registrada.");
         await recargarDetalleCuota();
+        await recargarEstadoPrestamo();
       } catch (err) {
         if (apiErrorStatus(err) === 401) {
           await logout();
@@ -430,6 +433,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   function toggleAccionCuota(accion: "pago" | "no_pago") {
+    setBorrarTarget(null);
+    setBorrarMensaje(null);
     if (accionCuota === accion) {
       setAccionCuota("ninguno");
       setMensaje(null);
@@ -456,6 +461,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   function iniciarBorrarPago(pago: { id: number; valor: number }) {
+    setAccionCuota("ninguno");
+    setMensaje(null);
     setBorrarTarget({ tipo: "pago", id: pago.id, valor: pago.valor });
     setBorrarPassword("");
     setBorrarMotivo("");
@@ -463,6 +470,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   function iniciarBorrarAbono(abono: { id: number; valor: number }) {
+    setAccionCuota("ninguno");
+    setMensaje(null);
     setBorrarTarget({ tipo: "abono", id: abono.id, valor: abono.valor });
     setBorrarPassword("");
     setBorrarMotivo("");
@@ -500,9 +509,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           : "Abono eliminado.",
       );
       await recargarDetalleCuota();
+      await recargarEstadoPrestamo();
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
+      } else if (esErrorDeRed(err)) {
+        setBorrarMensaje("Se requiere conexión para eliminar.");
       } else if (err instanceof Error && err.message) {
         try {
           const cuerpo = JSON.parse(err.message) as { message?: string };
@@ -751,6 +763,19 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       // Se conserva el detalle previo si falla la recarga.
     } finally {
       setDetalleCuotaCargando(false);
+    }
+  }
+
+  async function recargarEstadoPrestamo() {
+    if (!prestamoSeleccionado) {
+      return;
+    }
+    try {
+      setEstadoPrestamo(
+        await api.obtenerEstadoCuentaPrestamo(rutaId, prestamoSeleccionado.id),
+      );
+    } catch {
+      // Se conserva el estado previo si falla la recarga.
     }
   }
 
@@ -1593,8 +1618,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           <ActivityIndicator />
         ) : detalleCuota ? (
           (() => {
-            const cuotaAccionable =
-              detalleCuota.estatus === "pendiente" || detalleCuota.estatus === "atrasada";
+            const cuotaAccionable = esPendienteOAtrasada(detalleCuota.estatus);
             const puedeEliminarPago = Boolean(rutaActiva?.config.eliminarPagosApk);
             const puedeEliminarAbono = Boolean(rutaActiva?.config.eliminarAbonosApk);
             return (
@@ -1638,7 +1662,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     ))
                   )}
 
-                  <Text style={styles.cuotaSubtitulo}>Abonos</Text>
+                  <Text style={styles.cuotaSubtitulo}>Abonos del préstamo</Text>
                   {detalleCuota.abonos.length === 0 ? (
                     <Text style={styles.cuotaVacio}>Sin abonos registrados.</Text>
                   ) : (

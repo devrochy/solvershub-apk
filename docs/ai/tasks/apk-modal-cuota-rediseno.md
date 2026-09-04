@@ -43,6 +43,9 @@ pagos/abonos no liquidados.
   borrado de pago/abono no liquidado (password+motivo, gateado por permisos).
 - Se eliminaron los modales independientes pago/no_pago y los botones del
   detalle del préstamo.
-- Tests: `ClienteScreen.test.tsx` reescrito (52→54) con casos nuevos (borrar
-  pago, pago liquidado, cuota pagada sin acciones). `scripts/check.sh` APK
-  verde (281 tests).
+- Code-review: se recarga `estadoPrestamo` tras mutaciones (canvas no stale);
+  paneles accionCuota/borrar excluyentes; error de red en borrado; sección
+  "Abonos del préstamo"; helper `esPendienteOAtrasada` reutilizado.
+- Tests: `ClienteScreen.test.tsx` (52→56) con borrar abono y 400 del backend.
+  `scripts/check.sh` APK verde (283 tests).
+- Backlog backend: `eliminarAbono` no valida `liquidado` (gap registrado).
