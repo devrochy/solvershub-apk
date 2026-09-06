@@ -14,9 +14,9 @@ jest.mock("../features/navegacion/navegacion", () => {
 import { enlaceGoogleMapsRuta } from "../features/navegacion/navegacion";
 
 const clientes: ClienteDiaPublic[] = [
-  { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false },
-  { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false },
-  { clienteId: 3, nombre: "Luis", enTrayecto: false, color: "verde", visitaRegistrada: false },
+  { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+  { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+  { clienteId: 3, nombre: "Luis", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
 ];
 
 const trayectos: TrayectoPublic = {

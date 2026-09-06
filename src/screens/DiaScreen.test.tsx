@@ -230,7 +230,7 @@ describe("DiaScreen — gasto offline", () => {
 
 describe("DiaScreen — cache del día", () => {
   const dia = {
-    clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const }],
+    clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
     trayectos: null,
   };
 
@@ -267,8 +267,8 @@ describe("DiaScreen — cache del día", () => {
   it("precachea tarjeta y préstamos de cada cliente del día", async () => {
     (cache.guardarDia as jest.Mock).mockResolvedValue(undefined);
     const clientes = [
-      { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
-      { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false as const },
+      { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+      { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
     ];
     const api = {
       dia: jest.fn().mockResolvedValue({ clientes, trayectos: null }),
@@ -300,7 +300,7 @@ describe("DiaScreen — navegación externa", () => {
     });
     const dia = {
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: { id: 1, rutaId: 6, fecha: "2026-09-02", ordenClientes: [], waypoints: [], distanciaEstimadaKm: 1, tiempoEstimadoMin: 1, tipo: "planificada" },
     };
@@ -317,7 +317,7 @@ describe("DiaScreen — navegación externa", () => {
     (coordenadaDeCliente as jest.Mock).mockReturnValue(null);
     const dia = {
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: null,
     };
@@ -339,7 +339,7 @@ describe("DiaScreen — re-fetch periódico (día en vivo)", () => {
 
   it("recarga la lista del día automáticamente al pasar el intervalo", async () => {
     const dia = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const }],
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
     const { getByText } = await renderConApi({ dia });
@@ -403,7 +403,7 @@ describe("DiaScreen — trayectoria offline", () => {
 describe("DiaScreen — gating de la lista del día", () => {
   it("bloquea la lista y permite generar el trayecto si no existe", async () => {
     const dia = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const }],
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
     const generarTrayecto = jest.fn().mockResolvedValue([]);
@@ -421,8 +421,8 @@ describe("DiaScreen — ver trayectos generados", () => {
   it("abre la lista de trayectos desde el botón y muestra las paradas en orden", async () => {
     const dia = jest.fn().mockResolvedValue({
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
-        { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false as const },
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
         id: 1,
@@ -452,7 +452,7 @@ describe("DiaScreen — ver trayectos generados", () => {
 
   it("no muestra el botón de trayectos si no hay trayecto generado", async () => {
     const dia = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const }],
+      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
     const { queryByTestId } = await renderConApi({ dia });
@@ -469,6 +469,24 @@ describe("DiaScreen — cobros del día", () => {
     await waitFor(() => expect(getByTestId("nuevo-gasto")).toBeTruthy());
     expect(getByText("Cobros del día")).toBeTruthy();
     expect(getByText("+ Gastos")).toBeTruthy();
+  });
+
+  it("muestra los días de mora y el compromiso de pago del día en cada cliente", async () => {
+    const { getByTestId, getByText, queryByTestId } = await renderConApi({
+      dia: jest.fn().mockResolvedValue({
+        clientes: [
+          { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 5, compromisoValor: null },
+          { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: 300 },
+        ],
+        trayectos: null,
+      }),
+    });
+
+    await waitFor(() => expect(getByTestId("mora-1")).toBeTruthy());
+    expect(getByText("5 días de mora")).toBeTruthy();
+    expect(getByTestId("compromiso-2")).toBeTruthy();
+    expect(getByText("Compromiso de pago hoy: $300")).toBeTruthy();
+    expect(queryByTestId("mora-2")).toBeNull();
   });
 
   it("'+ Gastos' abre el modal y registrarGasto guarda el gasto", async () => {
@@ -518,7 +536,7 @@ describe("DiaScreen — cobros del día", () => {
     });
     const dia = jest.fn().mockResolvedValue({
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false as const },
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
         id: 1,
@@ -621,8 +639,8 @@ describe("DiaScreen — sin ruta activa", () => {
 
 describe("DiaScreen — liquidación del día", () => {
   const clientesConVisita = [
-    { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: true },
-    { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: true },
+    { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: true, diasMora: 0, compromisoValor: null },
+    { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: true, diasMora: 0, compromisoValor: null },
   ];
 
   const hoyLocal = () => {
@@ -669,7 +687,7 @@ describe("DiaScreen — liquidación del día", () => {
     const { getByTestId } = await renderConApi(
       {
         dia: jest.fn().mockResolvedValue({
-          clientes: [{ ...clientesConVisita[0], visitaRegistrada: false }],
+          clientes: [{ ...clientesConVisita[0], visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
           trayectos: null,
         }),
       },
