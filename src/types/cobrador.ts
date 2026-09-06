@@ -63,6 +63,8 @@ export interface ClienteDiaPublic {
   enTrayecto: boolean;
   color: ColorListaDelDia;
   visitaRegistrada: boolean;
+  diasMora: number;
+  compromisoValor: number | null;
 }
 
 export interface ParadaGeo {

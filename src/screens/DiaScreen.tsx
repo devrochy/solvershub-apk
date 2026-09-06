@@ -502,6 +502,16 @@ export function DiaScreen() {
             >
               <View style={styles.tarjetaInfo}>
                 <Text style={styles.clienteNombre}>{item.nombre}</Text>
+                {item.diasMora > 0 ? (
+                  <Text testID={`mora-${item.clienteId}`} style={styles.textoMora}>
+                    {item.diasMora} {item.diasMora === 1 ? "día" : "días"} de mora
+                  </Text>
+                ) : null}
+                {item.compromisoValor != null ? (
+                  <Text testID={`compromiso-${item.clienteId}`} style={styles.textoCompromiso}>
+                    Compromiso de pago hoy: ${item.compromisoValor}
+                  </Text>
+                ) : null}
                 {item.enTrayecto ? (
                   <Text style={styles.enTrayecto}>En trayecto</Text>
                 ) : null}
@@ -877,6 +887,8 @@ const styles = StyleSheet.create({
   tarjetaInfo: { flex: 1 },
   clienteNombre: { fontSize: 16, fontWeight: "600" },
   enTrayecto: { color: "#2563eb", fontSize: 12, marginTop: 2 },
+  textoMora: { color: "#dc2626", fontSize: 12, fontWeight: "600", marginTop: 2 },
+  textoCompromiso: { color: "#b45309", fontSize: 12, fontWeight: "600", marginTop: 2 },
   llegar: {
     marginTop: 6,
     alignSelf: "flex-start",
