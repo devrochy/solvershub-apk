@@ -817,6 +817,17 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
+      } else if (err instanceof Error && err.message && err.message.startsWith("{")) {
+        try {
+          const cuerpo = JSON.parse(err.message) as { message?: string | string[] };
+          if (Array.isArray(cuerpo.message)) {
+            setMensaje(cuerpo.message.join(", "));
+          } else {
+            setMensaje(cuerpo.message ?? "No se pudo guardar la evidencia.");
+          }
+        } catch {
+          setMensaje("No se pudo guardar la evidencia.");
+        }
       } else {
         setMensaje("No se pudo guardar la evidencia.");
       }
@@ -1706,12 +1717,40 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       </Text>
                     </>
                   ) : null}
-                </ScrollView>
 
                 {mensaje ? (
                   <Text testID="cuota-mensaje" style={styles.mensajeModal}>
                     {mensaje}
                   </Text>
+                ) : null}
+
+                {/* Acciones en la parte inferior (solo cuota no paga) */}
+                {cuotaAccionable ? (
+                  <View style={styles.cuotaAcciones}>
+                    <Pressable
+                      testID="accion-pago"
+                      style={[
+                        styles.cuotaAccion,
+                        accionCuota === "pago" && styles.cuotaAccionActiva,
+                      ]}
+                      onPress={() => toggleAccionCuota("pago")}
+                    >
+                      <MaterialIcons name="payments" size={16} color="#ffffff" />
+                      <Text style={styles.cuotaAccionTexto}>Registrar pago</Text>
+                    </Pressable>
+                    <Pressable
+                      testID="accion-no-pago"
+                      style={[
+                        styles.cuotaAccion,
+                        styles.cuotaAccionNoPago,
+                        accionCuota === "no_pago" && styles.cuotaAccionActiva,
+                      ]}
+                      onPress={() => toggleAccionCuota("no_pago")}
+                    >
+                      <MaterialIcons name="block" size={16} color="#ffffff" />
+                      <Text style={styles.cuotaAccionTexto}>No pago</Text>
+                    </Pressable>
+                  </View>
                 ) : null}
 
                 {/* Confirmación de borrado de pago/abono */}
@@ -1898,34 +1937,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                   </View>
                 ) : null}
 
-                {/* Acciones en la parte inferior (solo cuota no paga) */}
-                {cuotaAccionable ? (
-                  <View style={styles.cuotaAcciones}>
-                    <Pressable
-                      testID="accion-pago"
-                      style={[
-                        styles.cuotaAccion,
-                        accionCuota === "pago" && styles.cuotaAccionActiva,
-                      ]}
-                      onPress={() => toggleAccionCuota("pago")}
-                    >
-                      <MaterialIcons name="payments" size={16} color="#ffffff" />
-                      <Text style={styles.cuotaAccionTexto}>Registrar pago</Text>
-                    </Pressable>
-                    <Pressable
-                      testID="accion-no-pago"
-                      style={[
-                        styles.cuotaAccion,
-                        styles.cuotaAccionNoPago,
-                        accionCuota === "no_pago" && styles.cuotaAccionActiva,
-                      ]}
-                      onPress={() => toggleAccionCuota("no_pago")}
-                    >
-                      <MaterialIcons name="block" size={16} color="#ffffff" />
-                      <Text style={styles.cuotaAccionTexto}>No pago</Text>
-                    </Pressable>
-                  </View>
-                ) : null}
+                </ScrollView>
               </>
             );
           })()
@@ -2343,7 +2355,7 @@ const styles = StyleSheet.create({
   },
   pagoTexto: { color: "#334155", fontSize: 13, fontWeight: "600" },
   pagoFecha: { color: "#64748b", fontSize: 12 },
-  cuotaScroll: { maxHeight: 260 },
+  cuotaScroll: { flexGrow: 1 },
   filaItemBorrable: {
     flexDirection: "row",
     alignItems: "center",
