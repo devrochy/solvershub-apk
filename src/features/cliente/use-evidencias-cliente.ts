@@ -28,7 +28,7 @@ async function reducirImagen(
   uri: string,
   width: number,
   height: number,
-): Promise<string> {
+): Promise<{ uri: string; convertidoAJpeg: boolean }> {
   const ladoMayor = Math.max(width, height);
   const escala = ladoMayor > DIMENSION_MAX ? DIMENSION_MAX / ladoMayor : 1;
   try {
@@ -47,9 +47,9 @@ async function reducirImagen(
       compress: COMPRESION,
       format: SaveFormat.JPEG,
     });
-    return resultado.uri;
+    return { uri: resultado.uri, convertidoAJpeg: true };
   } catch {
-    return uri;
+    return { uri, convertidoAJpeg: false };
   }
 }
 
@@ -123,12 +123,22 @@ export function useEvidenciasCliente(): UseEvidenciasClienteResult {
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
         const evidencia = aEvidencia(campo, asset);
-        const uriReducida = await reducirImagen(
+        const reducida = await reducirImagen(
           evidencia.uri,
           asset.width ?? 0,
           asset.height ?? 0,
         );
-        const final = { ...evidencia, uri: uriReducida };
+        // El resize siempre produce JPEG: normaliza el tipo y la extensión para
+        // que el backend (multer filtra image/jpeg|png|webp) no rechace fuentes
+        // HEIC/png convertidas.
+        const final = reducida.convertidoAJpeg
+          ? {
+              ...evidencia,
+              uri: reducida.uri,
+              type: "image/jpeg",
+              name: `${evidencia.name.replace(/\.[^.]+$/, "")}.jpg`,
+            }
+          : { ...evidencia, uri: reducida.uri };
         setEvidencias((prev) => [
           ...prev.filter((e) => e.campo !== campo),
           final,

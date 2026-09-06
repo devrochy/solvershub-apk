@@ -97,6 +97,39 @@ describe("useEvidenciasCliente", () => {
     expect(result.current.evidencias[0].uri).toBe("file:///camara.jpg");
   });
 
+  it("normaliza el type a image/jpeg y la extensión a .jpg tras el resize (HEIC/png)", async () => {
+    picker.requestCameraPermissionsAsync.mockResolvedValue({ granted: true } as never);
+    picker.launchCameraAsync.mockResolvedValue({
+      canceled: false,
+      assets: [
+        {
+          uri: "file:///heic.heic",
+          fileName: "foto.heic",
+          mimeType: "image/heic",
+          width: 4000,
+          height: 3000,
+        },
+      ],
+    } as never);
+    manipulator.manipulateAsync.mockResolvedValue({
+      uri: "file:///reducida.jpg",
+      width: 1280,
+      height: 960,
+    } as never);
+
+    const { result } = await renderHook(() => useEvidenciasCliente());
+
+    await act(async () => {
+      await result.current.agregar("documento_frente", "camara");
+    });
+
+    expect(result.current.evidencias[0]).toMatchObject({
+      uri: "file:///reducida.jpg",
+      name: "foto.jpg",
+      type: "image/jpeg",
+    });
+  });
+
   it("no agrega nada si no se concede el permiso de cámara", async () => {
     picker.requestCameraPermissionsAsync.mockResolvedValue({ granted: false } as never);
 
