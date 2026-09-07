@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A11 — Lista de préstamos del cliente con color de estado
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A11) + petición: "ver en la lista de préstamo el color del estado".

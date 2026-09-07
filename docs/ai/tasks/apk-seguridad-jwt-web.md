@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-seguridad-jwt-web (tokens solo en memoria en la build web)
 
 - **Origen:** Fase C del plan de la APK (seguridad) aprobado por el usuario 2026-09-01. Ítem de backlog "JWT en localStorage (web)" detectado por code-reviewer en Fase A.

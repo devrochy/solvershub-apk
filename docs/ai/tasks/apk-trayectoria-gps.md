@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # Tarea: apk-trayectoria-gps (trayectoria real con GPS)
 
 - **Origen:** Fase A del plan de la APK (A3) aprobado por el usuario 2026-09-01. El cobrador debe poder registrar la trayectoria real GPS del día y enviarla a `POST /cobrador/rutas/:id/trayectoria-real` (>= 2 puntos).

@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: APK PR2 — Dashboard y detalle de ruta, +Nuevo cliente y Cobros del día
 
 - **Origen:** Rediseño APK aprobado 2026-09-03.

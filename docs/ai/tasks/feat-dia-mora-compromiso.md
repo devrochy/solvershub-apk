@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # feat-dia-mora-compromiso
 
 - **Rama:** `feat/dia-mora-compromiso` (desde `develop`)

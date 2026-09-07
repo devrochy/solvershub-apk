@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-apertura-ruta (registrar apertura de la ruta del día)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 4b, 2026-09-01). HU-41. Requiere el backend `apertura-ruta-auditoria` (#85, ya mergeado).

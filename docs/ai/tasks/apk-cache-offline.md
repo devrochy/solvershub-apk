@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # Tarea: apk-cache-offline (cache del snapshot del día, tarjeta y préstamos)
 
 - **Origen:** Fase B del plan de la APK, Opción A aprobada por el usuario 2026-09-01. Hoy el modo avión no puede abrir la lista del día (la pide online) ni registrar pago (falta `prestamoId`/`cuotaId` del cache de préstamos).

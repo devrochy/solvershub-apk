@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # Tarea: apk-promesa-abono (promesa de pago + abono parcial)
 
 - **Origen:** Fase A del plan de la APK (A4 + A5) aprobado por el usuario 2026-09-01. La visita no-pago hoy solo manda el motivo; el pago solo de cuota completa.

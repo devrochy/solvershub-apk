@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-editar-eliminar-cuotas (editar/eliminar cuotas desde la APK)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 3b, 2026-09-01). HU-48 (docs/APP_REQUIREMENTS.md:65). Requiere el endpoint backend `cobrador-cuotas-abonos` (#83, ya mergeado).

@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-dia-en-vivo (re-fetch periódico de la lista del día)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 2, 2026-09-01). HU-56 (docs/APP_REQUIREMENTS.md:107): la lista del día "se va actualizando a medida que se notifican visitas".

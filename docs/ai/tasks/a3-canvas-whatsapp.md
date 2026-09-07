@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A3 — PrestamoScreen con WhatsApp en el canvas
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A3).

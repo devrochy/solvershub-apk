@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-cambio-cliente-offline (editar cliente + encolado `cambio_cliente`)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 1, 2026-09-01). HU-47 (docs/APP_REQUIREMENTS.md:64) + backlog "cambio de cliente offline".

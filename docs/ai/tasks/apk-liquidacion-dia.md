@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # apk-liquidacion-dia
 
 - **Rama:** `feature/apk-liquidacion-dia` (desde `develop`)

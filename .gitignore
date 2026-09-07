@@ -47,3 +47,6 @@ yarn-error.*
 # uploads/artefactos locales
 uploads/
 builds/
+
+# obsidian (config de máquina)
+.obsidian/

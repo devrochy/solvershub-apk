@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: Navegación por ruta y rediseño de detalle (N1-N6)
 
 - **Origen:** feedback del usuario 2026-09-03 (modo build).

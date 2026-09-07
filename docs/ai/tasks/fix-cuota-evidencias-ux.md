@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # fix-cuota-evidencias-ux
 
 - **Rama:** `fix/cuota-evidencias-ux` (desde `develop`)

@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A5 — Foto y documento del cliente desde la APK
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A5) + decisión "en la APK y en el panel, según permisos".

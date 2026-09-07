@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-evidencias-offline (evidencias de gasto en modo offline)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 1, 2026-09-01) + backlog (item "Evidencias de gasto se pierden en modo offline").
