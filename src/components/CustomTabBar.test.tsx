@@ -83,4 +83,17 @@ describe("CustomTabBar", () => {
     await fireEvent.press(getByTestId("tab-Clientes"));
     expect(navigate).toHaveBeenCalledWith("Clientes");
   });
+
+  it("usa boxShadow moderno en el FAB central (sin shadow/elevation legacy)", async () => {
+    const { getByTestId } = await render(
+      <PantallaActivaProvider>
+        <CustomTabBar {...propsDe(0)} />
+      </PantallaActivaProvider>,
+    );
+    const fab = getByTestId("tab-central");
+    const estilos = Array.isArray(fab.props.style) ? fab.props.style[0] : fab.props.style;
+    expect(estilos.boxShadow).toBeTruthy();
+    expect(estilos.elevation).toBeUndefined();
+    expect(estilos.shadowColor).toBeUndefined();
+  });
 });
