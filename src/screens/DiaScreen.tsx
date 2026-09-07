@@ -16,7 +16,7 @@ import { File, Paths } from "expo-file-system";
 import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
-import { fondoDeEstado } from "../components/ColorBadge";
+import { colorDeEstado } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { TrayectosLista } from "../components/TrayectosLista";
@@ -485,7 +485,6 @@ export function DiaScreen() {
               testID={`cliente-${item.clienteId}`}
               style={[
                 styles.tarjeta,
-                { backgroundColor: fondoDeEstado(item.color) },
                 !listaHabilitada && styles.tarjetaBloqueada,
               ]}
               disabled={!listaHabilitada}
@@ -500,20 +499,39 @@ export function DiaScreen() {
                 })
               }
             >
+              <View
+                testID={`acento-${item.clienteId}`}
+                style={[
+                  styles.acento,
+                  { backgroundColor: colorDeEstado(item.color) },
+                ]}
+              />
               <View style={styles.tarjetaInfo}>
                 <Text style={styles.clienteNombre}>{item.nombre}</Text>
                 {item.diasMora > 0 ? (
-                  <Text testID={`mora-${item.clienteId}`} style={styles.textoMora}>
-                    {item.diasMora} {item.diasMora === 1 ? "día" : "días"} de mora
-                  </Text>
+                  <View
+                    testID={`mora-${item.clienteId}`}
+                    style={[styles.chip, styles.chipMora]}
+                  >
+                    <Text style={styles.chipMoraTexto}>
+                      {item.diasMora} {item.diasMora === 1 ? "día" : "días"} de mora
+                    </Text>
+                  </View>
                 ) : null}
                 {item.compromisoValor != null ? (
-                  <Text testID={`compromiso-${item.clienteId}`} style={styles.textoCompromiso}>
-                    Compromiso de pago hoy: ${item.compromisoValor}
-                  </Text>
+                  <View
+                    testID={`compromiso-${item.clienteId}`}
+                    style={[styles.chip, styles.chipCompromiso]}
+                  >
+                    <Text style={styles.chipCompromisoTexto}>
+                      Compromiso de pago hoy: ${item.compromisoValor}
+                    </Text>
+                  </View>
                 ) : null}
                 {item.enTrayecto ? (
-                  <Text style={styles.enTrayecto}>En trayecto</Text>
+                  <View style={[styles.chip, styles.chipTrayecto]}>
+                    <Text style={styles.chipTrayectoTexto}>En trayecto</Text>
+                  </View>
                 ) : null}
                 {coords ? (
                   <Pressable
@@ -741,55 +759,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    paddingVertical: 12,
     backgroundColor: "#ffffff",
+    boxShadow: "0 1px 2px rgba(15, 23, 42, 0.06)",
   },
   botonGastos: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    width: 84,
+    backgroundColor: "#2563eb",
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
-  botonGastosTexto: { color: "#2563eb", fontWeight: "700", fontSize: 14 },
-  headerTitulo: { fontSize: 17, fontWeight: "700", color: "#334155" },
-  lista: { padding: 16, gap: 10 },
-  vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
-  acciones: { marginBottom: 8, gap: 8 },
+  botonGastosTexto: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
+  headerTitulo: { fontSize: 20, fontWeight: "700", color: "#0f172a" },
+  lista: { padding: 16, gap: 12 },
+  vacio: { color: "#64748b", textAlign: "center", marginTop: 24, fontSize: 14 },
+  acciones: { marginBottom: 8, gap: 10 },
   avisoOffline: { color: "#d97706", fontWeight: "600", fontSize: 13 },
   botonPrimario: {
     backgroundColor: "#2563eb",
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderRadius: 12,
+    borderCurve: "continuous",
+    paddingVertical: 13,
     paddingHorizontal: 16,
     alignItems: "center",
   },
-  botonPrimarioTexto: { color: "#ffffff", fontWeight: "600" },
+  botonPrimarioTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   botonSecundario: {
     backgroundColor: "#dc2626",
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderRadius: 12,
+    borderCurve: "continuous",
+    paddingVertical: 13,
     paddingHorizontal: 16,
     alignItems: "center",
   },
   botonTrayectos: {
     backgroundColor: "#0891b2",
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderRadius: 12,
+    borderCurve: "continuous",
+    paddingVertical: 13,
     paddingHorizontal: 16,
     alignItems: "center",
   },
-  botonTrayectosTexto: { color: "#ffffff", fontWeight: "600" },
+  botonTrayectosTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   botonLiquidacion: {
     backgroundColor: "#2563eb",
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderRadius: 12,
+    borderCurve: "continuous",
+    paddingVertical: 13,
     paddingHorizontal: 16,
     alignItems: "center",
   },
   botonLiquidacionBloqueado: { opacity: 0.4 },
-  botonLiquidacionTexto: { color: "#ffffff", fontWeight: "600" },
+  botonLiquidacionTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   liquidacionContenedor: { flex: 1, backgroundColor: "#f8fafc" },
   liquidacionHeader: {
     flexDirection: "row",
@@ -845,7 +866,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
     zIndex: 10,
   },
-  botonSecundarioTexto: { color: "#ffffff", fontWeight: "600" },
+  botonSecundarioTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   trayectoriaActiva: {
     flexDirection: "row",
     alignItems: "center",
@@ -876,28 +897,40 @@ const styles = StyleSheet.create({
   deshabilitado: { backgroundColor: "#93c5fd" },
   tarjeta: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: "stretch",
     backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderRadius: 14,
+    borderCurve: "continuous",
+    overflow: "hidden",
+    boxShadow: "0 1px 3px rgba(15, 23, 42, 0.08)",
   },
-  tarjetaInfo: { flex: 1 },
-  clienteNombre: { fontSize: 16, fontWeight: "600" },
-  enTrayecto: { color: "#2563eb", fontSize: 12, marginTop: 2 },
-  textoMora: { color: "#dc2626", fontSize: 12, fontWeight: "600", marginTop: 2 },
-  textoCompromiso: { color: "#b45309", fontSize: 12, fontWeight: "600", marginTop: 2 },
-  llegar: {
-    marginTop: 6,
+  acento: { width: 4 },
+  tarjetaInfo: { flex: 1, padding: 14, gap: 6 },
+  clienteNombre: { fontSize: 16, fontWeight: "700", color: "#0f172a" },
+  chip: {
     alignSelf: "flex-start",
-    backgroundColor: "#0891b2",
-    borderRadius: 6,
+    borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  llegarTexto: { color: "#ffffff", fontWeight: "600", fontSize: 12 },
+  chipMora: { backgroundColor: "#fee2e2" },
+  chipMoraTexto: {
+    color: "#b91c1c",
+    fontSize: 12,
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
+  },
+  chipCompromiso: { backgroundColor: "#fef3c7" },
+  chipCompromisoTexto: {
+    color: "#92400e",
+    fontSize: 12,
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
+  },
+  chipTrayecto: { backgroundColor: "#dbeafe" },
+  chipTrayectoTexto: { color: "#1d4ed8", fontSize: 12, fontWeight: "700" },
+  llegar: { marginTop: 2, alignSelf: "flex-start", paddingVertical: 2 },
+  llegarTexto: { color: "#0891b2", fontWeight: "700", fontSize: 13 },
   input: {
     borderWidth: 1,
     borderColor: "#cbd5e1",

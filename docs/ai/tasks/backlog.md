@@ -64,3 +64,19 @@
   Si el permiso falta, el botón se muestra y el backend responde 403. Mejor
   gatear también por `rutaActiva.permisos` (requiere exponer permisos en el
   contexto RutaActiva). Prioridad: baja.
+
+## Doble lenguaje visual del estado del cliente (lista del día vs otras pantallas)
+- Detectado en: code-review apk-dia-ui (2026-09-07)
+- Descripción: `DiaScreen` ahora usa tarjeta blanca + barra de acento + chips,
+  mientras `ClientesScreen` sigue con fondo completo (`fondoDeEstado`) y
+  `ClienteScreen` con punto `ColorBadge`. Los tres representan el mismo estado
+  verde/rojo/blanco. Migrar a un único lenguaje visual (acento + chips) en las
+  demás pantallas.
+- Prioridad sugerida: baja
+
+## Contraste de enlaces cian (#0891b2) por debajo de WCAG AA
+- Detectado en: code-review apk-dia-ui (2026-09-07)
+- Descripción: los enlaces/botones fantasma cian `#0891b2` a 13px/700 sobre
+  blanco tienen ~3:1 de contraste (< 4.5:1 WCAG AA). Conviene oscurecer a
+  `#0e7490` (cyan-700, ~4.9:1) de forma repo-wide (theme), no por pantalla.
+- Prioridad sugerida: baja
