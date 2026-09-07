@@ -489,6 +489,22 @@ describe("DiaScreen — cobros del día", () => {
     expect(queryByTestId("mora-2")).toBeNull();
   });
 
+  it("muestra la barra de acento semántica según el estado del cliente", async () => {
+    const { getByTestId } = await renderConApi({
+      dia: jest.fn().mockResolvedValue({
+        clientes: [
+          { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+          { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        ],
+        trayectos: null,
+      }),
+    });
+
+    await waitFor(() => expect(getByTestId("acento-1")).toBeTruthy());
+    expect(getByTestId("acento-1")).toHaveStyle({ backgroundColor: "#dc2626" });
+    expect(getByTestId("acento-2")).toHaveStyle({ backgroundColor: "#16a34a" });
+  });
+
   it("'+ Gastos' abre el modal y registrarGasto guarda el gasto", async () => {
     const registrarGasto = jest.fn().mockResolvedValue({ id: 9 });
     const { getByTestId, getByText } = await renderConApi({ registrarGasto });
