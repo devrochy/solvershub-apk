@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-housekeeping-eas (commit app.json + limpieza de ramas)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 0 del plan 2026-09-01).

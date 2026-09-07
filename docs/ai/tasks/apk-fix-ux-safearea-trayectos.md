@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: Corrección de UX — SafeArea, avatares, header y vista de trayectos
 
 - **Origen:** Feedback del usuario 2026-09-02 (APK).

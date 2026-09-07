@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # Tarea: apk-offline-first (capa offline de la APK)
 
 - **Origen:** Fase B del plan de la APK (offline-first) aprobado por el usuario 2026-09-01. Backend `aplicar-offline-dominio` ya mergeado (#80). Mecanismo A (Sync API + processor), device key vía `.env.local`.

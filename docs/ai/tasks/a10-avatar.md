@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A10 — Avatar con foto/iniciales en listas de clientes
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A10) + decisión "foto real en lista + backend".

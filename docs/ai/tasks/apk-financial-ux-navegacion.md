@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-financial-ux-navegacion (tabs + lista clientes + canvas cuotas)
 
 - **Origen:** Petición directa del usuario 2026-09-02 (rediseño APK: navegación con menús, lista de clientes de ruta, préstamos de un cliente, canvas de cuotas pagadas/mora/actual/futuras + abonos). Aplica skills `ui-consistency`, `financial-ux`, `arquitectura-apk`.

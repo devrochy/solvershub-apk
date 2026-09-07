@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A6 — Mapa de la ubicación del cliente en la APK
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A6) + decisión "Leaflet en WebView".

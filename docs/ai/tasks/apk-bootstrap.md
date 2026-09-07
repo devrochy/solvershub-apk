@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # Tarea: apk-bootstrap (repo app-cobranza-apk — base Expo + sesión + login + pantallas core)
 
 - **Origen:** Plan del APK del cobrador aprobado por el usuario 2026-08-31 (Expo + TypeScript; modo en línea primero; offline al final). Backend APK listo en PR #77 (cobrador-apk-api).

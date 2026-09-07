@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # apk-modal-cuota-rediseno
 
 - **Rama:** `feature/apk-modal-cuota-rediseno` (desde `develop`)

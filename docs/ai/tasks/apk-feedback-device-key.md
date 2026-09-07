@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-feedback-device-key (error de sync visible)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 1, 2026-09-01) + backlog (item "Device key inválida deja la cola atascada sin feedback").

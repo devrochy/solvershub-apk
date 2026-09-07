@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-trayectoria-offline (encolar la trayectoria GPS en modo offline)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 4a, 2026-09-01). HU-49/64. Requiere el backend `sync-trayectoria-offline` (#84, ya mergeado).

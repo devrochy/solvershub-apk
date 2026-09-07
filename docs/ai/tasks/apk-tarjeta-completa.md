@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-tarjeta-completa (foto, tipo de pago y detalle expandible del cliente)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 2, 2026-09-01). HU-56/58 (docs/APP_REQUIREMENTS.md:107-108).

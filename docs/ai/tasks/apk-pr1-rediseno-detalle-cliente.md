@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: APK PR1 — Login dual, navegación con menú fijo y rediseño del detalle de cliente
 
 - **Origen:** Rediseño APK aprobado 2026-09-03.

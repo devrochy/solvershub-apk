@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A8 — ColorBadge como punto de color sin texto
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A8) + decisión "punto de color sin texto".

@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A4 — WhatsApp usa el teléfono editado (fix stale)
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A4) + reporte del usuario: "cambié el número y no se reflejó al enviar por WhatsApp".

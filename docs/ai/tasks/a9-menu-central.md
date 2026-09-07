@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A9 — Menú inferior con "Día" central sobresaliente y MaterialIcons
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A9) + petición del menú con Día al centro sobresaliente.

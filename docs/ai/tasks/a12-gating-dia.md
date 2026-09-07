@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A12 — Gating de la lista del día (trayecto + GPS)
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A12) + decisión "lista bloqueada con aviso" + "generar desde la APK".

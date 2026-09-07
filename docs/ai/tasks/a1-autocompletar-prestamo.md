@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A1 — Autocompletar préstamo desde la config de la ruta
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A1).

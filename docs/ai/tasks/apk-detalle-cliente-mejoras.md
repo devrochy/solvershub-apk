@@ -1,3 +1,8 @@
+---
+estado: en progreso
+tags: [tarea]
+---
+
 # apk-detalle-cliente-mejoras
 
 - **Rama:** `feature/apk-detalle-cliente-mejoras` (desde `develop`)

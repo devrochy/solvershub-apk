@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A2 — Un solo formulario activo a la vez (fix solapamiento)
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A2).

@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-estado-cuenta-whatsapp (estado de cuenta por cuota + wa.me)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 2, 2026-09-01). HU-54 (docs/APP_REQUIREMENTS.md:97). Decisión del usuario: envío del reporte por WhatsApp con `wa.me` directo (sin depender del gateway del backend).

@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-registrar-prestamo (registrar préstamo desde la APK)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 3a, 2026-09-01). HU-14 (docs/APP_REQUIREMENTS.md:57). Requiere el endpoint backend `cobrador-prestamos` (#82, ya mergeado).

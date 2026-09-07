@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-empaquetado (config EAS para build APK)
 
 - **Origen:** Fase C del plan de la APK (empaquetado) aprobado por el usuario 2026-09-01.

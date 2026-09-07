@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-navegacion-maps-waze (navegación externa desde el día y el cliente)
 
 - **Origen:** Plan aprobado del usuario para dejar la APK desarrollada (Fase 2, 2026-09-01). HU-37/59 (docs/APP_REQUIREMENTS.md:103,109). Decisión del usuario: navegación externa (Google Maps/Waze), sin react-native-maps.

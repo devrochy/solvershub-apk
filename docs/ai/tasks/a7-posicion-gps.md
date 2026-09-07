@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: A7 — Envío periódico de posición GPS en la APK
 
 - **Origen:** Plan consolidado aprobado por el usuario 2026-09-02 (Epic A7) + B3 (backend polling).

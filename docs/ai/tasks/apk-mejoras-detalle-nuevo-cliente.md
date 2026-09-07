@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: Mejoras APK — detalle cliente, nuevo cliente, navegación y rutas
 
 - **Origen:** feedback del usuario 2026-09-03 (modo build).
