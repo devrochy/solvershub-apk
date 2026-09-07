@@ -1027,6 +1027,16 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     expect(getByTestId("header-tarjeta-cliente")).toHaveStyle({ backgroundColor: "#dc2626" });
   });
 
+  it("la tarjeta cédula usa boxShadow moderno (sin shadow/elevation legacy)", async () => {
+    const { getByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("tarjeta-cedula")).toBeTruthy());
+    const tarjetaView = getByTestId("tarjeta-cedula");
+    expect(tarjetaView.props.style.boxShadow).toBeTruthy();
+    expect(tarjetaView.props.style.elevation).toBeUndefined();
+    expect(tarjetaView.props.style.shadowColor).toBeUndefined();
+  });
+
   it("quita el punto de color de la tarjeta cédula (solo header de clasificación)", async () => {
     const { queryByTestId } = await renderConApi({});
 
