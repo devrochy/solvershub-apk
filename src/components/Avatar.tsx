@@ -42,7 +42,7 @@ export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
         testID="avatar-icono"
         style={[styles.circulo, { width: size, height: size, borderRadius: size / 2 }]}
       >
-        <MaterialIcons name="person" size={size * 0.55} color="#2563eb" />
+        <MaterialIcons name="person" size={size * 0.55} color="#172f6c" />
       </View>
     );
   }

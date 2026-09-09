@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -49,69 +50,72 @@ export function LoginScreen() {
         style={styles.formFlex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-      <View style={styles.form}>
-        <Text style={styles.titulo}>CobraIA</Text>
-        <Text style={styles.subtitulo}>Plataforma del cobrador</Text>
+        <View style={styles.form}>
+          <Image
+            source={require("../../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-        <View style={styles.roles}>
-          <Pressable
-            testID="rol-cobrador"
-            style={[styles.rol, rol === "cobrador" && styles.rolActivo]}
-            onPress={() => setRol("cobrador")}
-          >
-            <Text style={rol === "cobrador" ? styles.rolTextoActivo : styles.rolTexto}>
-              Cobrador
+          <View style={styles.roles}>
+            <Pressable
+              testID="rol-cobrador"
+              style={[styles.rol, rol === "cobrador" && styles.rolActivo]}
+              onPress={() => setRol("cobrador")}
+            >
+              <Text style={rol === "cobrador" ? styles.rolTextoActivo : styles.rolTexto}>
+                Cobrador
+              </Text>
+            </Pressable>
+            <Pressable
+              testID="rol-socio"
+              style={[styles.rol, rol === "socio" && styles.rolActivo]}
+              onPress={() => setRol("socio")}
+            >
+              <Text style={rol === "socio" ? styles.rolTextoActivo : styles.rolTexto}>
+                Socio
+              </Text>
+            </Pressable>
+          </View>
+
+          <TextInput
+            testID="usuario-input"
+            style={styles.input}
+            placeholder="Usuario"
+            autoCapitalize="none"
+            autoCorrect={false}
+            value={usuario}
+            onChangeText={setUsuario}
+          />
+          <TextInput
+            testID="password-input"
+            style={styles.input}
+            placeholder="Contraseña"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            onSubmitEditing={handleSubmit}
+          />
+
+          {error ? (
+            <Text testID="error-text" style={styles.error}>
+              {error}
             </Text>
-          </Pressable>
+          ) : null}
+
           <Pressable
-            testID="rol-socio"
-            style={[styles.rol, rol === "socio" && styles.rolActivo]}
-            onPress={() => setRol("socio")}
+            testID="login-button"
+            style={[styles.boton, !puedeEnviar && styles.botonDeshabilitado]}
+            disabled={!puedeEnviar}
+            onPress={handleSubmit}
           >
-            <Text style={rol === "socio" ? styles.rolTextoActivo : styles.rolTexto}>
-              Socio
-            </Text>
+            {submitting ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.botonTexto}>Entrar</Text>
+            )}
           </Pressable>
         </View>
-
-        <TextInput
-          testID="usuario-input"
-          style={styles.input}
-          placeholder="Usuario"
-          autoCapitalize="none"
-          autoCorrect={false}
-          value={usuario}
-          onChangeText={setUsuario}
-        />
-        <TextInput
-          testID="password-input"
-          style={styles.input}
-          placeholder="Contraseña"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          onSubmitEditing={handleSubmit}
-        />
-
-        {error ? (
-          <Text testID="error-text" style={styles.error}>
-            {error}
-          </Text>
-        ) : null}
-
-        <Pressable
-          testID="login-button"
-          style={[styles.boton, !puedeEnviar && styles.botonDeshabilitado]}
-          disabled={!puedeEnviar}
-          onPress={handleSubmit}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.botonTexto}>Entrar</Text>
-          )}
-        </Pressable>
-      </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -122,6 +126,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
   },
+  logo: {
+    width: 140,
+    height: 140,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
   formFlex: {
     flex: 1,
     justifyContent: "center",
@@ -129,17 +139,6 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 12,
-  },
-  titulo: {
-    fontSize: 32,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  subtitulo: {
-    fontSize: 16,
-    color: "#64748b",
-    textAlign: "center",
-    marginBottom: 16,
   },
   roles: { flexDirection: "row", gap: 8 },
   rol: {
@@ -150,7 +149,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: "center",
   },
-  rolActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+  rolActivo: { backgroundColor: "#172f6c", borderColor: "#172f6c" },
   rolTexto: { color: "#334155", fontWeight: "600" },
   rolTextoActivo: { color: "#ffffff", fontWeight: "600" },
   input: {
@@ -166,13 +165,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   boton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
   },
   botonDeshabilitado: {
-    backgroundColor: "#93c5fd",
+    backgroundColor: "#6b8ab5",
   },
   botonTexto: {
     color: "#ffffff",

@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   botonCancelarTexto: { color: "#475569", fontWeight: "600" },
   botonConfirmar: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",

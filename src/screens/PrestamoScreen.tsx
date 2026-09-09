@@ -16,7 +16,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Prestamo">;
 
 const COLORES: Record<TipoCuotaCanvas, { fondo: string; borde: string }> = {
   pagada: { fondo: "#dcfce7", borde: "#16a34a" },
-  actual: { fondo: "#dbeafe", borde: "#2563eb" },
+  actual: { fondo: "#dbeafe", borde: "#172f6c" },
   en_mora: { fondo: "#fee2e2", borde: "#dc2626" },
   futura: { fondo: "#f1f5f9", borde: "#cbd5e1" },
   abonada: { fondo: "#fef9c3", borde: "#d97706" },
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   clienteDetalle: { color: "#64748b", fontSize: 13, marginTop: 4 },
   filaResumen: { flexDirection: "row", justifyContent: "space-between", marginTop: 12 },
   resumenValor: { fontSize: 14, fontWeight: "600", color: "#475569" },
-  resumenSaldo: { fontSize: 14, fontWeight: "700", color: "#2563eb" },
+  resumenSaldo: { fontSize: 14, fontWeight: "700", color: "#172f6c" },
   leyenda: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   leyendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   leyendaColor: { width: 12, height: 12, borderRadius: 999 },
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   cuadroValor: { fontSize: 11, color: "#475569", fontWeight: "600" },
   cuadroFecha: { fontSize: 9, color: "#64748b" },
   cuadroAbono: { fontSize: 9, color: "#16a34a", fontWeight: "600" },
-  cuadroSaldo: { fontSize: 9, color: "#2563eb", fontWeight: "600" },
+  cuadroSaldo: { fontSize: 9, color: "#172f6c", fontWeight: "600" },
   cuadroEtiqueta: {
     borderWidth: 1,
     borderRadius: 999,
