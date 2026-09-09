@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
+import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
@@ -130,7 +131,15 @@ export function RutaDetalleScreen({
 
   if (!rutaId) {
     return (
-      <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
+      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+        <HeaderPantalla>
+          <View style={estilosHeader.fila}>
+            <Text style={estilosHeader.titulo} numberOfLines={1}>
+              Ruta
+            </Text>
+            <View style={estilosHeader.columnaDerecha} />
+          </View>
+        </HeaderPantalla>
         <View style={styles.sinRuta}>
           <Text style={styles.sinRutaTexto}>Selecciona una ruta para ver su información.</Text>
           <Pressable testID="btn-ir-seleccion" style={styles.botonSinRuta} onPress={cerrar}>
@@ -148,19 +157,21 @@ export function RutaDetalleScreen({
   const enMora = dia.clientes.filter((c) => c.color === "rojo").length;
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
-      <View style={styles.header}>
-        <Pressable testID="btn-back-ruta" style={styles.headerIzquierda} onPress={cerrar}>
-          <MaterialIcons name="arrow-back" size={22} color="#334155" />
-        </Pressable>
-        <Text style={styles.headerTitulo} numberOfLines={1}>
-          {rutaNombre}
-        </Text>
-        <Pressable testID="btn-editar-ruta" style={styles.headerDerecha} onPress={() => setAvisoEdicion(true)}>
-          <MaterialIcons name="edit" size={20} color="#2563eb" />
-          <Text style={styles.headerAccion}>Editar</Text>
-        </Pressable>
-      </View>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <HeaderPantalla>
+        <View style={estilosHeader.fila}>
+          <Pressable testID="btn-back-ruta" style={estilosHeader.columnaIzq} onPress={cerrar}>
+            <MaterialIcons name="arrow-back" size={22} color="#ffffff" />
+          </Pressable>
+          <Text style={estilosHeader.titulo} numberOfLines={1}>
+            {rutaNombre}
+          </Text>
+          <Pressable testID="btn-editar-ruta" style={estilosHeader.columnaDerecha} onPress={() => setAvisoEdicion(true)}>
+            <MaterialIcons name="edit" size={20} color="#ffffff" />
+            <Text style={estilosHeader.accionTexto}>Editar</Text>
+          </Pressable>
+        </View>
+      </HeaderPantalla>
 
       {avisoEdicion ? (
         <View style={styles.aviso}>
@@ -175,7 +186,7 @@ export function RutaDetalleScreen({
           <Text style={styles.seccionTitulo}>Información de la ruta</Text>
           <View style={styles.kpis}>
             <View style={styles.kpi}>
-              <MaterialIcons name="people" size={22} color="#2563eb" />
+              <MaterialIcons name="people" size={22} color="#172f6c" />
               <Text style={styles.kpiValor} testID="kpi-total-clientes">
                 {clientes.length}
               </Text>
@@ -252,7 +263,7 @@ export function RutaDetalleScreen({
         {notaMensaje ? (
           <Text style={styles.notaMensaje}>{notaMensaje}</Text>
         ) : null}
-        {notaEnviando ? <ActivityIndicator color="#2563eb" /> : null}
+        {notaEnviando ? <ActivityIndicator color="#172f6c" /> : null}
       </ModalConFooter>
     </SafeAreaView>
   );
@@ -263,26 +274,12 @@ const styles = StyleSheet.create({
   sinRuta: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
   sinRutaTexto: { color: "#64748b", fontSize: 15, textAlign: "center" },
   botonSinRuta: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
   botonSinRutaTexto: { color: "#ffffff", fontWeight: "600" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
-  },
-  headerIzquierda: { flexDirection: "row", alignItems: "center", gap: 4, width: 72 },
-  headerDerecha: { flexDirection: "row", alignItems: "center", gap: 4, width: 72, justifyContent: "flex-end" },
-  headerTitulo: { flex: 1, textAlign: "center", fontSize: 17, fontWeight: "700", color: "#334155" },
-  headerAccion: { color: "#2563eb", fontWeight: "600", fontSize: 14 },
   aviso: {
     backgroundColor: "#fef9c3",
     borderBottomWidth: 1,
@@ -309,12 +306,12 @@ const styles = StyleSheet.create({
   kpiEtiqueta: { fontSize: 12, color: "#64748b", fontWeight: "600" },
   estadoFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   estadoEtiqueta: { fontSize: 13, color: "#64748b", fontWeight: "600" },
-  estadoValor: { fontSize: 14, fontWeight: "700", color: "#2563eb" },
+  estadoValor: { fontSize: 14, fontWeight: "700", color: "#172f6c" },
   botonNota: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,

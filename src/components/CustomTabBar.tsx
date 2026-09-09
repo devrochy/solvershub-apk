@@ -55,7 +55,7 @@ export function CustomTabBar({ state, descriptors, navigation, insets }: BottomT
                 <MaterialIcons
                   name={ICONOS[route.name]}
                   size={28}
-                  color={enfocado ? "#ffffff" : "#2563eb"}
+                  color={enfocado ? "#ffffff" : "#172f6c"}
                 />
               </Pressable>
               <Text style={[styles.etiqueta, enfocado && styles.etiquetaActiva]}>
@@ -75,7 +75,7 @@ export function CustomTabBar({ state, descriptors, navigation, insets }: BottomT
             <MaterialIcons
               name={ICONOS[route.name]}
               size={22}
-              color={enfocado ? "#2563eb" : "#64748b"}
+              color={enfocado ? "#172f6c" : "#64748b"}
             />
             <Text style={[styles.etiqueta, enfocado && styles.etiquetaActiva]}>
               {descriptor.options.title ?? route.name}
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     marginTop: -26,
     boxShadow: "0 3px 8px rgba(37, 99, 235, 0.28)",
   },
-  centralActivo: { backgroundColor: "#2563eb" },
+  centralActivo: { backgroundColor: "#172f6c" },
   etiqueta: { color: "#64748b", fontSize: 11, fontWeight: "600" },
-  etiquetaActiva: { color: "#2563eb" },
+  etiquetaActiva: { color: "#172f6c" },
 });

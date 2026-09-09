@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 const COLORES: Record<string, string> = {
   verde: "#16a34a",
   rojo: "#dc2626",
-  azul: "#2563eb",
+  azul: "#172f6c",
   blanco: "#94a3b8",
 };
 

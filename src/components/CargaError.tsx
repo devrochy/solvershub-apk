@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   errorBox: { alignItems: "center", gap: 8 },
   error: { color: "#dc2626", fontSize: 15 },
   boton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

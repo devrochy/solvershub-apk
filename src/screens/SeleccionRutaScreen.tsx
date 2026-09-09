@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
+import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
@@ -101,25 +102,27 @@ export function SeleccionRutaScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
-      <View style={styles.header} testID="header-seleccion-ruta">
-        <View style={styles.headerTitulo}>
-          <Text style={styles.bienvenida}>
-            Hola, {cobrador?.nombre ?? "cobrador"}
-          </Text>
-          <Text style={styles.subtitulo}>Selecciona una ruta</Text>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <HeaderPantalla>
+        <View style={estilosHeader.fila} testID="header-seleccion-ruta">
+          <View style={estilosHeader.bloqueTitulo}>
+            <Text style={estilosHeader.titulo}>
+              Hola, {cobrador?.nombre ?? "cobrador"}
+            </Text>
+            <Text style={estilosHeader.subtitulo}>Selecciona una ruta</Text>
+          </View>
+          <View style={estilosHeader.accionesDerecha}>
+            {offline.sinSubir > 0 ? (
+              <View testID="badge-sin-subir" style={styles.badge}>
+                <Text style={styles.badgeTexto}>{offline.sinSubir} sin subir</Text>
+              </View>
+            ) : null}
+            <Pressable testID="btn-salir" style={estilosHeader.accionPill} onPress={logout}>
+              <Text style={estilosHeader.accionPillTexto}>Salir</Text>
+            </Pressable>
+          </View>
         </View>
-        <View style={styles.headerDerecha}>
-          {offline.sinSubir > 0 ? (
-            <View testID="badge-sin-subir" style={styles.badge}>
-              <Text style={styles.badgeTexto}>{offline.sinSubir} sin subir</Text>
-            </View>
-          ) : null}
-          <Pressable onPress={logout}>
-            <Text style={styles.salir}>Salir</Text>
-          </Pressable>
-        </View>
-      </View>
+      </HeaderPantalla>
 
       {offline.errorSync ? (
         <View testID="aviso-error-sync" style={styles.avisoErrorSync}>
@@ -168,7 +171,7 @@ export function SeleccionRutaScreen() {
               <View style={styles.tarjetaCuerpo}>
                 <View style={styles.kpis}>
                   <View style={styles.kpi}>
-                    <MaterialIcons name="people" size={26} color="#2563eb" />
+                    <MaterialIcons name="people" size={26} color="#172f6c" />
                     <Text style={styles.kpiValor} testID={`kpi-clientes-${item.id}`}>
                       {kpi.totalClientes}
                     </Text>
@@ -207,27 +210,13 @@ export function SeleccionRutaScreen() {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-  },
-  headerTitulo: { flex: 1 },
-  bienvenida: { fontSize: 18, fontWeight: "700" },
-  subtitulo: { color: "#64748b", fontSize: 13, marginTop: 2 },
-  headerDerecha: { flexDirection: "row", alignItems: "center", gap: 10 },
   badge: {
     backgroundColor: "#f59e0b",
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  badgeTexto: { color: "#ffffff", fontSize: 12, fontWeight: "600" },
-  salir: { color: "#dc2626", fontSize: 15 },
+  badgeTexto: { color: "#ffffff", fontSize: 12, fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
   avisoErrorSync: {
     backgroundColor: "#fee2e2",
     borderWidth: 1,

@@ -1,7 +1,14 @@
+import {
+  Roboto_400Regular,
+  Roboto_500Medium,
+  Roboto_600SemiBold,
+  Roboto_700Bold,
+} from "@expo-google-fonts/roboto";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import type { RootStackParamList, RootTabParamList } from "./src/navigation/types";
@@ -98,6 +105,17 @@ function RootNavigator() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Roboto_400Regular,
+    Roboto_500Medium,
+    Roboto_600SemiBold,
+    Roboto_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <SafeAreaProvider>
       <SessionProvider>
@@ -115,7 +133,7 @@ function RootContent() {
   const { cobrador } = useSession();
   return (
     <PantallaActivaProvider resetKey={cobrador?.id ?? null}>
-      <StatusBar style="auto" />
+      <StatusBar style={cobrador ? "light" : "dark"} />
       <RootNavigator />
     </PantallaActivaProvider>
   );
