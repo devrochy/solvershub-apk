@@ -6,7 +6,7 @@ tags: [tarea]
 # Tarea: apk-headers-estandar
 
 - **Origen:** petición del usuario (2026-09-09): estandarizar los headers de las vistas de la APK, excluyendo Login. Quejas detectadas: tamaño de texto distinto entre pantallas, título centrado en unas y a la izquierda en otras, y vistas sin el azul de fondo `#172f6c`.
-- **Estado:** en revisión visual
+- **Estado:** terminado — PR #36 a develop, CI en verde (build-and-test SUCCESS)
 
 ## Auditoría (estado antes del cambio)
 

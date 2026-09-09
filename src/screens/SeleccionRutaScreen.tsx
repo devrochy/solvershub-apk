@@ -117,8 +117,8 @@ export function SeleccionRutaScreen() {
                 <Text style={styles.badgeTexto}>{offline.sinSubir} sin subir</Text>
               </View>
             ) : null}
-            <Pressable testID="btn-salir" onPress={logout}>
-              <Text style={estilosHeader.accionTexto}>Salir</Text>
+            <Pressable testID="btn-salir" style={estilosHeader.accionPill} onPress={logout}>
+              <Text style={estilosHeader.accionPillTexto}>Salir</Text>
             </Pressable>
           </View>
         </View>

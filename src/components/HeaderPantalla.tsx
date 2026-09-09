@@ -34,7 +34,7 @@ export function HeaderPantalla({ children }: { children: ReactNode }) {
 export const estilosHeader = StyleSheet.create({
   fila: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -55,7 +55,6 @@ export const estilosHeader = StyleSheet.create({
   accionesDerecha: { flexDirection: "row", alignItems: "center", gap: 10 },
   bloqueTitulo: { flex: 1 },
   titulo: {
-    flex: 1,
     fontSize: 18,
     fontWeight: "700",
     color: "#ffffff",

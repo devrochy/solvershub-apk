@@ -30,7 +30,7 @@ describe("HeaderPantalla", () => {
 });
 
 describe("estilosHeader — estándar de headers", () => {
-  it("el título usa el tamaño estándar 18, bold, blanco y alineado a la izquierda", () => {
+  it("el título usa el tamaño estándar 18, bold y blanco", () => {
     expect(estilosHeader.titulo).toEqual(
       expect.objectContaining({
         fontSize: 18,
