@@ -1264,8 +1264,11 @@ describe("ClienteScreen — header y editar ubicación", () => {
     });
 
     await waitFor(() => expect(getByText("Información del cliente")).toBeTruthy());
-    // Header de la vista neutro (blanco), no por clasificación.
-    expect(getByTestId("header-cliente")).toHaveStyle({ backgroundColor: "#ffffff" });
+    // Header de la vista neutro sin color de clasificación; la banda azul la
+    // provee HeaderPantalla (contenedor), no la fila header-cliente.
+    expect(getByTestId("header-cliente")).not.toHaveStyle(
+      expect.objectContaining({ backgroundColor: expect.anything() }),
+    );
     // La tarjeta tiene su propio header con el nombre del cliente + Editar.
     expect(getByText(tarjeta.nombre)).toBeTruthy();
     expect(getByTestId("btn-editar-cliente")).toBeTruthy();

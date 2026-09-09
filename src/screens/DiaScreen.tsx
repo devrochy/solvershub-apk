@@ -18,6 +18,7 @@ import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { colorDeEstado } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
+import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { TrayectosLista } from "../components/TrayectosLista";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
@@ -365,20 +366,22 @@ export function DiaScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
-      <View style={styles.header} testID="header-dia">
-        <Text style={styles.headerTitulo}>Cobros del día</Text>
-        <Pressable
-          testID="nuevo-gasto"
-          style={styles.botonGastos}
-          onPress={() => {
-            setGastoAbierto(true);
-            setGastoMensaje(null);
-          }}
-        >
-          <Text style={styles.botonGastosTexto}>+ Gastos</Text>
-        </Pressable>
-      </View>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <HeaderPantalla>
+        <View style={estilosHeader.fila} testID="header-dia">
+          <Text style={estilosHeader.titulo}>Cobros del día</Text>
+          <Pressable
+            testID="nuevo-gasto"
+            style={estilosHeader.accionPill}
+            onPress={() => {
+              setGastoAbierto(true);
+              setGastoMensaje(null);
+            }}
+          >
+            <Text style={estilosHeader.accionPillTexto}>+ Gastos</Text>
+          </Pressable>
+        </View>
+      </HeaderPantalla>
       <FlatList
         data={clientes}
         keyExtractor={(cliente) => String(cliente.clienteId)}
@@ -754,29 +757,12 @@ export function DiaScreen() {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-    boxShadow: "0 1px 2px rgba(15, 23, 42, 0.06)",
-  },
-  botonGastos: {
-    backgroundColor: "#2563eb",
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  botonGastosTexto: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
-  headerTitulo: { fontSize: 20, fontWeight: "700", color: "#0f172a" },
   lista: { padding: 16, gap: 12 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24, fontSize: 14 },
   acciones: { marginBottom: 8, gap: 10 },
   avisoOffline: { color: "#d97706", fontWeight: "600", fontSize: 13 },
   botonPrimario: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 12,
     borderCurve: "continuous",
     paddingVertical: 13,
@@ -802,7 +788,7 @@ const styles = StyleSheet.create({
   },
   botonTrayectosTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   botonLiquidacion: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 12,
     borderCurve: "continuous",
     paddingVertical: 13,
@@ -894,7 +880,7 @@ const styles = StyleSheet.create({
   },
   gatingTexto: { color: "#92400e", fontSize: 13, fontWeight: "600" },
   tarjetaBloqueada: { opacity: 0.5 },
-  deshabilitado: { backgroundColor: "#93c5fd" },
+  deshabilitado: { backgroundColor: "#6b8ab5" },
   tarjeta: {
     flexDirection: "row",
     alignItems: "stretch",

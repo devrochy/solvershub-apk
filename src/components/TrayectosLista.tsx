@@ -27,7 +27,7 @@ export function TrayectosLista({ clientes, trayectos, onCerrar }: TrayectosLista
     <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.header}>
         <Pressable testID="back-trayectos" style={styles.back} onPress={onCerrar}>
-          <MaterialIcons name="arrow-back" size={22} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={22} color="#172f6c" />
         </Pressable>
         <View style={styles.titulos}>
           <Text style={styles.titulo}>Trayectos del día</Text>
@@ -85,16 +85,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
     backgroundColor: "#ffffff",
   },
   back: { width: 32, alignItems: "flex-start" },
   titulos: { flex: 1 },
-  titulo: { fontSize: 16, fontWeight: "700" },
-  detalle: { color: "#64748b", fontSize: 13, marginTop: 2 },
+  titulo: { fontSize: 18, fontWeight: "700", fontFamily: "Roboto_700Bold" },
+  detalle: { color: "#64748b", fontSize: 13, marginTop: 2, fontFamily: "Roboto_400Regular" },
   scroll: { padding: 16, gap: 12 },
   trayecto: {
     backgroundColor: "#ffffff",

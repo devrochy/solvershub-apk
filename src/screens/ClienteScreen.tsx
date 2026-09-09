@@ -18,6 +18,7 @@ import { shareAsync } from "expo-sharing";
 import * as Location from "expo-location";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
+import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge, colorDeEstado } from "../components/ColorBadge";
@@ -84,7 +85,7 @@ const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
 
 const COLORES_CANVAS: Record<TipoCuotaCanvas, { fondo: string; borde: string }> = {
   pagada: { fondo: "#dcfce7", borde: "#16a34a" },
-  actual: { fondo: "#dbeafe", borde: "#2563eb" },
+  actual: { fondo: "#dbeafe", borde: "#172f6c" },
   en_mora: { fondo: "#fee2e2", borde: "#dc2626" },
   futura: { fondo: "#f1f5f9", borde: "#cbd5e1" },
   abonada: { fondo: "#fef9c3", borde: "#d97706" },
@@ -872,21 +873,21 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   return (
     <>
-      <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header neutro de la vista: back + título, sin Editar (N5) */}
-        <View testID="header-cliente" style={styles.header}>
-          {onCerrar ? (
-            <Pressable testID="btn-back-cliente" style={styles.headerAccionIzq} onPress={onCerrar}>
-              <MaterialIcons name="arrow-back" size={22} color="#334155" />
-            </Pressable>
-          ) : (
-            <View style={styles.headerAccionIzq} />
-          )}
-          <Text style={styles.headerTitulo}>Información del cliente</Text>
-          <View style={styles.headerAccionDerecha} />
-        </View>
-
+      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+        <HeaderPantalla>
+          <View testID="header-cliente" style={estilosHeader.fila}>
+            {onCerrar ? (
+              <Pressable testID="btn-back-cliente" style={estilosHeader.columnaIzq} onPress={onCerrar}>
+                <MaterialIcons name="arrow-back" size={22} color="#ffffff" />
+              </Pressable>
+            ) : (
+              <View style={estilosHeader.columnaIzq} />
+            )}
+            <Text style={estilosHeader.titulo}>Información del cliente</Text>
+            <View style={estilosHeader.columnaDerecha} />
+          </View>
+        </HeaderPantalla>
+        <ScrollView contentContainerStyle={styles.scroll}>
         {mensaje && modal === "ninguno" ? (
           <View testID="banner-mensaje" style={styles.banner}>
             <Text style={styles.bannerTexto}>{mensaje}</Text>
@@ -1037,7 +1038,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 style={styles.editarUbicacion}
                 onPress={abrirEditarUbicacion}
               >
-                <MaterialIcons name="edit-location" size={16} color="#2563eb" />
+                <MaterialIcons name="edit-location" size={16} color="#172f6c" />
                 <Text style={styles.editarUbicacionTexto}>Editar ubicación</Text>
               </Pressable>
             </View>
@@ -1071,7 +1072,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {/* Notificación de próximo cobro */}
         {proximoCobro.total > 0 ? (
           <View testID="notif-proximo-cobro" style={styles.notificacion}>
-            <MaterialIcons name="notifications-active" size={20} color="#2563eb" />
+            <MaterialIcons name="notifications-active" size={20} color="#172f6c" />
             <View style={styles.notificacionContenido}>
               <Text style={styles.notificacionTitulo}>Próximo cobro</Text>
               <Text style={styles.notificacionDetalle}>
@@ -1497,7 +1498,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           disabled={evidenciasEnviando || evidenciasCliente.cargando}
           onPress={() => void elegirEvidencia("foto_facial", "libreria")}
         >
-          <MaterialIcons name="photo-library" size={16} color="#2563eb" />
+          <MaterialIcons name="photo-library" size={16} color="#172f6c" />
           <Text style={styles.botonEvidenciaTexto}>Cargar desde librería</Text>
         </Pressable>
         <Pressable
@@ -1506,7 +1507,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           disabled={evidenciasEnviando || evidenciasCliente.cargando}
           onPress={() => void elegirEvidencia("foto_facial", "camara")}
         >
-          <MaterialIcons name="photo-camera" size={16} color="#2563eb" />
+          <MaterialIcons name="photo-camera" size={16} color="#172f6c" />
           <Text style={styles.botonEvidenciaTexto}>Tomar foto con cámara</Text>
         </Pressable>
         {evidenciasCliente.cargando || evidenciasEnviando ? (
@@ -1591,7 +1592,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             )
           }
         >
-          <MaterialIcons name="photo-library" size={16} color="#2563eb" />
+          <MaterialIcons name="photo-library" size={16} color="#172f6c" />
           <Text style={styles.botonEvidenciaTexto}>Cargar desde librería</Text>
         </Pressable>
         <Pressable
@@ -1605,7 +1606,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             )
           }
         >
-          <MaterialIcons name="photo-camera" size={16} color="#2563eb" />
+          <MaterialIcons name="photo-camera" size={16} color="#172f6c" />
           <Text style={styles.botonEvidenciaTexto}>Tomar foto con cámara</Text>
         </Pressable>
         {evidenciasCliente.cargando || evidenciasEnviando ? (
@@ -1952,36 +1953,6 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
   scroll: { padding: 16, gap: 12 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-  },
-  headerAccionIzq: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    width: 72,
-  },
-  headerAccionDerecha: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    width: 72,
-    justifyContent: "flex-end",
-  },
-  headerTitulo: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#334155",
-    textAlign: "center",
-  },
   tarjetaHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -2117,7 +2088,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  editarUbicacionTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
+  editarUbicacionTexto: { color: "#172f6c", fontWeight: "600", fontSize: 13 },
   seccionMapa: { gap: 8 },
   navegacion: { flexDirection: "row", gap: 10 },
   botonNavegar: {
@@ -2165,7 +2136,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
   },
-  botonNuevoTexto: { color: "#2563eb", fontSize: 14, fontWeight: "600" },
+  botonNuevoTexto: { color: "#172f6c", fontSize: 14, fontWeight: "600" },
   seccionTitulo: { fontSize: 15, fontWeight: "700", color: "#334155" },
   sinPrestamos: { color: "#64748b", fontSize: 13, marginTop: 10 },
   prestamoItem: {
@@ -2234,7 +2205,7 @@ const styles = StyleSheet.create({
   cuadroValor: { fontSize: 11, color: "#475569", fontWeight: "600" },
   cuadroFecha: { fontSize: 9, color: "#64748b" },
   cuadroAbono: { fontSize: 9, color: "#16a34a", fontWeight: "600" },
-  cuadroSaldo: { fontSize: 9, color: "#2563eb", fontWeight: "600" },
+  cuadroSaldo: { fontSize: 9, color: "#172f6c", fontWeight: "600" },
   cuadroEtiqueta: {
     borderWidth: 1,
     borderRadius: 999,
@@ -2286,7 +2257,7 @@ const styles = StyleSheet.create({
     width: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 8,
   },
   notaUbicacion: { color: "#64748b", fontSize: 12, marginTop: 4 },
@@ -2298,7 +2269,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+  chipActivo: { backgroundColor: "#172f6c", borderColor: "#172f6c" },
   chipTexto: { color: "#334155", fontSize: 13 },
   chipTextoActivo: { color: "#ffffff", fontSize: 13 },
   promesaNota: { color: "#64748b", fontSize: 13 },
@@ -2323,11 +2294,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: "#2563eb",
+    borderColor: "#172f6c",
     borderRadius: 10,
     paddingVertical: 10,
   },
-  botonEvidenciaTexto: { color: "#2563eb", fontWeight: "600" },
+  botonEvidenciaTexto: { color: "#172f6c", fontWeight: "600" },
   cuotaResumen: {
     backgroundColor: "#f8fafc",
     borderRadius: 10,
@@ -2389,7 +2360,7 @@ const styles = StyleSheet.create({
   botonCancelarLineaTexto: { color: "#475569", fontWeight: "600" },
   botonConfirmarLinea: {
     flex: 1,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: "center",

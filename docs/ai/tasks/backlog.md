@@ -80,3 +80,11 @@
   blanco tienen ~3:1 de contraste (< 4.5:1 WCAG AA). Conviene oscurecer a
   `#0e7490` (cyan-700, ~4.9:1) de forma repo-wide (theme), no por pantalla.
 - Prioridad sugerida: baja
+
+## TrayectosLista replico estilos del estándar sin componer estilosHeader
+- Detectado en: code-review apk-headers-estandar (2026-09-09)
+- Descripción: el header del modal TrayectosLista mantiene estilos locales que
+  replican padding 16/12, gap 8 y título 18 del canon `estilosHeader`, con
+  overrides de color (fondo blanco). Coherente con la decisión de overlay, pero
+  expuesto a drift si cambia el estándar.
+- Prioridad sugerida: baja

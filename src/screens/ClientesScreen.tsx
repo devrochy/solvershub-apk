@@ -19,6 +19,7 @@ import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { fondoDeEstado } from "../components/ColorBadge";
+import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
 import {
@@ -314,20 +315,22 @@ export function ClientesScreen() {
     `${c.nombre} ${c.apellido}`.trim();
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
-      <View style={styles.header}>
-        <View style={styles.headerInfo}>
-          <Text style={styles.headerTitulo}>{rutaActiva.rutaNombre}</Text>
-          <Text style={styles.headerDetalle}>{clientes.length} clientes</Text>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <HeaderPantalla>
+        <View style={estilosHeader.fila}>
+          <View style={estilosHeader.bloqueTitulo}>
+            <Text style={estilosHeader.titulo}>{rutaActiva.rutaNombre}</Text>
+            <Text style={estilosHeader.subtitulo}>{clientes.length} clientes</Text>
+          </View>
+          <Pressable
+            testID="btn-nuevo-cliente"
+            style={estilosHeader.accionPill}
+            onPress={abrirNuevoCliente}
+          >
+            <Text style={estilosHeader.accionPillTexto}>+ Cliente</Text>
+          </Pressable>
         </View>
-        <Pressable
-          testID="btn-nuevo-cliente"
-          style={styles.botonNuevo}
-          onPress={abrirNuevoCliente}
-        >
-          <Text style={styles.botonNuevoTexto}>+ Cliente</Text>
-        </Pressable>
-      </View>
+      </HeaderPantalla>
       <FlatList
         data={clientes}
         keyExtractor={(c) => String(c.id)}
@@ -426,7 +429,7 @@ export function ClientesScreen() {
                     disabled={evidenciasCliente.cargando}
                     onPress={() => abrirFuente("documento_frente")}
                   >
-                    <MaterialIcons name="badge" size={16} color="#2563eb" />
+                    <MaterialIcons name="badge" size={16} color="#172f6c" />
                     <Text style={styles.botonDocTexto}>
                       {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
                         ? "Frente ✓"
@@ -439,7 +442,7 @@ export function ClientesScreen() {
                     disabled={evidenciasCliente.cargando}
                     onPress={() => abrirFuente("documento_reverso")}
                   >
-                    <MaterialIcons name="badge" size={16} color="#2563eb" />
+                    <MaterialIcons name="badge" size={16} color="#172f6c" />
                     <Text style={styles.botonDocTexto}>
                       {evidenciasCliente.evidencias.find((e) => e.campo === "documento_reverso")
                         ? "Reverso ✓"
@@ -450,7 +453,7 @@ export function ClientesScreen() {
               </View>
             </View>
             {evidenciasCliente.cargando ? (
-              <ActivityIndicator color="#2563eb" />
+              <ActivityIndicator color="#172f6c" />
             ) : null}
 
             <Text style={styles.label}>Nombre</Text>
@@ -509,7 +512,7 @@ export function ClientesScreen() {
             </View>
             {ubicandoGps ? (
               <Text style={styles.gpsTexto}>
-                <ActivityIndicator size="small" color="#2563eb" /> Ubicando por GPS…
+                <ActivityIndicator size="small" color="#172f6c" /> Ubicando por GPS…
               </Text>
             ) : null}
             <MapaPin
@@ -576,7 +579,7 @@ export function ClientesScreen() {
           disabled={evidenciasCliente.cargando}
           onPress={() => elegirEvidencia(fuenteCampo, "libreria")}
         >
-          <MaterialIcons name="photo-library" size={20} color="#2563eb" />
+          <MaterialIcons name="photo-library" size={20} color="#172f6c" />
           <Text style={styles.botonFuenteModalTexto}>Elegir de la galería</Text>
         </Pressable>
         <Pressable
@@ -585,10 +588,10 @@ export function ClientesScreen() {
           disabled={evidenciasCliente.cargando}
           onPress={() => elegirEvidencia(fuenteCampo, "camara")}
         >
-          <MaterialIcons name="photo-camera" size={20} color="#2563eb" />
+          <MaterialIcons name="photo-camera" size={20} color="#172f6c" />
           <Text style={styles.botonFuenteModalTexto}>Tomar foto</Text>
         </Pressable>
-        {evidenciasCliente.cargando ? <ActivityIndicator color="#2563eb" /> : null}
+        {evidenciasCliente.cargando ? <ActivityIndicator color="#172f6c" /> : null}
         {evidenciasCliente.error ? (
           <Text style={styles.mensajeError}>{evidenciasCliente.error}</Text>
         ) : null}
@@ -599,20 +602,6 @@ export function ClientesScreen() {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
-  },
-  botonNuevo: { flexDirection: "row", alignItems: "center", gap: 2 },
-  botonNuevoTexto: { color: "#2563eb", fontWeight: "700", fontSize: 14 },
-  headerInfo: { flex: 1 },
-  headerTitulo: { fontSize: 18, fontWeight: "700", color: "#334155" },
-  headerDetalle: { color: "#64748b", fontSize: 13 },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   tarjeta: {
@@ -644,7 +633,7 @@ const styles = StyleSheet.create({
   filaSuperior: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   avatarEditable: { alignItems: "center", gap: 4 },
   avatarImagen: { width: 72, height: 72, borderRadius: 36 },
-  avatarEtiqueta: { fontSize: 12, color: "#2563eb", fontWeight: "600" },
+  avatarEtiqueta: { fontSize: 12, color: "#172f6c", fontWeight: "600" },
   documentoNuevo: { flex: 1, gap: 6 },
   documentoNuevoTitulo: { fontSize: 13, color: "#475569", fontWeight: "600" },
   documentoNuevoFilas: { flexDirection: "row", gap: 8 },
@@ -655,11 +644,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 4,
     borderWidth: 1,
-    borderColor: "#2563eb",
+    borderColor: "#172f6c",
     borderRadius: 8,
     paddingVertical: 8,
   },
-  botonDocTexto: { color: "#2563eb", fontWeight: "600", fontSize: 13 },
+  botonDocTexto: { color: "#172f6c", fontWeight: "600", fontSize: 13 },
   botonFuenteModal: {
     flexDirection: "row",
     alignItems: "center",
@@ -671,14 +660,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: "#eff6ff",
   },
-  botonFuenteModalTexto: { color: "#2563eb", fontWeight: "600", fontSize: 15 },
+  botonFuenteModalTexto: { color: "#172f6c", fontWeight: "600", fontSize: 15 },
   filaBusqueda: { flexDirection: "row", gap: 8 },
   inputBusqueda: { flex: 1 },
   botonBuscar: {
     width: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2563eb",
+    backgroundColor: "#172f6c",
     borderRadius: 8,
   },
   gpsTexto: { color: "#64748b", fontSize: 12, flexDirection: "row", alignItems: "center", gap: 6 },
