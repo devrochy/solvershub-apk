@@ -4,8 +4,8 @@ import {
   Roboto_600SemiBold,
   Roboto_700Bold,
 } from "@expo-google-fonts/roboto";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { createNativeStackNavigator, type NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
@@ -27,25 +27,32 @@ import { SessionProvider, useSession } from "./src/session/session-context";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+function useNavegacionSeleccionRuta() {
+  return useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+}
+
 function ContenidoRuta() {
+  const navigation = useNavegacionSeleccionRuta();
   return (
-    <ContenidoTab>
+    <ContenidoTab onCerrar={() => navigation.navigate("SeleccionRuta")}>
       <RutaDetalleScreen />
     </ContenidoTab>
   );
 }
 
 function ContenidoDia() {
+  const navigation = useNavegacionSeleccionRuta();
   return (
-    <ContenidoTab>
+    <ContenidoTab onCerrar={() => navigation.navigate("SeleccionRuta")}>
       <DiaScreen />
     </ContenidoTab>
   );
 }
 
 function ContenidoClientes() {
+  const navigation = useNavegacionSeleccionRuta();
   return (
-    <ContenidoTab>
+    <ContenidoTab onCerrar={() => navigation.navigate("SeleccionRuta")}>
       <ClientesScreen />
     </ContenidoTab>
   );

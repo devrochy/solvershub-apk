@@ -177,13 +177,12 @@ describe("RutaDetalleScreen", () => {
     ).toBeTruthy();
   });
 
-  it("el botón back llama a onCerrar", async () => {
+  it("NO muestra botón back (la navegación atrás es por gesto swipe)", async () => {
     const onCerrar = jest.fn();
-    const { getByTestId } = await renderDetalle(apiBase(), onCerrar);
+    const { getByText, queryByTestId } = await renderDetalle(apiBase(), onCerrar);
 
-    await waitFor(() => expect(getByTestId("btn-back-ruta")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-back-ruta"));
-    expect(onCerrar).toHaveBeenCalled();
+    await waitFor(() => expect(getByText("Ruta Centro")).toBeTruthy());
+    expect(queryByTestId("btn-back-ruta")).toBeNull();
   });
 
   it("NO muestra 'No se pudo guardar la nota' si la nota se creó pero el re-fetch falla", async () => {
@@ -232,6 +231,6 @@ describe("RutaDetalleScreen", () => {
     expect(
       getByText("Selecciona una ruta para ver su información."),
     ).toBeTruthy();
-    expect(getByTestId("btn-ir-seleccion")).toBeTruthy();
+expect(getByTestId("btn-ir-seleccion")).toBeTruthy();
   });
 });

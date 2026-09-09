@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  BackHandler,
   FlatList,
   Modal,
   Pressable,
@@ -29,6 +30,7 @@ import {
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import { usePosicion } from "../features/trayectoria/use-posicion";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
+import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
@@ -69,6 +71,19 @@ export function DiaScreen() {
   const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
   const [trayectosAbierto, setTrayectosAbierto] = useState(false);
+
+  // El overlay de trayectos se cierra con el back físico de Android; el swipe
+  // de izquierda a derecha lo gestiona el contenedor (VentanaCerrarConSwipe).
+  useEffect(() => {
+    if (!trayectosAbierto) {
+      return undefined;
+    }
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      setTrayectosAbierto(false);
+      return true;
+    });
+    return () => sub.remove();
+  }, [trayectosAbierto]);
 
   // Liquidación del día.
   const [liquidacionAbierta, setLiquidacionAbierta] = useState(false);
@@ -369,7 +384,14 @@ export function DiaScreen() {
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
       <HeaderPantalla>
         <View style={estilosHeader.fila} testID="header-dia">
-          <Text style={estilosHeader.titulo}>Cobros del día</Text>
+          <View style={estilosHeader.bloqueTitulo}>
+            <Text style={estilosHeader.titulo}>Cobros del día</Text>
+            {clientes ? (
+              <Text style={estilosHeader.subtitulo}>
+                {clientes.length} cliente{clientes.length === 1 ? "" : "s"}
+              </Text>
+            ) : null}
+          </View>
           <Pressable
             testID="nuevo-gasto"
             style={estilosHeader.accionPill}
@@ -599,13 +621,13 @@ export function DiaScreen() {
       </ModalConFooter>
 
       {trayectosAbierto && trayectos ? (
-        <View style={styles.trayectosOverlay}>
-          <TrayectosLista
-            clientes={clientes}
-            trayectos={trayectos}
-            onCerrar={() => setTrayectosAbierto(false)}
-          />
-        </View>
+        <VentanaCerrarConSwipe
+          testID="trayectos-overlay"
+          style={styles.trayectosOverlay}
+          onCerrar={() => setTrayectosAbierto(false)}
+        >
+          <TrayectosLista clientes={clientes} trayectos={trayectos} />
+        </VentanaCerrarConSwipe>
       ) : null}
 
       {/* Modal a pantalla completa: liquidación del día */}

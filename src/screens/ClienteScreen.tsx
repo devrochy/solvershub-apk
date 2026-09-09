@@ -69,7 +69,6 @@ export interface ClienteScreenDirectProps {
   latitudDomicilio?: number;
   longitudDomicilio?: number;
   prestamoAutoSeleccionado?: boolean;
-  onCerrar?(): void;
 }
 
 type ModalActivo =
@@ -116,7 +115,6 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const params =
     "route" in props ? props.route.params : (props as ClienteScreenDirectProps);
   const { rutaId, clienteId, latitud, longitud, latitudDomicilio, longitudDomicilio, prestamoAutoSeleccionado } = params;
-  const onCerrar = "onCerrar" in props ? props.onCerrar : undefined;
   const { api, logout } = useSession();
   const offline = useOffline();
   const { rutaActiva } = useRutaActiva();
@@ -876,13 +874,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
         <HeaderPantalla>
           <View testID="header-cliente" style={estilosHeader.fila}>
-            {onCerrar ? (
-              <Pressable testID="btn-back-cliente" style={estilosHeader.columnaIzq} onPress={onCerrar}>
-                <MaterialIcons name="arrow-back" size={22} color="#ffffff" />
-              </Pressable>
-            ) : (
-              <View style={estilosHeader.columnaIzq} />
-            )}
+            <View style={estilosHeader.columnaIzq} />
             <Text style={estilosHeader.titulo}>Información del cliente</Text>
             <View style={estilosHeader.columnaDerecha} />
           </View>

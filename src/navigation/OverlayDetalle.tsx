@@ -1,7 +1,8 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { ClienteScreen } from "../screens/ClienteScreen";
 import { RutaDetalleScreen } from "../screens/RutaDetalleScreen";
 import type { PantallaActiva } from "./pantalla-activa-context";
+import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
 
 export interface OverlayDetalleProps {
   pantalla?: PantallaActiva | null;
@@ -12,7 +13,13 @@ export interface OverlayDetalleProps {
  * B1: renderiza la pantalla de detalle (cliente/préstamo/ruta) como una capa
  * sobre el contenido del tab. Vive dentro de cada screen del Tab, así que el
  * CustomTabBar (que se renderiza fuera del área de contenido) queda siempre
- * visible. El propio screen de detalle muestra su header con el back.
+ * visible.
+ *
+ * La capa se cierra deslizando de izquierda a derecha: al superar el umbral se
+ * anima la salida (translateX hacia fuera de pantalla) revelando el tab que hay
+ * debajo, y al completar se llama `onCerrar`. El back físico de Android lo
+ * gestiona ContenidoTab (cierra la pantalla activa antes que la app), por eso
+ * el detalle ya no muestra su propio botón atrás.
  */
 export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
   if (!pantalla) {
@@ -22,7 +29,7 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
   switch (pantalla.tipo) {
     case "cliente":
       return (
-        <View style={styles.capa}>
+        <VentanaCerrarConSwipe testID="overlay-detalle" style={styles.capa} onCerrar={onCerrar}>
           <ClienteScreen
             rutaId={pantalla.rutaId}
             clienteId={pantalla.clienteId}
@@ -32,19 +39,18 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
             latitudDomicilio={pantalla.latitudDomicilio}
             longitudDomicilio={pantalla.longitudDomicilio}
             prestamoAutoSeleccionado={pantalla.prestamoAutoSeleccionado}
-            onCerrar={onCerrar}
           />
-        </View>
+        </VentanaCerrarConSwipe>
       );
     case "ruta":
       return (
-        <View style={styles.capa}>
+        <VentanaCerrarConSwipe testID="overlay-detalle" style={styles.capa} onCerrar={onCerrar}>
           <RutaDetalleScreen
             rutaId={pantalla.rutaId}
             rutaNombre={pantalla.rutaNombre}
             onCerrar={onCerrar}
           />
-        </View>
+        </VentanaCerrarConSwipe>
       );
     // "prestamo" no tiene vista propia en el overlay (código muerto hoy: nadie
     // abre {tipo:"prestamo"}). Se devuelve null sin llamar onCerrar para no
