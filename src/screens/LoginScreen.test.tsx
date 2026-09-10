@@ -10,6 +10,7 @@ async function renderConSesion(login: jest.Mock) {
     api: {} as SessionValue["api"],
     login: login as SessionValue["login"],
     logout: jest.fn(),
+    actualizarPerfil: jest.fn(),
   };
   return render(
     <SessionContext.Provider value={valor}>

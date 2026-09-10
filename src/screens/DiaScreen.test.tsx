@@ -126,6 +126,7 @@ async function renderConApi(
     } as SessionValue["api"],
     login: jest.fn(),
     logout: jest.fn(),
+    actualizarPerfil: jest.fn(),
   };
   return render(
     <PantallaActivaProvider>
@@ -647,6 +648,7 @@ describe("DiaScreen — cobros del día", () => {
       } as unknown as SessionValue["api"],
       login: jest.fn(),
       logout: jest.fn(),
+      actualizarPerfil: jest.fn(),
     };
     const { getByTestId } = await render(
       <PantallaActivaProvider>
@@ -698,6 +700,7 @@ describe("DiaScreen — sin ruta activa", () => {
       api: { dia, registrarApertura } as unknown as SessionValue["api"],
       login: jest.fn(),
       logout: jest.fn(),
+      actualizarPerfil: jest.fn(),
     };
     await render(
       <PantallaActivaProvider>

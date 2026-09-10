@@ -11,7 +11,8 @@ import { useFonts } from "expo-font";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import type { RootStackParamList } from "./src/navigation/types";
-import { InicioCobrador } from "./src/navigation/InicioCobrador";
+import { MainTabsNavigator } from "./src/navigation/MainTabsNavigator";
+import { RutaFlujo } from "./src/navigation/RutaFlujo";
 import { PantallaActivaProvider } from "./src/navigation/pantalla-activa-context";
 import { TrayectosOverlayProvider } from "./src/navigation/trayectos-overlay-context";
 import { OfflineProvider } from "./src/offline/offline-context";
@@ -37,7 +38,10 @@ function RootNavigator() {
       <TrayectosOverlayProvider>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {cobrador ? (
-            <Stack.Screen name="SeleccionRuta" component={InicioCobrador} />
+            <>
+              <Stack.Screen name="Main" component={MainTabsNavigator} />
+              <Stack.Screen name="Ruta" component={RutaFlujo} />
+            </>
           ) : (
             <Stack.Screen name="Login" component={LoginScreen} />
           )}

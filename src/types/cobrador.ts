@@ -7,6 +7,13 @@ export type GastoEstado = "activo" | "eliminado";
 export type TipoTrayecto = "planificada" | "real";
 export type VisitaResultado = "pago" | "no_pago";
 
+export interface PerfilPublic {
+  id: number;
+  usuario: string;
+  nombre: string;
+  apellido: string;
+}
+
 export interface CobradorPermisoEstado {
   permiso: CobradorPermisoNombre;
   habilitado: boolean;

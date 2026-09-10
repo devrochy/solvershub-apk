@@ -63,7 +63,7 @@ export function RutaDetalleScreen({
 
   const rutaId = rutaIdProp ?? rutaActiva?.rutaId ?? 0;
   const rutaNombre = rutaNombreProp ?? rutaActiva?.rutaNombre ?? "";
-  const cerrar = onCerrar ?? (() => navigation.navigate("SeleccionRuta"));
+  const cerrar = onCerrar ?? (() => navigation.navigate("Main"));
 
   const [clientes, setClientes] = useState<ClienteCobradorPublic[] | null>(null);
   const [dia, setDia] = useState<DiaApkPublic | null>(null);
