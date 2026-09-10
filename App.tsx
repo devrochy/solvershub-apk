@@ -76,7 +76,7 @@ function RootContent() {
   const { cobrador } = useSession();
   return (
     <PantallaActivaProvider resetKey={cobrador?.id ?? null}>
-      <StatusBar style={cobrador ? "light" : "dark"} />
+      <StatusBar style="light" />
       <RootNavigator />
     </PantallaActivaProvider>
   );

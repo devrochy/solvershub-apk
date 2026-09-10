@@ -51,11 +51,13 @@ export function LoginScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.form}>
-          <Image
-            source={require("../../assets/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <View style={styles.logoMarco}>
+            <Image
+              source={require("../../assets/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
 
           <View style={styles.roles}>
             <Pressable
@@ -82,6 +84,7 @@ export function LoginScreen() {
             testID="usuario-input"
             style={styles.input}
             placeholder="Usuario"
+            placeholderTextColor="#94a3b8"
             autoCapitalize="none"
             autoCorrect={false}
             value={usuario}
@@ -91,6 +94,7 @@ export function LoginScreen() {
             testID="password-input"
             style={styles.input}
             placeholder="Contraseña"
+            placeholderTextColor="#94a3b8"
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -110,7 +114,7 @@ export function LoginScreen() {
             onPress={handleSubmit}
           >
             {submitting ? (
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color="#172f6c" />
             ) : (
               <Text style={styles.botonTexto}>Entrar</Text>
             )}
@@ -124,13 +128,19 @@ export function LoginScreen() {
 const styles = StyleSheet.create({
   contenedor: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#172f6c",
+  },
+  logoMarco: {
+    alignSelf: "center",
+    marginBottom: 20,
+    borderRadius: 24,
+    borderCurve: "continuous",
+    overflow: "hidden",
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.35)",
   },
   logo: {
     width: 140,
     height: 140,
-    alignSelf: "center",
-    marginBottom: 20,
   },
   formFlex: {
     flex: 1,
@@ -144,38 +154,40 @@ const styles = StyleSheet.create({
   rol: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: "rgba(255, 255, 255, 0.6)",
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: "center",
   },
-  rolActivo: { backgroundColor: "#172f6c", borderColor: "#172f6c" },
-  rolTexto: { color: "#334155", fontWeight: "600" },
-  rolTextoActivo: { color: "#ffffff", fontWeight: "600" },
+  rolActivo: { backgroundColor: "#ffffff", borderColor: "#ffffff" },
+  rolTexto: { color: "#ffffff", fontWeight: "600" },
+  rolTextoActivo: { color: "#172f6c", fontWeight: "600" },
   input: {
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: "#dbeafe",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,
+    color: "#334155",
   },
   error: {
-    color: "#dc2626",
+    color: "#fecaca",
     fontSize: 14,
   },
   boton: {
-    backgroundColor: "#172f6c",
+    backgroundColor: "#f7f4ec",
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
   },
   botonDeshabilitado: {
-    backgroundColor: "#6b8ab5",
+    backgroundColor: "rgba(247, 244, 236, 0.45)",
   },
   botonTexto: {
-    color: "#ffffff",
+    color: "#172f6c",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });
