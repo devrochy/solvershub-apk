@@ -84,7 +84,7 @@ export function CampoTelefono({
             <View style={styles.header}>
               <Text style={styles.headerTitulo}>Selecciona el país</Text>
               <Pressable testID={`${testID}-cerrar-lista`} onPress={() => setListaAbierta(false)}>
-                <MaterialIcons name="close" size={22} color="#475569" />
+                <MaterialIcons name="close" size={22} color="#ffffff" />
               </Pressable>
             </View>
             <FlatList
@@ -137,13 +137,14 @@ const styles = StyleSheet.create({
   },
   fondo: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    backgroundColor: "rgba(23, 47, 108, 0.25)",
     justifyContent: "flex-end",
   },
   carta: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f5f7ff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    overflow: "hidden",
     maxHeight: "70%",
     paddingBottom: 24,
   },
@@ -153,10 +154,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    backgroundColor: "#172f6c",
   },
-  headerTitulo: { fontSize: 16, fontWeight: "700", color: "#334155" },
+  headerTitulo: { fontSize: 16, fontWeight: "700", color: "#ffffff" },
   filaPais: {
     flexDirection: "row",
     alignItems: "center",

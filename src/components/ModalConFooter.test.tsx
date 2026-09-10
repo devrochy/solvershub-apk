@@ -103,4 +103,22 @@ describe("ModalConFooter", () => {
     // En la fila del header, la X está a la derecha (botón con flex-end).
     expect(cerrar).toHaveStyle({ alignItems: "flex-end" });
   });
+
+  it("usa el azul principal en el header y muestra el subtítulo", async () => {
+    const { getByTestId, getByText } = await render(
+      <ModalConFooter
+        visible
+        titulo="Nuevo préstamo"
+        subtitulo="Completa los datos"
+        onCerrar={jest.fn()}
+      >
+        <Text>Cuerpo</Text>
+      </ModalConFooter>,
+    );
+
+    expect(getByTestId("modal-header")).toHaveStyle({
+      backgroundColor: "#172f6c",
+    });
+    expect(getByText("Completa los datos")).toBeTruthy();
+  });
 });

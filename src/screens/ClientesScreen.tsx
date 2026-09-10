@@ -18,6 +18,7 @@ import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
+import { CampoModal } from "../components/CampoModal";
 import { fondoDeEstado } from "../components/ColorBadge";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { MapaPin } from "../components/MapaPin";
@@ -456,26 +457,23 @@ export function ClientesScreen() {
               <ActivityIndicator color="#172f6c" />
             ) : null}
 
-            <Text style={styles.label}>Nombre</Text>
-            <TextInput
+            <CampoModal
               testID="cliente-nombre"
-              style={styles.input}
+              label="Nombre"
               placeholder="Nombre"
               value={nombre}
               onChangeText={setNombre}
             />
-            <Text style={styles.label}>Apellido</Text>
-            <TextInput
+            <CampoModal
               testID="cliente-apellido"
-              style={styles.input}
+              label="Apellido"
               placeholder="Apellido"
               value={apellido}
               onChangeText={setApellido}
             />
-            <Text style={styles.label}>Negocio (opcional)</Text>
-            <TextInput
+            <CampoModal
               testID="cliente-negocio"
-              style={styles.input}
+              label="Negocio (opcional)"
               placeholder="Negocio"
               value={negocio}
               onChangeText={setNegocio}
@@ -542,10 +540,9 @@ export function ClientesScreen() {
                 onChangeText={setLongitud}
               />
             </View>
-            <Text style={styles.label}>Tope máximo de deuda (opcional)</Text>
-            <TextInput
+            <CampoModal
               testID="cliente-tope"
-              style={styles.input}
+              label="Tope máximo de deuda (opcional)"
               placeholder="Tope de deuda"
               keyboardType="decimal-pad"
               value={tope}
@@ -619,14 +616,16 @@ const styles = StyleSheet.create({
   clienteDetalle: { color: "#64748b", fontSize: 13, marginTop: 2 },
   clienteTelefono: { color: "#475569", fontSize: 12, marginTop: 2 },
   form: { gap: 8, paddingBottom: 8 },
-  label: { fontSize: 13, color: "#475569", fontWeight: "600", marginTop: 2 },
+  label: { fontSize: 13, color: "#64748b", fontWeight: "600", marginTop: 2 },
   input: {
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
+    borderColor: "#dbeafe",
+    borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
+    color: "#334155",
   },
   filaCoordenadas: { flexDirection: "row", gap: 8 },
   inputCoordenada: { flex: 1 },

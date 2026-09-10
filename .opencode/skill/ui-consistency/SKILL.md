@@ -30,6 +30,22 @@ No inventar colores. Usar **solo** estos hex:
 | Texto título | `#334155` |
 | Texto sobre color | `#ffffff` |
 
+### Paleta pastel de modales (ModalConFooter / CampoModal)
+
+| Uso | Hex |
+|---|---|
+| Header de modal (azul principal) | `#172f6c` |
+| Texto/icono sobre header | `#ffffff` |
+| Subtítulo sobre header | `#d4dff0` |
+| Fondo del modal | `#f5f7ff` |
+| Fondo de campo | `#ffffff` |
+| Borde de campo | `#dbeafe` |
+| Fondo chip inactivo | `#eef2ff` |
+| Borde chip inactivo | `#c7d2fe` |
+| Botón confirmar | `#2563eb` |
+| Botón cancelar (fondo/texto) | `#eef2ff` / `#172f6c` |
+| Backdrop de modal | `rgba(23, 47, 108, 0.25)` |
+
 Colores semánticos de estado (para `ColorBadge`): `verde #16a34a`, `rojo #dc2626`, `azul #2563eb`, `blanco #94a3b8`.
 
 ## 3. Espaciado y radios (reglas)
@@ -53,6 +69,8 @@ Colores semánticos de estado (para `ColorBadge`): `verde #16a34a`, `rojo #dc262
 ## 5. Reutilizar componentes compartidos (NO reinventar)
 
 - **`ColorBadge`** (`src/components/ColorBadge.tsx`): única forma de pintar badges de estado con color. Props: `color` (clave semántica) y `label` opcional. No crear badges propios.
+- **`ModalConFooter`** (`src/components/ModalConFooter.tsx`): **modal estándar** con header azul principal, cuerpo y footer (Cancelar/Confirmar). Toda pantalla que abra un modal de formulario debe usar este componente (no crear modales propios con header blanco).
+- **`CampoModal`** (`src/components/CampoModal.tsx`): **campo estándar** de los modales (label + `TextInput` pastel). Usarlo para los campos de texto dentro de `ModalConFooter`; para widgets custom (chips, mapa, etc.) suavizar con la paleta pastel de modales.
 - **`CargaError`** (`src/components/CargaError.tsx`): estado de carga/error/reintentar de cualquier fetch. Props: `cargando`, `error`, `onReintentar`.
 - **`EvidenciaPicker`** (`src/components/EvidenciaPicker.tsx`): selección de evidencias (galería/cámara) para gastos.
 - Si un patrón visual se repite 2+ veces, **regístralo en `docs/ai/tasks/backlog.md`** (no lo refactorices en el mismo cambio) y proponlo como componente compartido.
