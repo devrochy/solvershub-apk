@@ -173,6 +173,7 @@ describe("ClientesScreen", () => {
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
     await fireEvent.changeText(getByTestId("cliente-negocio"), "Tienda");
     await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567");
     await fireEvent.changeText(getByTestId("cliente-tope"), "1500");
     await fireEvent.changeText(getByTestId("cliente-latitud"), "-17.79");
     await fireEvent.changeText(getByTestId("cliente-longitud"), "-63.19");
@@ -190,11 +191,64 @@ describe("ClientesScreen", () => {
           latitud: -17.79,
           longitud: -63.19,
           topeMaximoDeuda: 1500,
+          tipoDocumento: "ci",
+          numeroDocumento: "1234567",
         },
         [],
       ),
     );
     await waitFor(() => expect(getByText("Ana Ríos")).toBeTruthy());
+  });
+
+  it("bloquea el alta si el documento no es válido para el tipo", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const { getByTestId, getByText } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "ABC");
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    expect(
+      getByText("El número de documento no es válido para el tipo seleccionado."),
+    ).toBeTruthy();
+    expect(crearCliente).not.toHaveBeenCalled();
+  });
+
+  it("permite elegir el tipo de documento y lo envía al crear", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const { getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.press(getByTestId("cliente-doc-tipo-nit"));
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567890");
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    await waitFor(() =>
+      expect(crearCliente).toHaveBeenCalledWith(
+        6,
+        expect.objectContaining({
+          tipoDocumento: "nit",
+          numeroDocumento: "1234567890",
+        }),
+        expect.any(Array),
+      ),
+    );
   });
 
   it("el botón '+ Cliente' solo se muestra con ruta activa", async () => {
@@ -219,6 +273,7 @@ describe("ClientesScreen", () => {
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
     await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567");
     await fireEvent.changeText(getByTestId("cliente-latitud"), "");
     await fireEvent.changeText(getByTestId("cliente-longitud"), "");
 
@@ -241,6 +296,7 @@ describe("ClientesScreen", () => {
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
     await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567");
     await fireEvent.changeText(getByTestId("cliente-tope"), "-100");
 
     await fireEvent.press(getByTestId("cliente-guardar"));
@@ -302,6 +358,7 @@ describe("ClientesScreen", () => {
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
     await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567");
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     await waitFor(() => expect(getByTestId("cliente-creado-ok")).toBeTruthy());
@@ -383,6 +440,7 @@ describe("ClientesScreen", () => {
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
     await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567");
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     expect(crearCliente).not.toHaveBeenCalled();
@@ -404,6 +462,7 @@ describe("ClientesScreen", () => {
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
     await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567");
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     await waitFor(() =>
@@ -430,6 +489,7 @@ describe("ClientesScreen", () => {
     await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
     await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
     await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567");
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     await waitFor(() =>

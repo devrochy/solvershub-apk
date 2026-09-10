@@ -99,6 +99,8 @@ const tarjeta = {
   telefonoWhatsapp: "+59170000000",
   color: "azul" as const,
   fotoUrl: null,
+  tipoDocumento: "ci" as const,
+  numeroDocumento: "1234567",
   tipoPago: null,
   saldoPendiente: 300,
   diasMora: 0,
@@ -1022,6 +1024,15 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
     expect(getByText("Verificado")).toBeTruthy();
     expect(getByTestId("doc-reverso-icono")).toHaveStyle({ backgroundColor: "#dcfce7" });
+  });
+
+  it("muestra el documento de identidad en la tarjeta del cliente", async () => {
+    const { getByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("dato-documento")).toBeTruthy());
+    expect(getByTestId("dato-documento")).toHaveTextContent(
+      /Cédula de Identidad 1234567/,
+    );
   });
 
   it("el header de la tarjeta usa el fondo del color de clasificación del cliente", async () => {

@@ -1,4 +1,5 @@
 import type { CobradorPermisoNombre } from "./cobrador-permisos";
+import type { TipoDocumento } from "../domain/tipo-documento";
 
 export type ColorRiesgo = "azul" | "rojo" | "blanco";
 export type ColorListaDelDia = "verde" | "rojo" | "blanco";
@@ -136,6 +137,8 @@ export interface ClienteTarjetaPublic {
   documentoFrenteUrl?: string | null;
   /** URL del reverso del documento de identidad (si el backend la expone). */
   documentoReversoUrl?: string | null;
+  tipoDocumento: TipoDocumento | null;
+  numeroDocumento: string | null;
   tipoPago: string | null;
   saldoPendiente: number;
   diasMora: number;
@@ -159,6 +162,8 @@ export interface CrearClienteInput {
   latitud: number;
   longitud: number;
   topeMaximoDeuda?: number;
+  tipoDocumento: TipoDocumento;
+  numeroDocumento: string;
 }
 
 export interface ClienteCobradorPublic {
@@ -176,6 +181,8 @@ export interface ClienteCobradorPublic {
   estatus: string;
   colorRiesgo: ColorRiesgo;
   fotoUrl: string | null;
+  tipoDocumento: TipoDocumento | null;
+  numeroDocumento: string | null;
   createdAt: string;
 }
 

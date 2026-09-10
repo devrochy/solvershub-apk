@@ -276,6 +276,8 @@ describe("cobradorApi", () => {
         latitud: -17.78,
         longitud: -63.18,
         topeMaximoDeuda: 1500,
+        tipoDocumento: "ci",
+        numeroDocumento: "1234567",
       },
       [
         { campo: "foto_facial", uri: "file:///f.jpg", name: "f.jpg", type: "image/jpeg" },

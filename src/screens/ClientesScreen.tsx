@@ -24,6 +24,12 @@ import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
 import {
+  ETIQUETAS_TIPO_DOCUMENTO,
+  TIPOS_DOCUMENTO,
+  validarNumeroDocumento,
+  type TipoDocumento,
+} from "../domain/tipo-documento";
+import {
   useEvidenciasCliente,
   type CampoEvidenciaCliente,
   type FuenteEvidencia,
@@ -52,6 +58,8 @@ export function ClientesScreen() {
   const [longitud, setLongitud] = useState(String(COORD_DEFAULT.lng));
   const [tope, setTope] = useState("");
   const [direccion, setDireccion] = useState("");
+  const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("ci");
+  const [numeroDocumento, setNumeroDocumento] = useState("");
   const [buscandoDireccion, setBuscandoDireccion] = useState(false);
   const [ubicandoGps, setUbicandoGps] = useState(false);
   const [creadoOk, setCreadoOk] = useState(false);
@@ -212,6 +220,14 @@ export function ClientesScreen() {
       setMensaje("El tope de deuda debe ser un número válido.");
       return;
     }
+    if (!validarNumeroDocumento(tipoDocumento, numeroDocumento)) {
+      console.log("[crear-cliente] bloqueado: documento inválido", {
+        tipoDocumento,
+        numeroDocumento,
+      });
+      setMensaje("El número de documento no es válido para el tipo seleccionado.");
+      return;
+    }
     const camposEvidencia = new Set(
       evidenciasCliente.evidencias.map((e) => e.campo),
     );
@@ -239,6 +255,8 @@ export function ClientesScreen() {
       latitud: lat,
       longitud: lng,
       ...(tope.trim() ? { topeMaximoDeuda: Number(tope) } : {}),
+      tipoDocumento,
+      numeroDocumento: numeroDocumento.trim(),
     };
     setCreando(true);
     setMensaje(null);
@@ -263,6 +281,7 @@ export function ClientesScreen() {
       setNegocio("");
       setTelefono("");
       setTope("");
+      setNumeroDocumento("");
       setDireccion("");
       evidenciasCliente.quitar("foto_facial");
       evidenciasCliente.quitar("documento_frente");
@@ -486,6 +505,36 @@ export function ClientesScreen() {
               placeholder="Número de WhatsApp"
             />
 
+            <Text style={styles.label}>Tipo de documento</Text>
+            <View style={styles.chips}>
+              {TIPOS_DOCUMENTO.map((tipo) => (
+                <Pressable
+                  key={tipo}
+                  testID={`cliente-doc-tipo-${tipo}`}
+                  style={[styles.chip, tipoDocumento === tipo && styles.chipActivo]}
+                  onPress={() => setTipoDocumento(tipo)}
+                >
+                  <Text
+                    style={
+                      tipoDocumento === tipo
+                        ? styles.chipTextoActivo
+                        : styles.chipTexto
+                    }
+                  >
+                    {ETIQUETAS_TIPO_DOCUMENTO[tipo]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <CampoModal
+              testID="cliente-doc-numero"
+              label="Número de documento"
+              placeholder="Número de documento"
+              autoCapitalize="characters"
+              value={numeroDocumento}
+              onChangeText={setNumeroDocumento}
+            />
+
             <Text style={styles.label}>Ubicación del negocio</Text>
             <View style={styles.filaBusqueda}>
               <TextInput
@@ -617,6 +666,18 @@ const styles = StyleSheet.create({
   clienteTelefono: { color: "#475569", fontSize: 12, marginTop: 2 },
   form: { gap: 8, paddingBottom: 8 },
   label: { fontSize: 13, color: "#64748b", fontWeight: "600", marginTop: 2 },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  chip: {
+    backgroundColor: "#eef2ff",
+    borderWidth: 1,
+    borderColor: "#c7d2fe",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+  chipTexto: { color: "#172f6c", fontSize: 13 },
+  chipTextoActivo: { color: "#ffffff", fontSize: 13 },
   input: {
     backgroundColor: "#ffffff",
     borderWidth: 1,
