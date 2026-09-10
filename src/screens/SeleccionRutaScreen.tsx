@@ -122,6 +122,7 @@ export function SeleccionRutaScreen({
               </View>
             ) : null}
             <Pressable testID="btn-salir" style={estilosHeader.accionPill} onPress={logout}>
+              <MaterialIcons name="logout" size={18} color="#172f6c" />
               <Text style={estilosHeader.accionPillTexto}>Salir</Text>
             </Pressable>
           </View>
