@@ -82,6 +82,7 @@ async function renderDetalle(
     api: api as SessionValue["api"],
     login: jest.fn(),
     logout: jest.fn(),
+    actualizarPerfil: jest.fn(),
   };
   return render(
     <SessionContext.Provider value={valor}>
@@ -219,6 +220,7 @@ describe("RutaDetalleScreen", () => {
       api: apiBase() as unknown as SessionValue["api"],
       login: jest.fn(),
       logout: jest.fn(),
+      actualizarPerfil: jest.fn(),
     };
     const { getByTestId, getByText } = await render(
       <SessionContext.Provider value={valor}>

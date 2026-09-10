@@ -19,12 +19,18 @@ import {
   type UsuarioPerfil,
 } from "./token-store";
 
+export interface ActualizarPerfilInput {
+  nombre: string;
+  apellido: string;
+}
+
 export interface SessionValue {
   cobrador: UsuarioPerfil | null;
   loading: boolean;
   api: CobradorApi;
   login(usuario: string, password: string, rol?: RolLogin): Promise<void>;
   logout(): Promise<void>;
+  actualizarPerfil(input: ActualizarPerfilInput): Promise<void>;
 }
 
 export const SessionContext = createContext<SessionValue | null>(null);
@@ -83,9 +89,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setCobrador(null);
   }, []);
 
+  const actualizarPerfil = useCallback(
+    async (input: ActualizarPerfilInput) => {
+      const perfil = await api.actualizarPerfil(input);
+      const actualizado: UsuarioPerfil = {
+        id: perfil.id,
+        usuario: perfil.usuario,
+        nombre: perfil.nombre,
+        apellido: perfil.apellido,
+        rol: cobrador?.rol ?? "cobrador",
+      };
+      await writeProfile(actualizado);
+      setCobrador(actualizado);
+    },
+    [api, cobrador?.rol],
+  );
+
   const value = useMemo(
-    () => ({ cobrador, loading, api, login, logout }),
-    [cobrador, loading, api, login, logout],
+    () => ({ cobrador, loading, api, login, logout, actualizarPerfil }),
+    [cobrador, loading, api, login, logout, actualizarPerfil],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

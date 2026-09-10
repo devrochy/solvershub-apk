@@ -8,6 +8,7 @@ import type {
   EstadoCuentaPrestamoPublic,
   GastoPublic,
   LiquidacionPublic,
+  PerfilPublic,
   PrestamoPublic,
   RegistrarGastoInput,
   RegistrarPrestamoInput,
@@ -28,6 +29,10 @@ function jsonBody(input: unknown): string {
 
 export interface CobradorApi {
   misRutas(): Promise<RutaApkPublic[]>;
+  actualizarPerfil(input: {
+    nombre: string;
+    apellido: string;
+  }): Promise<PerfilPublic>;
   dia(rutaId: number): Promise<DiaApkPublic>;
   generarTrayecto(rutaId: number): Promise<unknown>;
   actualizarCliente(
@@ -127,6 +132,13 @@ export interface CobradorApi {
 export function cobradorApi(client: ApiClient): CobradorApi {
   return {
     misRutas: () => client.request<RutaApkPublic[]>("/cobrador/mis-rutas"),
+
+    actualizarPerfil: (input: { nombre: string; apellido: string }) =>
+      client.request<PerfilPublic>("/perfil", {
+        method: "PATCH",
+        headers: JSON_HEADERS,
+        body: jsonBody(input),
+      }),
 
     actualizarCliente: (
       rutaId: number,

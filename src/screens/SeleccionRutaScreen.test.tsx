@@ -61,6 +61,7 @@ async function renderConRutas(
     api: api as SessionValue["api"],
     login: jest.fn(),
     logout: jest.fn(),
+    actualizarPerfil: jest.fn(),
   };
   return render(
     <OfflineContext.Provider value={offline}>
@@ -198,6 +199,7 @@ describe("SeleccionRutaScreen — selección de ruta", () => {
       api: apiConRuta() as unknown as SessionValue["api"],
       login: jest.fn(),
       logout: jest.fn(),
+      actualizarPerfil: jest.fn(),
     };
     const { getByTestId } = await render(
       <OfflineContext.Provider value={offlineConPendientes}>

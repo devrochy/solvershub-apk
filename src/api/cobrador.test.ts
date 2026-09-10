@@ -21,6 +21,24 @@ describe("cobradorApi", () => {
     expect(request).toHaveBeenCalledWith("/cobrador/mis-rutas");
   });
 
+  it("actualizarPerfil hace PATCH /perfil con nombre y apellido", async () => {
+    request.mockResolvedValue({
+      id: 7,
+      usuario: "cob1",
+      nombre: "Nuevo",
+      apellido: "Pérez",
+    });
+
+    const input = { nombre: "Nuevo", apellido: "Pérez" };
+    await api.actualizarPerfil(input);
+
+    expect(request).toHaveBeenCalledWith("/perfil", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+  });
+
   it("dia llama a GET /cobrador/rutas/:id/dia", async () => {
     request.mockResolvedValue({ clientes: [], trayectos: null });
 

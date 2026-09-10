@@ -65,6 +65,7 @@ async function renderConRutaActiva(
     api: api as SessionValue["api"],
     login: jest.fn(),
     logout: jest.fn(),
+    actualizarPerfil: jest.fn(),
   };
   return render(
     <PantallaActivaProvider>

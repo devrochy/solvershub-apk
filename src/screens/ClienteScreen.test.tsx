@@ -157,6 +157,7 @@ async function renderConApi(
     } as SessionValue["api"],
     login: jest.fn(),
     logout: jest.fn(),
+    actualizarPerfil: jest.fn(),
   };
   const navigation = { navigate } as never;
   return render(
