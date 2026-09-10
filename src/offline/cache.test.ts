@@ -28,7 +28,7 @@ import {
 
 const dia: DiaApkPublic = { clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }], trayectos: null };
 
-const tarjeta: ClienteTarjetaPublic = { clienteId: 1, rutaId: 6, nombre: "Juan", negocio: null, telefonoWhatsapp: "+59170000000", color: "azul", fotoUrl: null, tipoPago: null, saldoPendiente: 300, diasMora: 0 };
+const tarjeta: ClienteTarjetaPublic = { clienteId: 1, rutaId: 6, nombre: "Juan", negocio: null, telefonoWhatsapp: "+59170000000", color: "azul", fotoUrl: null, tipoDocumento: "ci", numeroDocumento: "1234567", tipoPago: null, saldoPendiente: 300, diasMora: 0 };
 
 describe("cache offline", () => {
   beforeEach(async () => {

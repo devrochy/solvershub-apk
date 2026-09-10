@@ -233,6 +233,8 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         telefonoWhatsapp: input.telefonoWhatsapp,
         latitud: String(input.latitud),
         longitud: String(input.longitud),
+        tipoDocumento: input.tipoDocumento,
+        numeroDocumento: input.numeroDocumento,
       };
       if (input.negocio) {
         campos.negocio = input.negocio;

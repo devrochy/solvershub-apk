@@ -1,4 +1,5 @@
 import type { ClienteTarjetaPublic } from "../../types/cobrador";
+import type { TipoDocumento } from "../../domain/tipo-documento";
 
 export interface CambioClienteInput {
   nombre?: string;
@@ -9,13 +10,15 @@ export interface CambioClienteInput {
   longitud?: number;
   latitudDomicilio?: number | null;
   longitudDomicilio?: number | null;
+  tipoDocumento?: TipoDocumento;
+  numeroDocumento?: string;
 }
 
 /**
  * Prellena la edición desde la tarjeta actual del cliente: nombre completo,
- * apellido derivado (última(s) palabra(s) del nombre), negocio y WhatsApp.
- * Las coordenadas (negocio/domicilio) se completan en la pantalla desde las
- * props de navegación cuando están disponibles.
+ * apellido derivado (última(s) palabra(s) del nombre), negocio, WhatsApp y
+ * documento de identidad. Las coordenadas (negocio/domicilio) se completan en
+ * la pantalla desde las props de navegación cuando están disponibles.
  */
 export function edicionDesdeTarjeta(
   tarjeta: ClienteTarjetaPublic,
@@ -26,6 +29,8 @@ export function edicionDesdeTarjeta(
     apellido: partes.length > 1 ? partes.slice(1).join(" ") : "",
     negocio: tarjeta.negocio,
     telefonoWhatsapp: tarjeta.telefonoWhatsapp,
+    tipoDocumento: tarjeta.tipoDocumento ?? undefined,
+    numeroDocumento: tarjeta.numeroDocumento ?? undefined,
   };
 }
 
@@ -54,6 +59,8 @@ const CAMBIABLES: Array<keyof CambioClienteInput> = [
   "longitud",
   "latitudDomicilio",
   "longitudDomicilio",
+  "tipoDocumento",
+  "numeroDocumento",
 ];
 
 /**

@@ -14,18 +14,22 @@ const tarjeta: ClienteTarjetaPublic = {
   telefonoWhatsapp: "+59170000001",
   color: "rojo",
   fotoUrl: null,
+  tipoDocumento: "ci",
+  numeroDocumento: "1234567",
   tipoPago: "diario",
   saldoPendiente: 100,
   diasMora: 0,
 };
 
 describe("cambio-cliente (payload del evento offline)", () => {
-  it("edicionDesdeTarjeta prellena nombre, negocio y WhatsApp", () => {
+  it("edicionDesdeTarjeta prellena nombre, negocio, WhatsApp y documento", () => {
     expect(edicionDesdeTarjeta(tarjeta)).toEqual({
       nombre: "Juan",
       apellido: "",
       negocio: "Tienda",
       telefonoWhatsapp: "+59170000001",
+      tipoDocumento: "ci",
+      numeroDocumento: "1234567",
     });
   });
 
@@ -39,6 +43,8 @@ describe("cambio-cliente (payload del evento offline)", () => {
       apellido: "Carlos Perez",
       negocio: "Tienda",
       telefonoWhatsapp: "+59170000001",
+      tipoDocumento: "ci",
+      numeroDocumento: "1234567",
     });
   });
 
@@ -84,5 +90,19 @@ describe("cambio-cliente (payload del evento offline)", () => {
     const original = edicionDesdeTarjeta(tarjeta);
 
     expect(camposCambiados({ ...original }, original)).toEqual({});
+  });
+
+  it("camposCambiados incluye el documento cuando cambia el tipo o el número", () => {
+    const original = edicionDesdeTarjeta(tarjeta);
+    const edicion = {
+      ...original,
+      tipoDocumento: "nit" as const,
+      numeroDocumento: "7654321",
+    };
+
+    expect(camposCambiados(edicion, original)).toEqual({
+      tipoDocumento: "nit",
+      numeroDocumento: "7654321",
+    });
   });
 });

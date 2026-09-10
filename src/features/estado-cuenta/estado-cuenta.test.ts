@@ -40,6 +40,8 @@ const tarjeta: ClienteTarjetaPublic = {
   telefonoWhatsapp: "+59170000000",
   color: "azul",
   fotoUrl: null,
+  tipoDocumento: "ci",
+  numeroDocumento: "1234567",
   tipoPago: null,
   saldoPendiente: 600,
   diasMora: 2,

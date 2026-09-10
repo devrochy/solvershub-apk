@@ -26,6 +26,11 @@ import { urlArchivo } from "../config";
 import { MapaCliente } from "../components/MapaCliente";
 import { MapaPin } from "../components/MapaPin";
 import { CampoModal } from "../components/CampoModal";
+import {
+  ETIQUETAS_TIPO_DOCUMENTO,
+  TIPOS_DOCUMENTO,
+  validarNumeroDocumento,
+} from "../domain/tipo-documento";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
 import {
@@ -625,6 +630,16 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   async function guardarCambioCliente() {
+    if (
+      !edicion.tipoDocumento ||
+      !validarNumeroDocumento(
+        edicion.tipoDocumento,
+        edicion.numeroDocumento ?? "",
+      )
+    ) {
+      setMensaje("El número de documento no es válido para el tipo seleccionado.");
+      return;
+    }
     const input = camposCambiados(edicion, edicionOriginal);
     if (Object.keys(input).length === 0) {
       setMensaje("No hay cambios para guardar.");
@@ -933,6 +948,18 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
               <Text style={styles.datoCedulaLineal}>
                 <Text style={styles.datoCedulaEtiqueta}>WhatsApp: </Text>
                 <Text style={styles.datoCedulaValor}>{tarjeta.telefonoWhatsapp}</Text>
+              </Text>
+              <Text testID="dato-documento" style={styles.datoCedulaLineal}>
+                <Text style={styles.datoCedulaEtiqueta}>Documento: </Text>
+                <Text style={styles.datoCedulaValor}>
+                  {tarjeta.numeroDocumento
+                    ? `${
+                        tarjeta.tipoDocumento
+                          ? ETIQUETAS_TIPO_DOCUMENTO[tarjeta.tipoDocumento]
+                          : "Documento"
+                      } ${tarjeta.numeroDocumento}`
+                    : "—"}
+                </Text>
               </Text>
             </View>
           </View>
@@ -1292,6 +1319,38 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           valor={edicion.telefonoWhatsapp ?? ""}
           onChange={(v) => setEdicion((e) => ({ ...e, telefonoWhatsapp: v }))}
           placeholder="Número de WhatsApp"
+        />
+        <Text style={styles.label}>Tipo de documento</Text>
+        <View style={styles.chips}>
+          {TIPOS_DOCUMENTO.map((tipo) => (
+            <Pressable
+              key={tipo}
+              testID={`editar-doc-tipo-${tipo}`}
+              style={[
+                styles.chip,
+                edicion.tipoDocumento === tipo && styles.chipActivo,
+              ]}
+              onPress={() => setEdicion((e) => ({ ...e, tipoDocumento: tipo }))}
+            >
+              <Text
+                style={
+                  edicion.tipoDocumento === tipo
+                    ? styles.chipTextoActivo
+                    : styles.chipTexto
+                }
+              >
+                {ETIQUETAS_TIPO_DOCUMENTO[tipo]}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <CampoModal
+          testID="editar-doc-numero"
+          label="Número de documento"
+          placeholder="Número de documento"
+          autoCapitalize="characters"
+          value={edicion.numeroDocumento ?? ""}
+          onChangeText={(v) => setEdicion((e) => ({ ...e, numeroDocumento: v }))}
         />
         <Text style={styles.notaUbicacion}>
           La ubicación del negocio y del domicilio se edita desde la tarjeta del
