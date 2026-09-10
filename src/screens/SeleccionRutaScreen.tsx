@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
+import { ColorBadge, bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
@@ -157,19 +158,33 @@ export function SeleccionRutaScreen({
             enMora: 0,
           };
           const activa = item.estatus === "activo";
-          const colorRuta = activa ? "#16a34a" : "#dc2626";
+          const claveEstado = activa ? "verde" : "rojo";
           return (
             <Pressable
               testID={`ruta-${item.id}`}
               style={[
                 styles.tarjeta,
-                { borderColor: colorRuta },
+                { borderColor: bordeDeEstado(claveEstado) },
                 !activa && styles.tarjetaInactiva,
               ]}
               onPress={() => seleccionarRuta(item)}
             >
-              <View style={[styles.tarjetaHeader, { backgroundColor: colorRuta }]}>
-                <Text style={styles.tarjetaHeaderTexto}>{item.nombre}</Text>
+              <View
+                testID={`ruta-header-${item.id}`}
+                style={[
+                  styles.tarjetaHeader,
+                  { backgroundColor: fondoDeEstado(claveEstado) },
+                ]}
+              >
+                <ColorBadge color={claveEstado} animar />
+                <Text
+                  style={[
+                    styles.tarjetaHeaderTexto,
+                    { color: activa ? "#166534" : "#b91c1c" },
+                  ]}
+                >
+                  {item.nombre}
+                </Text>
               </View>
               <View style={styles.tarjetaCuerpo}>
                 <View style={styles.kpis}>
@@ -241,10 +256,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   tarjetaHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  tarjetaHeaderTexto: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
+  tarjetaHeaderTexto: { fontWeight: "700", fontSize: 14 },
   tarjetaInactiva: { opacity: 0.75 },
   tarjetaCuerpo: { padding: 16 },
   kpis: { flexDirection: "row", gap: 10 },
