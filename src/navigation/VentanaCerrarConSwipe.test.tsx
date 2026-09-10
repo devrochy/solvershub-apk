@@ -1,6 +1,7 @@
 import { render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
+import * as swipeCerrar from "./swipe-cerrar";
 
 describe("VentanaCerrarConSwipe", () => {
   it("renderiza su contenido", async () => {
@@ -47,5 +48,55 @@ describe("VentanaCerrarConSwipe", () => {
 
     expect(props.onResponderRelease).toBeDefined();
     expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it("con capturarGesto activa la captura en el responder (gana frente a ancestros)", async () => {
+    const spy = jest
+      .spyOn(swipeCerrar, "crearPanResponderCerrar")
+      .mockReturnValue({ config: {}, panHandlers: {} } as never);
+    const onCerrar = jest.fn();
+
+    await render(
+      <VentanaCerrarConSwipe testID="ventana" onCerrar={onCerrar} capturarGesto>
+        <Text>Contenido</Text>
+      </VentanaCerrarConSwipe>,
+    );
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({ onCerrar, capturarGesto: true }),
+    );
+    spy.mockRestore();
+  });
+
+  it("sin capturarGesto deja la captura desactivada (default false)", async () => {
+    const spy = jest
+      .spyOn(swipeCerrar, "crearPanResponderCerrar")
+      .mockReturnValue({ config: {}, panHandlers: {} } as never);
+    const onCerrar = jest.fn();
+
+    await render(
+      <VentanaCerrarConSwipe testID="ventana" onCerrar={onCerrar}>
+        <Text>Contenido</Text>
+      </VentanaCerrarConSwipe>,
+    );
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({ onCerrar, capturarGesto: false }),
+    );
+    spy.mockRestore();
+  });
+
+  it("acepta el modo de salida 'alInicio' sin romper el renderizado", async () => {
+    const { getByTestId } = await render(
+      <VentanaCerrarConSwipe
+        testID="ventana"
+        onCerrar={jest.fn()}
+        animarSalida="alInicio"
+      >
+        <Text>Contenido</Text>
+      </VentanaCerrarConSwipe>,
+    );
+
+    expect(getByTestId("ventana")).toBeTruthy();
   });
 });

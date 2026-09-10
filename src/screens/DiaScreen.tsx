@@ -625,6 +625,7 @@ export function DiaScreen() {
           testID="trayectos-overlay"
           style={styles.trayectosOverlay}
           onCerrar={() => setTrayectosAbierto(false)}
+          capturarGesto
         >
           <TrayectosLista clientes={clientes} trayectos={trayectos} />
         </VentanaCerrarConSwipe>

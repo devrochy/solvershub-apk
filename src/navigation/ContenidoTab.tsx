@@ -12,10 +12,11 @@ import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
  *
  * El contenido del tab (pestaña Ruta, Día o Clientes) se cierra deslizando de
  * izquierda a derecha (swipe-back global): al superar el umbral se llama
- * `onCerrar` para volver a `SeleccionRuta`; la transición de vuelta la hace la
- * navegación nativa (`animarSalida=false`), que muestra la pantalla destino.
- * Los overlays (OverlayDetalle) tienen su propio gesto y se deslizan revelando
- * el tab que hay debajo.
+ * `onCerrar` en cuanto se inicia la salida y la pestaña se desliza hacia fuera
+ * (~200 ms), de modo que la pantalla destino (`SeleccionRuta`, que `onCerrar`
+ * empieza a navegar) se vea debajo durante la transición
+ * (`animarSalida="alInicio"`). Los overlays (OverlayDetalle) tienen su propio
+ * gesto y se deslizan revelando el tab que hay debajo.
  */
 export function ContenidoTab({
   children,
@@ -44,7 +45,7 @@ export function ContenidoTab({
         testID="contenido-tab"
         style={styles.contenedor}
         onCerrar={onCerrar ?? (() => undefined)}
-        animarSalida={false}
+        animarSalida="alInicio"
       >
         {children}
       </VentanaCerrarConSwipe>

@@ -7,6 +7,7 @@ import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
+import * as swipeCerrar from "../navigation/swipe-cerrar";
 import * as useEvidenciasModule from "../features/gastos/use-evidencias";
 
 jest.mock("../features/navegacion/navegacion", () => ({
@@ -481,6 +482,36 @@ describe("DiaScreen — ver trayectos generados", () => {
     expect(props.onMoveShouldSetResponder).toBeDefined();
     expect(props.onResponderRelease).toBeDefined();
     expect(props.onResponderTerminate).toBeDefined();
+  });
+
+  it("se configura con capturarGesto (el overlay reclama el gesto en fase de captura)", async () => {
+    const spy = jest.spyOn(swipeCerrar, "crearPanResponderCerrar");
+    const dia = jest.fn().mockResolvedValue({
+      clientes: [
+        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+      ],
+      trayectos: {
+        id: 1,
+        rutaId: 6,
+        fecha: "2026-09-02",
+        ordenClientes: [[{ clienteId: 1, latitud: -17.78, longitud: -63.18 }]],
+        waypoints: [],
+        distanciaEstimadaKm: 1,
+        tiempoEstimadoMin: 5,
+        tipo: "planificada",
+      },
+    });
+    const { getByTestId } = await renderConApi({ dia });
+
+    await waitFor(() => expect(getByTestId("ver-trayectos")).toBeTruthy());
+    await fireEvent.press(getByTestId("ver-trayectos"));
+    await waitFor(() => expect(getByTestId("trayectos-overlay")).toBeTruthy());
+
+    const conCaptura = spy.mock.calls.some(
+      ([opts]) => opts.capturarGesto === true,
+    );
+    expect(conCaptura).toBe(true);
+    spy.mockRestore();
   });
 
   it("el back físico de Android cierra el overlay de trayectos", async () => {

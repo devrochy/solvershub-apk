@@ -2,6 +2,7 @@ import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { BackHandler, Pressable, Text } from "react-native";
 import { PantallaActivaProvider, usePantallaActiva } from "./pantalla-activa-context";
 import { ContenidoTab } from "./ContenidoTab";
+import * as swipeCerrar from "./swipe-cerrar";
 
 jest.mock("./OverlayDetalle", () => {
   const React = require("react");
@@ -57,6 +58,26 @@ describe("ContenidoTab", () => {
     expect(props.onMoveShouldSetResponder).toBeDefined();
     expect(props.onResponderRelease).toBeDefined();
     expect(props.onResponderTerminate).toBeDefined();
+  });
+
+  it("configura el swipe de la pestaña para revelar la pantalla destino durante la salida", async () => {
+    const spy = jest
+      .spyOn(swipeCerrar, "crearPanResponderCerrar")
+      .mockReturnValue({ config: {}, panHandlers: {} } as never);
+    const onCerrar = jest.fn();
+
+    await render(
+      <PantallaActivaProvider>
+        <ContenidoTab onCerrar={onCerrar}>
+          <Text>Contenido</Text>
+        </ContenidoTab>
+      </PantallaActivaProvider>,
+    );
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({ onCerrar, animarSalida: "alInicio" }),
+    );
+    spy.mockRestore();
   });
 
   it("muestra el overlay de detalle encima del contenido al abrir una pantalla", async () => {
