@@ -1,13 +1,12 @@
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialIcons } from "@expo/vector-icons";
+import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
 import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
 import { enlaceGoogleMapsRuta } from "../features/navegacion/navegacion";
 
 export interface TrayectosListaProps {
   clientes: ClienteDiaPublic[];
   trayectos: TrayectoPublic;
-  onCerrar(): void;
 }
 
 function nombreDeParada(
@@ -20,24 +19,26 @@ function nombreDeParada(
 /**
  * Vista de los trayectos generados para el día (HU-55: hasta 9 paradas por
  * trayecto). Cada trayecto lista sus paradas en el orden óptimo y ofrece
- * navegación del trayecto completo en Google Maps (HU-37).
+ * navegación del trayecto completo en Google Maps (HU-37). Se muestra como
+ * overlay en DiaScreen, que gestiona el cierre con swipe y el back físico.
  */
-export function TrayectosLista({ clientes, trayectos, onCerrar }: TrayectosListaProps) {
+export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
   return (
-    <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["top", "left", "right"]}>
-      <View style={styles.header}>
-        <Pressable testID="back-trayectos" style={styles.back} onPress={onCerrar}>
-          <MaterialIcons name="arrow-back" size={22} color="#172f6c" />
-        </Pressable>
-        <View style={styles.titulos}>
-          <Text style={styles.titulo}>Trayectos del día</Text>
-          <Text style={styles.detalle}>
-            {trayectos.ordenClientes.length} trayecto
-            {trayectos.ordenClientes.length === 1 ? "" : "s"} ·{" "}
-            {trayectos.distanciaEstimadaKm} km · {trayectos.tiempoEstimadoMin} min
-          </Text>
+    <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["left", "right"]}>
+      <HeaderPantalla>
+        <View style={estilosHeader.fila}>
+          <View style={estilosHeader.columnaIzq} />
+          <View style={estilosHeader.bloqueTitulo}>
+            <Text style={estilosHeader.titulo}>Trayectos del día</Text>
+            <Text style={estilosHeader.subtitulo}>
+              {trayectos.ordenClientes.length} trayecto
+              {trayectos.ordenClientes.length === 1 ? "" : "s"} ·{" "}
+              {trayectos.distanciaEstimadaKm} km · {trayectos.tiempoEstimadoMin} min
+            </Text>
+          </View>
+          <View style={estilosHeader.columnaDerecha} />
         </View>
-      </View>
+      </HeaderPantalla>
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {trayectos.ordenClientes.map((trayecto, indice) => {
@@ -81,20 +82,6 @@ export function TrayectosLista({ clientes, trayectos, onCerrar }: TrayectosLista
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
-  },
-  back: { width: 32, alignItems: "flex-start" },
-  titulos: { flex: 1 },
-  titulo: { fontSize: 18, fontWeight: "700", fontFamily: "Roboto_700Bold" },
-  detalle: { color: "#64748b", fontSize: 13, marginTop: 2, fontFamily: "Roboto_400Regular" },
   scroll: { padding: 16, gap: 12 },
   trayecto: {
     backgroundColor: "#ffffff",

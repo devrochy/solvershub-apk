@@ -61,7 +61,8 @@ describe("OverlayDetalle", () => {
       prestamoAutoSeleccionado: true,
     };
     await render(<OverlayDetalle pantalla={pantalla} onCerrar={jest.fn()} />);
-    expect((ClienteScreen as jest.Mock).mock.calls[0][0]).toEqual(
+    const props = (ClienteScreen as jest.Mock).mock.calls[0][0];
+    expect(props).toEqual(
       expect.objectContaining({
         rutaId: 6,
         clienteId: 12,
@@ -70,9 +71,31 @@ describe("OverlayDetalle", () => {
         latitudDomicilio: -17.79,
         longitudDomicilio: -63.19,
         prestamoAutoSeleccionado: true,
-        onCerrar: expect.any(Function),
       }),
     );
+    // El cierre del overlay lo gestiona el gesto swipe del wrapper, no el botón.
+    expect(props).not.toHaveProperty("onCerrar");
+  });
+
+  it("envuelve el detalle con el gesto de cerrar (handlers del responder)", async () => {
+    const pantalla: PantallaActiva = {
+      tipo: "cliente",
+      rutaId: 6,
+      clienteId: 12,
+      nombre: "Juan",
+    };
+    const { getByTestId } = await render(
+      <OverlayDetalle pantalla={pantalla} onCerrar={jest.fn()} />,
+    );
+
+    const props = getByTestId("overlay-detalle").props as {
+      onMoveShouldSetResponder?: unknown;
+      onResponderRelease?: unknown;
+      onResponderTerminate?: unknown;
+    };
+    expect(props.onMoveShouldSetResponder).toBeDefined();
+    expect(props.onResponderRelease).toBeDefined();
+    expect(props.onResponderTerminate).toBeDefined();
   });
 
   it("renderiza el detalle de ruta cuando la pantalla activa es ruta", async () => {

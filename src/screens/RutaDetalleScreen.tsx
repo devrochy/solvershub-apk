@@ -134,7 +134,7 @@ export function RutaDetalleScreen({
       <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
         <HeaderPantalla>
           <View style={estilosHeader.fila}>
-            <Text style={estilosHeader.titulo} numberOfLines={1}>
+            <Text style={estilosHeader.titulo}>
               Ruta
             </Text>
             <View style={estilosHeader.columnaDerecha} />
@@ -157,21 +157,29 @@ export function RutaDetalleScreen({
   const enMora = dia.clientes.filter((c) => c.color === "rojo").length;
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-      <HeaderPantalla>
-        <View style={estilosHeader.fila}>
-          <Pressable testID="btn-back-ruta" style={estilosHeader.columnaIzq} onPress={cerrar}>
-            <MaterialIcons name="arrow-back" size={22} color="#ffffff" />
-          </Pressable>
-          <Text style={estilosHeader.titulo} numberOfLines={1}>
-            {rutaNombre}
-          </Text>
-          <Pressable testID="btn-editar-ruta" style={estilosHeader.columnaDerecha} onPress={() => setAvisoEdicion(true)}>
-            <MaterialIcons name="edit" size={20} color="#ffffff" />
-            <Text style={estilosHeader.accionTexto}>Editar</Text>
-          </Pressable>
-        </View>
-      </HeaderPantalla>
+    <View
+      testID="ruta-detalle-root"
+      style={styles.contenedor}
+    >
+      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+        <HeaderPantalla>
+          <View style={estilosHeader.fila}>
+            <View style={estilosHeader.bloqueTitulo}>
+              <Text style={estilosHeader.titulo}>
+                {rutaNombre}
+              </Text>
+              {clientes ? (
+                <Text style={estilosHeader.subtitulo}>
+                  {clientes.length} cliente{clientes.length === 1 ? "" : "s"}
+                </Text>
+              ) : null}
+            </View>
+            <Pressable testID="btn-editar-ruta" style={estilosHeader.accionPill} onPress={() => setAvisoEdicion(true)}>
+              <MaterialIcons name="edit" size={18} color="#172f6c" />
+              <Text style={estilosHeader.accionPillTexto}>Editar</Text>
+            </Pressable>
+          </View>
+        </HeaderPantalla>
 
       {avisoEdicion ? (
         <View style={styles.aviso}>
@@ -265,7 +273,8 @@ export function RutaDetalleScreen({
         ) : null}
         {notaEnviando ? <ActivityIndicator color="#172f6c" /> : null}
       </ModalConFooter>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 

@@ -43,7 +43,7 @@ describe("TrayectosLista", () => {
 
   it("lista los trayectos generados con sus paradas en orden", async () => {
     const { getByText } = await render(
-      <TrayectosLista clientes={clientes} trayectos={trayectos} onCerrar={jest.fn()} />,
+      <TrayectosLista clientes={clientes} trayectos={trayectos} />,
     );
 
     expect(getByText("Trayecto 1")).toBeTruthy();
@@ -55,7 +55,7 @@ describe("TrayectosLista", () => {
 
   it("abre el enlace de navegación del trayecto completo", async () => {
     const { getByTestId } = await render(
-      <TrayectosLista clientes={clientes} trayectos={trayectos} onCerrar={jest.fn()} />,
+      <TrayectosLista clientes={clientes} trayectos={trayectos} />,
     );
 
     await fireEvent.press(getByTestId("navegar-trayecto-0"));
@@ -72,7 +72,6 @@ describe("TrayectosLista", () => {
       <TrayectosLista
         clientes={clientes}
         trayectos={trayectoConDesconocido}
-        onCerrar={jest.fn()}
       />,
     );
     expect(getByText(/Cliente 99/)).toBeTruthy();
