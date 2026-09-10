@@ -251,6 +251,46 @@ describe("ClientesScreen", () => {
     );
   });
 
+  it("permite registrar el domicilio (opcional) junto con la ubicación del negocio", async () => {
+    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const { getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+      crearCliente,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-cliente"));
+
+    await fireEvent.changeText(getByTestId("cliente-nombre"), "Ana");
+    await fireEvent.changeText(getByTestId("cliente-apellido"), "Ríos");
+    await fireEvent.changeText(getByTestId("cliente-telefono-numero"), "7000111");
+    await fireEvent.changeText(getByTestId("cliente-doc-numero"), "1234567");
+
+    // Negocio (campo por defecto).
+    await fireEvent.changeText(getByTestId("cliente-latitud"), "-17.79");
+    await fireEvent.changeText(getByTestId("cliente-longitud"), "-63.19");
+
+    // Cambiar a domicilio y fijar sus coordenadas.
+    await fireEvent.press(getByTestId("cliente-ubicacion-domicilio"));
+    await fireEvent.changeText(getByTestId("cliente-latitud"), "-17.8");
+    await fireEvent.changeText(getByTestId("cliente-longitud"), "-63.2");
+
+    await fireEvent.press(getByTestId("cliente-guardar"));
+
+    await waitFor(() =>
+      expect(crearCliente).toHaveBeenCalledWith(
+        6,
+        expect.objectContaining({
+          latitud: -17.79,
+          longitud: -63.19,
+          latitudDomicilio: -17.8,
+          longitudDomicilio: -63.2,
+        }),
+        expect.any(Array),
+      ),
+    );
+  });
+
   it("el botón '+ Cliente' solo se muestra con ruta activa", async () => {
     const { queryByTestId } = await renderConRutaActiva(
       { listarClientesDeRuta: jest.fn() },
