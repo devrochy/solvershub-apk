@@ -22,6 +22,7 @@ import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge, colorDeEstado } from "../components/ColorBadge";
+import { urlArchivo } from "../config";
 import { MapaCliente } from "../components/MapaCliente";
 import { MapaPin } from "../components/MapaPin";
 import { CampoModal } from "../components/CampoModal";
@@ -867,8 +868,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       ? prestamos
       : prestamos.filter((p) => p.id === prestamoSeleccionadoId);
   const cuotasCanvas = estadoPrestamo ? clasificarCuotas(estadoPrestamo.cuotas) : [];
-  const docFrenteUrl = tarjeta.documentoFrenteUrl ?? null;
-  const docReversoUrl = tarjeta.documentoReversoUrl ?? null;
+  const docFrenteUrl = urlArchivo(tarjeta.documentoFrenteUrl);
+  const docReversoUrl = urlArchivo(tarjeta.documentoReversoUrl);
 
   return (
     <>
@@ -946,13 +947,21 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 setModal("documento");
               }}
             >
-              {docFrenteUrl ? (
-                <Image source={{ uri: docFrenteUrl }} style={styles.miniaturaImagenGrande} />
-              ) : (
-                <View style={styles.miniaturaPlaceholderGrande}>
-                  <MaterialIcons name="badge" size={40} color="#94a3b8" />
-                </View>
-              )}
+              <View
+                testID="doc-frente-icono"
+                style={[
+                  styles.miniaturaIconoMarco,
+                  docFrenteUrl
+                    ? styles.miniaturaIconoVerificado
+                    : styles.miniaturaIconoPendiente,
+                ]}
+              >
+                <MaterialIcons
+                  name="badge"
+                  size={40}
+                  color={docFrenteUrl ? "#16a34a" : "#94a3b8"}
+                />
+              </View>
               <View
                 testID="doc-frente-badge"
                 style={[
@@ -981,13 +990,21 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 setModal("documento");
               }}
             >
-              {docReversoUrl ? (
-                <Image source={{ uri: docReversoUrl }} style={styles.miniaturaImagenGrande} />
-              ) : (
-                <View style={styles.miniaturaPlaceholderGrande}>
-                  <MaterialIcons name="badge" size={40} color="#94a3b8" />
-                </View>
-              )}
+              <View
+                testID="doc-reverso-icono"
+                style={[
+                  styles.miniaturaIconoMarco,
+                  docReversoUrl
+                    ? styles.miniaturaIconoVerificado
+                    : styles.miniaturaIconoPendiente,
+                ]}
+              >
+                <MaterialIcons
+                  name="credit-card"
+                  size={40}
+                  color={docReversoUrl ? "#16a34a" : "#94a3b8"}
+                />
+              </View>
               <View
                 testID="doc-reverso-badge"
                 style={[
@@ -1466,7 +1483,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           return tarjeta.fotoUrl ? (
             <Image
               testID="avatar-foto-actual"
-              source={{ uri: tarjeta.fotoUrl }}
+              source={{ uri: urlArchivo(tarjeta.fotoUrl) ?? undefined }}
               style={styles.evidenciaPreview}
             />
           ) : (
@@ -1959,22 +1976,21 @@ const styles = StyleSheet.create({
   datoCedulaEtiqueta: { fontWeight: "700", color: "#475569" },
   datoCedulaValor: { fontWeight: "600", color: "#1e293b" },
   documentosFila: { flexDirection: "row", gap: 14, marginTop: 16 },
-  miniaturaImagenGrande: {
+  miniaturaIconoMarco: {
     width: 96,
     height: 64,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  miniaturaPlaceholderGrande: {
-    width: 96,
-    height: 64,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
+  },
+  miniaturaIconoVerificado: {
+    borderColor: "#bbf7d0",
+    backgroundColor: "#dcfce7",
+  },
+  miniaturaIconoPendiente: {
+    borderColor: "#e2e8f0",
+    borderStyle: "dashed",
     backgroundColor: "#f8fafc",
   },
   banner: {
