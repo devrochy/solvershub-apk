@@ -24,6 +24,7 @@ import { CargaError } from "../components/CargaError";
 import { ColorBadge, colorDeEstado } from "../components/ColorBadge";
 import { MapaCliente } from "../components/MapaCliente";
 import { MapaPin } from "../components/MapaPin";
+import { CampoModal } from "../components/CampoModal";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
 import {
@@ -1247,26 +1248,23 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         confirmarTestID="guardar-cambio-cliente"
         testID="editar-cliente-form"
       >
-        <Text style={styles.label}>Nombre</Text>
-        <TextInput
+        <CampoModal
           testID="editar-nombre"
-          style={styles.input}
+          label="Nombre"
           placeholder="Nombre"
           value={edicion.nombre ?? ""}
           onChangeText={(v) => setEdicion((e) => ({ ...e, nombre: v }))}
         />
-        <Text style={styles.label}>Apellido</Text>
-        <TextInput
+        <CampoModal
           testID="editar-apellido"
-          style={styles.input}
+          label="Apellido"
           placeholder="Apellido"
           value={edicion.apellido ?? ""}
           onChangeText={(v) => setEdicion((e) => ({ ...e, apellido: v }))}
         />
-        <Text style={styles.label}>Negocio</Text>
-        <TextInput
+        <CampoModal
           testID="editar-negocio"
-          style={styles.input}
+          label="Negocio"
           placeholder="Negocio"
           value={edicion.negocio ?? ""}
           onChangeText={(v) => setEdicion((e) => ({ ...e, negocio: v }))}
@@ -1398,37 +1396,33 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         confirmarTestID="guardar-prestamo"
         testID="prestamo-form"
       >
-        <Text style={styles.label}>Valor</Text>
-        <TextInput
+        <CampoModal
           testID="prestamo-valor"
-          style={styles.input}
+          label="Valor"
           placeholder="Valor"
           keyboardType="decimal-pad"
           value={prestamoValor}
           onChangeText={setPrestamoValor}
         />
-        <Text style={styles.label}>Número de cuotas</Text>
-        <TextInput
+        <CampoModal
           testID="prestamo-cuotas"
-          style={styles.input}
+          label="Número de cuotas"
           placeholder="Número de cuotas"
           keyboardType="number-pad"
           value={prestamoCuotas}
           onChangeText={setPrestamoCuotas}
         />
-        <Text style={styles.label}>Días entre cuotas</Text>
-        <TextInput
+        <CampoModal
           testID="prestamo-dias"
-          style={styles.input}
+          label="Días entre cuotas"
           placeholder="Días entre cuotas"
           keyboardType="number-pad"
           value={prestamoDias}
           onChangeText={setPrestamoDias}
         />
-        <Text style={styles.label}>Tipo de interés (%) — opcional</Text>
-        <TextInput
+        <CampoModal
           testID="prestamo-interes"
-          style={styles.input}
+          label="Tipo de interés (%) — opcional"
           placeholder="Tipo de interés (%) — opcional"
           keyboardType="decimal-pad"
           value={prestamoInteres}
@@ -2231,15 +2225,16 @@ const styles = StyleSheet.create({
   botonNoPago: { backgroundColor: "#d97706" },
   botonAccionTexto: { color: "#ffffff", fontWeight: "600" },
   deshabilitado: { opacity: 0.5 },
-  label: { fontSize: 13, color: "#475569", marginTop: 2 },
+  label: { fontSize: 13, color: "#64748b", marginTop: 2 },
   input: {
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: "#dbeafe",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: "#1e293b",
+    color: "#334155",
   },
   filaCoordenadas: { flexDirection: "row", gap: 8 },
   inputCoordenada: { flex: 1 },
@@ -2255,14 +2250,15 @@ const styles = StyleSheet.create({
   notaUbicacion: { color: "#64748b", fontSize: 12, marginTop: 4 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   chip: {
+    backgroundColor: "#eef2ff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: "#c7d2fe",
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  chipActivo: { backgroundColor: "#172f6c", borderColor: "#172f6c" },
-  chipTexto: { color: "#334155", fontSize: 13 },
+  chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+  chipTexto: { color: "#172f6c", fontSize: 13 },
   chipTextoActivo: { color: "#ffffff", fontSize: 13 },
   promesaNota: { color: "#64748b", fontSize: 13 },
   mensaje: { color: "#16a34a", fontSize: 14, marginTop: 2 },

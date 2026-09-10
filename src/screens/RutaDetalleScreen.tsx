@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
+import { CampoModal } from "../components/CampoModal";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import type { RootStackParamList } from "../navigation/types";
@@ -260,11 +260,12 @@ export function RutaDetalleScreen({
         confirmando={notaEnviando}
         confirmarTestID="nota-guardar"
       >
-        <TextInput
+        <CampoModal
           testID="nota-textarea"
-          style={styles.textarea}
+          label="Nota"
           placeholder="Escribe una nota para la ruta…"
           multiline
+          style={styles.textarea}
           value={notaTexto}
           onChangeText={setNotaTexto}
         />
@@ -336,15 +337,6 @@ const styles = StyleSheet.create({
   },
   notaTexto: { fontSize: 14, color: "#334155" },
   notaMeta: { fontSize: 12, color: "#64748b" },
-  textarea: {
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    minHeight: 96,
-    textAlignVertical: "top",
-  },
+  textarea: { minHeight: 96, textAlignVertical: "top" },
   notaMensaje: { color: "#dc2626", fontSize: 13 },
 });

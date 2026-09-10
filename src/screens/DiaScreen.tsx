@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,6 +15,7 @@ import { File, Paths } from "expo-file-system";
 import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
+import { CampoModal } from "../components/CampoModal";
 import { colorDeEstado } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
@@ -572,16 +572,16 @@ export function DiaScreen() {
         confirmarTestID="gasto-guardar"
         testID="gasto-form"
       >
-        <TextInput
+        <CampoModal
           testID="gasto-descripcion"
-          style={styles.input}
+          label="Descripción"
           placeholder="Descripción"
           value={gastoDescripcion}
           onChangeText={setGastoDescripcion}
         />
-        <TextInput
+        <CampoModal
           testID="gasto-valor"
-          style={styles.input}
+          label="Valor"
           placeholder="Valor"
           keyboardType="decimal-pad"
           value={gastoValor}
@@ -805,20 +805,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#172f6c",
   },
-  liquidacionTitulo: { fontSize: 16, fontWeight: "700", color: "#334155" },
+  liquidacionTitulo: { fontSize: 16, fontWeight: "700", color: "#ffffff" },
   liquidacionCerrar: {
     width: 34,
     height: 34,
     borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
-  liquidacionCerrarTexto: { color: "#475569", fontSize: 16 },
+  liquidacionCerrarTexto: { color: "#ffffff", fontSize: 16 },
   liquidacionCarga: { marginTop: 40 },
   liquidacionScroll: { padding: 16, gap: 10 },
   liquidacionAviso: { color: "#b45309", fontSize: 13, fontWeight: "600" },
@@ -909,14 +907,6 @@ const styles = StyleSheet.create({
   chipTrayectoTexto: { color: "#1d4ed8", fontSize: 12, fontWeight: "700" },
   llegar: { marginTop: 2, alignSelf: "flex-start", paddingVertical: 2 },
   llegarTexto: { color: "#0891b2", fontWeight: "700", fontSize: 13 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-  },
   gastoMensaje: { color: "#16a34a", fontSize: 13 },
   gastoMensajeError: { color: "#dc2626" },
 });

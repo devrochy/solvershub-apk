@@ -11,6 +11,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 export interface ModalConFooterProps {
   visible: boolean;
   titulo: string;
+  /** Línea secundaria bajo el título (opcional). */
+  subtitulo?: string;
   onCerrar(): void;
   children?: ReactNode;
   onCancelar?: () => void;
@@ -26,13 +28,15 @@ export interface ModalConFooterProps {
 
 /**
  * Modal reutilizable con header (título + botón cerrar/back), cuerpo (children)
- * y footer con botones (ej. Cancelar/Confirmar). Se usa en el rediseño del
- * detalle de cliente para: editar cliente, nuevo préstamo, avatar, detalle de
- * cuota, registrar pago y registrar no pago.
+ * y footer con botones (ej. Cancelar/Confirmar). El header usa el azul principal
+ * (`#172f6c`) y el resto del modal tonos pastel suaves para que la interfaz no
+ * sea brusca. Se usa en: editar cliente, nuevo préstamo, avatar, detalle de
+ * cuota, registrar pago/no pago, nuevo cliente, nuevo gasto y nueva nota.
  */
 export function ModalConFooter({
   visible,
   titulo,
+  subtitulo,
   onCerrar,
   children,
   onCancelar,
@@ -51,14 +55,19 @@ export function ModalConFooter({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onCerrar}>
       <View style={styles.fondo}>
         <View style={styles.carta} testID={testID}>
-          <View style={styles.header}>
-            <Text style={styles.titulo}>{titulo}</Text>
+          <View style={styles.header} testID="modal-header">
+            <View style={styles.headerTexto}>
+              <Text style={styles.titulo}>{titulo}</Text>
+              {subtitulo ? (
+                <Text style={styles.subtitulo}>{subtitulo}</Text>
+              ) : null}
+            </View>
             <Pressable
               testID={cerrarTestID}
               style={styles.botonCerrar}
               onPress={onCerrar}
             >
-              <MaterialIcons name="close" size={22} color="#475569" />
+              <MaterialIcons name="close" size={22} color="#ffffff" />
             </Pressable>
           </View>
 
@@ -106,14 +115,14 @@ export function ModalConFooter({
 const styles = StyleSheet.create({
   fondo: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    backgroundColor: "rgba(23, 47, 108, 0.25)",
     justifyContent: "flex-end",
   },
   carta: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f5f7ff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 8,
+    overflow: "hidden",
     paddingBottom: 24,
     maxHeight: "88%",
   },
@@ -121,11 +130,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#172f6c",
   },
+  headerTexto: { flex: 1 },
   botonCerrar: {
     width: 36,
     height: 36,
@@ -133,25 +142,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   titulo: {
-    flex: 1,
     textAlign: "left",
     fontSize: 16,
     fontWeight: "700",
-    color: "#334155",
+    color: "#ffffff",
+    fontFamily: "Roboto_700Bold",
+  },
+  subtitulo: {
+    color: "#d4dff0",
+    fontSize: 13,
+    marginTop: 2,
+    fontFamily: "Roboto_400Regular",
   },
   cuerpo: { padding: 16, gap: 10, flexShrink: 1 },
   footer: { flexDirection: "row", gap: 12, paddingHorizontal: 16, marginTop: 4 },
   boton: { flex: 1 },
   botonCancelar: {
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
+    backgroundColor: "#eef2ff",
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",
   },
-  botonCancelarTexto: { color: "#475569", fontWeight: "600" },
+  botonCancelarTexto: { color: "#172f6c", fontWeight: "600" },
   botonConfirmar: {
-    backgroundColor: "#172f6c",
+    backgroundColor: "#2563eb",
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",
