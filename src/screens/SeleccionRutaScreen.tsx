@@ -9,12 +9,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
-import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
@@ -32,8 +29,14 @@ interface RutaKpi {
  * fija como ruta activa y se navega al Main (tabs), que abre por defecto en
  * la pestaña "Día".
  */
-export function SeleccionRutaScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+export interface SeleccionRutaScreenProps {
+  /** Se invoca al elegir una ruta (para abrir la capa de pestañas encima). */
+  onRutaSeleccionada?: () => void;
+}
+
+export function SeleccionRutaScreen({
+  onRutaSeleccionada,
+}: SeleccionRutaScreenProps = {}) {
   const { api, cobrador, logout } = useSession();
   const { setRutaActiva } = useRutaActiva();
   const offline = useOffline();
@@ -94,7 +97,7 @@ export function SeleccionRutaScreen() {
       numCuotas: ruta.numCuotas,
       config: ruta.config,
     });
-    navigation.navigate("Main");
+    onRutaSeleccionada?.();
   }
 
   if (!rutas) {

@@ -4,73 +4,22 @@ import {
   Roboto_600SemiBold,
   Roboto_700Bold,
 } from "@expo-google-fonts/roboto";
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
-import { createNativeStackNavigator, type NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import type { RootStackParamList, RootTabParamList } from "./src/navigation/types";
+import type { RootStackParamList } from "./src/navigation/types";
+import { InicioCobrador } from "./src/navigation/InicioCobrador";
 import { PantallaActivaProvider } from "./src/navigation/pantalla-activa-context";
-import { ContenidoTab } from "./src/navigation/ContenidoTab";
-import { CustomTabBar } from "./src/components/CustomTabBar";
+import { TrayectosOverlayProvider } from "./src/navigation/trayectos-overlay-context";
 import { OfflineProvider } from "./src/offline/offline-context";
-import { ClientesScreen } from "./src/screens/ClientesScreen";
-import { DiaScreen } from "./src/screens/DiaScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
-import { RutaDetalleScreen } from "./src/screens/RutaDetalleScreen";
-import { SeleccionRutaScreen } from "./src/screens/SeleccionRutaScreen";
 import { RutaActivaProvider } from "./src/session/ruta-activa-context";
 import { SessionProvider, useSession } from "./src/session/session-context";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator<RootTabParamList>();
-
-function useNavegacionSeleccionRuta() {
-  return useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-}
-
-function ContenidoRuta() {
-  const navigation = useNavegacionSeleccionRuta();
-  return (
-    <ContenidoTab onCerrar={() => navigation.navigate("SeleccionRuta")}>
-      <RutaDetalleScreen />
-    </ContenidoTab>
-  );
-}
-
-function ContenidoDia() {
-  const navigation = useNavegacionSeleccionRuta();
-  return (
-    <ContenidoTab onCerrar={() => navigation.navigate("SeleccionRuta")}>
-      <DiaScreen />
-    </ContenidoTab>
-  );
-}
-
-function ContenidoClientes() {
-  const navigation = useNavegacionSeleccionRuta();
-  return (
-    <ContenidoTab onCerrar={() => navigation.navigate("SeleccionRuta")}>
-      <ClientesScreen />
-    </ContenidoTab>
-  );
-}
-
-function TabsNavigator() {
-  return (
-    <Tab.Navigator
-      initialRouteName="Dia"
-      tabBar={(props) => <CustomTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tab.Screen name="Ruta" component={ContenidoRuta} options={{ title: "Ruta" }} />
-      <Tab.Screen name="Dia" component={ContenidoDia} options={{ title: "Día" }} />
-      <Tab.Screen name="Clientes" component={ContenidoClientes} options={{ title: "Clientes" }} />
-    </Tab.Navigator>
-  );
-}
 
 function RootNavigator() {
   const { cobrador, loading } = useSession();
@@ -85,28 +34,15 @@ function RootNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        {cobrador ? (
-          <>
-            <Stack.Screen
-              name="SeleccionRuta"
-              component={SeleccionRutaScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Main"
-              component={TabsNavigator}
-              options={{ headerShown: false }}
-            />
-          </>
-        ) : (
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-        )}
-      </Stack.Navigator>
+      <TrayectosOverlayProvider>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {cobrador ? (
+            <Stack.Screen name="SeleccionRuta" component={InicioCobrador} />
+          ) : (
+            <Stack.Screen name="Login" component={LoginScreen} />
+          )}
+        </Stack.Navigator>
+      </TrayectosOverlayProvider>
     </NavigationContainer>
   );
 }
