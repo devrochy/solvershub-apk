@@ -213,4 +213,32 @@ describe("SeleccionRutaScreen — selección de ruta", () => {
 
     await waitFor(() => expect(getByTestId("badge-sin-subir")).toBeTruthy());
   });
+
+  it("atenúa el header de la tarjeta y muestra el punto titilante del estado", async () => {
+    const { getByTestId } = await renderConRutas(apiConRuta());
+
+    await waitFor(() => expect(getByTestId("ruta-6")).toBeTruthy());
+
+    expect(getByTestId("ruta-header-6")).toHaveStyle({
+      backgroundColor: "#dcfce7",
+    });
+    expect(getByTestId("color-badge-verde")).toBeTruthy();
+    expect(getByTestId("ruta-6")).toHaveStyle({ borderColor: "#bbf7d0" });
+  });
+
+  it("usa el pastel rojo en el header de una ruta inactiva", async () => {
+    const inactiva = { ...ruta, id: 7, nombre: "Ruta Sur", estatus: "inactivo" };
+    const { getByTestId } = await renderConRutas({
+      misRutas: jest.fn().mockResolvedValue([inactiva]),
+      listarClientesDeRuta: jest.fn().mockResolvedValue([]),
+      dia: jest.fn().mockResolvedValue(diaVacio),
+    });
+
+    await waitFor(() => expect(getByTestId("ruta-7")).toBeTruthy());
+
+    expect(getByTestId("ruta-header-7")).toHaveStyle({
+      backgroundColor: "#fee2e2",
+    });
+    expect(getByTestId("color-badge-rojo")).toBeTruthy();
+  });
 });
