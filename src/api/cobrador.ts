@@ -242,6 +242,13 @@ export function cobradorApi(client: ApiClient): CobradorApi {
       if (input.topeMaximoDeuda !== undefined) {
         campos.topeMaximoDeuda = String(input.topeMaximoDeuda);
       }
+      if (
+        input.latitudDomicilio !== undefined &&
+        input.longitudDomicilio !== undefined
+      ) {
+        campos.latitudDomicilio = String(input.latitudDomicilio);
+        campos.longitudDomicilio = String(input.longitudDomicilio);
+      }
       const { body, boundary } = await construirMultipart(campos, evidencias);
       return client.request<ClienteCobradorPublic>(
         `/cobrador/rutas/${rutaId}/clientes`,

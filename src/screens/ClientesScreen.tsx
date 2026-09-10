@@ -56,6 +56,11 @@ export function ClientesScreen() {
   const [telefono, setTelefono] = useState("");
   const [latitud, setLatitud] = useState(String(COORD_DEFAULT.lat));
   const [longitud, setLongitud] = useState(String(COORD_DEFAULT.lng));
+  const [latitudDomicilio, setLatitudDomicilio] = useState("");
+  const [longitudDomicilio, setLongitudDomicilio] = useState("");
+  const [ubicacionCampo, setUbicacionCampo] = useState<"negocio" | "domicilio">(
+    "negocio",
+  );
   const [tope, setTope] = useState("");
   const [direccion, setDireccion] = useState("");
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("ci");
@@ -69,6 +74,12 @@ export function ClientesScreen() {
   const [fuenteAbierta, setFuenteAbierta] = useState(false);
   const [fuenteCampo, setFuenteCampo] = useState<CampoEvidenciaCliente>("foto_facial");
   const evidenciasCliente = useEvidenciasCliente();
+
+  const esDomicilio = ubicacionCampo === "domicilio";
+  const latActual = esDomicilio ? latitudDomicilio : latitud;
+  const lngActual = esDomicilio ? longitudDomicilio : longitud;
+  const setLatActual = esDomicilio ? setLatitudDomicilio : setLatitud;
+  const setLngActual = esDomicilio ? setLongitudDomicilio : setLongitud;
 
   const cargar = useCallback(async () => {
     if (!rutaActiva) {
@@ -136,6 +147,9 @@ export function ClientesScreen() {
         : "",
     );
     setDireccion("");
+    setLatitudDomicilio("");
+    setLongitudDomicilio("");
+    setUbicacionCampo("negocio");
     evidenciasCliente.quitar("foto_facial");
     evidenciasCliente.quitar("documento_frente");
     evidenciasCliente.quitar("documento_reverso");
@@ -178,8 +192,8 @@ export function ClientesScreen() {
         return;
       }
       const mejor = resultados[0];
-      setLatitud(String(mejor.latitude));
-      setLongitud(String(mejor.longitude));
+      setLatActual(String(mejor.latitude));
+      setLngActual(String(mejor.longitude));
     } catch {
       setMensaje("No se pudo buscar la dirección.");
     } finally {
@@ -213,6 +227,22 @@ export function ClientesScreen() {
     ) {
       console.log("[crear-cliente] bloqueado: coordenadas inválidas", { latitud, longitud });
       setMensaje("Las coordenadas no son válidas.");
+      return;
+    }
+    const latD = Number(latitudDomicilio);
+    const lngD = Number(longitudDomicilio);
+    const tieneDomicilio =
+      latitudDomicilio.trim() !== "" || longitudDomicilio.trim() !== "";
+    if (
+      tieneDomicilio &&
+      (latitudDomicilio.trim() === "" ||
+        longitudDomicilio.trim() === "" ||
+        !Number.isFinite(latD) ||
+        !Number.isFinite(lngD) ||
+        latD === 0 ||
+        lngD === 0)
+    ) {
+      setMensaje("La ubicación del domicilio no es válida.");
       return;
     }
     if (tope.trim() !== "" && (!Number.isFinite(Number(tope)) || Number(tope) < 0)) {
@@ -255,6 +285,9 @@ export function ClientesScreen() {
       latitud: lat,
       longitud: lng,
       ...(tope.trim() ? { topeMaximoDeuda: Number(tope) } : {}),
+      ...(tieneDomicilio
+        ? { latitudDomicilio: latD, longitudDomicilio: lngD }
+        : {}),
       tipoDocumento,
       numeroDocumento: numeroDocumento.trim(),
     };
@@ -282,6 +315,9 @@ export function ClientesScreen() {
       setTelefono("");
       setTope("");
       setNumeroDocumento("");
+      setLatitudDomicilio("");
+      setLongitudDomicilio("");
+      setUbicacionCampo("negocio");
       setDireccion("");
       evidenciasCliente.quitar("foto_facial");
       evidenciasCliente.quitar("documento_frente");
@@ -535,7 +571,31 @@ export function ClientesScreen() {
               onChangeText={setNumeroDocumento}
             />
 
-            <Text style={styles.label}>Ubicación del negocio</Text>
+            <Text style={styles.label}>Ubicación</Text>
+            <View style={styles.chips}>
+              <Pressable
+                testID="cliente-ubicacion-negocio"
+                style={[styles.chip, !esDomicilio && styles.chipActivo]}
+                onPress={() => setUbicacionCampo("negocio")}
+              >
+                <Text
+                  style={!esDomicilio ? styles.chipTextoActivo : styles.chipTexto}
+                >
+                  Negocio
+                </Text>
+              </Pressable>
+              <Pressable
+                testID="cliente-ubicacion-domicilio"
+                style={[styles.chip, esDomicilio && styles.chipActivo]}
+                onPress={() => setUbicacionCampo("domicilio")}
+              >
+                <Text
+                  style={esDomicilio ? styles.chipTextoActivo : styles.chipTexto}
+                >
+                  Domicilio (opcional)
+                </Text>
+              </Pressable>
+            </View>
             <View style={styles.filaBusqueda}>
               <TextInput
                 testID="cliente-direccion"
@@ -563,11 +623,11 @@ export function ClientesScreen() {
               </Text>
             ) : null}
             <MapaPin
-              latitud={Number(latitud) || COORD_DEFAULT.lat}
-              longitud={Number(longitud) || COORD_DEFAULT.lng}
+              latitud={Number(latActual) || COORD_DEFAULT.lat}
+              longitud={Number(lngActual) || COORD_DEFAULT.lng}
               onChange={(lat, lng) => {
-                setLatitud(String(lat));
-                setLongitud(String(lng));
+                setLatActual(String(lat));
+                setLngActual(String(lng));
               }}
               testID="mapa-pin-cliente"
             />
@@ -577,16 +637,16 @@ export function ClientesScreen() {
                 style={[styles.input, styles.inputCoordenada]}
                 placeholder="Latitud"
                 keyboardType="decimal-pad"
-                value={latitud}
-                onChangeText={setLatitud}
+                value={latActual}
+                onChangeText={setLatActual}
               />
               <TextInput
                 testID="cliente-longitud"
                 style={[styles.input, styles.inputCoordenada]}
                 placeholder="Longitud"
                 keyboardType="decimal-pad"
-                value={longitud}
-                onChangeText={setLongitud}
+                value={lngActual}
+                onChangeText={setLngActual}
               />
             </View>
             <CampoModal

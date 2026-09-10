@@ -162,6 +162,8 @@ export interface CrearClienteInput {
   latitud: number;
   longitud: number;
   topeMaximoDeuda?: number;
+  latitudDomicilio?: number;
+  longitudDomicilio?: number;
   tipoDocumento: TipoDocumento;
   numeroDocumento: string;
 }
