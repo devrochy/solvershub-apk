@@ -6,6 +6,7 @@ import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
+import { API_URL } from "../config";
 import type { EstadoCuentaPrestamoPublic, PrestamoPublic } from "../types/cobrador";
 
 jest.mock("../features/estado-cuenta/estado-cuenta", () => ({
@@ -927,6 +928,8 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     await waitFor(() => expect(getByTestId("doc-frente")).toBeTruthy());
     expect(getByTestId("doc-reverso")).toBeTruthy();
+    expect(getByTestId("doc-frente-icono")).toBeTruthy();
+    expect(getByTestId("doc-reverso-icono")).toBeTruthy();
     expect(getAllByText("Pendiente").length).toBeGreaterThan(0);
   });
 
@@ -938,6 +941,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     await waitFor(() => expect(getByTestId("doc-frente")).toBeTruthy());
     expect(getByText("Verificado")).toBeTruthy();
+    expect(getByTestId("doc-frente-icono")).toHaveStyle({ backgroundColor: "#dcfce7" });
   });
 
   it("tocar la miniatura del documento abre el modal para ver/subir", async () => {
@@ -949,8 +953,8 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     expect(getByTestId("documento-modal")).toBeTruthy();
   });
 
-  it("preview de documento muestra la imagen completa (resizeMode contain)", async () => {
-    const tarjetaConFrente = { ...tarjeta, documentoFrenteUrl: "https://cdn.test/frente.jpg" };
+  it("preview de documento resuelve la ruta relativa del backend y usa resizeMode contain", async () => {
+    const tarjetaConFrente = { ...tarjeta, documentoFrenteUrl: "/uploads/frente.jpg" };
     const { getByTestId } = await renderConApi({
       tarjeta: jest.fn().mockResolvedValue(tarjetaConFrente),
     });
@@ -959,7 +963,9 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     await fireEvent.press(getByTestId("doc-frente"));
 
     await waitFor(() => expect(getByTestId("documento-foto-actual")).toBeTruthy());
-    expect(getByTestId("documento-foto-actual")).toHaveStyle({ resizeMode: "contain" });
+    const preview = getByTestId("documento-foto-actual");
+    expect(preview).toHaveStyle({ resizeMode: "contain" });
+    expect(preview.props.source.uri).toBe(`${API_URL}/uploads/frente.jpg`);
   });
 
   it("icono WhatsApp en el header del préstamo sin botón inferior", async () => {
@@ -1015,6 +1021,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
     expect(getByText("Verificado")).toBeTruthy();
+    expect(getByTestId("doc-reverso-icono")).toHaveStyle({ backgroundColor: "#dcfce7" });
   });
 
   it("el header de la tarjeta usa el fondo del color de clasificación del cliente", async () => {
