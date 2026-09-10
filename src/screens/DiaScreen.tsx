@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  BackHandler,
   FlatList,
   Modal,
   Pressable,
@@ -21,7 +20,6 @@ import { colorDeEstado } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
-import { TrayectosLista } from "../components/TrayectosLista";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import {
   abrirNavegacion,
@@ -30,7 +28,7 @@ import {
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 import { usePosicion } from "../features/trayectoria/use-posicion";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
-import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
+import { useTrayectosOverlay } from "../navigation/trayectos-overlay-context";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
 import { useSession } from "../session/session-context";
@@ -70,20 +68,7 @@ export function DiaScreen() {
   const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
   const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
-  const [trayectosAbierto, setTrayectosAbierto] = useState(false);
-
-  // El overlay de trayectos se cierra con el back físico de Android; el swipe
-  // de izquierda a derecha lo gestiona el contenedor (VentanaCerrarConSwipe).
-  useEffect(() => {
-    if (!trayectosAbierto) {
-      return undefined;
-    }
-    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      setTrayectosAbierto(false);
-      return true;
-    });
-    return () => sub.remove();
-  }, [trayectosAbierto]);
+  const { abrir: abrirTrayectosOverlay } = useTrayectosOverlay();
 
   // Liquidación del día.
   const [liquidacionAbierta, setLiquidacionAbierta] = useState(false);
@@ -480,7 +465,11 @@ export function DiaScreen() {
               <Pressable
                 testID="ver-trayectos"
                 style={styles.botonTrayectos}
-                onPress={() => setTrayectosAbierto(true)}
+                onPress={() => {
+                  if (clientes && trayectos) {
+                    abrirTrayectosOverlay({ clientes, trayectos });
+                  }
+                }}
               >
                 <Text style={styles.botonTrayectosTexto}>Ver trayectos</Text>
               </Pressable>
@@ -619,16 +608,6 @@ export function DiaScreen() {
           </Text>
         ) : null}
       </ModalConFooter>
-
-      {trayectosAbierto && trayectos ? (
-        <VentanaCerrarConSwipe
-          testID="trayectos-overlay"
-          style={styles.trayectosOverlay}
-          onCerrar={() => setTrayectosAbierto(false)}
-        >
-          <TrayectosLista clientes={clientes} trayectos={trayectos} />
-        </VentanaCerrarConSwipe>
-      ) : null}
 
       {/* Modal a pantalla completa: liquidación del día */}
       <Modal
@@ -865,15 +844,6 @@ const styles = StyleSheet.create({
   liquidacionItemTexto: { color: "#334155", fontSize: 13 },
   liquidacionMensaje: { color: "#dc2626", fontSize: 13, fontWeight: "500" },
   liquidacionMensajeOk: { color: "#16a34a", fontSize: 13, fontWeight: "500" },
-  trayectosOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#f8fafc",
-    zIndex: 10,
-  },
   botonSecundarioTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   trayectoriaActiva: {
     flexDirection: "row",

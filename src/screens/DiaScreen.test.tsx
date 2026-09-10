@@ -97,7 +97,8 @@ jest.mock("expo-sharing", () => ({
 }));
 
 import { ClienteScreen } from "./ClienteScreen";
-import { ContenidoTab } from "../navigation/ContenidoTab";
+import { OverlaysActivos } from "../navigation/OverlaysActivos";
+import { TrayectosOverlayProvider } from "../navigation/trayectos-overlay-context";
 import { shareAsync } from "expo-sharing";
 import { File } from "expo-file-system";
 
@@ -128,24 +129,27 @@ async function renderConApi(
   };
   return render(
     <PantallaActivaProvider>
-      <OfflineContext.Provider value={offline}>
-      <SessionContext.Provider value={valor}>
-        <RutaActivaContext.Provider
-          value={{
-            rutaActiva: {
-              rutaId: 6,
-              rutaNombre: "Ruta",
-              tipoInteres: 20,
-              numCuotas: 8,
-              config: config as never,
-            },
-            setRutaActiva: jest.fn(),
-          }}
-        >
-          <DiaScreen />
-        </RutaActivaContext.Provider>
-      </SessionContext.Provider>
-      </OfflineContext.Provider>
+      <TrayectosOverlayProvider>
+        <OfflineContext.Provider value={offline}>
+          <SessionContext.Provider value={valor}>
+            <RutaActivaContext.Provider
+              value={{
+                rutaActiva: {
+                  rutaId: 6,
+                  rutaNombre: "Ruta",
+                  tipoInteres: 20,
+                  numCuotas: 8,
+                  config: config as never,
+                },
+                setRutaActiva: jest.fn(),
+              }}
+            >
+              <DiaScreen />
+              <OverlaysActivos />
+            </RutaActivaContext.Provider>
+          </SessionContext.Provider>
+        </OfflineContext.Provider>
+      </TrayectosOverlayProvider>
     </PantallaActivaProvider>,
   );
 }
@@ -483,8 +487,7 @@ describe("DiaScreen — ver trayectos generados", () => {
     expect(props.onResponderTerminate).toBeDefined();
   });
 
-  it("el back físico de Android cierra el overlay de trayectos", async () => {
-    const spy = jest.spyOn(BackHandler, "addEventListener");
+  it("el back físico de Android NO lo gestiona DiaScreen (lo hace InicioCobrador)", async () => {
     const dia = jest.fn().mockResolvedValue({
       clientes: [
         { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
@@ -500,20 +503,17 @@ describe("DiaScreen — ver trayectos generados", () => {
         tipo: "planificada",
       },
     });
-    const { getByTestId, queryByTestId } = await renderConApi({ dia });
+    const spy = jest.spyOn(BackHandler, "addEventListener");
+    const { getByTestId } = await renderConApi({ dia });
 
     await waitFor(() => expect(getByTestId("ver-trayectos")).toBeTruthy());
     await fireEvent.press(getByTestId("ver-trayectos"));
     await waitFor(() => expect(getByTestId("trayectos-overlay")).toBeTruthy());
 
-    const llamadas = spy.mock.calls.filter(([evento]) => evento === "hardwareBackPress");
-    const ultima = llamadas[llamadas.length - 1];
-    const handler = ultima[1] as () => boolean;
-    await act(async () => {
-      expect(handler()).toBe(true);
-    });
-
-    await waitFor(() => expect(queryByTestId("trayectos-overlay")).toBeNull());
+    // DiaScreen ya no registra handler de back; el overlay lo cierra la capa host.
+    expect(
+      spy.mock.calls.some(([evento]) => evento === "hardwareBackPress"),
+    ).toBe(false);
   });
 
   it("no muestra el botón de trayectos si no hay trayecto generado", async () => {
@@ -650,26 +650,27 @@ describe("DiaScreen — cobros del día", () => {
     };
     const { getByTestId } = await render(
       <PantallaActivaProvider>
-        <OfflineContext.Provider value={offlineValor}>
-          <SessionContext.Provider value={valor}>
-            <RutaActivaContext.Provider
-              value={{
-                rutaActiva: {
-                  rutaId: 6,
-                  rutaNombre: "Ruta",
-                  tipoInteres: 20,
-                  numCuotas: 8,
-                  config: {} as never,
-                },
-                setRutaActiva: jest.fn(),
-              }}
-            >
-              <ContenidoTab>
+        <TrayectosOverlayProvider>
+          <OfflineContext.Provider value={offlineValor}>
+            <SessionContext.Provider value={valor}>
+              <RutaActivaContext.Provider
+                value={{
+                  rutaActiva: {
+                    rutaId: 6,
+                    rutaNombre: "Ruta",
+                    tipoInteres: 20,
+                    numCuotas: 8,
+                    config: {} as never,
+                  },
+                  setRutaActiva: jest.fn(),
+                }}
+              >
                 <DiaScreen />
-              </ContenidoTab>
-            </RutaActivaContext.Provider>
-          </SessionContext.Provider>
-        </OfflineContext.Provider>
+                <OverlaysActivos />
+              </RutaActivaContext.Provider>
+            </SessionContext.Provider>
+          </OfflineContext.Provider>
+        </TrayectosOverlayProvider>
       </PantallaActivaProvider>,
     );
 
@@ -700,17 +701,17 @@ describe("DiaScreen — sin ruta activa", () => {
     };
     await render(
       <PantallaActivaProvider>
-        <OfflineContext.Provider value={offlineValor}>
-          <SessionContext.Provider value={valor}>
-            <RutaActivaContext.Provider
-              value={{ rutaActiva: null, setRutaActiva: jest.fn() }}
-            >
-              <ContenidoTab>
+        <TrayectosOverlayProvider>
+          <OfflineContext.Provider value={offlineValor}>
+            <SessionContext.Provider value={valor}>
+              <RutaActivaContext.Provider
+                value={{ rutaActiva: null, setRutaActiva: jest.fn() }}
+              >
                 <DiaScreen />
-              </ContenidoTab>
-            </RutaActivaContext.Provider>
-          </SessionContext.Provider>
-        </OfflineContext.Provider>
+              </RutaActivaContext.Provider>
+            </SessionContext.Provider>
+          </OfflineContext.Provider>
+        </TrayectosOverlayProvider>
       </PantallaActivaProvider>,
     );
 

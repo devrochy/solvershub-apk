@@ -4,11 +4,6 @@ import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
 
-const mockNavigate = jest.fn();
-jest.mock("@react-navigation/native", () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
-}));
-
 const ruta = {
   id: 6,
   nombre: "Ruta Centro",
@@ -52,6 +47,7 @@ function apiConRuta(kpis: { clientes: unknown[]; dia: unknown } = { clientes: []
 async function renderConRutas(
   api: Partial<SessionValue["api"]>,
   setRutaActiva: jest.Mock = jest.fn(),
+  onRutaSeleccionada: jest.Mock = jest.fn(),
 ) {
   const valor: SessionValue = {
     cobrador: {
@@ -70,7 +66,7 @@ async function renderConRutas(
     <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
         <RutaActivaContext.Provider value={{ rutaActiva: null, setRutaActiva }}>
-          <SeleccionRutaScreen />
+          <SeleccionRutaScreen onRutaSeleccionada={onRutaSeleccionada} />
         </RutaActivaContext.Provider>
       </SessionContext.Provider>
     </OfflineContext.Provider>,
@@ -78,7 +74,7 @@ async function renderConRutas(
 }
 
 describe("SeleccionRutaScreen — selección de ruta", () => {
-  beforeEach(() => mockNavigate.mockClear());
+  beforeEach(() => jest.clearAllMocks());
 
   it("muestra el subtítulo 'Selecciona una ruta' y las tarjetas de ruta", async () => {
     const { getByText, getByTestId } = await renderConRutas(apiConRuta());
@@ -115,9 +111,14 @@ describe("SeleccionRutaScreen — selección de ruta", () => {
     expect(getByTestId("kpi-mora-6").props.children).toBe(2);
   });
 
-  it("al tocar una ruta fija la ruta activa y navega al Main", async () => {
+  it("al tocar una ruta fija la ruta activa y abre la capa de pestañas", async () => {
     const setRutaActiva = jest.fn();
-    const { getByTestId } = await renderConRutas(apiConRuta(), setRutaActiva);
+    const onRutaSeleccionada = jest.fn();
+    const { getByTestId } = await renderConRutas(
+      apiConRuta(),
+      setRutaActiva,
+      onRutaSeleccionada,
+    );
 
     await waitFor(() => expect(getByTestId("ruta-6")).toBeTruthy());
     await fireEvent.press(getByTestId("ruta-6"));
@@ -131,7 +132,7 @@ describe("SeleccionRutaScreen — selección de ruta", () => {
         config: { rutaId: 6, periodoLiquidacion: "diario", cupoDefault: 1500 },
       }),
     );
-    expect(mockNavigate).toHaveBeenCalledWith("Main");
+    expect(onRutaSeleccionada).toHaveBeenCalledTimes(1);
   });
 
   it("el header de la tarjeta muestra el nombre de la ruta (no el texto activo)", async () => {
@@ -204,7 +205,7 @@ describe("SeleccionRutaScreen — selección de ruta", () => {
           <RutaActivaContext.Provider
             value={{ rutaActiva: null, setRutaActiva: jest.fn() }}
           >
-            <SeleccionRutaScreen />
+          <SeleccionRutaScreen />
           </RutaActivaContext.Provider>
         </SessionContext.Provider>
       </OfflineContext.Provider>,

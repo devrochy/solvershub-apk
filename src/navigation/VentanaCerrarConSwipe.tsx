@@ -8,7 +8,13 @@ export interface VentanaCerrarConSwipeProps {
   style?: StyleProp<ViewStyle>;
   children: ReactNode;
   /** If false, se llama onCerrar sin animar la salida (p. ej. navegación nativa). Default: true. */
-  animarSalida?: boolean;
+  animarSalida?: boolean | "alInicio";
+  /**
+   * Si true, reclama el gesto en la fase de captura para ganar el swipe frente
+   * a ancestros con su propio responder (overlays anidados dentro del
+   * contenido del tab). Default: false.
+   */
+  capturarGesto?: boolean;
 }
 
 /**
@@ -22,10 +28,16 @@ export function VentanaCerrarConSwipe({
   style,
   children,
   animarSalida = true,
+  capturarGesto = false,
 }: VentanaCerrarConSwipeProps) {
   const [translateX] = useState(() => new Animated.Value(0));
   const [responder] = useState(() =>
-    crearPanResponderCerrar({ onCerrar, translateX, animarSalida }),
+    crearPanResponderCerrar({
+      onCerrar,
+      translateX,
+      animarSalida,
+      capturarGesto,
+    }),
   );
 
   return (

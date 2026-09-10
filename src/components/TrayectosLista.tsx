@@ -27,7 +27,6 @@ export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
     <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["left", "right"]}>
       <HeaderPantalla>
         <View style={estilosHeader.fila}>
-          <View style={estilosHeader.columnaIzq} />
           <View style={estilosHeader.bloqueTitulo}>
             <Text style={estilosHeader.titulo}>Trayectos del día</Text>
             <Text style={estilosHeader.subtitulo}>
@@ -36,7 +35,6 @@ export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
               {trayectos.distanciaEstimadaKm} km · {trayectos.tiempoEstimadoMin} min
             </Text>
           </View>
-          <View style={estilosHeader.columnaDerecha} />
         </View>
       </HeaderPantalla>
 

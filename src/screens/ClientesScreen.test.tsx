@@ -5,7 +5,8 @@ import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
-import { ContenidoTab } from "../navigation/ContenidoTab";
+import { OverlaysActivos } from "../navigation/OverlaysActivos";
+import { TrayectosOverlayProvider } from "../navigation/trayectos-overlay-context";
 
 jest.mock("../screens/ClienteScreen", () => {
   const React = require("react");
@@ -67,17 +68,18 @@ async function renderConRutaActiva(
   };
   return render(
     <PantallaActivaProvider>
-      <OfflineContext.Provider value={offline}>
-      <SessionContext.Provider value={valor}>
-        <RutaActivaContext.Provider
-          value={{ rutaActiva, setRutaActiva: jest.fn() }}
-        >
-          <ContenidoTab>
-            <ClientesScreen />
-          </ContenidoTab>
-        </RutaActivaContext.Provider>
-      </SessionContext.Provider>
-      </OfflineContext.Provider>
+      <TrayectosOverlayProvider>
+        <OfflineContext.Provider value={offline}>
+          <SessionContext.Provider value={valor}>
+            <RutaActivaContext.Provider
+              value={{ rutaActiva, setRutaActiva: jest.fn() }}
+            >
+              <ClientesScreen />
+              <OverlaysActivos />
+            </RutaActivaContext.Provider>
+          </SessionContext.Provider>
+        </OfflineContext.Provider>
+      </TrayectosOverlayProvider>
     </PantallaActivaProvider>,
   );
 }

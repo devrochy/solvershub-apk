@@ -67,6 +67,20 @@ describe("crearPanResponderCerrar", () => {
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
+  it("con animarSalida=true NO llama onCerrar si la animación se interrumpe (finished=false)", () => {
+    jest.spyOn(Animated, "timing").mockReturnValue({
+      start: jest.fn((cb?: (result: { finished: boolean }) => void) =>
+        cb?.({ finished: false }),
+      ),
+    } as never);
+    const onCerrar = jest.fn();
+    const { config } = crearPanResponderCerrar({ onCerrar, translateX });
+
+    config.onPanResponderRelease({} as never, { dx: 200 });
+
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
   it("anima hacia el anchoSalida indicado cuando se pasa explícitamente", () => {
     const timing = espiaTiming();
     const onCerrar = jest.fn();
@@ -98,6 +112,46 @@ describe("crearPanResponderCerrar", () => {
 
     expect(onCerrar).toHaveBeenCalledTimes(1);
     expect(timing).not.toHaveBeenCalled();
+  });
+
+  it("con animarSalida='alInicio' llama onCerrar al instante y desliza la ventana hacia fuera", () => {
+    const timing = espiaTiming();
+    const onCerrar = jest.fn();
+    const { config } = crearPanResponderCerrar({
+      onCerrar,
+      translateX,
+      animarSalida: "alInicio",
+    });
+
+    config.onPanResponderRelease({} as never, { dx: 200 });
+
+    expect(onCerrar).toHaveBeenCalledTimes(1);
+    expect(timing).toHaveBeenCalledWith(
+      translateX,
+      expect.objectContaining({
+        toValue: anchoPantalla,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    );
+  });
+
+  it("con animarSalida='alInicio' cierra aunque la animación no termine (onCerrar no depende del callback)", () => {
+    jest.spyOn(Animated, "timing").mockReturnValue({
+      start: jest.fn((cb?: (result: { finished: boolean }) => void) =>
+        cb?.({ finished: false }),
+      ),
+    } as never);
+    const onCerrar = jest.fn();
+    const { config } = crearPanResponderCerrar({
+      onCerrar,
+      translateX,
+      animarSalida: "alInicio",
+    });
+
+    config.onPanResponderRelease({} as never, { dx: 200 });
+
+    expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
   it("NO cierra con swipe corto o hacia la izquierda y devuelve con spring", () => {
@@ -163,6 +217,37 @@ describe("crearPanResponderCerrar", () => {
     ).toBe(false);
     expect(
       config.onMoveShouldSetPanResponder({} as never, { dx: -40, dy: 2 }),
+    ).toBe(false);
+  });
+
+  it("sin capturarGesto NO reclama el gesto en la fase de captura", () => {
+    const { config } = crearPanResponderCerrar({
+      onCerrar: jest.fn(),
+      translateX,
+    });
+
+    expect(config.onMoveShouldSetPanResponderCapture).toBeUndefined();
+  });
+
+  it("con capturarGesto=true reclama el gesto en la fase de captura (gana frente a ancestros)", () => {
+    const { config } = crearPanResponderCerrar({
+      onCerrar: jest.fn(),
+      translateX,
+      capturarGesto: true,
+    });
+
+    expect(config.onMoveShouldSetPanResponderCapture).toBeDefined();
+    expect(
+      config.onMoveShouldSetPanResponderCapture?.({} as never, { dx: 25, dy: 2 }),
+    ).toBe(true);
+    expect(
+      config.onMoveShouldSetPanResponderCapture?.({} as never, { dx: 5, dy: 2 }),
+    ).toBe(false);
+    expect(
+      config.onMoveShouldSetPanResponderCapture?.({} as never, { dx: 40, dy: 80 }),
+    ).toBe(false);
+    expect(
+      config.onMoveShouldSetPanResponderCapture?.({} as never, { dx: -40, dy: 2 }),
     ).toBe(false);
   });
 
