@@ -1032,7 +1032,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     await waitFor(() => expect(getByTestId("dato-documento")).toBeTruthy());
     expect(getByTestId("dato-documento")).toHaveTextContent(
-      /Cédula de Identidad 1234567/,
+      /Documento de Identidad 1234567/,
     );
   });
 

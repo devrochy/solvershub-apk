@@ -7,6 +7,7 @@ import {
 describe("tipo-documento (APK)", () => {
   it("valida el número según el tipo", () => {
     expect(validarNumeroDocumento("ci", "1234567")).toBe(true);
+    expect(validarNumeroDocumento("ci", "1053796939")).toBe(true);
     expect(validarNumeroDocumento("ci", "ABC")).toBe(false);
     expect(validarNumeroDocumento("pasaporte", "AB123456")).toBe(true);
     expect(validarNumeroDocumento("nit", "1234567890")).toBe(true);
