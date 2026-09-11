@@ -88,3 +88,14 @@
   overrides de color (fondo blanco). Coherente con la decisión de overlay, pero
   expuesto a drift si cambia el estándar.
 - Prioridad sugerida: baja
+
+## Vinculación autoservicio del dispositivo desde la APK (HU-39/43) — Opción 2b
+- Detectado en: decisión de diseño Épica 8 APK (2026-09-11)
+- Descripción: la APK vincula su propio device tras el primer login (Android ID
+  automático + WhatsApp del perfil + clave X25519) y el admin lo aprueba (el
+  device queda en `pendiente_revalidacion`). En el MVP se decidió **no**
+  implementar el envío en el login (Opción 1) ni el autoservicio, para poder
+  probar con cualquier cobrador sin piezas adicionales.
+- Detalle del plan: `apk-autovinculacion-dispositivo.md`.
+- Prioridad sugerida: media (post-MVP)
+
