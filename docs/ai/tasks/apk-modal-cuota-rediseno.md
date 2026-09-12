@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # apk-modal-cuota-rediseno
 
 - **Rama:** `feature/apk-modal-cuota-rediseno` (desde `develop`)
-- **Estado:** en progreso
+- **Estado:** completada
 - **Dependencias:** backend `apk-pago-liquidado` (pagos[].liquidado, abonos[])
 - **Alcance (TDD):** rediseñar la modal de detalle de cuota para registrar
   pago/abono y no pago dentro de ella, y borrar pagos/abonos no liquidados.

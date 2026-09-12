@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # fix-cuota-evidencias-ux
 
 - **Rama:** `fix/cuota-evidencias-ux` (desde `develop`)
-- **Estado:** en progreso
+- **Estado:** completada
 - **Dependencias:** backend `fix/evidencias-y-config-apk` (agregarEvidencias sin validación + flags de ruta)
 - **Alcance (TDD):** mejoras de UX reportadas en la modal de cuota y en la edición de evidencias.
 

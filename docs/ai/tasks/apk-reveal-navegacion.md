@@ -1,5 +1,5 @@
 ---
-estado: en_progreso
+estado: completada
 tags: [tarea]
 ---
 
@@ -10,7 +10,7 @@ tags: [tarea]
   confirmó en dispositivo que el efecto NO es el esperado: (1) las pestañas no
   revelan la vista anterior al deslizar, y (2) el overlay de trayectos sigue
   yendo a la lista de rutas en vez de a «cobros del día».
-- **Estado:** en progreso.
+- **Estado:** completada.
 - **Fecha inicio:** 2026-09-09
 
 ## Objetivo

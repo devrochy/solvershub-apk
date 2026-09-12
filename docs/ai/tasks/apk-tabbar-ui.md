@@ -1,7 +1,12 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # apk-tabbar-ui
 
 - **Rama:** `feature/apk-tabbar-ui` (desde `develop`)
-- **Estado:** en progreso
+- **Estado:** completada
 - **Origen:** prueba de skills de UI (`building-native-ui` + `anti-ui-slop`) — opción C.
 
 ## Objetivo

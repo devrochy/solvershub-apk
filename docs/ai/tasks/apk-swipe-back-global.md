@@ -1,5 +1,5 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
@@ -11,7 +11,7 @@ tags: [tarea]
   brusca: quería que se viera la vista de la página a la que se retorna durante
   la transición, en TODAS las ventanas de la APK (cobro día, lista clientes,
   trayectos, detalle del cliente, etc.).
-- **Estado:** terminado (implementado y verificado con `scripts/check.sh`).
+- **Estado:** completada (implementado y verificado con `scripts/check.sh`).
 
 ## Flujo real de ventanas (verificado en App.tsx)
 - Pestañas **Ruta / Día / Clientes**: cada una renderiza su contenido dentro de

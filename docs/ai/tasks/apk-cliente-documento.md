@@ -1,5 +1,5 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
@@ -7,7 +7,7 @@ tags: [tarea]
 
 - **Origen:** petición del usuario (2026-09-10). Backend ya expone
   `tipoDocumento`/`numeroDocumento` (PR en `app-cobranza`).
-- **Estado:** terminado.
+- **Estado:** completada.
 - **Fecha inicio:** 2026-09-10
 
 ## Objetivo

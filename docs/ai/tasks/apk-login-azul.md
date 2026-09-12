@@ -1,5 +1,5 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
@@ -8,7 +8,7 @@ tags: [tarea]
 - **Origen:** petición del usuario (2026-09-10): rediseñar el fondo de la
   pantalla de login con el azul principal y ajustar los botones/controles para
   que sean acordes.
-- **Estado:** terminado.
+- **Estado:** completada.
 - **Fecha inicio:** 2026-09-10
 
 ## Objetivo

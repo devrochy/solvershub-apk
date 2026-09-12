@@ -1,5 +1,5 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
@@ -8,7 +8,7 @@ tags: [tarea]
 - **Origen:** petición del usuario (2026-09-10): en la lista de rutas, atenuar
   (pastel) el color del header de cada tarjeta y añadir a su izquierda un círculo
   del color pleno que titile (parpadee) para indicar el estado de la ruta.
-- **Estado:** terminado.
+- **Estado:** completada.
 - **Fecha inicio:** 2026-09-10
 
 ## Objetivo

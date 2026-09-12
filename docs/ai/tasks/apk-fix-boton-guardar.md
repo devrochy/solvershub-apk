@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # Tarea: apk-fix-boton-guardar (botón Guardar visible + no ofrecer cuota ya pagada)
 
 - **Origen:** Prueba del usuario 2026-09-01: el form de pago/no-pago se abre pero su botón "Guardar" no se ve (invisible); además la app ofrecía pagar la cuota 1 ya pagada cuando no hay cuotas pendientes (errores "La cuota ya está pagada").
-- **Estado:** en progreso
+- **Estado:** completada
 - **Fecha inicio:** 2026-09-01
 
 ## Objetivo

@@ -1,5 +1,5 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
@@ -9,7 +9,7 @@ tags: [tarea]
   frente/reverso o la foto de perfil en el detalle del cliente no se veía la
   imagen previsualizada en la modal; (2) cuando el documento está verificado el
   recuadro se veía vacío y quiere un icono de documento frente/reverso.
-- **Estado:** terminado.
+- **Estado:** completada.
 - **Fecha inicio:** 2026-09-10
 
 ## Causa raíz

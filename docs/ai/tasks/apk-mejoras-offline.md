@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # Tarea: apk-mejoras-offline (pre-cache de tarjetas + dedupe de la cola)
 
 - **Origen:** Prueba de la capa offline por el usuario 2026-09-01: (1) las tarjetas de clientes solo se cacheaban al abrirlos (en modo avión, clientes no visitados online no tenían datos ni botones); (2) se encolaron 3 pagos idénticos de la misma cuota (2 rechazados por el backend).
-- **Estado:** en progreso
+- **Estado:** completada
 - **Fecha inicio:** 2026-09-01
 
 ## Objetivo
