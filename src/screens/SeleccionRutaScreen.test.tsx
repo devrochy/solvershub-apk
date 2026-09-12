@@ -131,6 +131,10 @@ describe("SeleccionRutaScreen — selección de ruta", () => {
         tipoInteres: 20,
         numCuotas: 8,
         config: { rutaId: 6, periodoLiquidacion: "diario", cupoDefault: 1500 },
+        permisos: [
+          { permiso: "ver_cartera", habilitado: true },
+          { permiso: "registrar_pago", habilitado: true },
+        ],
       }),
     );
     expect(onRutaSeleccionada).toHaveBeenCalledTimes(1);

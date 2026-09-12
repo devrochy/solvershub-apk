@@ -127,11 +127,42 @@ export interface CobradorApi {
     rutaId: number,
     input: { latitud: number; longitud: number },
   ): Promise<{ rutaId: number; latitud: number; longitud: number }>;
+  actualizarRuta(
+    rutaId: number,
+    input: { nombre: string; descripcion?: string | null },
+  ): Promise<{ id: number; nombre: string }>;
+  actualizarConfiguracionRuta(
+    rutaId: number,
+    input: { tipoInteres?: number; numCuotas?: number },
+  ): Promise<{ id: number; tipoInteres: number; numCuotas: number }>;
 }
 
 export function cobradorApi(client: ApiClient): CobradorApi {
   return {
     misRutas: () => client.request<RutaApkPublic[]>("/cobrador/mis-rutas"),
+
+    actualizarRuta: (
+      rutaId: number,
+      input: { nombre: string; descripcion?: string | null },
+    ) =>
+      client.request<{ id: number; nombre: string }>(`/cobrador/rutas/${rutaId}`, {
+        method: "PATCH",
+        headers: JSON_HEADERS,
+        body: jsonBody(input),
+      }),
+
+    actualizarConfiguracionRuta: (
+      rutaId: number,
+      input: { tipoInteres?: number; numCuotas?: number },
+    ) =>
+      client.request<{ id: number; tipoInteres: number; numCuotas: number }>(
+        `/cobrador/rutas/${rutaId}/configuracion`,
+        {
+          method: "PATCH",
+          headers: JSON_HEADERS,
+          body: jsonBody(input),
+        },
+      ),
 
     actualizarPerfil: (input: { nombre: string; apellido: string }) =>
       client.request<PerfilPublic>("/perfil", {

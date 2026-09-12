@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { RutaConfigPublic } from "../types/cobrador";
+import type { CobradorPermisoEstado, RutaConfigPublic } from "../types/cobrador";
 
 export interface RutaActiva {
   rutaId: number;
@@ -8,6 +8,8 @@ export interface RutaActiva {
   tipoInteres: number;
   numCuotas: number;
   config: RutaConfigPublic;
+  /** Permisos del cobrador en la ruta (para gatear acciones en la APK). */
+  permisos?: CobradorPermisoEstado[];
 }
 
 export interface RutaActivaContextValue {
