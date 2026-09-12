@@ -540,10 +540,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   function abrirEditar() {
     setMensaje(null);
+    const lat = tarjeta?.latitud ?? latitud;
+    const lng = tarjeta?.longitud ?? longitud;
     const actual: CambioClienteInput = {
       ...edicionDesdeTarjeta(tarjeta as ClienteTarjetaPublic),
-      latitud: typeof latitud === "number" ? latitud : undefined,
-      longitud: typeof longitud === "number" ? longitud : undefined,
+      latitud: typeof lat === "number" ? lat : undefined,
+      longitud: typeof lng === "number" ? lng : undefined,
     };
     setEdicion(actual);
     setEdicionOriginal(actual);
@@ -554,14 +556,16 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setUbicacionMensaje(null);
     setUbicacionDireccion("");
     setUbicacionCampo("negocio");
+    const lat = tarjeta?.latitud ?? latitud;
+    const lng = tarjeta?.longitud ?? longitud;
+    const latDom = tarjeta?.latitudDomicilio ?? latitudDomicilio;
+    const lngDom = tarjeta?.longitudDomicilio ?? longitudDomicilio;
     setEdicion((e) => ({
       ...e,
-      latitud: typeof latitud === "number" ? latitud : e.latitud,
-      longitud: typeof longitud === "number" ? longitud : e.longitud,
-      latitudDomicilio:
-        typeof latitudDomicilio === "number" ? latitudDomicilio : e.latitudDomicilio,
-      longitudDomicilio:
-        typeof longitudDomicilio === "number" ? longitudDomicilio : e.longitudDomicilio,
+      latitud: typeof lat === "number" ? lat : e.latitud,
+      longitud: typeof lng === "number" ? lng : e.longitud,
+      latitudDomicilio: typeof latDom === "number" ? latDom : e.latitudDomicilio,
+      longitudDomicilio: typeof lngDom === "number" ? lngDom : e.longitudDomicilio,
     }));
     setModal("ubicacion");
   }
@@ -876,8 +880,10 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
+  const latNegocio = tarjeta.latitud ?? latitud;
+  const lngNegocio = tarjeta.longitud ?? longitud;
   const tieneCoordenadas =
-    typeof latitud === "number" && typeof longitud === "number";
+    typeof latNegocio === "number" && typeof lngNegocio === "number";
   const prestamosVisibles =
     prestamoSeleccionadoId == null
       ? prestamos
@@ -1084,12 +1090,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
         {mapaAbierto && tieneCoordenadas ? (
           <View style={styles.seccionMapa}>
-            <MapaCliente latitud={latitud} longitud={longitud} nombre={tarjeta.nombre} />
+            <MapaCliente latitud={latNegocio} longitud={lngNegocio} nombre={tarjeta.nombre} />
             <View style={styles.navegacion}>
               <Pressable
                 testID="navegar-maps"
                 style={[styles.botonNavegar]}
-                onPress={() => abrirNavegacion(latitud, longitud, "maps")}
+                onPress={() => abrirNavegacion(latNegocio, lngNegocio, "maps")}
               >
                 <MaterialIcons name="map" size={16} color="#ffffff" />
                 <Text style={styles.botonNavegarTexto}>Google Maps</Text>
@@ -1097,7 +1103,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
               <Pressable
                 testID="navegar-waze"
                 style={[styles.botonNavegar, styles.botonWaze]}
-                onPress={() => abrirNavegacion(latitud, longitud, "waze")}
+                onPress={() => abrirNavegacion(latNegocio, lngNegocio, "waze")}
               >
                 <MaterialIcons name="navigation" size={16} color="#ffffff" />
                 <Text style={styles.botonNavegarTexto}>Waze</Text>

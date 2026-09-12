@@ -783,6 +783,21 @@ describe("ClienteScreen — navegación externa (maps/waze)", () => {
 
     expect(abrirNavegacion).toHaveBeenCalledWith(-17.78, -63.18, "maps");
   });
+
+  it("prioriza las coordenadas frescas de la tarjeta sobre las props stale", async () => {
+    const conCoords = { ...tarjeta, latitud: -17.5, longitud: -63.5 };
+    const { getByTestId } = await renderConApi(
+      { tarjeta: jest.fn().mockResolvedValue(conCoords) },
+      offlineValor,
+      { latitud: -17.78, longitud: -63.18 },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-como-llegar")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-como-llegar"));
+    await fireEvent.press(getByTestId("navegar-maps"));
+
+    expect(abrirNavegacion).toHaveBeenCalledWith(-17.5, -63.5, "maps");
+  });
 });
 
 describe("ClienteScreen — notificación de próximo cobro", () => {
