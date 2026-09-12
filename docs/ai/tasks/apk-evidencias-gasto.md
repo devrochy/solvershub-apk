@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # Tarea: apk-evidencias-gasto (evidencias de gasto con cámara/librería)
 
 - **Origen:** Fase A del plan de la APK (A2) aprobado por el usuario 2026-09-01. El gasto ya se registra sin evidencia; se agrega captura/selección de fotos (1-5) enviadas en el multipart `POST /cobrador/rutas/:id/gastos`.
-- **Estado:** en progreso
+- **Estado:** completada
 - **Fecha inicio:** 2026-09-01
 
 ## Objetivo

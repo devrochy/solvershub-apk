@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # Tarea: apk-headers-estandar
 
 - **Origen:** petición del usuario (2026-09-09): estandarizar los headers de las vistas de la APK, excluyendo Login. Quejas detectadas: tamaño de texto distinto entre pantallas, título centrado en unas y a la izquierda en otras, y vistas sin el azul de fondo `#172f6c`.
-- **Estado:** terminado — PR #36 a develop, CI en verde (build-and-test SUCCESS)
+- **Estado:** completada — PR #36 a develop, CI en verde (build-and-test SUCCESS)
 
 ## Auditoría (estado antes del cambio)
 
@@ -47,3 +47,9 @@ tags: [tarea]
 - Obs a aplicar: estilo muerto `headerDetalle` en ClientesScreen (eliminado); docstring de ranuras 72 sobrevendía el estándar (corregido).
 - Deuda registrada en backlog: estilos locales de TrayectosLista replican el canon sin componer `estilosHeader`.
 - Pendientes de verificación visual en dispositivo: título de ClienteScreen en modo stack con ranura izquierda vacía; altura/alineación del bloque título+subtítulo en SeleccionRuta/Clientes (el `flex:1` del token `titulo` dentro de `bloqueTitulo` opera en el eje vertical).
+
+## Resultado final
+- Comandos ejecutados para verificar: `scripts/check.sh` verde (40 suites / 304 tests) + bundle web exportado OK (`dist/`).
+- Archivos modificados: `src/components/HeaderPantalla.tsx` (tokens `estilosHeader`, `accionesDerecha`), `DiaScreen`, `ClientesScreen`, `SeleccionRutaScreen`, `ClienteScreen`, `RutaDetalleScreen`, `TrayectosLista`.
+- Mergeado a `develop` vía PR #36.
+- Pendientes/seguimiento: verificación visual en dispositivo; estilos locales de `TrayectosLista` replican el canon (registrado en backlog).

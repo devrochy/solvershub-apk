@@ -1,7 +1,12 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # apk-dia-ui
 
 - **Rama:** `feature/apk-dia-ui` (desde `develop`)
-- **Estado:** en progreso
+- **Estado:** completada
 - **Origen:** prueba de skills de UI (`building-native-ui` + `anti-ui-slop`) sobre la pantalla de cobros del día.
 
 ## Objetivo

@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # apk-detalle-cliente-mejoras
 
 - **Rama:** `feature/apk-detalle-cliente-mejoras` (desde `develop`)
-- **Estado:** en progreso
+- **Estado:** completada
 - **Dependencias:** ninguna
 - **Alcance (TDD):** ajustes puntuales del detalle de cliente.
 

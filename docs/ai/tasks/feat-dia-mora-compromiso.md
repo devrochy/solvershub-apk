@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # feat-dia-mora-compromiso
 
 - **Rama:** `feat/dia-mora-compromiso` (desde `develop`)
-- **Estado:** en progreso
+- **Estado:** completada
 - **Dependencias:** backend `feat/dia-clientes-filtro` (diasMora + compromisoValor)
 - **Alcance (TDD):** mostrar en la lista del día los días de mora y el compromiso de pago de hoy.
 

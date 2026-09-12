@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # Tarea: apk-ux-fase-a (pull-to-refresh y estados compartidos)
 
 - **Origen:** Fase A del plan de la APK (A6) aprobado por el usuario 2026-09-01.
-- **Estado:** en progreso
+- **Estado:** completada
 - **Fecha inicio:** 2026-09-01
 
 ## Objetivo

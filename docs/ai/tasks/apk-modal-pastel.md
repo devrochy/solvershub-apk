@@ -1,5 +1,5 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
@@ -8,7 +8,7 @@ tags: [tarea]
 - **Origen:** petición del usuario (2026-09-10): estandarizar el modal con
   header azul principal (como `HeaderPantalla`) y suavizar los colores internos
   a tonos pastel para que la interfaz sea menos brusca.
-- **Estado:** en progreso.
+- **Estado:** completada.
 - **Fecha inicio:** 2026-09-10
 
 ## Objetivo

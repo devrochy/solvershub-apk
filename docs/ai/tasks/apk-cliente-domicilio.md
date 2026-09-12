@@ -1,5 +1,5 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
@@ -8,7 +8,7 @@ tags: [tarea]
 - **Origen:** petición del usuario (2026-09-10): registrar también el domicilio
   del cliente en el alta, reutilizando el mismo mapa con un toggle
   Negocio/Domicilio.
-- **Estado:** terminado.
+- **Estado:** completada.
 - **Fecha inicio:** 2026-09-10
 
 ## Objetivo

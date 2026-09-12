@@ -1,12 +1,12 @@
 ---
-estado: en progreso
+estado: completada
 tags: [tarea]
 ---
 
 # apk-liquidacion-dia
 
 - **Rama:** `feature/apk-liquidacion-dia` (desde `develop`)
-- **Estado:** en progreso
+- **Estado:** completada
 - **Dependencias:** backend `backend-liquidacion-cobrador` (endpoints cobrador + PDF + visitaRegistrada)
 - **Alcance (TDD):** generar la liquidación del día desde la pestaña "Día",
   ver el detalle de pagos/abonos y descargar el resumen en PDF.

@@ -1,5 +1,5 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
@@ -7,7 +7,7 @@ tags: [tarea]
 
 - **Origen:** petición del usuario (2026-09-10): añadir un icono al botón
   "Salir" del header de la lista de rutas.
-- **Estado:** terminado.
+- **Estado:** completada.
 - **Fecha inicio:** 2026-09-10
 
 ## Objetivo

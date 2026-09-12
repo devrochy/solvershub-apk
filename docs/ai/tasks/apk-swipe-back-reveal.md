@@ -1,3 +1,8 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # Tarea: apk-swipe-back-reveal
 
 - **Origen:** petición del usuario (2026-09-09): la transición del swipe-back

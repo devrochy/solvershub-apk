@@ -1,12 +1,12 @@
 ---
-estado: terminado
+estado: completada
 tags: [tarea]
 ---
 
 # Tarea: apk-swipe-back-ruta
 
 - **Origen:** petición del usuario (2026-09-09): al navegar de la lista de rutas a una ruta específica, poder regresar con el gesto de deslizar de izquierda a derecha y ocultar el botón atrás.
-- **Estado:** terminado (implementado y verificado).
+- **Estado:** completada (implementado y verificado).
 
 ## Contexto de navegación (verificado en App.tsx)
 El flujo "lista de rutas → ruta específica" es: `SeleccionRutaScreen` (stack) →

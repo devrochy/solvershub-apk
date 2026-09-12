@@ -1,7 +1,12 @@
+---
+estado: completada
+tags: [tarea]
+---
+
 # apk-cliente-ui
 
 - **Rama:** `feature/apk-cliente-ui` (desde `develop`)
-- **Estado:** en progreso
+- **Estado:** completada
 - **Origen:** prueba de skills de UI (`building-native-ui` + `anti-ui-slop`) — opción B.
 
 ## Objetivo
