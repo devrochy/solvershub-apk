@@ -269,7 +269,11 @@ export function DiaScreen() {
     clientes.length > 0 &&
     clientes.every((cliente) => cliente.visitaRegistrada);
 
-  const liquidacionVisible = Boolean(rutaActiva?.config.generarReportesApk);
+  const permisos = rutaActiva?.permisos;
+  const tienePermisoReporte =
+    !permisos || permisos.some((p) => p.permiso === "generar_reporte" && p.habilitado);
+  const liquidacionVisible =
+    Boolean(rutaActiva?.config.generarReportesApk) && tienePermisoReporte;
 
   async function abrirLiquidacion() {
     setLiquidacionMensaje(null);

@@ -6,6 +6,7 @@ import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
+import type { CobradorPermisoEstado } from "../types/cobrador";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import * as useEvidenciasModule from "../features/gastos/use-evidencias";
 
@@ -115,6 +116,7 @@ async function renderConApi(
   api: Partial<SessionValue["api"]>,
   offline = offlineValor,
   config: Record<string, unknown> = {},
+  permisos?: CobradorPermisoEstado[],
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L", rol: "cobrador" },
@@ -141,6 +143,7 @@ async function renderConApi(
                   tipoInteres: 20,
                   numCuotas: 8,
                   config: config as never,
+                  permisos,
                 },
                 setRutaActiva: jest.fn(),
               }}
@@ -783,6 +786,18 @@ describe("DiaScreen — liquidación del día", () => {
 
     await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
     expect(getByTestId("btn-liquidacion")).toBeDisabled();
+  });
+
+  it("oculta el botón de liquidación si falta el permiso generar_reporte", async () => {
+    const { queryByTestId } = await renderConApi(
+      { dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }) },
+      offlineValor,
+      { generarReportesApk: true },
+      [{ permiso: "generar_reporte", habilitado: false }],
+    );
+
+    await waitFor(() => expect(queryByTestId("cliente-1")).toBeTruthy());
+    expect(queryByTestId("btn-liquidacion")).toBeNull();
   });
 
   it("genera la liquidación y muestra el detalle con pagos/abonos", async () => {

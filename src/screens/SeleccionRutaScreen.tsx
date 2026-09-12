@@ -97,6 +97,7 @@ export function SeleccionRutaScreen({
       tipoInteres: ruta.tipoInteres,
       numCuotas: ruta.numCuotas,
       config: ruta.config,
+      permisos: ruta.permisos,
     });
     onRutaSeleccionada?.();
   }

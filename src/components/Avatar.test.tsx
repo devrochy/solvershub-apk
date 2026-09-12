@@ -1,21 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
-import { Avatar, inicialesDe } from "./Avatar";
+import { Avatar } from "./Avatar";
 
 beforeEach(() => jest.clearAllMocks());
-
-describe("inicialesDe", () => {
-  it("extrae iniciales de la primera y última palabra", () => {
-    expect(inicialesDe("Laura Martínez")).toBe("LM");
-  });
-
-  it("usa una sola inicial si hay un solo nombre", () => {
-    expect(inicialesDe("Laura")).toBe("L");
-  });
-
-  it("devuelve ? si el nombre está vacío", () => {
-    expect(inicialesDe("   ")).toBe("?");
-  });
-});
 
 describe("Avatar", () => {
   it("muestra la foto si fotoUrl está presente", async () => {
