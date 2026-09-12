@@ -95,6 +95,15 @@ describe("ClientesScreen", () => {
     expect(getByText("Tienda Central")).toBeTruthy();
   });
 
+  it("muestra la barra de acento semántica según el color de riesgo", async () => {
+    const { getByTestId } = await renderConRutaActiva({
+      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("cliente-acento-11")).toBeTruthy());
+    expect(getByTestId("cliente-acento-11")).toHaveStyle({ backgroundColor: "#172f6c" });
+  });
+
   it("muestra avatar con iniciales si el cliente no tiene foto", async () => {
     const { getByTestId } = await renderConRutaActiva({
       listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),

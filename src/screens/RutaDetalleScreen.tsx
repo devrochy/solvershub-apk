@@ -201,7 +201,7 @@ export function RutaDetalleScreen({
               <Text style={styles.kpiEtiqueta}>Clientes</Text>
             </View>
             <View style={styles.kpi}>
-              <MaterialIcons name="today" size={22} color="#0891b2" />
+              <MaterialIcons name="today" size={22} color="#0e7490" />
               <Text style={styles.kpiValor} testID="kpi-clientes-dia">
                 {dia.clientes.length}
               </Text>

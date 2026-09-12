@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   paradas: { gap: 4 },
   paradaNombre: { color: "#334155", fontSize: 14, flex: 1 },
   botonNavegar: {
-    backgroundColor: "#0891b2",
+    backgroundColor: "#0e7490",
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: "center",

@@ -1062,12 +1062,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 style={[styles.comoLlegar, mapaAbierto && styles.comoLlegarActivo]}
                 onPress={() => setMapaAbierto((abierto) => !abierto)}
               >
-                <MaterialIcons name="directions" size={16} color="#0891b2" />
+                <MaterialIcons name="directions" size={16} color="#0e7490" />
                 <Text style={styles.comoLlegarTexto}>Cómo llegar</Text>
                 <MaterialIcons
                   name={mapaAbierto ? "expand-less" : "expand-more"}
                   size={18}
-                  color="#0891b2"
+                  color="#0e7490"
                 />
               </Pressable>
               <Pressable
@@ -2137,7 +2137,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   comoLlegarActivo: { borderColor: "#67e8f9" },
-  comoLlegarTexto: { color: "#0891b2", fontWeight: "600", fontSize: 13 },
+  comoLlegarTexto: { color: "#0e7490", fontWeight: "600", fontSize: 13 },
   editarUbicacion: {
     flexDirection: "row",
     alignItems: "center",
@@ -2158,7 +2158,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    backgroundColor: "#0891b2",
+    backgroundColor: "#0e7490",
     borderRadius: 10,
     paddingVertical: 10,
   },
