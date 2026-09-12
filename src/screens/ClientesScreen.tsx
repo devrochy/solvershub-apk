@@ -19,7 +19,7 @@ import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
-import { fondoDeEstado } from "../components/ColorBadge";
+import { colorDeEstado } from "../components/ColorBadge";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
@@ -400,7 +400,7 @@ export function ClientesScreen() {
         renderItem={({ item }) => (
           <Pressable
             testID={`cliente-${item.id}`}
-            style={[styles.tarjeta, { backgroundColor: fondoDeEstado(item.colorRiesgo) }]}
+            style={styles.tarjeta}
             onPress={() =>
               abrir({
                 tipo: "cliente",
@@ -414,13 +414,19 @@ export function ClientesScreen() {
               })
             }
           >
-            <Avatar nombre={nombreCompleto(item)} fotoUrl={item.fotoUrl} />
-            <View style={styles.tarjetaInfo}>
-              <Text style={styles.clienteNombre}>{nombreCompleto(item)}</Text>
-              {item.negocio ? (
-                <Text style={styles.clienteDetalle}>{item.negocio}</Text>
-              ) : null}
-              <Text style={styles.clienteTelefono}>{item.telefonoWhatsapp}</Text>
+            <View
+              testID={`cliente-acento-${item.id}`}
+              style={[styles.acento, { backgroundColor: colorDeEstado(item.colorRiesgo) }]}
+            />
+            <View style={styles.tarjetaContenido}>
+              <Avatar nombre={nombreCompleto(item)} fotoUrl={item.fotoUrl} />
+              <View style={styles.tarjetaInfo}>
+                <Text style={styles.clienteNombre}>{nombreCompleto(item)}</Text>
+                {item.negocio ? (
+                  <Text style={styles.clienteDetalle}>{item.negocio}</Text>
+                ) : null}
+                <Text style={styles.clienteTelefono}>{item.telefonoWhatsapp}</Text>
+              </View>
             </View>
           </Pressable>
         )}
@@ -712,13 +718,20 @@ const styles = StyleSheet.create({
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   tarjeta: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    alignItems: "stretch",
     backgroundColor: "#ffffff",
     borderRadius: 12,
+    borderCurve: "continuous",
+    overflow: "hidden",
+    boxShadow: "0 1px 3px rgba(15, 23, 42, 0.08)",
+  },
+  acento: { width: 4 },
+  tarjetaContenido: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
     padding: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
   },
   tarjetaInfo: { flex: 1 },
   clienteNombre: { fontSize: 16, fontWeight: "600", color: "#334155" },

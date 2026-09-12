@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   botonTrayectos: {
-    backgroundColor: "#0891b2",
+    backgroundColor: "#0e7490",
     borderRadius: 12,
     borderCurve: "continuous",
     paddingVertical: 13,
@@ -906,7 +906,7 @@ const styles = StyleSheet.create({
   chipTrayecto: { backgroundColor: "#dbeafe" },
   chipTrayectoTexto: { color: "#1d4ed8", fontSize: 12, fontWeight: "700" },
   llegar: { marginTop: 2, alignSelf: "flex-start", paddingVertical: 2 },
-  llegarTexto: { color: "#0891b2", fontWeight: "700", fontSize: 13 },
+  llegarTexto: { color: "#0e7490", fontWeight: "700", fontSize: 13 },
   gastoMensaje: { color: "#16a34a", fontSize: 13 },
   gastoMensajeError: { color: "#dc2626" },
 });

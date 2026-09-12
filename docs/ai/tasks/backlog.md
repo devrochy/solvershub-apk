@@ -50,22 +50,6 @@
   gatear también por `rutaActiva.permisos` (requiere exponer permisos en el
   contexto RutaActiva). Prioridad: baja.
 
-## Doble lenguaje visual del estado del cliente (lista del día vs otras pantallas)
-- Detectado en: code-review apk-dia-ui (2026-09-07)
-- Descripción: `DiaScreen` ahora usa tarjeta blanca + barra de acento + chips,
-  mientras `ClientesScreen` sigue con fondo completo (`fondoDeEstado`) y
-  `ClienteScreen` con punto `ColorBadge`. Los tres representan el mismo estado
-  verde/rojo/blanco. Migrar a un único lenguaje visual (acento + chips) en las
-  demás pantallas.
-- Prioridad sugerida: baja
-
-## Contraste de enlaces cian (#0891b2) por debajo de WCAG AA
-- Detectado en: code-review apk-dia-ui (2026-09-07)
-- Descripción: los enlaces/botones fantasma cian `#0891b2` a 13px/700 sobre
-  blanco tienen ~3:1 de contraste (< 4.5:1 WCAG AA). Conviene oscurecer a
-  `#0e7490` (cyan-700, ~4.9:1) de forma repo-wide (theme), no por pantalla.
-- Prioridad sugerida: baja
-
 ## TrayectosLista replico estilos del estándar sin componer estilosHeader
 - Detectado en: code-review apk-headers-estandar (2026-09-09)
 - Descripción: el header del modal TrayectosLista mantiene estilos locales que
@@ -92,4 +76,6 @@
 - **Evidencias de gasto en offline** → `apk-evidencias-offline`: fotos en base64 en el payload del evento `gasto`, persistidas por `EvidenciasOfflineService` al sincronizar.
 - **Cambio de cliente offline (HU-47)** → `apk-cambio-cliente-offline`: UI de edición que encola `cambio_cliente` con dedupe por cliente.
 - **Device key inválida deja la cola atascada** → `apk-feedback-device-key`: `OfflineProvider.errorSync` + aviso en `RutasScreen`; la cola no se vacía ante fallo.
+- **Doble lenguaje visual del estado del cliente** → `p2-ux-visual`: `ClientesScreen` pasa de fondo pastel completo a tarjeta blanca + barra de acento + sombra (mismo lenguaje que `DiaScreen`).
+- **Contraste de enlaces cian** → `p2-ux-visual`: `#0891b2` → `#0e7490` (cyan-700, ~4.9:1) en todo `src/`.
 

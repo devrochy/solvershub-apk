@@ -197,7 +197,7 @@ export function SeleccionRutaScreen({
                     <Text style={styles.kpiEtiqueta}>clientes</Text>
                   </View>
                   <View style={styles.kpi}>
-                    <MaterialIcons name="today" size={26} color="#0891b2" />
+                    <MaterialIcons name="today" size={26} color="#0e7490" />
                     <Text style={styles.kpiValor} testID={`kpi-dia-${item.id}`}>
                       {kpi.clientesDia}
                     </Text>
