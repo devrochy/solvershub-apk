@@ -146,6 +146,10 @@ export interface ClienteTarjetaPublic {
   documentoReversoUrl?: string | null;
   tipoDocumento: TipoDocumento | null;
   numeroDocumento: string | null;
+  latitud?: number;
+  longitud?: number;
+  latitudDomicilio?: number | null;
+  longitudDomicilio?: number | null;
   tipoPago: string | null;
   saldoPendiente: number;
   diasMora: number;
