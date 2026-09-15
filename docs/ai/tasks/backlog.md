@@ -27,11 +27,6 @@
 - Descripción: el conteo `clientes.filter(c => c.color === "rojo")` se repite en `RutasScreen` (KPIs de dashboard) y `RutaDetalleScreen` (KPI en mora). Candidato a un helper `contarEnMora(clientes)` compartido.
 - Prioridad sugerida: baja
 
-## Mapa "Cómo llegar" no refleja la nueva ubicación tras guardar (N6)
-- Detectado en: code-review apk-navegacion-ruta-rediseno (2026-09-03)
-- Descripción: tras guardar la ubicación (PATCH actualizarCliente), `ClienteTarjetaPublic` no expone lat/lng, así que el mapa "Cómo llegar" del detalle sigue usando las props fijas al abrir el overlay. Candidato a exponer latitud/longitud/latitudDomicilio en la tarjeta del backend (PR #91) para refrescar el pin.
-- Prioridad sugerida: media
-
 ## SeleccionRutaScreen dispara 2 requests por ruta al montar
 - Detectado en: code-review apk-navegacion-ruta-rediseno (2026-09-03)
 - Descripción: con N rutas son 2N llamadas en paralelo (clientes + día por ruta). Aceptable hoy por la decisión de "solo datos existentes"; revisar si crece el número de rutas.
@@ -57,6 +52,7 @@
 - **Device key inválida deja la cola atascada** → `apk-feedback-device-key`: `OfflineProvider.errorSync` + aviso en `RutasScreen`; la cola no se vacía ante fallo.
 - **Doble lenguaje visual del estado del cliente** → `p2-ux-visual`: `ClientesScreen` pasa de fondo pastel completo a tarjeta blanca + barra de acento + sombra (mismo lenguaje que `DiaScreen`).
 - **Contraste de enlaces cian** → `p2-ux-visual`: `#0891b2` → `#0e7490` (cyan-700, ~4.9:1) en todo `src/`.
+- **Mapa "Cómo llegar" no reflejaba la nueva ubicación** → `p2-mapa-stale` (backend + APK): la tarjeta expone lat/lng y `ClienteScreen` prioriza las coords frescas sobre las props del overlay.
 - **`inicialesDe` código muerto** → `p2-polish`: eliminado de `Avatar.tsx` (y su test).
 - **Doble capa de permisos en liquidación** → `p2-polish`: `RutaActiva` expone `permisos` y `DiaScreen` gatea el botón por `generar_reporte` además del flag de ruta.
 - **`TrayectosLista` con estilos locales** → ya usaba `estilosHeader` (resuelto en `apk-headers-estandar`); se cierra el ítem.
