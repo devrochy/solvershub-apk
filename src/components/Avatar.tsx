@@ -9,17 +9,6 @@ export interface AvatarProps {
   size?: number;
 }
 
-/** Iniciales del nombre (primeras letras de la primera y última palabra). */
-export function inicialesDe(nombre: string): string {
-  const partes = nombre.trim().split(/\s+/).filter(Boolean);
-  if (partes.length === 0) {
-    return "?";
-  }
-  const primera = partes[0][0] ?? "";
-  const ultima = partes.length > 1 ? partes[partes.length - 1][0] ?? "" : "";
-  return `${primera}${ultima}`.toUpperCase();
-}
-
 /**
  * Avatar de cliente: muestra la foto si existe (fotoUrl) o un círculo con el
  * icono `person`. Si la foto falla al cargar (URL rota o cache viejo), cae al

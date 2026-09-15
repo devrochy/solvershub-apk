@@ -32,27 +32,6 @@
 - Descripción: con N rutas son 2N llamadas en paralelo (clientes + día por ruta). Aceptable hoy por la decisión de "solo datos existentes"; revisar si crece el número de rutas.
 - Prioridad sugerida: baja
 
-## inicialesDe en Avatar.tsx (código muerto)
-- Detectado en: code-review fix 413/avatar (2026-09-04)
-- Descripción: `inicialesDe` está exportada y testeada pero ningún componente la usa (el Avatar renderiza el icono person). Eliminar o reutilizar en el backlog.
-- Prioridad sugerida: baja
-
-## Doble capa de permisos en liquidación del día (APK)
-- Detectado en: code-review apk-liquidacion-dia (2026-09-04)
-- Descripción: la APK gatea el botón con `config.generarReportesApk`, pero el
-  backend exige además el permiso `generar_reporte` de la matriz del cobrador.
-  Si el permiso falta, el botón se muestra y el backend responde 403. Mejor
-  gatear también por `rutaActiva.permisos` (requiere exponer permisos en el
-  contexto RutaActiva). Prioridad: baja.
-
-## TrayectosLista replico estilos del estándar sin componer estilosHeader
-- Detectado en: code-review apk-headers-estandar (2026-09-09)
-- Descripción: el header del modal TrayectosLista mantiene estilos locales que
-  replican padding 16/12, gap 8 y título 18 del canon `estilosHeader`, con
-  overrides de color (fondo blanco). Coherente con la decisión de overlay, pero
-  expuesto a drift si cambia el estándar.
-- Prioridad sugerida: baja
-
 ## Vinculación autoservicio del dispositivo desde la APK (HU-39/43) — Opción 2b
 - Detectado en: decisión de diseño Épica 8 APK (2026-09-11)
 - Descripción: la APK vincula su propio device tras el primer login (Android ID
@@ -74,4 +53,7 @@
 - **Doble lenguaje visual del estado del cliente** → `p2-ux-visual`: `ClientesScreen` pasa de fondo pastel completo a tarjeta blanca + barra de acento + sombra (mismo lenguaje que `DiaScreen`).
 - **Contraste de enlaces cian** → `p2-ux-visual`: `#0891b2` → `#0e7490` (cyan-700, ~4.9:1) en todo `src/`.
 - **Mapa "Cómo llegar" no reflejaba la nueva ubicación** → `p2-mapa-stale` (backend + APK): la tarjeta expone lat/lng y `ClienteScreen` prioriza las coords frescas sobre las props del overlay.
+- **`inicialesDe` código muerto** → `p2-polish`: eliminado de `Avatar.tsx` (y su test).
+- **Doble capa de permisos en liquidación** → `p2-polish`: `RutaActiva` expone `permisos` y `DiaScreen` gatea el botón por `generar_reporte` además del flag de ruta.
+- **`TrayectosLista` con estilos locales** → ya usaba `estilosHeader` (resuelto en `apk-headers-estandar`); se cierra el ítem.
 
