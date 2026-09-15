@@ -59,7 +59,7 @@ export function RutaDetalleScreen({
 }: RutaDetalleScreenProps = {}) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { api, logout } = useSession();
-  const { rutaActiva } = useRutaActiva();
+  const { rutaActiva, setRutaActiva } = useRutaActiva();
 
   const rutaId = rutaIdProp ?? rutaActiva?.rutaId ?? 0;
   const rutaNombre = rutaNombreProp ?? rutaActiva?.rutaNombre ?? "";
@@ -76,6 +76,13 @@ export function RutaDetalleScreen({
   const [notaEnviando, setNotaEnviando] = useState(false);
   const [notaMensaje, setNotaMensaje] = useState<string | null>(null);
   const [avisoEdicion, setAvisoEdicion] = useState(false);
+  const [nombreRuta, setNombreRuta] = useState(rutaNombre);
+  const [editarAbierto, setEditarAbierto] = useState(false);
+  const [editNombre, setEditNombre] = useState("");
+  const [editTipoInteres, setEditTipoInteres] = useState("");
+  const [editNumCuotas, setEditNumCuotas] = useState("");
+  const [editEnviando, setEditEnviando] = useState(false);
+  const [editMensaje, setEditMensaje] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     if (!rutaId) {
@@ -106,6 +113,53 @@ export function RutaDetalleScreen({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
   }, [cargar]);
+
+  function abrirEdicion() {
+    setEditNombre(nombreRuta);
+    setEditTipoInteres(String(rutaActiva?.tipoInteres ?? ""));
+    setEditNumCuotas(String(rutaActiva?.numCuotas ?? ""));
+    setEditMensaje(null);
+    setEditarAbierto(true);
+  }
+
+  async function guardarEdicion() {
+    const nombre = editNombre.trim();
+    const tipoInteres = Number(editTipoInteres);
+    const numCuotas = Number(editNumCuotas);
+    if (!nombre) {
+      setEditMensaje("El nombre es obligatorio.");
+      return;
+    }
+    if (!Number.isFinite(tipoInteres) || tipoInteres <= 0) {
+      setEditMensaje("El interés debe ser mayor que 0.");
+      return;
+    }
+    if (!Number.isInteger(numCuotas) || numCuotas < 1) {
+      setEditMensaje("El número de cuotas debe ser al menos 1.");
+      return;
+    }
+
+    setEditEnviando(true);
+    setEditMensaje(null);
+    try {
+      await api.actualizarRuta(rutaId, { nombre });
+      await api.actualizarConfiguracionRuta(rutaId, { tipoInteres, numCuotas });
+    } catch (err) {
+      setEditEnviando(false);
+      setEditMensaje(
+        apiErrorStatus(err) === 401 ? "Sesión expirada." : "No se pudo guardar la ruta.",
+      );
+      return;
+    }
+
+    setNombreRuta(nombre);
+    if (rutaActiva) {
+      setRutaActiva({ ...rutaActiva, rutaNombre: nombre, tipoInteres, numCuotas });
+    }
+    setEditEnviando(false);
+    setEditarAbierto(false);
+    void cargar();
+  }
 
   async function guardarNota() {
     if (!notaTexto.trim()) {
@@ -155,6 +209,9 @@ export function RutaDetalleScreen({
   }
 
   const enMora = dia.clientes.filter((c) => c.color === "rojo").length;
+  const puedeEditar = (rutaActiva?.permisos ?? []).some(
+    (p) => p.permiso === "actualizar_ruta" && p.habilitado,
+  );
 
   return (
     <View
@@ -166,7 +223,7 @@ export function RutaDetalleScreen({
           <View style={estilosHeader.fila}>
             <View style={estilosHeader.bloqueTitulo}>
               <Text style={estilosHeader.titulo}>
-                {rutaNombre}
+                {nombreRuta}
               </Text>
               {clientes ? (
                 <Text style={estilosHeader.subtitulo}>
@@ -174,7 +231,11 @@ export function RutaDetalleScreen({
                 </Text>
               ) : null}
             </View>
-            <Pressable testID="btn-editar-ruta" style={estilosHeader.accionPill} onPress={() => setAvisoEdicion(true)}>
+            <Pressable
+              testID="btn-editar-ruta"
+              style={estilosHeader.accionPill}
+              onPress={() => (puedeEditar ? abrirEdicion() : setAvisoEdicion(true))}
+            >
               <MaterialIcons name="edit" size={18} color="#172f6c" />
               <Text style={estilosHeader.accionPillTexto}>Editar</Text>
             </Pressable>
@@ -273,6 +334,42 @@ export function RutaDetalleScreen({
           <Text style={styles.notaMensaje}>{notaMensaje}</Text>
         ) : null}
         {notaEnviando ? <ActivityIndicator color="#172f6c" /> : null}
+      </ModalConFooter>
+
+      <ModalConFooter
+        visible={editarAbierto}
+        titulo="Editar ruta"
+        onCerrar={() => setEditarAbierto(false)}
+        onCancelar={() => setEditarAbierto(false)}
+        onConfirmar={guardarEdicion}
+        confirmando={editEnviando}
+        confirmarTestID="ruta-editar-guardar"
+      >
+        <CampoModal
+          testID="editar-ruta-nombre"
+          label="Nombre"
+          placeholder="Nombre de la ruta"
+          value={editNombre}
+          onChangeText={setEditNombre}
+        />
+        <CampoModal
+          testID="editar-ruta-tipoInteres"
+          label="Interés %"
+          placeholder="Interés"
+          keyboardType="decimal-pad"
+          value={editTipoInteres}
+          onChangeText={setEditTipoInteres}
+        />
+        <CampoModal
+          testID="editar-ruta-numCuotas"
+          label="Nº de cuotas"
+          placeholder="Número de cuotas"
+          keyboardType="number-pad"
+          value={editNumCuotas}
+          onChangeText={setEditNumCuotas}
+        />
+        {editMensaje ? <Text style={styles.notaMensaje}>{editMensaje}</Text> : null}
+        {editEnviando ? <ActivityIndicator color="#172f6c" /> : null}
       </ModalConFooter>
       </SafeAreaView>
     </View>

@@ -13,6 +13,7 @@ export const COBRADOR_PERMISOS = [
   "registrar_inyeccion",
   "ver_cartera",
   "generar_reporte",
+  "actualizar_ruta",
 ] as const;
 
 export type CobradorPermisoNombre = (typeof COBRADOR_PERMISOS)[number];

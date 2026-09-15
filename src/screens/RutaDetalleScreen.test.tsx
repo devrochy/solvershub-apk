@@ -2,6 +2,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { RutaDetalleScreen } from "./RutaDetalleScreen";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { RutaActivaContext } from "../session/ruta-activa-context";
+import type { CobradorPermisoEstado } from "../types/cobrador";
 
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
@@ -69,6 +70,7 @@ function apiBase() {
 async function renderDetalle(
   api: Partial<SessionValue["api"]> = apiBase(),
   onCerrar: jest.Mock = jest.fn(),
+  permisos: CobradorPermisoEstado[] = [],
 ) {
   const valor: SessionValue = {
     cobrador: {
@@ -94,6 +96,7 @@ async function renderDetalle(
             tipoInteres: 20,
             numCuotas: 8,
             config: {} as never,
+            permisos,
           },
           setRutaActiva: jest.fn(),
         }}
@@ -176,6 +179,28 @@ describe("RutaDetalleScreen", () => {
     expect(
       getByText(/La edición de ruta se realiza desde el panel/i),
     ).toBeTruthy();
+  });
+
+  it("con permiso actualizar_ruta, Editar abre el modal y guarda nombre/interés/cuotas", async () => {
+    const actualizarRuta = jest.fn().mockResolvedValue({ id: 6, nombre: "Ruta Nueva" });
+    const actualizarConfiguracionRuta = jest
+      .fn()
+      .mockResolvedValue({ id: 6, tipoInteres: 15, numCuotas: 6 });
+    const { getByTestId } = await renderDetalle(
+      { ...apiBase(), actualizarRuta, actualizarConfiguracionRuta },
+      jest.fn(),
+      [{ permiso: "actualizar_ruta", habilitado: true }],
+    );
+
+    await waitFor(() => expect(getByTestId("btn-editar-ruta")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-ruta"));
+    await fireEvent.changeText(getByTestId("editar-ruta-nombre"), "Ruta Nueva");
+    await fireEvent.changeText(getByTestId("editar-ruta-tipoInteres"), "15");
+    await fireEvent.changeText(getByTestId("editar-ruta-numCuotas"), "6");
+    await fireEvent.press(getByTestId("ruta-editar-guardar"));
+
+    await waitFor(() => expect(actualizarRuta).toHaveBeenCalledWith(6, { nombre: "Ruta Nueva" }));
+    expect(actualizarConfiguracionRuta).toHaveBeenCalledWith(6, { tipoInteres: 15, numCuotas: 6 });
   });
 
   it("NO muestra botón back (la navegación atrás es por gesto swipe)", async () => {
