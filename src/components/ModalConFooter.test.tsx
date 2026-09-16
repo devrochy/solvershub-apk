@@ -122,3 +122,14 @@ describe("ModalConFooter", () => {
     expect(getByText("Completa los datos")).toBeTruthy();
   });
 });
+describe("ModalConFooter — tap targets", () => {
+  it("amplía el área táctil del botón cerrar (hitSlop)", async () => {
+    const { getByTestId } = await render(
+      <ModalConFooter visible titulo="Editar" onCerrar={jest.fn()}>
+        <Text>Cuerpo</Text>
+      </ModalConFooter>,
+    );
+
+    expect(getByTestId("modal-cerrar").props.hitSlop).toBe(10);
+  });
+});

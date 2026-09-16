@@ -1,7 +1,10 @@
 import { ReactNode } from "react";
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -53,7 +56,10 @@ export function ModalConFooter({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onCerrar}>
-      <View style={styles.fondo}>
+      <KeyboardAvoidingView
+        style={styles.fondo}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View style={styles.carta} testID={testID}>
           <View style={styles.header} testID="modal-header">
             <View style={styles.headerTexto}>
@@ -65,13 +71,20 @@ export function ModalConFooter({
             <Pressable
               testID={cerrarTestID}
               style={styles.botonCerrar}
+              hitSlop={10}
               onPress={onCerrar}
             >
               <MaterialIcons name="close" size={22} color="#ffffff" />
             </Pressable>
           </View>
 
-          <View style={styles.cuerpo}>{children}</View>
+          <ScrollView
+            style={styles.cuerpoScroll}
+            contentContainerStyle={styles.cuerpo}
+            keyboardShouldPersistTaps="handled"
+          >
+            {children}
+          </ScrollView>
 
           {tieneFooter ? (
             <View style={styles.footer}>
@@ -107,7 +120,7 @@ export function ModalConFooter({
             </View>
           ) : null}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -154,7 +167,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: "Roboto_400Regular",
   },
-  cuerpo: { padding: 16, gap: 10, flexShrink: 1 },
+  cuerpoScroll: { flexShrink: 1 },
+  cuerpo: { padding: 16, gap: 10 },
   footer: { flexDirection: "row", gap: 12, paddingHorizontal: 16, marginTop: 4 },
   boton: { flex: 1 },
   botonCancelar: {

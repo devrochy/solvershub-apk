@@ -33,6 +33,7 @@ import {
 } from "../domain/tipo-documento";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
+import { etiquetaEstatus } from "../domain/estatus";
 import {
   cambioClientePayload,
   camposCambiados,
@@ -1190,7 +1191,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     <Text style={styles.prestamoDetalle}>
                       {p.tipoInteres}% interés · cada {p.diasEntreCuotas} días
                     </Text>
-                    <Text style={styles.prestamoEstatus}>{p.estatus}</Text>
+                    <Text style={styles.prestamoEstatus}>{etiquetaEstatus(p.estatus)}</Text>
                   </View>
                   {seleccionado ? (
                     <View testID={`check-prestamo-${p.id}`}>
@@ -1634,7 +1635,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                   <View style={styles.cuotaResumen}>
                     <Text style={styles.cuotaLinea}>
                       Cuota {detalleCuota.numeroCuota} — {detalleCuota.valorEsperado} (
-                      {detalleCuota.estatus})
+                      {etiquetaEstatus(detalleCuota.estatus)})
                     </Text>
                     <Text style={styles.cuotaFecha}>
                       Vence {detalleCuota.fechaVencimiento}
@@ -2197,9 +2198,9 @@ const styles = StyleSheet.create({
   },
   cuadroNumero: { fontSize: 16, fontWeight: "700", color: "#334155" },
   cuadroValor: { fontSize: 11, color: "#475569", fontWeight: "600" },
-  cuadroFecha: { fontSize: 9, color: "#64748b" },
-  cuadroAbono: { fontSize: 9, color: "#16a34a", fontWeight: "600" },
-  cuadroSaldo: { fontSize: 9, color: "#172f6c", fontWeight: "600" },
+  cuadroFecha: { fontSize: 11, color: "#64748b" },
+  cuadroAbono: { fontSize: 11, color: "#16a34a", fontWeight: "600" },
+  cuadroSaldo: { fontSize: 11, color: "#172f6c", fontWeight: "600" },
   cuadroEtiqueta: {
     borderWidth: 1,
     borderRadius: 999,

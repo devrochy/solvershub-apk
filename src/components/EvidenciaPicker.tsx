@@ -66,6 +66,8 @@ export function EvidenciaPicker({
             <Pressable
               testID={`evidencia-quitar-${evidencia.uri}`}
               style={styles.quitar}
+              hitSlop={12}
+              accessibilityLabel="Quitar evidencia"
               onPress={() => onQuitar(evidencia.uri)}
             >
               <Text style={styles.quitarTexto}>×</Text>
