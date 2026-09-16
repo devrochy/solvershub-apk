@@ -235,6 +235,24 @@ describe("DiaScreen — gasto offline", () => {
     );
     expect(encolar).not.toHaveBeenCalled();
   });
+
+  it("muestra un mensaje claro si el backend rechaza por tamaño (413)", async () => {
+    const encolar = jest.fn().mockResolvedValue(undefined);
+    const offlineConError: OfflineValue = { ...offlineValor, encolar };
+    const registrarGasto = jest.fn().mockRejectedValue(new ApiError(413, "File too large"));
+    const { getByTestId } = await renderConApi({ registrarGasto }, offlineConError);
+
+    await waitFor(() => expect(getByTestId("nuevo-gasto")).toBeTruthy());
+    await fireEvent.press(getByTestId("nuevo-gasto"));
+    await fireEvent.changeText(getByTestId("gasto-descripcion"), "Combustible");
+    await fireEvent.changeText(getByTestId("gasto-valor"), "50");
+    await fireEvent.press(getByTestId("gasto-guardar"));
+
+    await waitFor(() =>
+      expect(getByTestId("gasto-mensaje")).toHaveTextContent(/demasiado grandes/i),
+    );
+    expect(encolar).not.toHaveBeenCalled();
+  });
 });
 
 describe("DiaScreen — cache del día", () => {

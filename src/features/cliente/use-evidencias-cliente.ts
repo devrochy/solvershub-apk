@@ -1,6 +1,6 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
-import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
+import { reducirImagen } from "../evidencias/reducir-imagen";
 
 export type CampoEvidenciaCliente =
   | "foto_facial"
@@ -12,45 +12,6 @@ export interface EvidenciaClienteSeleccionada {
   uri: string;
   name: string;
   type: string;
-}
-
-const DIMENSION_MAX = 1280;
-const COMPRESION = 0.7;
-
-/**
- * Reduce y comprime la foto elegida (A6): limita el lado mayor a 1280px y la
- * comprime a JPEG quality 0.7. El túnel de pruebas (cloudflared) cae con
- * timeouts cuando el multipart es grande; con fotos de cámara (~6MB) la
- * creación de cliente no llegaba a completarse. Reducidas (~200-500KB cada
- * una) el upload es rápido. Si el resize falla, devuelve la URI original.
- */
-async function reducirImagen(
-  uri: string,
-  width: number,
-  height: number,
-): Promise<{ uri: string; convertidoAJpeg: boolean }> {
-  const ladoMayor = Math.max(width, height);
-  const escala = ladoMayor > DIMENSION_MAX ? DIMENSION_MAX / ladoMayor : 1;
-  try {
-    const acciones =
-      escala < 1
-        ? [
-            {
-              resize: {
-                width: Math.round(width * escala),
-                height: Math.round(height * escala),
-              },
-            },
-          ]
-        : [];
-    const resultado = await manipulateAsync(uri, acciones, {
-      compress: COMPRESION,
-      format: SaveFormat.JPEG,
-    });
-    return { uri: resultado.uri, convertidoAJpeg: true };
-  } catch {
-    return { uri, convertidoAJpeg: false };
-  }
 }
 
 function aEvidencia(
