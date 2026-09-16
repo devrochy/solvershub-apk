@@ -651,6 +651,33 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
     expect(getByText(/se sincronizará/)).toBeTruthy();
   });
 
+  it("permite editar nombre/negocio cuando el cliente no tiene documento", async () => {
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
+    const sinDocumento = {
+      ...tarjeta,
+      tipoDocumento: null,
+      numeroDocumento: null,
+    };
+    const { getByTestId } = await renderConApi(
+      { tarjeta: jest.fn().mockResolvedValue(sinDocumento) },
+      offlineConError,
+    );
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    await fireEvent.changeText(getByTestId("editar-nombre"), "Juan Carlos");
+    await fireEvent.press(getByTestId("guardar-cambio-cliente"));
+
+    await waitFor(() =>
+      expect(encolarSiNoExiste).toHaveBeenCalledWith(
+        "cambio_cliente",
+        { clienteId: 2, input: { nombre: "Juan Carlos" } },
+        "cambio_cliente-2",
+      ),
+    );
+  });
+
   it("el modal de editar ubicación sincroniza el mapa con el campo seleccionado", async () => {
     const { getByTestId, getByText } = await renderConApi(
       {},

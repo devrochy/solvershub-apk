@@ -634,15 +634,22 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   async function guardarCambioCliente() {
-    if (
-      !edicion.tipoDocumento ||
-      !validarNumeroDocumento(
-        edicion.tipoDocumento,
-        edicion.numeroDocumento ?? "",
-      )
-    ) {
-      setMensaje("El número de documento no es válido para el tipo seleccionado.");
-      return;
+    // Solo valida el documento si la edición lo toca: un cliente sin documento
+    // debe poder editar nombre/negocio/teléfono.
+    const documentoTocado =
+      (edicion.tipoDocumento ?? null) !== (edicionOriginal.tipoDocumento ?? null) ||
+      (edicion.numeroDocumento ?? "") !== (edicionOriginal.numeroDocumento ?? "");
+    if (documentoTocado) {
+      if (
+        !edicion.tipoDocumento ||
+        !validarNumeroDocumento(
+          edicion.tipoDocumento,
+          edicion.numeroDocumento ?? "",
+        )
+      ) {
+        setMensaje("El número de documento no es válido para el tipo seleccionado.");
+        return;
+      }
     }
     const input = camposCambiados(edicion, edicionOriginal);
     if (Object.keys(input).length === 0) {
