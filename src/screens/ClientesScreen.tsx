@@ -397,6 +397,13 @@ export function ClientesScreen() {
         ListEmptyComponent={
           <Text style={styles.vacio}>Esta ruta no tiene clientes.</Text>
         }
+        ListHeaderComponent={
+          error ? (
+            <Text testID="aviso-refresco" style={styles.mensajeError}>
+              {error}
+            </Text>
+          ) : null
+        }
         renderItem={({ item }) => (
           <Pressable
             testID={`cliente-${item.id}`}
