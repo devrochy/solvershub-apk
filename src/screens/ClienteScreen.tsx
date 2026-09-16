@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Linking,
   Pressable,
   ScrollView,
@@ -26,6 +25,7 @@ import { urlArchivo } from "../config";
 import { MapaCliente } from "../components/MapaCliente";
 import { MapaPin } from "../components/MapaPin";
 import { CampoModal } from "../components/CampoModal";
+import { EvidenciasModal } from "../components/EvidenciasModal";
 import {
   ETIQUETAS_TIPO_DOCUMENTO,
   TIPOS_DOCUMENTO,
@@ -1514,92 +1514,60 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       </ModalConFooter>
 
       {/* Modal: avatar */}
-      <ModalConFooter
+      <EvidenciasModal
         visible={modal === "avatar"}
         titulo="Foto del cliente"
+        pendiente={evidenciasSeleccionadasPara("foto_facial")[0]}
+        urlActual={tarjeta.fotoUrl ? urlArchivo(tarjeta.fotoUrl) : null}
+        cargando={evidenciasCliente.cargando}
+        confirmando={evidenciasEnviando}
+        error={evidenciasCliente.error}
+        mensaje={mensaje}
+        iconoVacio="person"
+        textoVacio="Este cliente no tiene foto."
+        testID="avatar-modal"
+        prefijoTestID="avatar"
+        guardarTestID="avatar-guardar"
+        onElegir={(fuente) => void elegirEvidencia("foto_facial", fuente)}
         onCerrar={() => {
-          setModal("ninguno");
-          evidenciasCliente.quitar("foto_facial");
-          evidenciasCliente.resetError();
-          setMensaje(null);
-        }}
-        onCancelar={() => {
           setModal("ninguno");
           evidenciasCliente.quitar("foto_facial");
           evidenciasCliente.resetError();
           setMensaje(null);
         }}
         onConfirmar={() => void guardarEvidenciaSeleccionada("foto_facial")}
-        confirmando={evidenciasEnviando}
-        confirmarTestID="avatar-guardar"
-        testID="avatar-modal"
-      >
-        {(() => {
-          const pendiente = evidenciasSeleccionadasPara("foto_facial")[0];
-          if (pendiente) {
-            return (
-              <Image
-                testID="avatar-preview"
-                source={{ uri: pendiente.uri }}
-                style={styles.evidenciaPreview}
-              />
-            );
-          }
-          return tarjeta.fotoUrl ? (
-            <Image
-              testID="avatar-foto-actual"
-              source={{ uri: urlArchivo(tarjeta.fotoUrl) ?? undefined }}
-              style={styles.evidenciaPreview}
-            />
-          ) : (
-            <View style={styles.evidenciaVacio}>
-              <MaterialIcons name="person" size={32} color="#94a3b8" />
-              <Text style={styles.evidenciaVacioTexto}>
-                Este cliente no tiene foto.
-              </Text>
-            </View>
-          );
-        })()}
-        <Pressable
-          testID="avatar-libreria"
-          style={[styles.botonEvidencia]}
-          disabled={evidenciasEnviando || evidenciasCliente.cargando}
-          onPress={() => void elegirEvidencia("foto_facial", "libreria")}
-        >
-          <MaterialIcons name="photo-library" size={16} color="#172f6c" />
-          <Text style={styles.botonEvidenciaTexto}>Cargar desde librería</Text>
-        </Pressable>
-        <Pressable
-          testID="avatar-camara"
-          style={styles.botonEvidencia}
-          disabled={evidenciasEnviando || evidenciasCliente.cargando}
-          onPress={() => void elegirEvidencia("foto_facial", "camara")}
-        >
-          <MaterialIcons name="photo-camera" size={16} color="#172f6c" />
-          <Text style={styles.botonEvidenciaTexto}>Tomar foto con cámara</Text>
-        </Pressable>
-        {evidenciasCliente.cargando || evidenciasEnviando ? (
-          <ActivityIndicator />
-        ) : null}
-        {evidenciasCliente.error ? (
-          <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
-        ) : null}
-        {mensaje ? <Text style={styles.errorTexto}>{mensaje}</Text> : null}
-      </ModalConFooter>
+      />
 
       {/* Modal: documento */}
-      <ModalConFooter
+      <EvidenciasModal
         visible={modal === "documento"}
         titulo={modalDocumento === "frente" ? "Documento — frente" : "Documento — reverso"}
-        onCerrar={() => {
-          setModal("ninguno");
-          evidenciasCliente.quitar(
+        pendiente={
+          evidenciasSeleccionadasPara(
             modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
-          );
-          evidenciasCliente.resetError();
-          setMensaje(null);
-        }}
-        onCancelar={() => {
+          )[0]
+        }
+        urlActual={modalDocumento === "reverso" ? docReversoUrl : docFrenteUrl}
+        cargando={evidenciasCliente.cargando}
+        confirmando={evidenciasEnviando}
+        error={evidenciasCliente.error}
+        mensaje={mensaje}
+        iconoVacio="badge"
+        textoVacio={
+          modalDocumento === "frente"
+            ? "El frente del documento aún no está cargado."
+            : "El reverso del documento aún no está disponible."
+        }
+        testID="documento-modal"
+        prefijoTestID="documento"
+        guardarTestID="documento-guardar"
+        onElegir={(fuente) =>
+          void elegirEvidencia(
+            modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
+            fuente,
+          )
+        }
+        onCerrar={() => {
           setModal("ninguno");
           evidenciasCliente.quitar(
             modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
@@ -1612,79 +1580,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
           )
         }
-        confirmando={evidenciasEnviando}
-        confirmarTestID="documento-guardar"
-        testID="documento-modal"
-      >
-        {(() => {
-          const campo = modalDocumento === "reverso" ? "documento_reverso" : "documento_frente";
-          const pendiente = evidenciasSeleccionadasPara(campo)[0];
-          const urlActual = modalDocumento === "reverso" ? docReversoUrl : docFrenteUrl;
-          if (pendiente) {
-            return (
-              <Image
-                testID="documento-preview"
-                source={{ uri: pendiente.uri }}
-                style={styles.evidenciaPreview}
-              />
-            );
-          }
-          if (urlActual) {
-            return (
-              <Image
-                testID="documento-foto-actual"
-                source={{ uri: urlActual }}
-                style={styles.evidenciaPreview}
-              />
-            );
-          }
-          return (
-            <View style={styles.evidenciaVacio}>
-              <MaterialIcons name="badge" size={32} color="#94a3b8" />
-              <Text style={styles.evidenciaVacioTexto}>
-                {modalDocumento === "frente"
-                  ? "El frente del documento aún no está cargado."
-                  : "El reverso del documento aún no está disponible."}
-              </Text>
-            </View>
-          );
-        })()}
-        <Pressable
-          testID="documento-libreria"
-          style={styles.botonEvidencia}
-          disabled={evidenciasEnviando || evidenciasCliente.cargando}
-          onPress={() =>
-            void elegirEvidencia(
-              modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
-              "libreria",
-            )
-          }
-        >
-          <MaterialIcons name="photo-library" size={16} color="#172f6c" />
-          <Text style={styles.botonEvidenciaTexto}>Cargar desde librería</Text>
-        </Pressable>
-        <Pressable
-          testID="documento-camara"
-          style={styles.botonEvidencia}
-          disabled={evidenciasEnviando || evidenciasCliente.cargando}
-          onPress={() =>
-            void elegirEvidencia(
-              modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
-              "camara",
-            )
-          }
-        >
-          <MaterialIcons name="photo-camera" size={16} color="#172f6c" />
-          <Text style={styles.botonEvidenciaTexto}>Tomar foto con cámara</Text>
-        </Pressable>
-        {evidenciasCliente.cargando || evidenciasEnviando ? (
-          <ActivityIndicator />
-        ) : null}
-        {evidenciasCliente.error ? (
-          <Text style={styles.errorTexto}>{evidenciasCliente.error}</Text>
-        ) : null}
-        {mensaje ? <Text style={styles.errorTexto}>{mensaje}</Text> : null}
-      </ModalConFooter>
+      />
 
       {/* Modal: detalle de cuota (rediseñada): detalle con scroll, acciones abajo,
       formularios desplegables y borrar pago/abono (solo no liquidado). */}
@@ -2344,30 +2240,6 @@ const styles = StyleSheet.create({
   promesaNota: { color: "#64748b", fontSize: 13 },
   mensaje: { color: "#16a34a", fontSize: 14, marginTop: 2 },
   errorTexto: { color: "#dc2626", fontSize: 13, marginTop: 2 },
-  evidenciaPreview: {
-    width: "100%",
-    height: 200,
-    borderRadius: 12,
-    resizeMode: "contain",
-    backgroundColor: "#f8fafc",
-  },
-  evidenciaVacio: {
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 16,
-  },
-  evidenciaVacioTexto: { color: "#64748b", fontSize: 13 },
-  botonEvidencia: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: "#172f6c",
-    borderRadius: 10,
-    paddingVertical: 10,
-  },
-  botonEvidenciaTexto: { color: "#172f6c", fontWeight: "600" },
   cuotaResumen: {
     backgroundColor: "#f8fafc",
     borderRadius: 10,
