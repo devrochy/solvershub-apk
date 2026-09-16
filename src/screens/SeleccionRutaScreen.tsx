@@ -12,6 +12,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge, bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";
+import { contarEnMora } from "../domain/contar-en-mora";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
@@ -63,8 +64,7 @@ export function SeleccionRutaScreen({
             rutaId: ruta.id,
             totalClientes: listaClientes.length,
             clientesDia: diaRuta?.clientes.length ?? 0,
-            enMora:
-              diaRuta?.clientes.filter((c) => c.color === "rojo").length ?? 0,
+            enMora: diaRuta ? contarEnMora(diaRuta.clientes) : 0,
           };
         }),
       );

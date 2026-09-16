@@ -14,6 +14,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
+import { contarEnMora } from "../domain/contar-en-mora";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import type { RootStackParamList } from "../navigation/types";
@@ -208,7 +209,7 @@ export function RutaDetalleScreen({
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
-  const enMora = dia.clientes.filter((c) => c.color === "rojo").length;
+  const enMora = contarEnMora(dia.clientes);
   const puedeEditar = (rutaActiva?.permisos ?? []).some(
     (p) => p.permiso === "actualizar_ruta" && p.habilitado,
   );
