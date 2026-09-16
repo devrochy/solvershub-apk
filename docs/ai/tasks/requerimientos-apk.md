@@ -94,3 +94,120 @@ tags: [requerimientos]
   - Dado una acción que requiere conexión, cuando estoy offline, entonces se muestra "Requiere conexión" (deshabilitada con explicación), no un error genérico.
   - Dado un fallo de sincronización, entonces puedo reintentar desde el aviso.
 - **Trazabilidad:** RA-008 (H-47), HU-64.
+
+---
+
+## REQ-APK-009 — Cola offline acotada y evidencias redimensionadas
+- **Tipo:** Mejora · **Valor:** Alto · **Esfuerzo:** M · **Prioridad:** P1
+- **Estado actual (validado):** cola sin límite y re-serialización O(n); evidencias de gasto en base64 sin redimensionar → riesgo de 6MB/413 (H-66, H-67, H-89).
+- **Historia:** Como cobrador quiero que mi cola offline no se corrompa ni pierda evidencias.
+- **Criterios de aceptación (Gherkin):**
+  - Dado un gasto con fotos, entonces se redimensionan/comprimen (reusar manipulador de cliente) y se maneja 413 con mensaje claro.
+  - Dado que la cola supera un umbral, entonces se avisa/bloquea el encolado (no se pierde silenciosamente).
+  - Dado evidencia de cliente: puede encolarse o, si no, al cerrar el modal se conserva hasta subir.
+- **Datos/API:** local (AsyncStorage) + `features/gastos/use-evidencias.ts`.
+- **Trazabilidad:** RA-009 (H-66/H-67/H-89).
+
+## REQ-APK-010 — Sync: exponer errores por evento y reintentar
+- **Tipo:** Mejora · **Valor:** Medio · **Esfuerzo:** M · **Prioridad:** P2
+- **Estado actual (validado):** se descartan los `ack.error`; un evento en error bloquea la cola (H-68).
+- **Criterios de aceptación (Gherkin):**
+  - Dado un evento rechazado, entonces se marca y se explica cuál/por qué, sin bloquear el resto.
+  - Dado el aviso, puedo reintentar o descartar el evento.
+- **Datos/API:** **verificar contrato** `POST /sync-offline/eventos` (ack por evento).
+- **Trazabilidad:** RA-010 (H-68).
+
+## REQ-APK-011 — Resolución de conflictos en edición offline
+- **Tipo:** Mejora · **Valor:** Medio · **Esfuerzo:** M · **Prioridad:** P3
+- **Estado actual (validado):** la 2ª edición offline del mismo cliente se descarta por dedupe (H-69).
+- **Criterios de aceptación (Gherkin):**
+  - Dado que edito dos veces al mismo cliente sin conexión, entonces los cambios se fusionan o se avisa del conflicto (no se pierde el 2º).
+- **Trazabilidad:** RA-011 (H-69).
+
+## REQ-APK-012 — Persistir la trayectoria en curso
+- **Tipo:** Mejora · **Valor:** Alto · **Esfuerzo:** M · **Prioridad:** P1
+- **Estado actual (validado):** los puntos viven en memoria; se pierden al reiniciar (H-72).
+- **Criterios de aceptación (Gherkin):**
+  - Dado reiniciar/cierre de la app a mitad de ruta, al reabrir se recuperan los puntos grabados y se puede continuar.
+- **Trazabilidad:** RA-012 (H-72).
+
+## REQ-APK-013 — GPS: foreground/background, batería y AppState
+- **Tipo:** Mejora · **Valor:** Medio · **Esfuerzo:** M · **Prioridad:** P3
+- **Estado actual (validado):** polling re-solicita permiso en cada tick; sin pausa en background (H-73).
+- **Criterios de aceptación (Gherkin):**
+  - Dado entrar en background, la captura se pausa/reanuda de forma controlada y avisa si se detiene.
+  - Dado el permiso, se solicita una sola vez.
+- **Trazabilidad:** RA-013 (H-73).
+
+## REQ-APK-014 — 401 a mitad de operación: preservar datos
+- **Tipo:** Mejora · **Valor:** Medio · **Esfuerzo:** M · **Prioridad:** P2
+- **Estado actual (validado):** 401 descarta el formulario y hace logout (H-74).
+- **Criterios de aceptación (Gherkin):**
+  - Dado un 401 durante un cobro a medio capturar, tras re-loguear se conservan los datos (o se confirma antes de descartar).
+- **Trazabilidad:** RA-014 (H-74).
+
+## REQ-APK-015 — Cache offline con TTL y limpieza
+- **Tipo:** Mejora · **Valor:** Bajo · **Esfuerzo:** S · **Prioridad:** P4
+- **Estado actual (validado):** cache sin expiración (H-70).
+- **Criterios de aceptación (Gherkin):**
+  - Dado un dato cacheado antiguo, se marca/expira y no se muestra como "actual".
+- **Trazabilidad:** RA-015 (H-70).
+
+## REQ-APK-016 — Permisos de cámara: deep-link a Ajustes
+- **Tipo:** Mejora · **Valor:** Bajo · **Esfuerzo:** S · **Prioridad:** P4
+- **Estado actual (validado):** permiso denegado permanente solo muestra mensaje (H-71).
+- **Criterios de aceptación (Gherkin):**
+  - Dado `canAskAgain === false`, se ofrece "Abrir Ajustes".
+- **Trazabilidad:** RA-016 (H-71).
+
+## REQ-APK-017 — Desbloquear edición de cliente sin documento
+- **Tipo:** Mejora · **Valor:** Alto · **Esfuerzo:** S · **Prioridad:** P1
+- **Estado actual (validado):** sin documento en tarjeta, la edición completa queda bloqueada con mensaje engañoso (H-76).
+- **Criterios de aceptación (Gherkin):**
+  - Dado un cliente sin documento, puedo editar nombre/teléfono/negocio; el documento se exige solo si la ruta lo requiere.
+  - Dado que la config exige documento, se pide completarlo con mensaje correcto.
+- **Trazabilidad:** RA-017 (H-76).
+
+## REQ-APK-018 — Validaciones de captura (monto y teléfono)
+- **Tipo:** Mejora · **Valor:** Medio · **Esfuerzo:** S · **Prioridad:** P2
+- **Estado actual (validado):** pago/abono sin tope; edición no valida teléfono (H-75, H-77).
+- **Criterios de aceptación (Gherkin):**
+  - Dado un pago, no se permite mayor al saldo/valor de cuota (mensaje claro).
+  - Dado editar cliente, el teléfono se valida igual que en el alta.
+- **Trazabilidad:** RA-018 (H-75/H-77).
+
+## REQ-APK-019 — UX móvil: tap targets, modales, feedback
+- **Tipo:** Mejora · **Valor:** Medio · **Esfuerzo:** M · **Prioridad:** P3
+- **Estado actual (validado):** tap targets <44dp, modales sin scroll/teclado, refresh silencioso, estatus crudos, banner único (H-78..H-82, H-86, H-87).
+- **Criterios de aceptación (Gherkin):**
+  - Controles ≥44dp; modales con scroll y `KeyboardAvoidingView`.
+  - Pull-to-refresh fallido muestra feedback aunque haya datos.
+  - Errores en rojo y éxito en verde; estatus con etiqueta.
+  - Cerrar modal con cambios pide confirmación.
+  - Precarga del día con throttle (no 2N cada 30s).
+- **Trazabilidad:** RA-019 (H-78..H-82/H-86/H-87).
+
+## REQ-APK-020 — Accesibilidad móvil (labels/roles)
+- **Tipo:** Mejora · **Valor:** Bajo · **Esfuerzo:** M · **Prioridad:** P4
+- **Estado actual (validado):** sin `accessibilityLabel/Role` (H-80).
+- **Criterios de aceptación (Gherkin):**
+  - Botones de solo ícono y controles clave tienen etiqueta/rol para lectores.
+- **Trazabilidad:** RA-020 (H-80).
+
+## REQ-APK-021 — Seguridad/estado local del dispositivo
+- **Tipo:** Mejora · **Valor:** Medio · **Esfuerzo:** M · **Prioridad:** P3
+- **Estado actual (validado):** datos sensibles en AsyncStorage sin cifrar; sin deep links; ruta activa no persiste (H-83, H-85, H-88).
+- **Criterios de aceptación (Gherkin):**
+  - Datos sensibles del cache/cola no quedan en claro (o se cifran).
+  - La ruta activa se conserva al reiniciar.
+  - Se definen deep links donde aporten (p. ej. abrir un cliente).
+- **Trazabilidad:** RA-021 (H-83/H-85/H-88). (La device key estática → `REQ-PROD-008`.)
+
+## REQ-APK-022 — Fiador y flags sin feature (eliminar gasto/préstamo, inyección)
+- **Tipo:** Nuevo · **Valor:** Medio · **Esfuerzo:** M · **Prioridad:** P3 (depende de backend/config)
+- **Estado actual (validado):** fiador tipado pero no capturado; flags de eliminar gasto/préstamo e inyección sin UI (H-90, H-91).
+- **Criterios de aceptación (Gherkin):**
+  - Dado la ruta/config lo permite, el cobrador puede registrar fiador.
+  - Dado los flags habilitados, existen las acciones de eliminar gasto/préstamo y registrar inyección según permiso.
+- **Datos/API:** **verificar backend** (endpoints y gating por permiso).
+- **Trazabilidad:** RA-022 (H-90/H-91).
