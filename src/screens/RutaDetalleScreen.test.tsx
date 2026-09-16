@@ -115,7 +115,7 @@ describe("RutaDetalleScreen", () => {
     expect(getByTestId("kpi-total-clientes").props.children).toBe(5);
     expect(getByTestId("kpi-clientes-dia").props.children).toBe(3);
     expect(getByTestId("kpi-en-mora").props.children).toBe(2);
-    expect(getByText("activo")).toBeTruthy();
+    expect(getByText("Activo")).toBeTruthy();
   });
 
   it("lista las notas con su texto", async () => {

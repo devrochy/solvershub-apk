@@ -51,3 +51,25 @@ describe("EvidenciaPicker", () => {
     expect(getByTestId("evidencia-camara")).toBeDisabled();
   });
 });
+describe("EvidenciaPicker — tap targets", () => {
+  it("amplía el área táctil del botón quitar (hitSlop) y lo etiqueta", async () => {
+    const evidencias = [
+      { uri: "file:///a.jpg", name: "a.jpg", type: "image/jpeg", base64: "AAAA" },
+    ];
+    const { getByTestId } = await render(
+      <EvidenciaPicker
+        evidencias={evidencias}
+        cargando={false}
+        error={null}
+        onAgregarLibreria={jest.fn()}
+        onAgregarCamara={jest.fn()}
+        onQuitar={jest.fn()}
+        max={5}
+      />,
+    );
+
+    const quitar = getByTestId("evidencia-quitar-file:///a.jpg");
+    expect(quitar.props.hitSlop).toBe(12);
+    expect(quitar.props.accessibilityLabel).toBe("Quitar evidencia");
+  });
+});

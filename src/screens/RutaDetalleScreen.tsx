@@ -15,6 +15,7 @@ import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
 import { contarEnMora } from "../domain/contar-en-mora";
+import { etiquetaEstatus } from "../domain/estatus";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import type { RootStackParamList } from "../navigation/types";
@@ -279,7 +280,7 @@ export function RutaDetalleScreen({
           </View>
           <View style={styles.estadoFila}>
             <Text style={styles.estadoEtiqueta}>Estado</Text>
-            <Text style={styles.estadoValor}>{estatus}</Text>
+            <Text style={styles.estadoValor}>{etiquetaEstatus(estatus)}</Text>
           </View>
         </View>
 
