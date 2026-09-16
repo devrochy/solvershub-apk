@@ -45,3 +45,24 @@ export function validarMonto(monto: number): string | null {
   }
   return null;
 }
+
+/**
+ * Valida que el monto no supere un tope (saldo pendiente de la cuota o del
+ * préstamo). `tope = null` significa "sin tope" (no valida). Tolerancia de
+ * 0.001 para evitar falsos positivos por decimales.
+ */
+export function validarMontoContraTope(monto: number, tope: number | null): string | null {
+  if (tope !== null && Number.isFinite(monto) && monto > tope + 0.001) {
+    return `El monto no puede superar el saldo pendiente (${tope}).`;
+  }
+  return null;
+}
+
+/** Valida un teléfono de WhatsApp: al menos 7 dígitos. */
+export function validarTelefonoWhatsapp(telefono: string): string | null {
+  const digitos = telefono.replace(/\D/g, "");
+  if (digitos.length < 7) {
+    return "Ingresa un teléfono válido (al menos 7 dígitos).";
+  }
+  return null;
+}
