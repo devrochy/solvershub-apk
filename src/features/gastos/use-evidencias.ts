@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { reducirImagen } from "../evidencias/reducir-imagen";
 
 export interface EvidenciaSeleccionada {
   uri: string;
@@ -10,19 +11,30 @@ export interface EvidenciaSeleccionada {
 
 export const MAX_EVIDENCIAS = 5;
 
-function aEvidencia(asset: {
+/**
+ * Normaliza el asset elegido, lo reduce (1280px/JPEG 0.7) y obtiene su base64.
+ * El resize evita mandar fotos de cámara (~6MB) al backend y que la cola offline
+ * crezca de más. Si el resize falla, se usa la base64 original del asset.
+ */
+async function aEvidencia(asset: {
   uri: string;
   fileName?: string | null;
   mimeType?: string | null;
   base64?: string | null;
-}): EvidenciaSeleccionada {
+  width?: number;
+  height?: number;
+}): Promise<EvidenciaSeleccionada> {
   const type = asset.mimeType ?? "image/jpeg";
   const ext = type.split("/")[1] ?? "jpg";
+  const name = asset.fileName ?? `evidencia-${Date.now()}.${ext}`;
+  const reducida = await reducirImagen(asset.uri, asset.width ?? 0, asset.height ?? 0, {
+    base64: true,
+  });
   return {
-    uri: asset.uri,
-    name: asset.fileName ?? `evidencia-${Date.now()}.${ext}`,
-    type,
-    base64: asset.base64 ?? null,
+    uri: reducida.uri,
+    name: reducida.convertidoAJpeg ? name.replace(/\.[^.]+$/, ".jpg") : name,
+    type: reducida.convertidoAJpeg ? "image/jpeg" : type,
+    base64: reducida.base64 ?? asset.base64 ?? null,
   };
 }
 
@@ -71,10 +83,9 @@ export function useEvidencias(): UseEvidenciasResult {
         allowsMultipleSelection: true,
         selectionLimit: MAX_EVIDENCIAS - evidencias.length,
         quality: 0.7,
-        base64: true,
       });
       if (!result.canceled) {
-        const nuevas = result.assets.map(aEvidencia);
+        const nuevas = await Promise.all(result.assets.map(aEvidencia));
         setEvidencias((actual) =>
           [...actual, ...nuevas].slice(0, MAX_EVIDENCIAS),
         );
@@ -101,11 +112,11 @@ export function useEvidencias(): UseEvidenciasResult {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ["images"],
         quality: 0.7,
-        base64: true,
       });
       if (!result.canceled && result.assets[0]) {
+        const nueva = await aEvidencia(result.assets[0]);
         setEvidencias((actual) =>
-          [...actual, aEvidencia(result.assets[0])].slice(0, MAX_EVIDENCIAS),
+          [...actual, nueva].slice(0, MAX_EVIDENCIAS),
         );
       }
     } catch {

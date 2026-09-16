@@ -193,6 +193,11 @@ export function DiaScreen() {
           texto: "Guardado sin conexión (se sincronizará).",
           esError: false,
         });
+      } else if (apiErrorStatus(err) === 413) {
+        setGastoMensaje({
+          texto: "Las evidencias son demasiado grandes. Intenta con menos fotos.",
+          esError: true,
+        });
       } else {
         setGastoMensaje({ texto: "No se pudo registrar el gasto.", esError: true });
       }
