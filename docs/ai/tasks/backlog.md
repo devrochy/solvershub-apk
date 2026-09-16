@@ -12,20 +12,15 @@
 - Descripción: la fecha se ingresa como texto `YYYY-MM-DD` (cross-platform). Candidato a `@react-native-community/datetimepicker` (con shim web) para mejor UX.
 - Prioridad sugerida: baja
 
-## Modal de evidencias duplicado en ClienteScreen
-- Detectado en: tarea apk-pr1-rediseno-detalle-cliente (2026-09-03)
-- Descripción: los modales de avatar (foto) y documento comparten el mismo cuerpo (preview + botones librería/cámara + estados). Candidato a extraer un componente `EvidenciasModal` reutilizable.
-- Prioridad sugerida: baja
-
-## Cálculo de "en mora" duplicado (RutasScreen + RutaDetalleScreen)
-- Detectado en: code-review PR2 rediseño rutas-dia (2026-09-03)
-- Descripción: el conteo `clientes.filter(c => c.color === "rojo")` se repite en `RutasScreen` (KPIs de dashboard) y `RutaDetalleScreen` (KPI en mora). Candidato a un helper `contarEnMora(clientes)` compartido.
-- Prioridad sugerida: baja
-
 ## SeleccionRutaScreen dispara 2 requests por ruta al montar
 - Detectado en: code-review apk-navegacion-ruta-rediseno (2026-09-03)
 - Descripción: con N rutas son 2N llamadas en paralelo (clientes + día por ruta). Aceptable hoy por la decisión de "solo datos existentes"; revisar si crece el número de rutas.
 - Prioridad sugerida: baja
+
+## check.sh flaky por paralelización (tests de pantalla)
+- Detectado en: higiene 2026-09-15 (al verificar los PRs de refactor)
+- Descripción: la corrida completa de `scripts/check.sh` falla de forma intermitente en suites de pantalla (`DiaScreen`, `ClientesScreen`, `ClienteScreen`, `RutaDetalleScreen`, `SeleccionRutaScreen`) por timeouts de 5s bajo saturación de workers; los mismos tests pasan aislados y en `develop` limpio falla una cantidad variable (0–6). No es un fallo lógico.
+- Prioridad sugerida: media (estabilizar: subir timeout, `--runInBand` para pantallas o `maxWorkers`).
 
 ## Vinculación autoservicio del dispositivo desde la APK (HU-39/43) — Opción 2b — BLOQUEANTE DE PRODUCCIÓN
 - Detectado en: decisión de diseño Épica 8 APK (2026-09-11)
@@ -36,6 +31,11 @@
   producción permitiría entrar desde cualquier equipo con las credenciales.
 - Detalle del plan: `apk-autovinculacion-dispositivo.md`.
 - Prioridad sugerida: **alta (bloqueante de producción)**
+
+## Foco cobrador vs panel de referencia (benchmark)
+- Detectado en: benchmark Smart 369 (2026-09-15) — `app-cobranza-admin/docs/ai/tasks/panel-benchmark-smart369.md`.
+- Descripción: relevar el flujo del cobrador de la referencia (reporte diario, lista de clientes, registro de pago) y cerrar brechas reales en la APK.
+- Tarea derivada: `apk-foco-cobrador.md` (esfuerzo medio).
 
 ---
 
@@ -52,4 +52,6 @@
 - **Doble capa de permisos en liquidación** → `p2-polish`: `RutaActiva` expone `permisos` y `DiaScreen` gatea el botón por `generar_reporte` además del flag de ruta.
 - **`TrayectosLista` con estilos locales** → ya usaba `estilosHeader` (resuelto en `apk-headers-estandar`); se cierra el ítem.
 - **Edición de ruta desde la APK** → `apk-editar-ruta` (#53): modal nombre/interés/cuotas gated por `actualizar_ruta`; `RutaActiva.permisos`.
+- **Cálculo de "en mora" duplicado** → `contar-en-mora` (#55): helper `src/domain/contar-en-mora.ts`.
+- **Modal de evidencias duplicado en ClienteScreen** → `evidencias-modal` (#56): componente `EvidenciasModal` reutilizable.
 
