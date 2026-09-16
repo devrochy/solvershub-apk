@@ -5,8 +5,8 @@ tags: [tarea]
 
 # Tarea: apk-autovinculacion-dispositivo (Opción 2b — vinculación autoservicio)
 
-- **Origen:** Decisión de diseño de la Épica 8 (HU-39/HU-43), 2026-09-11. Se difiere para después del MVP.
-- **Estado:** pendiente (post-MVP)
+- **Origen:** Decisión de diseño de la Épica 8 (HU-39/HU-43), 2026-09-11.
+- **Estado:** pendiente — **BLOQUEANTE DE PRODUCCIÓN** (2026-09-15). No se implementa en el ciclo actual, pero es prerequisito del primer release a producción: en el MVP el login de cobrador no exige device vinculado, lo que en producción permitiría entrar desde cualquier equipo con las credenciales.
 - **Fecha inicio:** —
 
 ## Objetivo

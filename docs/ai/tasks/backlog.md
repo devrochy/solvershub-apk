@@ -17,11 +17,6 @@
 - Descripción: los modales de avatar (foto) y documento comparten el mismo cuerpo (preview + botones librería/cámara + estados). Candidato a extraer un componente `EvidenciasModal` reutilizable.
 - Prioridad sugerida: baja
 
-## Edición de ruta desde la APK (solo lectura en B3)
-- Detectado en: rediseño B3 (2026-09-03)
-- Descripción: el detalle de ruta (`RutaDetalleScreen`) muestra el botón "Editar" pero es **solo lectura** (avisa "La edición de ruta se realiza desde el panel"); el permiso `actualizar_ruta` del cobrador aún no se expone en la APK. Habilitar la edición real cuando el rol del cobrador lo permita.
-- Prioridad sugerida: media
-
 ## Cálculo de "en mora" duplicado (RutasScreen + RutaDetalleScreen)
 - Detectado en: code-review PR2 rediseño rutas-dia (2026-09-03)
 - Descripción: el conteo `clientes.filter(c => c.color === "rojo")` se repite en `RutasScreen` (KPIs de dashboard) y `RutaDetalleScreen` (KPI en mora). Candidato a un helper `contarEnMora(clientes)` compartido.
@@ -32,15 +27,15 @@
 - Descripción: con N rutas son 2N llamadas en paralelo (clientes + día por ruta). Aceptable hoy por la decisión de "solo datos existentes"; revisar si crece el número de rutas.
 - Prioridad sugerida: baja
 
-## Vinculación autoservicio del dispositivo desde la APK (HU-39/43) — Opción 2b
+## Vinculación autoservicio del dispositivo desde la APK (HU-39/43) — Opción 2b — BLOQUEANTE DE PRODUCCIÓN
 - Detectado en: decisión de diseño Épica 8 APK (2026-09-11)
 - Descripción: la APK vincula su propio device tras el primer login (Android ID
   automático + WhatsApp del perfil + clave X25519) y el admin lo aprueba (el
   device queda en `pendiente_revalidacion`). En el MVP se decidió **no**
-  implementar el envío en el login (Opción 1) ni el autoservicio, para poder
-  probar con cualquier cobrador sin piezas adicionales.
+  implementar el envío en el login (Opción 1) ni el autoservicio, lo que en
+  producción permitiría entrar desde cualquier equipo con las credenciales.
 - Detalle del plan: `apk-autovinculacion-dispositivo.md`.
-- Prioridad sugerida: media (post-MVP)
+- Prioridad sugerida: **alta (bloqueante de producción)**
 
 ---
 
@@ -56,4 +51,5 @@
 - **`inicialesDe` código muerto** → `p2-polish`: eliminado de `Avatar.tsx` (y su test).
 - **Doble capa de permisos en liquidación** → `p2-polish`: `RutaActiva` expone `permisos` y `DiaScreen` gatea el botón por `generar_reporte` además del flag de ruta.
 - **`TrayectosLista` con estilos locales** → ya usaba `estilosHeader` (resuelto en `apk-headers-estandar`); se cierra el ítem.
+- **Edición de ruta desde la APK** → `apk-editar-ruta` (#53): modal nombre/interés/cuotas gated por `actualizar_ruta`; `RutaActiva.permisos`.
 
