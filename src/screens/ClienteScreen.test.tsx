@@ -255,6 +255,55 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     );
   });
 
+  it("no registra un abono mayor al saldo pendiente del préstamo", async () => {
+    const registrarVisitaPago = jest.fn();
+    const { getByTestId } = await renderConApi(
+      {
+        registrarVisitaPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
+    await fireEvent.press(getByTestId("tipo-abono"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "9999");
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
+
+    await waitFor(() =>
+      expect(getByTestId("cuota-mensaje")).toHaveTextContent(/superar/i),
+    );
+    expect(registrarVisitaPago).not.toHaveBeenCalled();
+  });
+
+  it("no registra un pago de cuota mayor al saldo pendiente de la cuota", async () => {
+    const registrarVisitaPago = jest.fn();
+    const { getByTestId } = await renderConApi(
+      {
+        registrarVisitaPago,
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "9999");
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
+
+    await waitFor(() =>
+      expect(getByTestId("cuota-mensaje")).toHaveTextContent(/superar/i),
+    );
+    expect(registrarVisitaPago).not.toHaveBeenCalled();
+  });
+
   it("registra una visita no-pago con promesa de pago (compromiso_de_pago)", async () => {
     const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: 1 });
     const { getByTestId, getByText } = await renderConApi(
@@ -676,6 +725,22 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
         "cambio_cliente-2",
       ),
     );
+  });
+
+  it("no guarda el cambio si el teléfono queda inválido", async () => {
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
+    const { getByTestId } = await renderConApi({}, offlineConError);
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    await fireEvent.changeText(getByTestId("editar-telefono-numero"), "123");
+    await fireEvent.press(getByTestId("guardar-cambio-cliente"));
+
+    await waitFor(() =>
+      expect(getByTestId("mensaje-editar")).toHaveTextContent(/válido/i),
+    );
+    expect(encolarSiNoExiste).not.toHaveBeenCalled();
   });
 
   it("el modal de editar ubicación sincroniza el mapa con el campo seleccionado", async () => {

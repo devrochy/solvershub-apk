@@ -51,7 +51,12 @@ import {
 } from "../features/estado-cuenta/estado-cuenta";
 import { validarPrestamo } from "../features/prestamo/registrar-prestamo";
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
-import { validarFechaPrometida, validarMonto } from "../features/visita/validaciones";
+import {
+  validarFechaPrometida,
+  validarMonto,
+  validarMontoContraTope,
+  validarTelefonoWhatsapp,
+} from "../features/visita/validaciones";
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, leerCliente } from "../offline/cache";
@@ -326,6 +331,15 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       const errorMonto = validarMonto(monto);
       if (errorMonto) {
         setMensaje(errorMonto);
+        return;
+      }
+      const tope =
+        tipoPago === "cuota"
+          ? (detalleCuota?.saldoPendiente ?? null)
+          : (estadoPrestamo?.saldoPendiente ?? null);
+      const errorTope = validarMontoContraTope(monto, tope);
+      if (errorTope) {
+        setMensaje(errorTope);
         return;
       }
       setEnviando(true);
@@ -648,6 +662,16 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         )
       ) {
         setMensaje("El número de documento no es válido para el tipo seleccionado.");
+        return;
+      }
+    }
+    // Consistencia con el alta: si se toca el teléfono, debe ser válido.
+    const telefonoTocado =
+      (edicion.telefonoWhatsapp ?? "") !== (edicionOriginal.telefonoWhatsapp ?? "");
+    if (telefonoTocado) {
+      const errorTelefono = validarTelefonoWhatsapp(edicion.telefonoWhatsapp ?? "");
+      if (errorTelefono) {
+        setMensaje(errorTelefono);
         return;
       }
     }
