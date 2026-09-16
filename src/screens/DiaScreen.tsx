@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -31,9 +31,13 @@ import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useTrayectosOverlay } from "../navigation/trayectos-overlay-context";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
+import { clientesAprecargar } from "../offline/precarga";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type { ClienteDiaPublic, LiquidacionPublic, TrayectoPublic } from "../types/cobrador";
+
+/** TTL de la precarga offline de clientes (evita re-precargar cada 30s). */
+const PRECARGA_TTL_MS = 5 * 60 * 1000;
 
 export function DiaScreen() {
   const { rutaActiva } = useRutaActiva();
@@ -41,6 +45,8 @@ export function DiaScreen() {
   const { abrir: abrirPantallaActiva } = usePantallaActiva();
   const { api, logout } = useSession();
   const offline = useOffline();
+  // Cliente → timestamp de su última precarga (throttle con TTL por sesión).
+  const precargadosRef = useRef<Map<number, number>>(new Map());
   const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
   const [trayectos, setTrayectos] = useState<TrayectoPublic | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -83,9 +89,23 @@ export function DiaScreen() {
   const precargarClientes = useCallback(
     async (clientes: ClienteDiaPublic[]) => {
       // Pre-cache de tarjeta + préstamos de cada cliente del día para que
-      // estén disponibles offline. En segundo plano (no bloquea el render).
+      // estén disponibles offline. Con TTL para no repetir ~2N requests en cada
+      // re-fetch periódico (cada 30s).
+      const pendientes = clientesAprecargar(
+        clientes,
+        precargadosRef.current,
+        Date.now(),
+        PRECARGA_TTL_MS,
+      );
+      if (pendientes.length === 0) {
+        return;
+      }
+      const ahora = Date.now();
+      for (const cliente of pendientes) {
+        precargadosRef.current.set(cliente.clienteId, ahora);
+      }
       await Promise.allSettled(
-        clientes.map(async (cliente) => {
+        pendientes.map(async (cliente) => {
           try {
             const [t, p] = await Promise.all([
               api.tarjeta(rutaId, cliente.clienteId),
@@ -165,6 +185,11 @@ export function DiaScreen() {
     }, 30000);
     return () => clearInterval(intervalo);
   }, [cargar, rutaId]);
+
+  useEffect(() => {
+    // Al cambiar de ruta, permitir precargar de nuevo sus clientes.
+    precargadosRef.current = new Map();
+  }, [rutaId]);
 
   async function registrarGasto() {
     const valor = Number(gastoValor);
