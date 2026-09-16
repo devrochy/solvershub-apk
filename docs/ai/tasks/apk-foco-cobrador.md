@@ -6,88 +6,86 @@ tags: [tarea]
 # Tarea: apk-foco-cobrador (paridad del flujo cobrador vs referencia)
 
 - **Origen:** `app-cobranza-admin/docs/ai/tasks/panel-benchmark-smart369.md` (mejora #6, esfuerzo medio).
-- **Estado:** en progreso (relevamiento de la referencia **completado** 2026-09-16; implementación pendiente).
+- **Estado:** en progreso (relevamiento **completado** 2026-09-16; implementación pendiente).
 - **Fecha inicio:** 2026-09-15
 
 ## Objetivo
-Relevar y cerrar brechas del **flujo del cobrador** (APK) frente a la APK de referencia **Smart 369** (`com.example.smart`, Flutter), y priorizar las mejoras por esfuerzo.
+Relevar y cerrar brechas del **flujo del cobrador** (APK) frente a la APK de referencia **Smart 369** (`com.example.smart`, Flutter).
 
 ---
 
 ## 1. Ficha técnica de la APK de referencia
+- Flutter (release AOT), package `com.example.smart`, **v1.2.2 (build 10)**, minSdk 24 / target 34.
+- Backend: `API_HOST=smartadmin-app.com` (mismo Yii que el panel web).
+- **Offline-first** con SQLite (`cliente, ruta, prestamo, cuotas, pago, abono, gasto, inyecciones, liquidada, posicion(GPS), pago_eliminado, cacheObject`), flags `sincronizado`/`eliminado` y geo por registro.
+- SDKs: Firebase, Sentry, Google Maps, `geolocator`, `image_picker`, `share_plus`, `open_file`, `url_launcher`.
+- Multi-país / multi-idioma; métodos de pago por país (Efectivo, QR, Transferencia, **YAPE**, **PIX**, Binance).
+- Seguridad (observaciones): Maps API key y DSN embebidos, `.env.production` bundleado; **login con `FLAG_SECURE`** (resto de pantallas no).
 
-- **App:** Flutter (release AOT), package `com.example.smart`, **v1.2.2 (build 10)**, minSdk 24 / target 34.
-- **Backend:** `API_HOST=smartadmin-app.com` (mismo backend que el panel web Yii); `.env.production/.beta/.development` embebidos.
-- **Offline-first:** base local **SQLite** con sync; tablas `cliente, ruta, prestamo, cuotas, pago, abono, gasto, inyecciones, liquidada, posicion(GPS), pago_eliminado, cacheObject`; flags `sincronizado`/`eliminado` y geolocalización por registro (`lat_registro`, `lng_registro`, `fecha_registro`).
-- **SDKs:** Firebase (Analytics/Performance/Crashlytics/Remote Config), Sentry, Google Maps, `geolocator`, `image_picker`, `share_plus`, `open_file`, `url_launcher`.
-- **Multi-país / multi-idioma:** banderas y QR por país; i18n con selector de idioma; métodos de pago por país (Efectivo, QR, Transferencia, **YAPE** (PE), **PIX** (BR), Binance).
-- **Seguridad (observaciones, no explotadas):** Google Maps API key embebida; DSN de Sentry; `.env.production` bundleado; `allowBackup=false`; `QUERY_ALL_PACKAGES`; el **login usa `FLAG_SECURE`** (bloquea capturas), el resto de pantallas no.
+## 2. Inventario de pantallas (relevado)
+Menú lateral (**Sincronizar / Sincronizar general / Cambiar idioma / Cerrar sesión / Última sincronización**); menú de ruta (**Cliente Cercano, Cliente Nuevo, Lista Clientes, Clientes Pendientes, Clientes del día, Ruta Manual, Agregar Gastos, Reporte diario, Información Ruta**, y engranaje con **Historial de clientes, Lista de cuentas, Notas, Configuración de pago, Estadísticas**); cadena de cliente (**detalle → Cuentas → detalle de cuenta con Cuotas/Abonos y grilla por color**); **Mapa** (Google Maps con markers); **Reporte diario** (Estimado, Caja sin/con gastos, Hora 1ª/última cuota, Ver mapa); **Información Ruta** (caja, cobrado/ventas/gastos, comisión, cartera); **Estadísticas** (actual vs anterior); **Configuración de pago** (QR/PIX); tabs inferiores **Contactos / Métodos de pago / Configuración**.
 
-## 2. Inventario de pantallas y flujos (evidencia: capturas en el teléfono)
-
-- **Login** (protegido). **Rutas** (lista de rutas del cobrador) con tabs inferiores **Contactos · Métodos de pago · Configuración**.
-- **Menú lateral:** `Sincronizar`, `Sincronizar general`, `Cambiar idioma`, `Cerrar sesión`, **"Última sincronización: <fecha hora>"**, versión.
-- **Menú de ruta** (grilla): `Cliente Cercano`, `Cliente Nuevo`, `Lista Clientes`, `Clientes Pendientes`, `Clientes del día`, `Ruta Manual`, `Agregar Gastos`, `Reporte diario`, `Información Ruta`, y **engranaje** con `Historial de clientes`, `Lista de cuentas`, `Notas de la ruta`, `Configuración de pago`, `Estadísticas`.
-- **Lista de clientes / pendientes / ruta manual:** buscador, "Total clientes: N", filas con avatar+iniciales, ID, negocio, chip de frecuencia (`Diario`), **borde rojo para morosos**; tabs **Lista Clientes · Mapa** (Google Maps con markers).
-- **Detalle de cliente:** cabecera con foto, nombre, teléfono, `Doc:`, botón **Editar**, acciones (mensaje, QR, campana); campos nombre/apellido/negocio/teléfono (WhatsApp + llamar)/dirección/fiador; tabs **Cliente · Cuentas · Ubicación · Ubicación casa**.
-- **Cuentas:** `Agregar cuenta` + tarjetas (`Valor`, `Fecha`, `Deuda`, `# Cuotas`, `Retraso`, frecuencia).
-- **Detalle de cuenta:** fechas inicial/final, valor, retraso, cuotas, cliente (copiar/descargar), valor cuota, deuda actual; tabs **Cuotas / Abonos**; **grilla de cuotas por color** (verde/azul/naranja/rojo); acciones Cancelar/Guardar.
-- **Cliente nuevo:** foto + **cédula frontal/reverso** (carrusel) y campos obligatorios (cédula, nombre, apellido, negocio, teléfono con país, dirección…).
-- **Agregar gastos:** `Gasto` + adjunto (clip) + `Descripción` + Guardar.
-- **Reporte diario:** filtros `Fecha` + `base` + `Consultar` → **Estimado a cobrar**, **Caja del día (sin gastos)**, **Caja del día (gastos aprobados incluidos)**, `Total cobrado/prestado/gastos`, `Pagaron N clientes`, `Faltan N de hoy M`, `Clientes sin cuentas N`, `Hora Primera/Última Cuota`, **Ver mapa**, export.
-- **Información Ruta:** caja última liquidada/actual, fecha última liquidada, cobrado/ventas/gastos, estimado, pagaron/faltan/sin cuentas, `Inyección [Ver]`, `Total cobrado día [Ver]`, comisión, cartera actual.
-- **Estadísticas:** "Actualizado: <fecha hora>" y comparativos **actual vs anterior**: `Clientes atrasados`, `Clientes vencidos`, `Total clientes`, `No visitados hoy` (y más).
-- **Configuración de pago:** QR de pago (Editar QR) y **PIX** (guardar).
-- **Métodos de pago:** QR por país. **Contactos:** soporte/redes (WhatsApp/tel, YouTube, FB, TikTok, IG).
-- **Cliente Cercano:** abre el **detalle del cliente más próximo** (GPS).
+## 3. Matriz de brechas (resumen)
+`Estadísticas por ruta` (falta) · `Cliente Cercano` (más débil) · `Ruta Manual` (más débil) · `Última sincronización/Sincronizar` (más débil) · `KPIs de reporte diario` (más débil) · `QR/PIX y métodos de pago` (extra) · `i18n` (extra) · `Ubicación/Ubicación casa`, `eliminar cuenta/depósito/pago`, `grilla de cuotas` (cubiertos).
 
 ---
 
-## 3. Matriz comparativa (Smart 369 APK ↔ nuestra APK ↔ PRD)
+## 4. Bloques (items verificables, TDD)
 
-| # | Smart 369 (APK) | Nuestra APK | PRD | Clase |
-|---|---|---|---|---|
-| 1 | Estadísticas por ruta (actual vs anterior) | No | — | (i) Falta |
-| 2 | Cliente Cercano (GPS) | Trayectoria/GPS, sin acceso "más cercano" | HU-35/37 | (ii) Más débil |
-| 3 | Ruta Manual (reordenar/seleccionar) | Trayecto óptimo automático | HU-35/55 | (ii) Más débil |
-| 4 | "Última sincronización" + Sincronizar / Sincronizar general | Cola offline; visibilidad parcial | HU-64 | (ii) Más débil |
-| 5 | Reporte diario: caja sin/con gastos aprobados, hora 1ª/última cuota, "clientes sin cuentas" | Reporte/liquidación con otros KPIs | HU-18/20/49/50 | (ii) Más débil |
-| 6 | Configurar QR/PIX y "Métodos de pago" por país | Métodos de pago en registro; sin QR del cobrador | HU-15; Fase 2/3 | (v) Extra |
-| 7 | Multi-idioma (i18n) | Español | i18n en PRD (3.5) | (v) Extra |
-| 8 | Cliente: tabs Ubicación / Ubicación casa | Negocio + domicilio (mapa) | HU-14/57 | (iv) Cubierto |
-| 9 | Eliminar cuenta/depósito/pago en app | Eliminar pago/abono con permiso | HU-48 | (iv) Cubierto |
-| 10 | Seguro de vida | No | No en PRD | (v) Extra — decidir |
-| 11 | Grilla de cuotas por color con leyenda | Estados de cuota por color | HU-48/54 | (iv) Cubierto |
+> Cada item es una unidad TDD independiente; se marca al completar y debe dejar `scripts/check.sh` en verde (aislando la flakiness conocida).
 
----
+### Tema A — Visibilidad de sincronización
+- [ ] A1: mostrar **"Última sincronización: <fecha hora>"** en el menú.
+  - Prueba: test del componente del menú (`src/navigation`/`src/components`) — renderiza el timestamp formateado.
+- [ ] A2: acción **Sincronizar** manual (fuerza el envío de la cola pendiente).
+  - Prueba: test del hook/contexto offline — dispara `sincronizar()` y refleja resultado.
+- [ ] A3: acción **Sincronizar general** (recarga completa).
+  - Prueba: test del contexto offline — dispara el resync completo.
 
-## 4. Sub-tareas priorizadas por esfuerzo (bajo → alto)
+### Tema B — Cliente Cercano
+- [ ] B1: acción **"Cliente Cercano"** que abre el detalle del cliente más próximo por GPS.
+  - Prueba: test de la pantalla de ruta/selección — con dos clientes y posición actual, navega al más cercano.
 
-1. **[Bajo] `apk-sync-visibilidad`** — mostrar "Última sincronización" y acción de **Sincronizar / Sincronizar general** en el menú (si no existe).
-2. **[Bajo] `apk-cliente-cercano`** — acceso rápido al **cliente más próximo** por GPS.
-3. **[Bajo-Medio] `apk-reporte-diario-kpis`** — añadir KPIs faltantes del reporte diario (caja sin/con gastos aprobados, hora 1ª/última cuota, "clientes sin cuentas", estimado a cobrar).
-4. **[Medio] `apk-estadisticas-ruta`** — vista de estadísticas por ruta (actual vs anterior) consumiendo el endpoint del benchmark de panel (`panel-estadisticas-ruta`).
-5. **[Medio] `apk-metodos-pago-qr`** — cobro digital: QR por país / PIX-YAPE del cobrador (depende de backend).
-6. **[Medio] `apk-ruta-manual`** — reordenar/seleccionar paradas manualmente (alternativa al trayecto óptimo).
-7. **[Alto] `apk-i18n`** — internacionalización (si el negocio la requiere).
+### Tema C — KPIs del reporte diario
+- [ ] C1: KPI **Estimado a cobrar**.
+  - Prueba: test de la pantalla de reporte.
+- [ ] C2: KPI **Caja del día (sin gastos)**.
+  - Prueba: test de la pantalla de reporte.
+- [ ] C3: KPI **Caja del día (gastos aprobados incluidos)**.
+  - Prueba: test de la pantalla de reporte.
+- [ ] C4: **Hora primera cuota** y **Hora última cuota**.
+  - Prueba: test de la pantalla de reporte.
+- [ ] C5: contadores **Pagaron N / Faltan N de M / Clientes sin cuentas N**.
+  - Prueba: test de la pantalla de reporte.
 
-## 5. Propuestas a decidir (extras de la referencia)
-- **Seguro de vida** (ver `panel-benchmark-smart369.md`).
-- **Métodos de pago regionales** (PIX/YAPE/Binance) y **QR del cobrador**.
-- **Multi-idioma**.
+### Tema D — Estadísticas por ruta
+- [ ] D0 (bloqueante): verificar el endpoint de estadísticas (coordinar con `panel-estadisticas-ruta`).
+  - Prueba: contrato escrito en este doc.
+- [ ] D1: pantalla de **Estadísticas** con pares **actual vs anterior** (atrasados, vencidos, total, no visitados).
+  - Prueba: test de pantalla — renderiza los 4 pares.
+
+### Tema E — Métodos de pago / QR
+- [ ] E1: pantalla **Métodos de pago** con **QR por país** (solo lectura).
+  - Prueba: test de pantalla — lista las banderas/QR.
+- [ ] E2 (depende backend): **cobro con QR/PIX** del cobrador.
+  - Prueba: test del flujo — genera/muestra el QR con el monto.
+
+### Tema F — Ruta Manual
+- [ ] F1: **Ruta Manual** permite reordenar/seleccionar paradas.
+  - Prueba: test de pantalla — reordenar actualiza el orden persistido en el día.
+
+### Tema G — i18n (si el negocio lo requiere)
+- [ ] G1: **selector de idioma** + extracción de strings base.
+  - Prueba: test — cambia el idioma y los labels base cambian.
+
+## 5. Propuestas a decidir
+- Seguro de vida · PIX/YAPE/Binance · multi-idioma (Tema G).
 
 ## Dependencias / riesgos
-- El backend es `smartadmin-app.com` (Yii); para replicar KPIs puede requerirse endpoint nuevo en `app-cobranza` (coordinar).
-- No copiar antipatrones de seguridad: la referencia embebe API key, DSN y `.env`.
-- El login de la referencia usa `FLAG_SECURE`; el barrido dinámico se hizo con capturas (el login no se capturó).
-
-## Bloques (checklist)
-- [x] Bloque 0: relevamiento estático (ficha técnica) y dinámico (pantallas) de la APK de referencia.
-- [x] Bloque 1: matriz de brechas y sub-tareas priorizadas por esfuerzo.
-- [ ] Bloque 2: implementar sub-tareas priorizadas (una por una, TDD).
-- [ ] Bloque 3: tests de pantalla/hook por sub-tarea.
+- El backend es `smartadmin-app.com` (Yii); replicar KPIs puede requerir endpoint en `app-cobranza`.
+- No copiar antipatrones de seguridad de la referencia.
+- Flakiness preexistente de `check.sh` (paralelización): verificar cada item aislando su suite.
 
 ## Resultado final (parcial)
-- Ficha técnica, inventario de pantallas y matriz de brechas completados (2026-09-16).
-- 7 sub-tareas priorizadas por esfuerzo; 3 propuestas a decidir.
-- Pendiente: implementación (Bloque 2-3).
+- Ficha técnica, inventario y matriz de brechas completados; 15 items verificables definidos.
+- Pendiente: Temas A-G (implementación).
