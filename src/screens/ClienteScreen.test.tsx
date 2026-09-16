@@ -1,4 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { Alert } from "react-native";
 import { ClienteScreen } from "./ClienteScreen";
 import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
@@ -741,6 +742,19 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
       expect(getByTestId("mensaje-editar")).toHaveTextContent(/válido/i),
     );
     expect(encolarSiNoExiste).not.toHaveBeenCalled();
+  });
+
+  it("pide confirmación al cerrar la edición con cambios sin guardar", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const { getByTestId } = await renderConApi({}, offlineValor);
+
+    await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cliente"));
+    await fireEvent.changeText(getByTestId("editar-nombre"), "Juan Carlos");
+    await fireEvent.press(getByTestId("modal-cancelar"));
+
+    expect(alertSpy).toHaveBeenCalled();
+    alertSpy.mockRestore();
   });
 
   it("el modal de editar ubicación sincroniza el mapa con el campo seleccionado", async () => {

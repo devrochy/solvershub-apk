@@ -412,6 +412,11 @@ export function DiaScreen() {
                 Datos sin conexión
               </Text>
             ) : null}
+            {error ? (
+              <Text testID="aviso-refresco" style={styles.avisoOffline}>
+                {error}
+              </Text>
+            ) : null}
             {trayectoria.activa ? (
               <View style={styles.trayectoriaActiva}>
                 <View style={styles.puntoRojo} />

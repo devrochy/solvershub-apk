@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Linking,
   Pressable,
   ScrollView,
@@ -20,6 +21,7 @@ import { Avatar } from "../components/Avatar";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
+import { BannerMensaje } from "../components/BannerMensaje";
 import { ColorBadge, colorDeEstado } from "../components/ColorBadge";
 import { urlArchivo } from "../config";
 import { MapaCliente } from "../components/MapaCliente";
@@ -170,6 +172,15 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const [valorPrometido, setValorPrometido] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
+  const [mensajeEsExito, setMensajeEsExito] = useState(false);
+  const mensajeError = (texto: string | null) => {
+    setMensaje(texto);
+    setMensajeEsExito(false);
+  };
+  const mensajeExito = (texto: string) => {
+    setMensaje(texto);
+    setMensajeEsExito(true);
+  };
 
   // Formulario editar cliente.
   const [edicion, setEdicion] = useState<CambioClienteInput>({});
@@ -324,14 +335,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   async function enviarAccionCuota() {
     if (!prestamoSeleccionado) {
-      setMensaje("Selecciona un préstamo.");
+      mensajeError("Selecciona un préstamo.");
       return;
     }
     if (accionCuota === "pago") {
       const monto = Number(valor);
       const errorMonto = validarMonto(monto);
       if (errorMonto) {
-        setMensaje(errorMonto);
+        mensajeError(errorMonto);
         return;
       }
       const tope =
@@ -340,11 +351,11 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           : (estadoPrestamo?.saldoPendiente ?? null);
       const errorTope = validarMontoContraTope(monto, tope);
       if (errorTope) {
-        setMensaje(errorTope);
+        mensajeError(errorTope);
         return;
       }
       setEnviando(true);
-      setMensaje(null);
+      mensajeError(null);
       const input = {
         prestamoId: prestamoSeleccionado.id,
         clienteId,
@@ -358,7 +369,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         await api.registrarVisitaPago(rutaId, input);
         setAccionCuota("ninguno");
         setValor("");
-        setMensaje("Pago registrado.");
+        mensajeExito("Pago registrado.");
         await recargarDetalleCuota();
         await recargarEstadoPrestamo();
         await cargar();
@@ -374,14 +385,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           if (encolado) {
             setAccionCuota("ninguno");
             setValor("");
-            setMensaje("Guardado sin conexión (se sincronizará).");
+            mensajeExito("Guardado sin conexión (se sincronizará).");
           } else {
-            setMensaje(
+            mensajeError(
               "Ya hay un pago pendiente por sincronizar para este préstamo.",
             );
           }
         } else {
-          setMensaje("No se pudo registrar el pago.");
+          mensajeError("No se pudo registrar el pago.");
         }
       } finally {
         setEnviando(false);
@@ -392,23 +403,23 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       const esCompromiso = motivoNoPago === "compromiso_de_pago";
       const errorFecha = validarFechaPrometida(fechaPrometida);
       if (errorFecha) {
-        setMensaje(errorFecha);
+        mensajeError(errorFecha);
         return;
       }
       if (esCompromiso && !fechaPrometida.trim()) {
-        setMensaje("Para compromiso de pago se requiere la fecha prometida.");
+        mensajeError("Para compromiso de pago se requiere la fecha prometida.");
         return;
       }
       const montoPrometido = valorPrometido.trim() ? Number(valorPrometido) : null;
       if (montoPrometido !== null) {
         const errorMonto = validarMonto(montoPrometido);
         if (errorMonto) {
-          setMensaje(errorMonto);
+          mensajeError(errorMonto);
           return;
         }
       }
       setEnviando(true);
-      setMensaje(null);
+      mensajeError(null);
       const input = {
         prestamoId: prestamoSeleccionado.id,
         clienteId,
@@ -422,7 +433,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setAccionCuota("ninguno");
         setFechaPrometida("");
         setValorPrometido("");
-        setMensaje("Visita registrada.");
+        mensajeExito("Visita registrada.");
         await recargarDetalleCuota();
         await recargarEstadoPrestamo();
       } catch (err) {
@@ -438,14 +449,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             setAccionCuota("ninguno");
             setFechaPrometida("");
             setValorPrometido("");
-            setMensaje("Guardado sin conexión (se sincronizará).");
+            mensajeExito("Guardado sin conexión (se sincronizará).");
           } else {
-            setMensaje(
+            mensajeError(
               "Ya hay una visita de no pago pendiente por sincronizar para este préstamo.",
             );
           }
         } else {
-          setMensaje("No se pudo registrar la visita.");
+          mensajeError("No se pudo registrar la visita.");
         }
       } finally {
         setEnviando(false);
@@ -458,10 +469,10 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setBorrarMensaje(null);
     if (accionCuota === accion) {
       setAccionCuota("ninguno");
-      setMensaje(null);
+      mensajeError(null);
       return;
     }
-    setMensaje(null);
+    mensajeError(null);
     if (accion === "pago") {
       setTipoPago("cuota");
       setMetodoPago("efectivo");
@@ -477,13 +488,13 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   function cerrarCuota() {
     setAccionCuota("ninguno");
     setBorrarTarget(null);
-    setMensaje(null);
+    mensajeError(null);
     setModal("ninguno");
   }
 
   function iniciarBorrarPago(pago: { id: number; valor: number }) {
     setAccionCuota("ninguno");
-    setMensaje(null);
+    mensajeError(null);
     setBorrarTarget({ tipo: "pago", id: pago.id, valor: pago.valor });
     setBorrarPassword("");
     setBorrarMotivo("");
@@ -492,7 +503,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   function iniciarBorrarAbono(abono: { id: number; valor: number }) {
     setAccionCuota("ninguno");
-    setMensaje(null);
+    mensajeError(null);
     setBorrarTarget({ tipo: "abono", id: abono.id, valor: abono.valor });
     setBorrarPassword("");
     setBorrarMotivo("");
@@ -524,7 +535,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       setBorrarTarget(null);
       setBorrarPassword("");
       setBorrarMotivo("");
-      setMensaje(
+      mensajeError(
         borrarTarget.tipo === "pago"
           ? "Pago eliminado."
           : "Abono eliminado.",
@@ -554,7 +565,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   function abrirEditar() {
-    setMensaje(null);
+    mensajeError(null);
     const lat = tarjeta?.latitud ?? latitud;
     const lng = tarjeta?.longitud ?? longitud;
     const actual: CambioClienteInput = {
@@ -565,6 +576,31 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setEdicion(actual);
     setEdicionOriginal(actual);
     setModal("editar");
+  }
+
+  function cerrarEdicion() {
+    const hayCambios =
+      Object.keys(camposCambiados(edicion, edicionOriginal)).length > 0;
+    if (!hayCambios) {
+      setModal("ninguno");
+      mensajeError(null);
+      return;
+    }
+    Alert.alert(
+      "Descartar cambios",
+      "Tienes cambios sin guardar. ¿Deseas descartarlos?",
+      [
+        { text: "Seguir editando", style: "cancel" },
+        {
+          text: "Descartar",
+          style: "destructive",
+          onPress: () => {
+            setModal("ninguno");
+            mensajeError(null);
+          },
+        },
+      ],
+    );
   }
 
   function abrirEditarUbicacion() {
@@ -635,7 +671,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           : { latitud: lat, longitud: lng };
       await api.actualizarCliente(rutaId, clienteId, input);
       setModal("ninguno");
-      setMensaje("Ubicación actualizada.");
+      mensajeExito("Ubicación actualizada.");
       await cargar();
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
@@ -662,7 +698,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           edicion.numeroDocumento ?? "",
         )
       ) {
-        setMensaje("El número de documento no es válido para el tipo seleccionado.");
+        mensajeError("El número de documento no es válido para el tipo seleccionado.");
         return;
       }
     }
@@ -672,17 +708,17 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     if (telefonoTocado) {
       const errorTelefono = validarTelefonoWhatsapp(edicion.telefonoWhatsapp ?? "");
       if (errorTelefono) {
-        setMensaje(errorTelefono);
+        mensajeError(errorTelefono);
         return;
       }
     }
     const input = camposCambiados(edicion, edicionOriginal);
     if (Object.keys(input).length === 0) {
-      setMensaje("No hay cambios para guardar.");
+      mensajeError("No hay cambios para guardar.");
       return;
     }
     setEditando(true);
-    setMensaje(null);
+    mensajeError(null);
     try {
       const encolado = await offline.encolarSiNoExiste(
         "cambio_cliente",
@@ -715,15 +751,15 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           };
         });
         setModal("ninguno");
-        setMensaje("Cambio enviado (se sincronizará).");
+        mensajeExito("Cambio enviado (se sincronizará).");
       } else {
-        setMensaje("Ya hay un cambio pendiente por sincronizar.");
+        mensajeError("Ya hay un cambio pendiente por sincronizar.");
       }
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
       } else {
-        setMensaje("No se pudo guardar el cambio.");
+        mensajeError("No se pudo guardar el cambio.");
       }
     } finally {
       setEditando(false);
@@ -731,7 +767,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }
 
   function abrirNuevoPrestamo() {
-    setMensaje(null);
+    mensajeError(null);
     setPrestamoMensaje(null);
     setPrestamoInteres(rutaActiva ? String(rutaActiva.tipoInteres) : "");
     setPrestamoCuotas(rutaActiva ? String(rutaActiva.numCuotas) : "");
@@ -836,7 +872,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     fuente: FuenteEvidencia,
   ) {
     // Solo selecciona y previsualiza; la subida ocurre al tocar "Guardar".
-    setMensaje(null);
+    mensajeError(null);
     await evidenciasCliente.agregar(campo, fuente);
   }
 
@@ -851,16 +887,16 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   ) {
     const pendiente = evidenciasSeleccionadasPara(campo)[0];
     if (!pendiente) {
-      setMensaje("Selecciona una imagen primero.");
+      mensajeError("Selecciona una imagen primero.");
       return;
     }
     setEvidenciasEnviando(true);
-    setMensaje(null);
+    mensajeError(null);
     try {
       await api.agregarEvidenciasCliente(rutaId, clienteId, [pendiente]);
       evidenciasCliente.quitar(campo);
       setModal("ninguno");
-      setMensaje(
+      mensajeError(
         campo === "foto_facial"
           ? "Foto actualizada."
           : "Documento actualizado.",
@@ -873,15 +909,15 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         try {
           const cuerpo = JSON.parse(err.message) as { message?: string | string[] };
           if (Array.isArray(cuerpo.message)) {
-            setMensaje(cuerpo.message.join(", "));
+            mensajeError(cuerpo.message.join(", "));
           } else {
-            setMensaje(cuerpo.message ?? "No se pudo guardar la evidencia.");
+            mensajeError(cuerpo.message ?? "No se pudo guardar la evidencia.");
           }
         } catch {
-          setMensaje("No se pudo guardar la evidencia.");
+          mensajeError("No se pudo guardar la evidencia.");
         }
       } else {
-        setMensaje("No se pudo guardar la evidencia.");
+        mensajeError("No se pudo guardar la evidencia.");
       }
     } finally {
       setEvidenciasEnviando(false);
@@ -936,9 +972,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         </HeaderPantalla>
         <ScrollView contentContainerStyle={styles.scroll}>
         {mensaje && modal === "ninguno" ? (
-          <View testID="banner-mensaje" style={styles.banner}>
-            <Text style={styles.bannerTexto}>{mensaje}</Text>
-          </View>
+          <BannerMensaje texto={mensaje} tipo={mensajeEsExito ? "exito" : "error"} />
         ) : null}
 
         {/* Tarjeta cédula/pasaporte: header con fondo por clasificación, foto grande
@@ -1317,14 +1351,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       <ModalConFooter
         visible={modal === "editar"}
         titulo="Editar cliente"
-        onCerrar={() => {
-          setModal("ninguno");
-          setMensaje(null);
-        }}
-        onCancelar={() => {
-          setModal("ninguno");
-          setMensaje(null);
-        }}
+        onCerrar={cerrarEdicion}
+        onCancelar={cerrarEdicion}
         onConfirmar={() => void guardarCambioCliente()}
         confirmando={editando}
         confirmarTestID="guardar-cambio-cliente"
@@ -1565,7 +1593,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           setModal("ninguno");
           evidenciasCliente.quitar("foto_facial");
           evidenciasCliente.resetError();
-          setMensaje(null);
+          mensajeError(null);
         }}
         onConfirmar={() => void guardarEvidenciaSeleccionada("foto_facial")}
       />
@@ -1605,7 +1633,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             modalDocumento === "reverso" ? "documento_reverso" : "documento_frente",
           );
           evidenciasCliente.resetError();
-          setMensaje(null);
+          mensajeError(null);
         }}
         onConfirmar={() =>
           void guardarEvidenciaSeleccionada(
@@ -1986,15 +2014,6 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     backgroundColor: "#f8fafc",
   },
-  banner: {
-    backgroundColor: "#eff6ff",
-    borderWidth: 1,
-    borderColor: "#bfdbfe",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  bannerTexto: { color: "#1d4ed8", fontSize: 13, fontWeight: "500" },
   mensajeModal: { color: "#dc2626", fontSize: 13, fontWeight: "500", marginTop: 8 },
   tarjeta: {
     backgroundColor: "#ffffff",
