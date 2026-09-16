@@ -81,6 +81,10 @@ Menú lateral (**Sincronizar / Sincronizar general / Cambiar idioma / Cerrar ses
 ## 5. Propuestas a decidir
 - Seguro de vida · PIX/YAPE/Binance · multi-idioma (Tema G).
 
+## Requerimientos
+- Requerimientos detallados derivados: `docs/ai/tasks/requerimientos-apk.md` (`REQ-APK-001..008`) y `app-cobranza-admin/docs/ai/tasks/requerimientos-transversal.md` (i18n, estados).
+- Validación contra CobraIA: `app-cobranza-admin/docs/ai/tasks/benchmark-validacion-cobraia.md`.
+
 ## Dependencias / riesgos
 - El backend es `smartadmin-app.com` (Yii); replicar KPIs puede requerir endpoint en `app-cobranza`.
 - No copiar antipatrones de seguridad de la referencia.
