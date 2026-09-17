@@ -845,6 +845,53 @@ describe("DiaScreen — liquidación del día", () => {
     expect(getByTestId("descargar-pdf")).toBeTruthy();
   });
 
+  it("oculta caja, estimado, cobrado y cartera según la configuración de la ruta", async () => {
+    const { getByTestId, queryByText } = await renderConApi(
+      {
+        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        listarLiquidaciones: jest.fn().mockResolvedValue([liquidacionFixture]),
+      },
+      offlineValor,
+      {
+        generarReportesApk: true,
+        mostrarCaja: false,
+        mostrarCobroEstimado: false,
+        mostrarCobradoLiquidada: false,
+        mostrarPrestamos: false,
+      },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-liquidacion"));
+    await waitFor(() => expect(getByTestId("descargar-pdf")).toBeTruthy());
+
+    expect(queryByText(/Caja anterior/)).toBeNull();
+    expect(queryByText(/Caja actual/)).toBeNull();
+    expect(queryByText(/Estimado a cobrar/)).toBeNull();
+    expect(queryByText(/Total cobrado día/)).toBeNull();
+    expect(queryByText(/Suma cartera/)).toBeNull();
+  });
+
+  it("muestra caja, estimado, cobrado y cartera por defecto", async () => {
+    const { getByTestId, getByText } = await renderConApi(
+      {
+        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        listarLiquidaciones: jest.fn().mockResolvedValue([liquidacionFixture]),
+      },
+      offlineValor,
+      { generarReportesApk: true },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-liquidacion"));
+    await waitFor(() => expect(getByTestId("descargar-pdf")).toBeTruthy());
+
+    expect(getByText(/Caja actual: 1300/)).toBeTruthy();
+    expect(getByText(/Estimado a cobrar: 2000/)).toBeTruthy();
+    expect(getByText(/Total cobrado día: 600/)).toBeTruthy();
+    expect(getByText(/Suma cartera: 1400/)).toBeTruthy();
+  });
+
   it("descarga el resumen en PDF y lo comparte", async () => {
     (File as unknown as jest.Mock).mockClear();
     (shareAsync as jest.Mock).mockClear();

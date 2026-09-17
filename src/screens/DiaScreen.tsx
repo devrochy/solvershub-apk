@@ -678,18 +678,26 @@ export function DiaScreen() {
                     <Text style={styles.liquidacionLinea}>
                       Fecha: {liquidacion.fecha} · Periodo: {liquidacion.periodo}
                     </Text>
-                    <Text style={styles.liquidacionLinea}>
-                      Caja anterior: {liquidacion.cajaAnterior}
-                    </Text>
-                    <Text style={styles.liquidacionLinea}>
-                      Caja actual: {liquidacion.cajaActual}
-                    </Text>
-                    <Text style={styles.liquidacionLinea}>
-                      Estimado a cobrar: {liquidacion.estimadoACobrar}
-                    </Text>
-                    <Text style={styles.liquidacionLinea}>
-                      Total cobrado día: {liquidacion.totalCobradoDia}
-                    </Text>
+                    {rutaActiva.config.mostrarCaja ?? true ? (
+                      <>
+                        <Text style={styles.liquidacionLinea}>
+                          Caja anterior: {liquidacion.cajaAnterior}
+                        </Text>
+                        <Text style={styles.liquidacionLinea}>
+                          Caja actual: {liquidacion.cajaActual}
+                        </Text>
+                      </>
+                    ) : null}
+                    {rutaActiva.config.mostrarCobroEstimado ?? true ? (
+                      <Text style={styles.liquidacionLinea}>
+                        Estimado a cobrar: {liquidacion.estimadoACobrar}
+                      </Text>
+                    ) : null}
+                    {rutaActiva.config.mostrarCobradoLiquidada ?? true ? (
+                      <Text style={styles.liquidacionLinea}>
+                        Total cobrado día: {liquidacion.totalCobradoDia}
+                      </Text>
+                    ) : null}
                     <Text style={styles.liquidacionLinea}>
                       Total inyección: {liquidacion.totalInyeccion}
                     </Text>
@@ -699,9 +707,11 @@ export function DiaScreen() {
                     <Text style={styles.liquidacionLinea}>
                       Total gastos: {liquidacion.totalGastos}
                     </Text>
-                    <Text style={styles.liquidacionLinea}>
-                      Suma cartera: {liquidacion.sumaCartera}
-                    </Text>
+                    {rutaActiva.config.mostrarPrestamos ?? true ? (
+                      <Text style={styles.liquidacionLinea}>
+                        Suma cartera: {liquidacion.sumaCartera}
+                      </Text>
+                    ) : null}
                     <Text style={styles.liquidacionLinea}>
                       Comisión: {liquidacion.comisionPorcentaje}% = {liquidacion.comisionValor}
                     </Text>
