@@ -149,6 +149,7 @@ async function renderConApi(
   offline = offlineValor,
   params: ParametrosDetalle = {},
   navigate: jest.Mock = jest.fn(),
+  config: Record<string, unknown> = {},
 ) {
   const valor: SessionValue = {
     cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L", rol: "cobrador" },
@@ -181,6 +182,7 @@ async function renderConApi(
                 cuotasMinimasPrestamo: 1,
                 eliminarPagosApk: true,
                 eliminarAbonosApk: true,
+                ...config,
               } as never,
             },
             setRutaActiva: jest.fn(),
@@ -225,6 +227,27 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     pagos: [],
     abonos: [],
     ultimaVisita: null,
+  });
+
+  it("ofrece solo los métodos de pago permitidos por la ruta", async () => {
+    const { getByTestId, getByText, queryByText } = await renderConApi(
+      { detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()) },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+      jest.fn(),
+      { metodosPago: ["efectivo", "qr"] },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
+
+    expect(getByTestId("form-pago")).toBeTruthy();
+    expect(getByText("efectivo")).toBeTruthy();
+    expect(getByText("qr")).toBeTruthy();
+    expect(queryByText("tarjeta")).toBeNull();
+    expect(queryByText("transferencia")).toBeNull();
   });
 
   it("registra un abono parcial con tipoPago abono sin cuotaId", async () => {
@@ -1486,5 +1509,28 @@ describe("ClienteScreen — header y editar ubicación", () => {
         { latitudDomicilio: -17.8, longitudDomicilio: -63.2 },
       ),
     );
+  });
+});
+describe("ClienteScreen — flags de ruta (captura)", () => {
+  it("deshabilita el campo de interés cuando la ruta lo bloquea", async () => {
+    const { getByTestId } = await renderConApi({}, offlineValor, {}, jest.fn(), {
+      bloquearCambioInteres: true,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+
+    expect(getByTestId("prestamo-interes").props.editable).toBe(false);
+  });
+
+  it("permite editar el interés cuando no está bloqueado", async () => {
+    const { getByTestId } = await renderConApi({}, offlineValor, {}, jest.fn(), {
+      bloquearCambioInteres: false,
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-nuevo-prestamo"));
+
+    expect(getByTestId("prestamo-interes").props.editable).toBe(true);
   });
 });
