@@ -166,6 +166,20 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   // Formulario pago/no_pago (dentro de la modal de cuota).
   const [valor, setValor] = useState("");
   const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>("efectivo");
+  // Métodos permitidos por la ruta (config); si no hay, se ofrecen todos.
+  const metodosDisponibles = useMemo(() => {
+    const permitidos = rutaActiva?.config.metodosPago ?? [];
+    const filtrados = METODOS_PAGO.filter((m) => permitidos.includes(m));
+    return filtrados.length > 0 ? filtrados : [...METODOS_PAGO];
+  }, [rutaActiva?.config.metodosPago]);
+  const bloquearInteres = Boolean(rutaActiva?.config.bloquearCambioInteres);
+
+  useEffect(() => {
+    if (!metodosDisponibles.includes(metodoPago)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- alinea el método con la config de la ruta
+      setMetodoPago(metodosDisponibles[0]);
+    }
+  }, [metodosDisponibles, metodoPago]);
   const [motivoNoPago, setMotivoNoPago] = useState<(typeof MOTIVOS_NO_PAGO)[number]>("no_esta");
   const [tipoPago, setTipoPago] = useState<"cuota" | "abono">("cuota");
   const [fechaPrometida, setFechaPrometida] = useState("");
@@ -1569,6 +1583,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           keyboardType="decimal-pad"
           value={prestamoInteres}
           onChangeText={setPrestamoInteres}
+          editable={!bloquearInteres}
         />
         {prestamoMensaje ? <Text style={styles.mensaje}>{prestamoMensaje}</Text> : null}
       </ModalConFooter>
@@ -1869,7 +1884,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     />
                     <Text style={styles.label}>Método</Text>
                     <View style={styles.chips}>
-                      {METODOS_PAGO.map((metodo) => (
+                      {metodosDisponibles.map((metodo) => (
                         <Pressable
                           key={metodo}
                           style={[styles.chip, metodoPago === metodo && styles.chipActivo]}
