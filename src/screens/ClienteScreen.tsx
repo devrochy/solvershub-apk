@@ -1213,12 +1213,19 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             <Text style={styles.seccionTitulo}>Préstamos</Text>
             <Pressable
               testID="btn-nuevo-prestamo"
-              style={styles.botonNuevo}
+              style={[styles.botonNuevo, !offline.isOnline && styles.deshabilitado]}
+              disabled={!offline.isOnline}
               onPress={abrirNuevoPrestamo}
             >
               <Text style={styles.botonNuevoTexto}>+ Nuevo</Text>
             </Pressable>
           </View>
+
+          {!offline.isOnline ? (
+            <Text testID="prestamos-requiere-conexion" style={styles.requiereConexion}>
+              Requiere conexión para registrar préstamos.
+            </Text>
+          ) : null}
 
           {prestamosVisibles.length === 0 ? (
             <Text style={styles.sinPrestamos}>Este cliente no tiene préstamos.</Text>
@@ -1703,7 +1710,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                         {!pago.liquidado && puedeEliminarPago ? (
                           <Pressable
                             testID={`borrar-pago-${pago.id}`}
-                            style={styles.botonBorrar}
+                            style={[styles.botonBorrar, !offline.isOnline && styles.deshabilitado]}
+                            disabled={!offline.isOnline}
                             onPress={() => iniciarBorrarPago(pago)}
                           >
                             <MaterialIcons name="delete-outline" size={16} color="#dc2626" />
@@ -1729,7 +1737,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                         {!abono.liquidado && puedeEliminarAbono ? (
                           <Pressable
                             testID={`borrar-abono-${abono.id}`}
-                            style={styles.botonBorrar}
+                            style={[styles.botonBorrar, !offline.isOnline && styles.deshabilitado]}
+                            disabled={!offline.isOnline}
                             onPress={() => iniciarBorrarAbono(abono)}
                           >
                             <MaterialIcons name="delete-outline" size={16} color="#dc2626" />
@@ -2168,6 +2177,7 @@ const styles = StyleSheet.create({
   botonNuevoTexto: { color: "#172f6c", fontSize: 14, fontWeight: "600" },
   seccionTitulo: { fontSize: 15, fontWeight: "700", color: "#334155" },
   sinPrestamos: { color: "#64748b", fontSize: 13, marginTop: 10 },
+  requiereConexion: { color: "#b45309", fontSize: 12, marginTop: 6 },
   prestamoItem: {
     flexDirection: "row",
     alignItems: "center",

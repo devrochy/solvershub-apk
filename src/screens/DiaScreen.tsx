@@ -750,8 +750,8 @@ export function DiaScreen() {
 
                   <Pressable
                     testID="descargar-pdf"
-                    style={[styles.botonLiquidacion, descargandoPdf && styles.deshabilitado]}
-                    disabled={descargandoPdf}
+                    style={[styles.botonLiquidacion, (descargandoPdf || !offline.isOnline) && styles.deshabilitado]}
+                    disabled={descargandoPdf || !offline.isOnline}
                     onPress={() => void descargarPdf()}
                   >
                     {descargandoPdf ? (
@@ -760,6 +760,11 @@ export function DiaScreen() {
                       <Text style={styles.botonLiquidacionTexto}>Descargar PDF</Text>
                     )}
                   </Pressable>
+                  {!offline.isOnline ? (
+                    <Text testID="pdf-requiere-conexion" style={styles.liquidacionAviso}>
+                      Requiere conexión para descargar el PDF.
+                    </Text>
+                  ) : null}
                 </>
               ) : (
                 <Text style={styles.liquidacionVacio}>
