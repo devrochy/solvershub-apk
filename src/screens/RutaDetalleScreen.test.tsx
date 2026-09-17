@@ -8,6 +8,49 @@ jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
 
+jest.mock("../offline/cache", () => ({
+  guardarEstadisticasRuta: jest.fn().mockResolvedValue(undefined),
+  leerEstadisticasRuta: jest.fn().mockResolvedValue(null),
+}));
+
+import * as cache from "../offline/cache";
+
+const estadisticas = {
+  rutaId: 6,
+  fecha: "2026-09-17",
+  actual: {
+    totalClientes: 5,
+    clientesAtrasados: 2,
+    clientesVencidos: 1,
+    sinVisitaHoy: 3,
+    sinVisitaDesdeUltimaLiquidada: 4,
+    conPrestamosNuevos: 1,
+    conMasDeUnPrestamo: 0,
+    clientesNuevos: 0,
+  },
+  anterior: {
+    totalClientes: 4,
+    clientesAtrasados: 3,
+    clientesVencidos: 1,
+    sinVisitaHoy: 1,
+    sinVisitaDesdeUltimaLiquidada: 4,
+    conPrestamosNuevos: 0,
+    conMasDeUnPrestamo: 0,
+    clientesNuevos: 0,
+  },
+  deltas: {
+    totalClientes: 1,
+    clientesAtrasados: -1,
+    clientesVencidos: 0,
+    sinVisitaHoy: 2,
+    sinVisitaDesdeUltimaLiquidada: 0,
+    conPrestamosNuevos: 1,
+    conMasDeUnPrestamo: 0,
+    clientesNuevos: 0,
+  },
+  actualizadoEn: "2026-09-17T23:55:00.000Z",
+};
+
 const dia = {
   clientes: [
     { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
@@ -64,6 +107,7 @@ function apiBase() {
     dia: jest.fn().mockResolvedValue(dia),
     listarNotas: jest.fn().mockResolvedValue(notas),
     crearNota: jest.fn().mockResolvedValue({ id: 2, nota: "Nueva" }),
+    estadisticasRuta: jest.fn().mockResolvedValue(estadisticas),
   };
 }
 
@@ -259,5 +303,45 @@ describe("RutaDetalleScreen", () => {
       getByText("Selecciona una ruta para ver su información."),
     ).toBeTruthy();
 expect(getByTestId("btn-ir-seleccion")).toBeTruthy();
+  });
+});
+describe("RutaDetalleScreen — estadísticas", () => {
+  beforeEach(() => {
+    (cache.leerEstadisticasRuta as jest.Mock).mockResolvedValue(null);
+  });
+
+  it("muestra los pares actual/anterior y el delta", async () => {
+    const { getByTestId, getByText } = await renderDetalle();
+
+    await waitFor(() => expect(getByTestId("seccion-estadisticas")).toBeTruthy());
+    expect(getByTestId("estadistica-clientesAtrasados").props.children).toBe(2);
+    expect(getByTestId("estadistica-sinVisitaHoy").props.children).toBe(3);
+    expect(getByTestId("estadistica-delta-clientesAtrasados").props.children).toBe("-1");
+    expect(getByTestId("estadistica-delta-sinVisitaHoy").props.children).toBe("+2");
+    expect(getByText("ayer 3")).toBeTruthy();
+    expect(cache.guardarEstadisticasRuta).toHaveBeenCalledWith(6, estadisticas);
+  });
+
+  it("usa el cache con aviso cuando no hay conexión", async () => {
+    (cache.leerEstadisticasRuta as jest.Mock).mockResolvedValue(estadisticas);
+
+    const { getByTestId } = await renderDetalle({
+      ...apiBase(),
+      estadisticasRuta: jest.fn().mockRejectedValue(new Error("Network request failed")),
+    });
+
+    await waitFor(() => expect(getByTestId("aviso-offline-estadisticas")).toBeTruthy());
+    expect(getByTestId("estadistica-clientesAtrasados").props.children).toBe(2);
+  });
+
+  it("no bloquea la pantalla si las estadísticas fallan", async () => {
+    const { getByTestId, queryByTestId } = await renderDetalle({
+      ...apiBase(),
+      estadisticasRuta: jest.fn().mockRejectedValue(new Error("boom")),
+    });
+
+    await waitFor(() => expect(getByTestId("kpi-total-clientes")).toBeTruthy());
+    expect(getByTestId("kpi-total-clientes").props.children).toBe(5);
+    expect(queryByTestId("seccion-estadisticas")).toBeNull();
   });
 });

@@ -6,6 +6,7 @@ import type {
   DetalleCuotaPublic,
   DiaApkPublic,
   EstadoCuentaPrestamoPublic,
+  EstadisticasRutaPublic,
   GastoPublic,
   LiquidacionPublic,
   PerfilPublic,
@@ -34,6 +35,7 @@ export interface CobradorApi {
     apellido: string;
   }): Promise<PerfilPublic>;
   dia(rutaId: number): Promise<DiaApkPublic>;
+  estadisticasRuta(rutaId: number): Promise<EstadisticasRutaPublic>;
   generarTrayecto(rutaId: number): Promise<unknown>;
   actualizarCliente(
     rutaId: number,
@@ -192,6 +194,9 @@ export function cobradorApi(client: ApiClient): CobradorApi {
 
     dia: (rutaId: number) =>
       client.request<DiaApkPublic>(`/cobrador/rutas/${rutaId}/dia`),
+
+    estadisticasRuta: (rutaId: number) =>
+      client.request<EstadisticasRutaPublic>(`/cobrador/rutas/${rutaId}/estadisticas`),
 
     generarTrayecto: (rutaId: number) =>
       client.request<unknown>(`/cobrador/rutas/${rutaId}/trayecto`, {

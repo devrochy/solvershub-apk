@@ -165,6 +165,26 @@ export interface RutaNotaPublic {
   updatedAt: string;
 }
 
+export interface EstadisticasConteosPublic {
+  totalClientes: number;
+  clientesAtrasados: number;
+  clientesVencidos: number;
+  sinVisitaHoy: number;
+  sinVisitaDesdeUltimaLiquidada: number;
+  conPrestamosNuevos: number;
+  conMasDeUnPrestamo: number;
+  clientesNuevos: number;
+}
+
+export interface EstadisticasRutaPublic {
+  rutaId: number;
+  fecha: string;
+  actual: EstadisticasConteosPublic;
+  anterior: EstadisticasConteosPublic | null;
+  deltas: Record<keyof EstadisticasConteosPublic, number | null>;
+  actualizadoEn: string;
+}
+
 export interface CrearClienteInput {
   nombre: string;
   apellido: string;

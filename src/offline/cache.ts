@@ -2,11 +2,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type {
   ClienteTarjetaPublic,
   DiaApkPublic,
+  EstadisticasRutaPublic,
   PrestamoPublic,
 } from "../types/cobrador";
 
 const PREFIJO_DIA = "cobranza_cache_dia";
 const PREFIJO_CLIENTE = "cobranza_cache_cliente";
+const PREFIJO_ESTADISTICAS = "cobranza_cache_estadisticas";
 
 export interface ClienteCache {
   tarjeta: ClienteTarjetaPublic;
@@ -50,4 +52,17 @@ export async function leerCliente(
   clienteId: number,
 ): Promise<ClienteCache | null> {
   return leer<ClienteCache>(`${PREFIJO_CLIENTE}_${rutaId}_${clienteId}`);
+}
+
+export async function guardarEstadisticasRuta(
+  rutaId: number,
+  estadisticas: EstadisticasRutaPublic,
+): Promise<void> {
+  await escribir(`${PREFIJO_ESTADISTICAS}_${rutaId}`, estadisticas);
+}
+
+export async function leerEstadisticasRuta(
+  rutaId: number,
+): Promise<EstadisticasRutaPublic | null> {
+  return leer<EstadisticasRutaPublic>(`${PREFIJO_ESTADISTICAS}_${rutaId}`);
 }

@@ -18,12 +18,14 @@ jest.mock("@react-native-async-storage/async-storage", () => {
 });
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { ClienteTarjetaPublic, DiaApkPublic, PrestamoPublic } from "../types/cobrador";
+import type { ClienteTarjetaPublic, DiaApkPublic, EstadisticasRutaPublic, PrestamoPublic } from "../types/cobrador";
 import {
   guardarCliente,
   guardarDia,
+  guardarEstadisticasRuta,
   leerCliente,
   leerDia,
+  leerEstadisticasRuta,
 } from "./cache";
 
 const dia: DiaApkPublic = { clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }], trayectos: null };
@@ -54,5 +56,42 @@ describe("cache offline", () => {
 
   it("leerCliente devuelve null si no hay cache", async () => {
     await expect(leerCliente(6, 99)).resolves.toBeNull();
+  });
+
+  it("guarda y lee las estadísticas de la ruta", async () => {
+    const estadisticas: EstadisticasRutaPublic = {
+      rutaId: 6,
+      fecha: "2026-09-17",
+      actual: {
+        totalClientes: 5,
+        clientesAtrasados: 2,
+        clientesVencidos: 1,
+        sinVisitaHoy: 3,
+        sinVisitaDesdeUltimaLiquidada: 4,
+        conPrestamosNuevos: 1,
+        conMasDeUnPrestamo: 0,
+        clientesNuevos: 0,
+      },
+      anterior: null,
+      deltas: {
+        totalClientes: null,
+        clientesAtrasados: null,
+        clientesVencidos: null,
+        sinVisitaHoy: null,
+        sinVisitaDesdeUltimaLiquidada: null,
+        conPrestamosNuevos: null,
+        conMasDeUnPrestamo: null,
+        clientesNuevos: null,
+      },
+      actualizadoEn: "2026-09-17T23:55:00.000Z",
+    };
+
+    await guardarEstadisticasRuta(6, estadisticas);
+
+    await expect(leerEstadisticasRuta(6)).resolves.toEqual(estadisticas);
+  });
+
+  it("leerEstadisticasRuta devuelve null si no hay cache", async () => {
+    await expect(leerEstadisticasRuta(99)).resolves.toBeNull();
   });
 });

@@ -11,19 +11,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { apiErrorStatus } from "../api/client";
+import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
 import { contarEnMora } from "../domain/contar-en-mora";
 import { etiquetaEstatus } from "../domain/estatus";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
+import { guardarEstadisticasRuta, leerEstadisticasRuta } from "../offline/cache";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import { useRutaActiva } from "../session/ruta-activa-context";
 import type {
   ClienteCobradorPublic,
   DiaApkPublic,
+  EstadisticasConteosPublic,
+  EstadisticasRutaPublic,
   RutaNotaPublic,
 } from "../types/cobrador";
 
@@ -46,6 +49,14 @@ function formatoFecha(iso: string): string {
     return iso;
   }
 }
+
+/** Pares actual/anterior que muestra la sección de estadísticas. */
+const PARES_ESTADISTICA: { campo: keyof EstadisticasConteosPublic; label: string }[] = [
+  { campo: "clientesAtrasados", label: "Atrasados" },
+  { campo: "clientesVencidos", label: "Vencidos" },
+  { campo: "totalClientes", label: "Clientes" },
+  { campo: "sinVisitaHoy", label: "No visitados" },
+];
 
 /**
  * Detalle de ruta (B3/N3): información de la ruta con KPIs (total clientes,
@@ -72,6 +83,8 @@ export function RutaDetalleScreen({
   const [notas, setNotas] = useState<RutaNotaPublic[] | null>(null);
   const [estatus, setEstatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [estadisticas, setEstadisticas] = useState<EstadisticasRutaPublic | null>(null);
+  const [estadisticasOffline, setEstadisticasOffline] = useState(false);
 
   const [notaAbierta, setNotaAbierta] = useState(false);
   const [notaTexto, setNotaTexto] = useState("");
@@ -115,6 +128,38 @@ export function RutaDetalleScreen({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
   }, [cargar]);
+
+  const cargarEstadisticas = useCallback(async () => {
+    if (!rutaId) {
+      return;
+    }
+    try {
+      const datos = await api.estadisticasRuta(rutaId);
+      setEstadisticas(datos);
+      setEstadisticasOffline(false);
+      await guardarEstadisticasRuta(rutaId, datos);
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+        return;
+      }
+      if (esErrorDeRed(err)) {
+        const cache = await leerEstadisticasRuta(rutaId);
+        if (cache) {
+          setEstadisticas(cache);
+          setEstadisticasOffline(true);
+          return;
+        }
+      }
+      // Las estadísticas no deben bloquear el resto de la pantalla.
+      setEstadisticas(null);
+    }
+  }, [api, logout, rutaId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
+    cargarEstadisticas();
+  }, [cargarEstadisticas]);
 
   function abrirEdicion() {
     setEditNombre(nombreRuta);
@@ -284,6 +329,45 @@ export function RutaDetalleScreen({
           </View>
         </View>
 
+        {estadisticas ? (
+          <View style={styles.seccion} testID="seccion-estadisticas">
+            <Text style={styles.seccionTitulo}>Estadísticas</Text>
+            {estadisticasOffline ? (
+              <Text testID="aviso-offline-estadisticas" style={styles.avisoOffline}>
+                Datos sin conexión
+              </Text>
+            ) : null}
+            <View style={styles.pares}>
+              {PARES_ESTADISTICA.map(({ campo, label }) => {
+                const delta = estadisticas.deltas[campo] ?? null;
+                return (
+                  <View key={campo} style={styles.par}>
+                    <Text style={styles.parValor} testID={`estadistica-${campo}`}>
+                      {estadisticas.actual[campo]}
+                    </Text>
+                    <Text style={styles.parEtiqueta}>{label}</Text>
+                    <Text style={styles.parAnterior}>
+                      {estadisticas.anterior
+                        ? `ayer ${estadisticas.anterior[campo]}`
+                        : "sin ayer"}
+                    </Text>
+                    <Text
+                      testID={`estadistica-delta-${campo}`}
+                      style={[
+                        styles.parDelta,
+                        delta !== null && delta > 0 && styles.parDeltaSube,
+                        delta !== null && delta < 0 && styles.parDeltaBaja,
+                      ]}
+                    >
+                      {delta === null ? "—" : `${delta > 0 ? "+" : ""}${delta}`}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
         <View style={styles.seccion}>
           <View style={styles.seccionFila}>
             <Text style={styles.seccionTitulo}>Notas</Text>
@@ -416,6 +500,15 @@ const styles = StyleSheet.create({
   estadoFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   estadoEtiqueta: { fontSize: 13, color: "#64748b", fontWeight: "600" },
   estadoValor: { fontSize: 14, fontWeight: "700", color: "#172f6c" },
+  avisoOffline: { fontSize: 12, color: "#92400e", fontWeight: "600" },
+  pares: { flexDirection: "row", gap: 8 },
+  par: { flex: 1, alignItems: "center", gap: 1 },
+  parValor: { fontSize: 20, fontWeight: "800", color: "#0f172a" },
+  parEtiqueta: { fontSize: 12, color: "#64748b", fontWeight: "600", textAlign: "center" },
+  parAnterior: { fontSize: 11, color: "#94a3b8" },
+  parDelta: { fontSize: 12, fontWeight: "700", color: "#64748b" },
+  parDeltaSube: { color: "#dc2626" },
+  parDeltaBaja: { color: "#16a34a" },
   botonNota: {
     flexDirection: "row",
     alignItems: "center",
