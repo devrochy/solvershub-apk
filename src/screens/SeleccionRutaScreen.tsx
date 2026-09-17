@@ -82,7 +82,7 @@ export function SeleccionRutaScreen({
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
-  }, [cargar]);
+  }, [cargar, offline.versionRecarga]);
 
   async function refrescar() {
     setRefrescando(true);

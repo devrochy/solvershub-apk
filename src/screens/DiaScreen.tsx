@@ -160,7 +160,7 @@ export function DiaScreen() {
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
-  }, [cargar, rutaId]);
+  }, [cargar, rutaId, offline.versionRecarga]);
 
   useEffect(() => {
     if (!rutaId) {

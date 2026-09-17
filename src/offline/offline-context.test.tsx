@@ -167,3 +167,33 @@ describe("OfflineProvider", () => {
     expect(ref.current!.errorSync).toBeNull();
   });
 });
+describe("OfflineProvider — visibilidad de sincronización", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("registra la última sincronización al sincronizar", async () => {
+    (cola.listarCola as jest.Mock).mockResolvedValue([]);
+    (cola.contarCola as jest.Mock).mockResolvedValue(0);
+    const { ref } = await renderConProvider();
+    await waitFor(() => expect(ref.current).toBeTruthy());
+
+    await act(async () => {
+      await ref.current!.sincronizar();
+    });
+
+    expect(typeof ref.current!.ultimaSincronizacion).toBe("number");
+  });
+
+  it("sincronizarGeneral incrementa versionRecarga (refetch)", async () => {
+    (cola.listarCola as jest.Mock).mockResolvedValue([]);
+    (cola.contarCola as jest.Mock).mockResolvedValue(0);
+    const { ref } = await renderConProvider();
+    await waitFor(() => expect(ref.current).toBeTruthy());
+    const inicial = ref.current!.versionRecarga;
+
+    await act(async () => {
+      await ref.current!.sincronizarGeneral();
+    });
+
+    expect(ref.current!.versionRecarga).toBe(inicial + 1);
+  });
+});
