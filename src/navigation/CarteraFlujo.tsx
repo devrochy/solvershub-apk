@@ -6,11 +6,11 @@ import { TabsNavigator } from "./TabsNavigator";
 import { useTrayectosOverlay } from "./trayectos-overlay-context";
 
 /**
- * Flujo de ruta a pantalla completa (Día / Ruta / Clientes + overlays de detalle).
+ * Flujo de cartera a pantalla completa (Trayecto diario / Cartera / Clientes + overlays de detalle).
  * El back físico de Android cierra primero el overlay activo y, si no hay
- * ninguno, deja que el stack vuelva a la pestaña "Rutas".
+ * ninguno, deja que el stack vuelva a la pestaña "Carteras".
  */
-export function RutaFlujo() {
+export function CarteraFlujo() {
   const { pantalla, cerrar } = usePantallaActiva();
   const { contenido: trayectosAbiertos, cerrar: cerrarTrayectos } =
     useTrayectosOverlay();

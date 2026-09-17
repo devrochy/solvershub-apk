@@ -1,16 +1,16 @@
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
-import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
-import { enlaceGoogleMapsRuta } from "../features/navegacion/navegacion";
+import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "../types/gestor";
+import { enlaceGoogleMapsCartera } from "../features/navegacion/navegacion";
 
 export interface TrayectosListaProps {
-  clientes: ClienteDiaPublic[];
+  clientes: ClienteTrayectoDiarioPublic[];
   trayectos: TrayectoPublic;
 }
 
 function nombreDeParada(
-  clientes: ClienteDiaPublic[],
+  clientes: ClienteTrayectoDiarioPublic[],
   clienteId: number,
 ): string {
   return clientes.find((c) => c.clienteId === clienteId)?.nombre ?? `Cliente ${clienteId}`;
@@ -20,7 +20,7 @@ function nombreDeParada(
  * Vista de los trayectos generados para el día (HU-55: hasta 9 paradas por
  * trayecto). Cada trayecto lista sus paradas en el orden óptimo y ofrece
  * navegación del trayecto completo en Google Maps (HU-37). Se muestra como
- * overlay en DiaScreen, que gestiona el cierre con swipe y el back físico.
+ * overlay en TrayectoDiarioScreen, que gestiona el cierre con swipe y el back físico.
  */
 export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
   return (
@@ -40,7 +40,7 @@ export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {trayectos.ordenClientes.map((trayecto, indice) => {
-          const enlace = enlaceGoogleMapsRuta(trayecto);
+          const enlace = enlaceGoogleMapsCartera(trayecto);
           return (
             <View key={indice} style={styles.trayecto}>
               <View style={styles.trayectoFila}>

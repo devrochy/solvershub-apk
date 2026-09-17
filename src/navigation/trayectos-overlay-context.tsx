@@ -1,9 +1,9 @@
 import { createContext, ReactNode, useContext, useMemo, useState } from "react";
-import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
+import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "../types/gestor";
 
-/** Datos que necesita el overlay de trayectos (capa sobre la pestaña Día). */
+/** Datos que necesita el overlay de trayectos (capa sobre la pestaña Trayecto diario). */
 export interface ContenidoTrayectosOverlay {
-  clientes: ClienteDiaPublic[];
+  clientes: ClienteTrayectoDiarioPublic[];
   trayectos: TrayectoPublic;
 }
 

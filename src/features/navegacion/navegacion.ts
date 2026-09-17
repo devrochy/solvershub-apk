@@ -1,5 +1,5 @@
 import { Linking } from "react-native";
-import type { TrayectoPublic } from "../../types/cobrador";
+import type { TrayectoPublic } from "../../types/gestor";
 
 export interface Coordenada {
   latitud: number;
@@ -42,7 +42,7 @@ export function enlaceGoogleMaps(latitud: number, longitud: number): string {
  * primera parada es el destino y el resto viaja como waypoints en orden.
  * Devuelve null si no hay al menos una parada con coordenadas.
  */
-export function enlaceGoogleMapsRuta(
+export function enlaceGoogleMapsCartera(
   paradas: Array<{ latitud?: number; longitud?: number }>,
 ): string | null {
   const conCoords = paradas.filter(

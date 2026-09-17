@@ -1,22 +1,22 @@
 import { useEffect } from "react";
 import * as Location from "expo-location";
-import type { CobradorApi } from "../../api/cobrador";
+import type { GestorApi } from "../../api/gestor";
 
 const INTERVALO_MS = 30000;
 
 /**
- * A7: envía la posición GPS del cobrador periódicamente (polling) mientras la
+ * A7: envía la posición GPS del gestor periódicamente (polling) mientras la
  * trayectoria está activa. Al detenerse, deja de enviar (el efecto limpia el
  * intervalo). Los errores se ignoran: el siguiente tick reintenta.
  */
 export function usePosicion(
-  api: CobradorApi,
-  rutaId: number,
+  api: GestorApi,
+  carteraId: number,
   activa: boolean,
   detenerEnviada: number,
 ): void {
   useEffect(() => {
-    if (!rutaId || !activa) {
+    if (!carteraId || !activa) {
       return;
     }
 
@@ -27,7 +27,7 @@ export function usePosicion(
           return;
         }
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        await api.registrarPosicion(rutaId, {
+        await api.registrarPosicion(carteraId, {
           latitud: pos.coords.latitude,
           longitud: pos.coords.longitude,
         });
@@ -44,5 +44,5 @@ export function usePosicion(
     return () => {
       clearInterval(intervalo);
     };
-  }, [api, rutaId, activa, detenerEnviada]);
+  }, [api, carteraId, activa, detenerEnviada]);
 }

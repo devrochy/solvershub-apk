@@ -8,7 +8,7 @@ export interface PaisTelefono {
 /**
  * Catálogo de países con prefijo telefónico internacional y bandera (emoji).
  * Se usa en los formularios de teléfono (nuevo cliente, editar cliente) para
- * que el cobrador seleccione el país y solo escriba el número local. Sin
+ * que el gestor seleccione el país y solo escriba el número local. Sin
  * dependencias externas (emojis nativos).
  */
 export const PAISES_TELEFONO: PaisTelefono[] = [

@@ -5,12 +5,12 @@ import { PerfilScreen } from "./PerfilScreen";
 function renderPerfil() {
   const actualizarPerfil = jest.fn(async () => {});
   const value: SessionValue = {
-    cobrador: {
+    gestor: {
       id: 7,
       usuario: "cob1",
       nombre: "Carlos",
       apellido: "Ruiz",
-      rol: "cobrador",
+      rol: "gestor",
     },
     loading: false,
     api: {} as SessionValue["api"],
@@ -32,7 +32,7 @@ describe("PerfilScreen", () => {
 
     expect(getByTestId("perfil-nombre").props.children).toBe("Carlos Ruiz");
     expect(getByText("@cob1")).toBeTruthy();
-    expect(getByTestId("perfil-rol").props.children).toBe("Cobrador");
+    expect(getByTestId("perfil-rol").props.children).toBe("Gestor");
   });
 
   it("abre el modal de edición con los datos actuales", async () => {

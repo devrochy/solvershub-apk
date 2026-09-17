@@ -15,8 +15,8 @@ import { ModalConFooter } from "../components/ModalConFooter";
 import { useSession } from "../session/session-context";
 
 const ROL_LABEL: Record<string, string> = {
-  cobrador: "Cobrador",
-  socio: "Socio",
+  gestor: "Gestor",
+  propietario: "Propietario",
   admin: "Administrador",
 };
 
@@ -40,12 +40,12 @@ function Dato({
 }
 
 /**
- * Perfil del usuario logueado (cobrador o socio): muestra sus datos y permite
+ * Perfil del usuario logueado (gestor o propietario): muestra sus datos y permite
  * editarlos (nombre/apellido) desde una acción "Editar" en el header que abre un
  * modal, igual que el resto de las vistas.
  */
 export function PerfilScreen() {
-  const { cobrador, actualizarPerfil } = useSession();
+  const { gestor, actualizarPerfil } = useSession();
   const [editando, setEditando] = useState(false);
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
@@ -53,11 +53,11 @@ export function PerfilScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const nombreCompleto =
-    `${cobrador?.nombre ?? ""} ${cobrador?.apellido ?? ""}`.trim() || "Usuario";
+    `${gestor?.nombre ?? ""} ${gestor?.apellido ?? ""}`.trim() || "Usuario";
 
   function abrirEdicion() {
-    setNombre(cobrador?.nombre ?? "");
-    setApellido(cobrador?.apellido ?? "");
+    setNombre(gestor?.nombre ?? "");
+    setApellido(gestor?.apellido ?? "");
     setError(null);
     setEditando(true);
   }
@@ -111,18 +111,18 @@ export function PerfilScreen() {
               <Text testID="perfil-nombre" style={styles.nombre}>
                 {nombreCompleto}
               </Text>
-              <Text style={styles.usuario}>@{cobrador?.usuario ?? "—"}</Text>
+              <Text style={styles.usuario}>@{gestor?.usuario ?? "—"}</Text>
             </View>
           </View>
 
           <View style={styles.lista}>
-            <Dato etiqueta="Nombre" valor={cobrador?.nombre ?? "—"} />
-            <Dato etiqueta="Apellido" valor={cobrador?.apellido ?? "—"} />
-            <Dato etiqueta="Usuario" valor={cobrador?.usuario ?? "—"} />
+            <Dato etiqueta="Nombre" valor={gestor?.nombre ?? "—"} />
+            <Dato etiqueta="Apellido" valor={gestor?.apellido ?? "—"} />
+            <Dato etiqueta="Usuario" valor={gestor?.usuario ?? "—"} />
             <Dato
               testID="perfil-rol"
               etiqueta="Rol"
-              valor={cobrador ? (ROL_LABEL[cobrador.rol] ?? cobrador.rol) : "—"}
+              valor={gestor ? (ROL_LABEL[gestor.rol] ?? gestor.rol) : "—"}
             />
           </View>
         </View>

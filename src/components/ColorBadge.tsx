@@ -43,7 +43,7 @@ const COLOR_POR_DEFECTO = "#94a3b8";
  * Indicador de color de una tarjeta/cliente: un punto circular del color
  * semántico, sin texto (A8). Aplica en listas de clientes, lista del día y
  * tarjeta de cliente. Con `animar` el punto titila (parpadeo de opacidad en
- * bucle), usado en la lista de rutas para señalar el estado.
+ * bucle), usado en la lista de carteras para señalar el estado.
  */
 export function ColorBadge({
   color,

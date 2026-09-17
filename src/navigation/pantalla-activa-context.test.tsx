@@ -10,7 +10,7 @@ function Consumidor() {
   const { pantalla, abrir, cerrar } = usePantallaActiva();
   const abrirCliente = useCallback(
     () =>
-      abrir({ tipo: "cliente", rutaId: 6, clienteId: 12, nombre: "Juan" }),
+      abrir({ tipo: "cliente", carteraId: 6, clienteId: 12, nombre: "Juan" }),
     [abrir],
   );
   return (

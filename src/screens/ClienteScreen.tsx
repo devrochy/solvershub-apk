@@ -64,19 +64,19 @@ import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, leerCliente } from "../offline/cache";
 import { useSession } from "../session/session-context";
-import { useRutaActiva } from "../session/ruta-activa-context";
+import { useCarteraActiva } from "../session/cartera-activa-context";
 import type {
   ClienteTarjetaPublic,
   CuotaPublic,
   DetalleCuotaPublic,
   EstadoCuentaPrestamoPublic,
   PrestamoPublic,
-} from "../types/cobrador";
+} from "../types/gestor";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Cliente">;
 
 export interface ClienteScreenDirectProps {
-  rutaId: number;
+  carteraId: number;
   clienteId: number;
   nombre: string;
   latitud?: number;
@@ -129,10 +129,10 @@ function formatearFechaHora(iso: string): string {
 export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const params =
     "route" in props ? props.route.params : (props as ClienteScreenDirectProps);
-  const { rutaId, clienteId, latitud, longitud, latitudDomicilio, longitudDomicilio, prestamoAutoSeleccionado } = params;
+  const { carteraId, clienteId, latitud, longitud, latitudDomicilio, longitudDomicilio, prestamoAutoSeleccionado } = params;
   const { api, logout } = useSession();
   const offline = useOffline();
-  const { rutaActiva } = useRutaActiva();
+  const { carteraActiva } = useCarteraActiva();
 
   const [tarjeta, setTarjeta] = useState<ClienteTarjetaPublic | null>(null);
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
@@ -166,17 +166,17 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   // Formulario pago/no_pago (dentro de la modal de cuota).
   const [valor, setValor] = useState("");
   const [metodoPago, setMetodoPago] = useState<(typeof METODOS_PAGO)[number]>("efectivo");
-  // Métodos permitidos por la ruta (config); si no hay, se ofrecen todos.
+  // Métodos permitidos por la cartera (config); si no hay, se ofrecen todos.
   const metodosDisponibles = useMemo(() => {
-    const permitidos = rutaActiva?.config.metodosPago ?? [];
+    const permitidos = carteraActiva?.config.metodosPago ?? [];
     const filtrados = METODOS_PAGO.filter((m) => permitidos.includes(m));
     return filtrados.length > 0 ? filtrados : [...METODOS_PAGO];
-  }, [rutaActiva?.config.metodosPago]);
-  const bloquearInteres = Boolean(rutaActiva?.config.bloquearCambioInteres);
+  }, [carteraActiva?.config.metodosPago]);
+  const bloquearInteres = Boolean(carteraActiva?.config.bloquearCambioInteres);
 
   useEffect(() => {
     if (!metodosDisponibles.includes(metodoPago)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- alinea el método con la config de la ruta
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- alinea el método con la config de la cartera
       setMetodoPago(metodosDisponibles[0]);
     }
   }, [metodosDisponibles, metodoPago]);
@@ -231,8 +231,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setError(null);
     try {
       const [t, p] = await Promise.all([
-        api.tarjeta(rutaId, clienteId),
-        api.listarPrestamosDeCliente(rutaId, clienteId),
+        api.tarjeta(carteraId, clienteId),
+        api.listarPrestamosDeCliente(carteraId, clienteId),
       ]);
       setTarjeta(t);
       setPrestamos(p);
@@ -245,12 +245,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           return vigente?.id ?? null;
         });
       }
-      await guardarCliente(rutaId, clienteId, { tarjeta: t, prestamos: p });
+      await guardarCliente(carteraId, clienteId, { tarjeta: t, prestamos: p });
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
       } else if (esErrorDeRed(err)) {
-        const cache = await leerCliente(rutaId, clienteId);
+        const cache = await leerCliente(carteraId, clienteId);
         if (cache) {
           setTarjeta(cache.tarjeta);
           setPrestamos(cache.prestamos);
@@ -272,7 +272,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setError("No se pudo cargar el cliente.");
       }
     }
-  }, [api, rutaId, clienteId, logout, prestamoAutoSeleccionado]);
+  }, [api, carteraId, clienteId, logout, prestamoAutoSeleccionado]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
@@ -300,7 +300,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- inicio de carga del detalle
     setEstadoPrestamoCargando(true);
     api
-      .obtenerEstadoCuentaPrestamo(rutaId, prestamoDetalleId)
+      .obtenerEstadoCuentaPrestamo(carteraId, prestamoDetalleId)
       .then((estado) => {
         if (activo) {
           setEstadoPrestamo(estado);
@@ -321,7 +321,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     return () => {
       activo = false;
     };
-  }, [api, rutaId, logout, prestamoDetalleId]);
+  }, [api, carteraId, logout, prestamoDetalleId]);
 
   const proximoCobro = useMemo(() => {
     const activos = prestamos.filter((p) => p.estatus === "vigente");
@@ -380,7 +380,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         metodoPago,
       };
       try {
-        await api.registrarVisitaPago(rutaId, input);
+        await api.registrarVisitaPago(carteraId, input);
         setAccionCuota("ninguno");
         setValor("");
         mensajeExito("Pago registrado.");
@@ -443,7 +443,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         valorPrometido: montoPrometido ?? undefined,
       };
       try {
-        await api.registrarVisitaNoPago(rutaId, input);
+        await api.registrarVisitaNoPago(carteraId, input);
         setAccionCuota("ninguno");
         setFechaPrometida("");
         setValorPrometido("");
@@ -542,9 +542,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     try {
       const input = { password: borrarPassword, motivo: borrarMotivo.trim() };
       if (borrarTarget.tipo === "pago") {
-        await api.eliminarPago(rutaId, borrarTarget.id, input);
+        await api.eliminarPago(carteraId, borrarTarget.id, input);
       } else {
-        await api.eliminarAbono(rutaId, borrarTarget.id, input);
+        await api.eliminarAbono(carteraId, borrarTarget.id, input);
       }
       setBorrarTarget(null);
       setBorrarPassword("");
@@ -683,7 +683,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         ubicacionCampo === "domicilio"
           ? { latitudDomicilio: lat, longitudDomicilio: lng }
           : { latitud: lat, longitud: lng };
-      await api.actualizarCliente(rutaId, clienteId, input);
+      await api.actualizarCliente(carteraId, clienteId, input);
       setModal("ninguno");
       mensajeExito("Ubicación actualizada.");
       await cargar();
@@ -783,9 +783,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   function abrirNuevoPrestamo() {
     mensajeError(null);
     setPrestamoMensaje(null);
-    setPrestamoInteres(rutaActiva ? String(rutaActiva.tipoInteres) : "");
-    setPrestamoCuotas(rutaActiva ? String(rutaActiva.numCuotas) : "");
-    const cupo = rutaActiva?.config.cupoDefault;
+    setPrestamoInteres(carteraActiva ? String(carteraActiva.tipoInteres) : "");
+    setPrestamoCuotas(carteraActiva ? String(carteraActiva.numCuotas) : "");
+    const cupo = carteraActiva?.config.cupoDefault;
     setPrestamoValor(cupo ? String(cupo) : "");
     setPrestamoDias("");
     setModal("prestamo");
@@ -805,7 +805,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setPrestamoEnviando(true);
     setPrestamoMensaje(null);
     try {
-      await api.crearPrestamo(rutaId, {
+      await api.crearPrestamo(carteraId, {
         clienteId,
         valor: Number(prestamoValor),
         numCuotas: Number(prestamoCuotas),
@@ -843,7 +843,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setModal("cuota");
     try {
       setDetalleCuota(
-        await api.detalleCuota(rutaId, prestamoSeleccionado.id, cuotaId),
+        await api.detalleCuota(carteraId, prestamoSeleccionado.id, cuotaId),
       );
     } catch {
       setDetalleCuota(null);
@@ -859,7 +859,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setDetalleCuotaCargando(true);
     try {
       setDetalleCuota(
-        await api.detalleCuota(rutaId, prestamoSeleccionado.id, detalleCuota.cuotaId),
+        await api.detalleCuota(carteraId, prestamoSeleccionado.id, detalleCuota.cuotaId),
       );
     } catch {
       // Se conserva el detalle previo si falla la recarga.
@@ -874,7 +874,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     }
     try {
       setEstadoPrestamo(
-        await api.obtenerEstadoCuentaPrestamo(rutaId, prestamoSeleccionado.id),
+        await api.obtenerEstadoCuentaPrestamo(carteraId, prestamoSeleccionado.id),
       );
     } catch {
       // Se conserva el estado previo si falla la recarga.
@@ -907,7 +907,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setEvidenciasEnviando(true);
     mensajeError(null);
     try {
-      await api.agregarEvidenciasCliente(rutaId, clienteId, [pendiente]);
+      await api.agregarEvidenciasCliente(carteraId, clienteId, [pendiente]);
       evidenciasCliente.quitar(campo);
       setModal("ninguno");
       mensajeError(
@@ -1677,8 +1677,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         ) : detalleCuota ? (
           (() => {
             const cuotaAccionable = esPendienteOAtrasada(detalleCuota.estatus);
-            const puedeEliminarPago = Boolean(rutaActiva?.config.eliminarPagosApk);
-            const puedeEliminarAbono = Boolean(rutaActiva?.config.eliminarAbonosApk);
+            const puedeEliminarPago = Boolean(carteraActiva?.config.eliminarPagosApk);
+            const puedeEliminarAbono = Boolean(carteraActiva?.config.eliminarAbonosApk);
             return (
               <>
                 <ScrollView style={styles.cuotaScroll}>

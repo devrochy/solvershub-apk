@@ -1,22 +1,22 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { RutaDetalleScreen } from "./RutaDetalleScreen";
+import { CarteraDetalleScreen } from "./CarteraDetalleScreen";
 import { SessionContext, SessionValue } from "../session/session-context";
-import { RutaActivaContext } from "../session/ruta-activa-context";
-import type { CobradorPermisoEstado } from "../types/cobrador";
+import { CarteraActivaContext } from "../session/cartera-activa-context";
+import type { GestorPermisoEstado } from "../types/gestor";
 
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
 
 jest.mock("../offline/cache", () => ({
-  guardarEstadisticasRuta: jest.fn().mockResolvedValue(undefined),
-  leerEstadisticasRuta: jest.fn().mockResolvedValue(null),
+  guardarEstadisticasCartera: jest.fn().mockResolvedValue(undefined),
+  leerEstadisticasCartera: jest.fn().mockResolvedValue(null),
 }));
 
 import * as cache from "../offline/cache";
 
 const estadisticas = {
-  rutaId: 6,
+  carteraId: 6,
   fecha: "2026-09-17",
   actual: {
     totalClientes: 5,
@@ -51,7 +51,7 @@ const estadisticas = {
   actualizadoEn: "2026-09-17T23:55:00.000Z",
 };
 
-const dia = {
+const trayectoDiario = {
   clientes: [
     { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
     { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo" as const },
@@ -62,7 +62,7 @@ const dia = {
 
 const clientes = Array.from({ length: 5 }, (_, i) => ({
   id: i + 1,
-  rutaId: 6,
+  carteraId: 6,
   nombre: `Cliente ${i + 1}`,
   apellido: "",
   negocio: null,
@@ -81,9 +81,9 @@ const clientes = Array.from({ length: 5 }, (_, i) => ({
 const notas = [
   {
     id: 1,
-    rutaId: 6,
+    carteraId: 6,
     nota: "Cliente del barrio central pide más plazo.",
-    creadoPorRol: "cobrador",
+    creadoPorRol: "gestor",
     creadoPorId: 20,
     createdAt: "2026-09-02T10:00:00.000Z",
     updatedAt: "2026-09-02T10:00:00.000Z",
@@ -92,37 +92,37 @@ const notas = [
 
 function apiBase() {
   return {
-    misRutas: jest.fn().mockResolvedValue([
+    misCarteras: jest.fn().mockResolvedValue([
       {
         id: 6,
-        nombre: "Ruta Centro",
+        nombre: "Cartera Centro",
         estatus: "activo",
         tipoInteres: 20,
         numCuotas: 8,
-        config: { rutaId: 6 },
+        config: { carteraId: 6 },
         permisos: [],
       },
     ]),
-    listarClientesDeRuta: jest.fn().mockResolvedValue(clientes),
-    dia: jest.fn().mockResolvedValue(dia),
+    listarClientesDeCartera: jest.fn().mockResolvedValue(clientes),
+    trayectoDiario: jest.fn().mockResolvedValue(trayectoDiario),
     listarNotas: jest.fn().mockResolvedValue(notas),
     crearNota: jest.fn().mockResolvedValue({ id: 2, nota: "Nueva" }),
-    estadisticasRuta: jest.fn().mockResolvedValue(estadisticas),
+    estadisticasCartera: jest.fn().mockResolvedValue(estadisticas),
   };
 }
 
 async function renderDetalle(
   api: Partial<SessionValue["api"]> = apiBase(),
   onCerrar: jest.Mock = jest.fn(),
-  permisos: CobradorPermisoEstado[] = [],
+  permisos: GestorPermisoEstado[] = [],
 ) {
   const valor: SessionValue = {
-    cobrador: {
+    gestor: {
       id: 20,
-      usuario: "cobrador1",
+      usuario: "gestor1",
       nombre: "Carlos",
       apellido: "López",
-      rol: "cobrador",
+      rol: "gestor",
     },
     loading: false,
     api: api as SessionValue["api"],
@@ -132,32 +132,32 @@ async function renderDetalle(
   };
   return render(
     <SessionContext.Provider value={valor}>
-      <RutaActivaContext.Provider
+      <CarteraActivaContext.Provider
         value={{
-          rutaActiva: {
-            rutaId: 6,
-            rutaNombre: "Ruta Centro",
+          carteraActiva: {
+            carteraId: 6,
+            carteraNombre: "Cartera Centro",
             tipoInteres: 20,
             numCuotas: 8,
             config: {} as never,
             permisos,
           },
-          setRutaActiva: jest.fn(),
+          setCarteraActiva: jest.fn(),
         }}
       >
-        <RutaDetalleScreen rutaId={6} rutaNombre="Ruta Centro" onCerrar={onCerrar} />
-      </RutaActivaContext.Provider>
+        <CarteraDetalleScreen carteraId={6} carteraNombre="Cartera Centro" onCerrar={onCerrar} />
+      </CarteraActivaContext.Provider>
     </SessionContext.Provider>,
   );
 }
 
-describe("RutaDetalleScreen", () => {
-  it("muestra el nombre, los KPIs y el estado de la ruta", async () => {
+describe("CarteraDetalleScreen", () => {
+  it("muestra el nombre, los KPIs y el estado de la cartera", async () => {
     const { getByTestId, getByText } = await renderDetalle();
 
-    await waitFor(() => expect(getByText("Ruta Centro")).toBeTruthy());
+    await waitFor(() => expect(getByText("Cartera Centro")).toBeTruthy());
     expect(getByTestId("kpi-total-clientes").props.children).toBe(5);
-    expect(getByTestId("kpi-clientes-dia").props.children).toBe(3);
+    expect(getByTestId("kpi-clientes-trayectoDiario").props.children).toBe(3);
     expect(getByTestId("kpi-en-mora").props.children).toBe(2);
     expect(getByText("Activo")).toBeTruthy();
   });
@@ -176,9 +176,9 @@ describe("RutaDetalleScreen", () => {
   it("'+ Nota' abre el modal y guardar llama a crearNota y refresca la lista", async () => {
     const crearNota = jest.fn().mockResolvedValue({
       id: 2,
-      rutaId: 6,
+      carteraId: 6,
       nota: "Nueva nota",
-      creadoPorRol: "cobrador",
+      creadoPorRol: "gestor",
       creadoPorId: 20,
       createdAt: "2026-09-02T11:00:00.000Z",
       updatedAt: "2026-09-02T11:00:00.000Z",
@@ -190,9 +190,9 @@ describe("RutaDetalleScreen", () => {
         ...notas,
         {
           id: 2,
-          rutaId: 6,
+          carteraId: 6,
           nota: "Nueva nota",
-          creadoPorRol: "cobrador",
+          creadoPorRol: "gestor",
           creadoPorId: 20,
           createdAt: "2026-09-02T11:00:00.000Z",
           updatedAt: "2026-09-02T11:00:00.000Z",
@@ -217,42 +217,42 @@ describe("RutaDetalleScreen", () => {
   it("el botón Editar es de solo lectura y avisa que la edición es del panel", async () => {
     const { getByTestId, getByText } = await renderDetalle();
 
-    await waitFor(() => expect(getByTestId("btn-editar-ruta")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-editar-ruta"));
+    await waitFor(() => expect(getByTestId("btn-editar-cartera")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cartera"));
 
     expect(
-      getByText(/La edición de ruta se realiza desde el panel/i),
+      getByText(/La edición de cartera se realiza desde el panel/i),
     ).toBeTruthy();
   });
 
-  it("con permiso actualizar_ruta, Editar abre el modal y guarda nombre/interés/cuotas", async () => {
-    const actualizarRuta = jest.fn().mockResolvedValue({ id: 6, nombre: "Ruta Nueva" });
-    const actualizarConfiguracionRuta = jest
+  it("con permiso actualizar_cartera, Editar abre el modal y guarda nombre/interés/cuotas", async () => {
+    const actualizarCartera = jest.fn().mockResolvedValue({ id: 6, nombre: "Cartera Nueva" });
+    const actualizarConfiguracionCartera = jest
       .fn()
       .mockResolvedValue({ id: 6, tipoInteres: 15, numCuotas: 6 });
     const { getByTestId } = await renderDetalle(
-      { ...apiBase(), actualizarRuta, actualizarConfiguracionRuta },
+      { ...apiBase(), actualizarCartera, actualizarConfiguracionCartera },
       jest.fn(),
-      [{ permiso: "actualizar_ruta", habilitado: true }],
+      [{ permiso: "actualizar_cartera", habilitado: true }],
     );
 
-    await waitFor(() => expect(getByTestId("btn-editar-ruta")).toBeTruthy());
-    await fireEvent.press(getByTestId("btn-editar-ruta"));
-    await fireEvent.changeText(getByTestId("editar-ruta-nombre"), "Ruta Nueva");
-    await fireEvent.changeText(getByTestId("editar-ruta-tipoInteres"), "15");
-    await fireEvent.changeText(getByTestId("editar-ruta-numCuotas"), "6");
-    await fireEvent.press(getByTestId("ruta-editar-guardar"));
+    await waitFor(() => expect(getByTestId("btn-editar-cartera")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-editar-cartera"));
+    await fireEvent.changeText(getByTestId("editar-cartera-nombre"), "Cartera Nueva");
+    await fireEvent.changeText(getByTestId("editar-cartera-tipoInteres"), "15");
+    await fireEvent.changeText(getByTestId("editar-cartera-numCuotas"), "6");
+    await fireEvent.press(getByTestId("cartera-editar-guardar"));
 
-    await waitFor(() => expect(actualizarRuta).toHaveBeenCalledWith(6, { nombre: "Ruta Nueva" }));
-    expect(actualizarConfiguracionRuta).toHaveBeenCalledWith(6, { tipoInteres: 15, numCuotas: 6 });
+    await waitFor(() => expect(actualizarCartera).toHaveBeenCalledWith(6, { nombre: "Cartera Nueva" }));
+    expect(actualizarConfiguracionCartera).toHaveBeenCalledWith(6, { tipoInteres: 15, numCuotas: 6 });
   });
 
   it("NO muestra botón back (la navegación atrás es por gesto swipe)", async () => {
     const onCerrar = jest.fn();
     const { getByText, queryByTestId } = await renderDetalle(apiBase(), onCerrar);
 
-    await waitFor(() => expect(getByText("Ruta Centro")).toBeTruthy());
-    expect(queryByTestId("btn-back-ruta")).toBeNull();
+    await waitFor(() => expect(getByText("Cartera Centro")).toBeTruthy());
+    expect(queryByTestId("btn-back-cartera")).toBeNull();
   });
 
   it("NO muestra 'No se pudo guardar la nota' si la nota se creó pero el re-fetch falla", async () => {
@@ -276,14 +276,14 @@ describe("RutaDetalleScreen", () => {
     expect(queryByText("No se pudo guardar la nota.")).toBeNull();
   });
 
-  it("muestra el estado 'sin ruta' y el botón para seleccionar cuando no hay ruta activa", async () => {
+  it("muestra el estado 'sin cartera' y el botón para seleccionar cuando no hay cartera activa", async () => {
     const valor: SessionValue = {
-      cobrador: {
+      gestor: {
         id: 20,
-        usuario: "cobrador1",
+        usuario: "gestor1",
         nombre: "Carlos",
         apellido: "López",
-        rol: "cobrador",
+        rol: "gestor",
       },
       loading: false,
       api: apiBase() as unknown as SessionValue["api"],
@@ -293,21 +293,21 @@ describe("RutaDetalleScreen", () => {
     };
     const { getByTestId, getByText } = await render(
       <SessionContext.Provider value={valor}>
-        <RutaActivaContext.Provider value={{ rutaActiva: null, setRutaActiva: jest.fn() }}>
-          <RutaDetalleScreen />
-        </RutaActivaContext.Provider>
+        <CarteraActivaContext.Provider value={{ carteraActiva: null, setCarteraActiva: jest.fn() }}>
+          <CarteraDetalleScreen />
+        </CarteraActivaContext.Provider>
       </SessionContext.Provider>,
     );
 
     expect(
-      getByText("Selecciona una ruta para ver su información."),
+      getByText("Selecciona una cartera para ver su información."),
     ).toBeTruthy();
 expect(getByTestId("btn-ir-seleccion")).toBeTruthy();
   });
 });
-describe("RutaDetalleScreen — estadísticas", () => {
+describe("CarteraDetalleScreen — estadísticas", () => {
   beforeEach(() => {
-    (cache.leerEstadisticasRuta as jest.Mock).mockResolvedValue(null);
+    (cache.leerEstadisticasCartera as jest.Mock).mockResolvedValue(null);
   });
 
   it("muestra los pares actual/anterior y el delta", async () => {
@@ -319,15 +319,15 @@ describe("RutaDetalleScreen — estadísticas", () => {
     expect(getByTestId("estadistica-delta-clientesAtrasados").props.children).toBe("-1");
     expect(getByTestId("estadistica-delta-sinVisitaHoy").props.children).toBe("+2");
     expect(getByText("ayer 3")).toBeTruthy();
-    expect(cache.guardarEstadisticasRuta).toHaveBeenCalledWith(6, estadisticas);
+    expect(cache.guardarEstadisticasCartera).toHaveBeenCalledWith(6, estadisticas);
   });
 
   it("usa el cache con aviso cuando no hay conexión", async () => {
-    (cache.leerEstadisticasRuta as jest.Mock).mockResolvedValue(estadisticas);
+    (cache.leerEstadisticasCartera as jest.Mock).mockResolvedValue(estadisticas);
 
     const { getByTestId } = await renderDetalle({
       ...apiBase(),
-      estadisticasRuta: jest.fn().mockRejectedValue(new Error("Network request failed")),
+      estadisticasCartera: jest.fn().mockRejectedValue(new Error("Network request failed")),
     });
 
     await waitFor(() => expect(getByTestId("aviso-offline-estadisticas")).toBeTruthy());
@@ -337,7 +337,7 @@ describe("RutaDetalleScreen — estadísticas", () => {
   it("no bloquea la pantalla si las estadísticas fallan", async () => {
     const { getByTestId, queryByTestId } = await renderDetalle({
       ...apiBase(),
-      estadisticasRuta: jest.fn().mockRejectedValue(new Error("boom")),
+      estadisticasCartera: jest.fn().mockRejectedValue(new Error("boom")),
     });
 
     await waitFor(() => expect(getByTestId("kpi-total-clientes")).toBeTruthy());

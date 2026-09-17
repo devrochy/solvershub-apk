@@ -17,18 +17,18 @@ function propsDe(
     state: {
       index,
       routes: [
-        { key: "ruta", name: "Ruta" },
-        { key: "dia", name: "Dia" },
+        { key: "cartera", name: "Cartera" },
+        { key: "trayectoDiario", name: "TrayectoDiario" },
         { key: "clientes", name: "Clientes" },
       ],
-      routeNames: ["Ruta", "Dia", "Clientes"],
+      routeNames: ["Cartera", "TrayectoDiario", "Clientes"],
       key: "tab",
       stale: false,
       type: "tab",
     } as never,
     descriptors: {
-      ruta: { options: { title: "Ruta" } } as never,
-      dia: { options: { title: "Día" } } as never,
+      cartera: { options: { title: "Cartera" } } as never,
+      trayectoDiario: { options: { title: "Trayecto diario" } } as never,
       clientes: { options: { title: "Clientes" } } as never,
     },
     navigation: {
@@ -40,16 +40,16 @@ function propsDe(
 }
 
 describe("CustomTabBar", () => {
-  it("renderiza los 3 tabs con el central (Día) sobresaliente", async () => {
+  it("renderiza los 3 tabs con el central (Trayecto diario) sobresaliente", async () => {
     const { getByTestId, getByText } = await render(
       <PantallaActivaProvider>
         <CustomTabBar {...propsDe(0)} />
       </PantallaActivaProvider>,
     );
-    expect(getByTestId("tab-Ruta")).toBeTruthy();
+    expect(getByTestId("tab-Cartera")).toBeTruthy();
     expect(getByTestId("tab-central")).toBeTruthy();
     expect(getByTestId("tab-Clientes")).toBeTruthy();
-    expect(getByText("Día")).toBeTruthy();
+    expect(getByText("Trayecto diario")).toBeTruthy();
   });
 
   it("navega al tab central al tocarlo", async () => {
@@ -60,7 +60,7 @@ describe("CustomTabBar", () => {
       </PantallaActivaProvider>,
     );
     await fireEvent.press(getByTestId("tab-central"));
-    expect(navigate).toHaveBeenCalledWith("Dia");
+    expect(navigate).toHaveBeenCalledWith("TrayectoDiario");
   });
 
   it("reserva el espacio del inset inferior de la barra de navegación del sistema", async () => {

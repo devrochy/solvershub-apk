@@ -3,8 +3,8 @@ import { Pressable, Text } from "react-native";
 import { SessionProvider, useSession } from "./session-context";
 
 const mockActualizarPerfil = jest.fn();
-jest.mock("../api/cobrador", () => ({
-  cobradorApi: () => ({
+jest.mock("../api/gestor", () => ({
+  gestorApi: () => ({
     actualizarPerfil: mockActualizarPerfil,
   }),
 }));
@@ -15,7 +15,7 @@ jest.mock("./token-store", () => ({
     usuario: "cob1",
     nombre: "Viejo",
     apellido: "Anterior",
-    rol: "cobrador",
+    rol: "gestor",
   })),
   readSession: jest.fn(async () => ({ accessToken: "a", refreshToken: "r" })),
   writeSession: jest.fn(async () => {}),
@@ -31,10 +31,10 @@ jest.mock("./token-store", () => ({
 import * as tokenStore from "./token-store";
 
 function Consumidor() {
-  const { cobrador, actualizarPerfil } = useSession();
+  const { gestor, actualizarPerfil } = useSession();
   return (
     <>
-      <Text testID="nombre">{cobrador?.nombre ?? "-"}</Text>
+      <Text testID="nombre">{gestor?.nombre ?? "-"}</Text>
       <Pressable
         testID="guardar"
         onPress={() => {
@@ -77,7 +77,7 @@ describe("SessionProvider.actualizarPerfil", () => {
       expect.objectContaining({
         nombre: "Nuevo",
         apellido: "Pérez",
-        rol: "cobrador",
+        rol: "gestor",
       }),
     );
   });

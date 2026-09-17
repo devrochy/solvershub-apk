@@ -10,21 +10,21 @@ export function authUrl(path: string): string {
 }
 
 /**
- * Resuelve una ruta de archivo (p. ej. `/uploads/clientes/foto.jpg`) a una URL
+ * Resuelve una cartera de archivo (p. ej. `/uploads/clientes/foto.jpg`) a una URL
  * absoluta del backend para usarla en <Image>. Si ya es una URL completa
  * (https://…), la devuelve tal cual. Si es un path absoluto del filesystem del
  * backend (p. ej. `/Users/.../uploads/...` de cachés viejas), extrae la parte
  * servible `/uploads/...`. Si es vacía/null, devuelve null.
  */
-export function urlArchivo(ruta: string | null | undefined): string | null {
-  if (!ruta) {
+export function urlArchivo(cartera: string | null | undefined): string | null {
+  if (!cartera) {
     return null;
   }
-  if (ruta.startsWith("http://") || ruta.startsWith("https://")) {
-    return ruta;
+  if (cartera.startsWith("http://") || cartera.startsWith("https://")) {
+    return cartera;
   }
-  const servible = ruta.includes("/uploads/")
-    ? ruta.slice(ruta.indexOf("/uploads/"))
-    : ruta;
+  const servible = cartera.includes("/uploads/")
+    ? cartera.slice(cartera.indexOf("/uploads/"))
+    : cartera;
   return `${API_URL}${servible.startsWith("/") ? servible : `/${servible}`}`;
 }

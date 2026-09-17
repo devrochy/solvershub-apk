@@ -1,4 +1,4 @@
-import type { CuotaEstatus } from "../../types/cobrador";
+import type { CuotaEstatus } from "../../types/gestor";
 
 export type TipoCuotaCanvas =
   | "pagada"

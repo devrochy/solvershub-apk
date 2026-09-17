@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { cobradorApi, CobradorApi } from "../api/cobrador";
+import { gestorApi, GestorApi } from "../api/gestor";
 import { ApiClient } from "../api/client";
 import { apiLogin, RolLogin } from "../api/auth";
 import {
@@ -25,9 +25,9 @@ export interface ActualizarPerfilInput {
 }
 
 export interface SessionValue {
-  cobrador: UsuarioPerfil | null;
+  gestor: UsuarioPerfil | null;
   loading: boolean;
-  api: CobradorApi;
+  api: GestorApi;
   login(usuario: string, password: string, rol?: RolLogin): Promise<void>;
   logout(): Promise<void>;
   actualizarPerfil(input: ActualizarPerfilInput): Promise<void>;
@@ -36,7 +36,7 @@ export interface SessionValue {
 export const SessionContext = createContext<SessionValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [cobrador, setCobrador] = useState<UsuarioPerfil | null>(null);
+  const [gestor, setGestor] = useState<UsuarioPerfil | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     readProfile()
       .then((perfil) => {
         if (activo) {
-          setCobrador(perfil);
+          setGestor(perfil);
         }
       })
       .finally(() => {
@@ -57,36 +57,36 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const api = useMemo(() => cobradorApi(new ApiClient(sessionGateway)), []);
+  const api = useMemo(() => gestorApi(new ApiClient(sessionGateway)), []);
 
   const login = useCallback(
-    async (usuario: string, password: string, rol: RolLogin = "cobrador") => {
+    async (usuario: string, password: string, rol: RolLogin = "gestor") => {
       const result = await apiLogin(usuario, password, rol);
-      const perfilSesion: UsuarioPerfil = rol === "socio"
+      const perfilSesion: UsuarioPerfil = rol === "propietario"
         ? {
-            id: result.socio?.id ?? 0,
-            usuario: result.socio?.usuario ?? usuario,
-            nombre: result.socio?.nombre ?? "",
-            apellido: result.socio?.apellido ?? "",
+            id: result.propietario?.id ?? 0,
+            usuario: result.propietario?.usuario ?? usuario,
+            nombre: result.propietario?.nombre ?? "",
+            apellido: result.propietario?.apellido ?? "",
             rol,
           }
         : {
-            id: result.cobrador?.id ?? 0,
-            usuario: result.cobrador?.usuario ?? usuario,
-            nombre: result.cobrador?.nombre ?? "",
-            apellido: result.cobrador?.apellido ?? "",
+            id: result.gestor?.id ?? 0,
+            usuario: result.gestor?.usuario ?? usuario,
+            nombre: result.gestor?.nombre ?? "",
+            apellido: result.gestor?.apellido ?? "",
             rol,
           };
       await writeSession(result);
       await writeProfile(perfilSesion);
-      setCobrador(perfilSesion);
+      setGestor(perfilSesion);
     },
     [],
   );
 
   const logout = useCallback(async () => {
     await clearSession();
-    setCobrador(null);
+    setGestor(null);
   }, []);
 
   const actualizarPerfil = useCallback(
@@ -97,17 +97,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         usuario: perfil.usuario,
         nombre: perfil.nombre,
         apellido: perfil.apellido,
-        rol: cobrador?.rol ?? "cobrador",
+        rol: gestor?.rol ?? "gestor",
       };
       await writeProfile(actualizado);
-      setCobrador(actualizado);
+      setGestor(actualizado);
     },
-    [api, cobrador?.rol],
+    [api, gestor?.rol],
   );
 
   const value = useMemo(
-    () => ({ cobrador, loading, api, login, logout, actualizarPerfil }),
-    [cobrador, loading, api, login, logout, actualizarPerfil],
+    () => ({ gestor, loading, api, login, logout, actualizarPerfil }),
+    [gestor, loading, api, login, logout, actualizarPerfil],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

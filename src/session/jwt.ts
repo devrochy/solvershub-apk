@@ -3,7 +3,7 @@ import type { TokenPair } from "../types/auth";
 
 export interface AccessTokenPayload {
   sub: number;
-  rol: "cobrador";
+  rol: "gestor";
   tipo: "access";
   usuario?: string;
   exp?: number;

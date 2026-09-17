@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { ClienteScreen } from "../screens/ClienteScreen";
-import { RutaDetalleScreen } from "../screens/RutaDetalleScreen";
+import { CarteraDetalleScreen } from "../screens/CarteraDetalleScreen";
 import type { PantallaActiva } from "./pantalla-activa-context";
 import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
 
@@ -10,7 +10,7 @@ export interface OverlayDetalleProps {
 }
 
 /**
- * B1: renderiza la pantalla de detalle (cliente/préstamo/ruta) como una capa
+ * B1: renderiza la pantalla de detalle (cliente/préstamo/cartera) como una capa
  * sobre el contenido del tab. Vive dentro de cada screen del Tab, así que el
  * CustomTabBar (que se renderiza fuera del área de contenido) queda siempre
  * visible.
@@ -31,7 +31,7 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
       return (
         <VentanaCerrarConSwipe testID="overlay-detalle" style={styles.capa} onCerrar={onCerrar}>
           <ClienteScreen
-            rutaId={pantalla.rutaId}
+            carteraId={pantalla.carteraId}
             clienteId={pantalla.clienteId}
             nombre={pantalla.nombre}
             latitud={pantalla.latitud}
@@ -42,12 +42,12 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
           />
         </VentanaCerrarConSwipe>
       );
-    case "ruta":
+    case "cartera":
       return (
         <VentanaCerrarConSwipe testID="overlay-detalle" style={styles.capa} onCerrar={onCerrar}>
-          <RutaDetalleScreen
-            rutaId={pantalla.rutaId}
-            rutaNombre={pantalla.rutaNombre}
+          <CarteraDetalleScreen
+            carteraId={pantalla.carteraId}
+            carteraNombre={pantalla.carteraNombre}
             onCerrar={onCerrar}
           />
         </VentanaCerrarConSwipe>

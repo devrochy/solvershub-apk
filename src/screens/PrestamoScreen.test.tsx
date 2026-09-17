@@ -18,7 +18,7 @@ const offline: OfflineValue = {
 
 const estadoCuenta = {
   prestamoId: 200,
-  rutaId: 6,
+  carteraId: 6,
   clienteId: 11,
   nombreCliente: "Juan Perez",
   valor: 1000,
@@ -40,7 +40,7 @@ const estadoCuenta = {
 async function renderConEstado(
   api: Partial<SessionValue["api"]>,
   route: Partial<{
-    rutaId: number;
+    carteraId: number;
     prestamoId: number;
     clienteNombre: string;
     telefonoWhatsapp: string;
@@ -49,7 +49,7 @@ async function renderConEstado(
   }> = {},
 ) {
   const valor: SessionValue = {
-    cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López", rol: "cobrador" },
+    gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
     loading: false,
     api: api as SessionValue["api"],
     login: jest.fn(),
@@ -65,7 +65,7 @@ async function renderConEstado(
             key: "prestamo",
             name: "Prestamo",
             params: {
-              rutaId: 6,
+              carteraId: 6,
               prestamoId: 200,
               clienteNombre: "Juan Perez",
               telefonoWhatsapp: "+59170000000",

@@ -5,10 +5,10 @@ import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
-import { RutaActivaContext } from "../session/ruta-activa-context";
+import { CarteraActivaContext } from "../session/cartera-activa-context";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import { API_URL } from "../config";
-import type { EstadoCuentaPrestamoPublic, PrestamoPublic } from "../types/cobrador";
+import type { EstadoCuentaPrestamoPublic, PrestamoPublic } from "../types/gestor";
 
 jest.mock("../features/estado-cuenta/estado-cuenta", () => ({
   enlaceWhatsApp: jest.fn(
@@ -76,7 +76,7 @@ const offlineValor: OfflineValue = {
 
 const prestamo = {
   id: 1,
-  rutaId: 6,
+  carteraId: 6,
   clienteId: 2,
   valor: 1000,
   numCuotas: 4,
@@ -97,7 +97,7 @@ const prestamo = {
 
 const tarjeta = {
   clienteId: 2,
-  rutaId: 6,
+  carteraId: 6,
   nombre: "Juan",
   negocio: null,
   telefonoWhatsapp: "+59170000000",
@@ -113,7 +113,7 @@ const tarjeta = {
 function estadoCuentaDe(p: PrestamoPublic): EstadoCuentaPrestamoPublic {
   return {
     prestamoId: p.id,
-    rutaId: p.rutaId,
+    carteraId: p.carteraId,
     clienteId: p.clienteId,
     nombreCliente: "Juan",
     valor: p.valor,
@@ -152,7 +152,7 @@ async function renderConApi(
   config: Record<string, unknown> = {},
 ) {
   const valor: SessionValue = {
-    cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L", rol: "cobrador" },
+    gestor: { id: 20, usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
     loading: false,
     api: {
       tarjeta: jest.fn().mockResolvedValue(tarjeta),
@@ -169,15 +169,15 @@ async function renderConApi(
     <PantallaActivaProvider>
       <OfflineContext.Provider value={offline}>
       <SessionContext.Provider value={valor}>
-        <RutaActivaContext.Provider
+        <CarteraActivaContext.Provider
           value={{
-            rutaActiva: {
-              rutaId: 6,
-              rutaNombre: "Ruta Centro",
+            carteraActiva: {
+              carteraId: 6,
+              carteraNombre: "Cartera Centro",
               tipoInteres: 20,
               numCuotas: 8,
               config: {
-                rutaId: 6,
+                carteraId: 6,
                 cupoDefault: 1500,
                 cuotasMinimasPrestamo: 1,
                 eliminarPagosApk: true,
@@ -185,7 +185,7 @@ async function renderConApi(
                 ...config,
               } as never,
             },
-            setRutaActiva: jest.fn(),
+            setCarteraActiva: jest.fn(),
           }}
         >
           <ClienteScreen
@@ -193,10 +193,10 @@ async function renderConApi(
             route={{
               key: "cliente",
               name: "Cliente",
-              params: { rutaId: 6, clienteId: 2, nombre: "Juan", ...params },
+              params: { carteraId: 6, clienteId: 2, nombre: "Juan", ...params },
             }}
           />
-        </RutaActivaContext.Provider>
+        </CarteraActivaContext.Provider>
       </SessionContext.Provider>
       </OfflineContext.Provider>
     </PantallaActivaProvider>,
@@ -229,7 +229,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     ultimaVisita: null,
   });
 
-  it("ofrece solo los métodos de pago permitidos por la ruta", async () => {
+  it("ofrece solo los métodos de pago permitidos por la cartera", async () => {
     const { getByTestId, getByText, queryByText } = await renderConApi(
       { detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()) },
       offlineValor,
@@ -1103,7 +1103,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     expect(getByTestId("documento-modal")).toBeTruthy();
   });
 
-  it("preview de documento resuelve la ruta relativa del backend y usa resizeMode contain", async () => {
+  it("preview de documento resuelve la cartera relativa del backend y usa resizeMode contain", async () => {
     const tarjetaConFrente = { ...tarjeta, documentoFrenteUrl: "/uploads/frente.jpg" };
     const { getByTestId } = await renderConApi({
       tarjeta: jest.fn().mockResolvedValue(tarjetaConFrente),
@@ -1258,7 +1258,7 @@ describe("ClienteScreen — registrar préstamo (modal)", () => {
     expect(getByText(/Ingresa un valor de préstamo válido/)).toBeTruthy();
   });
 
-  it("autocompleta interés, cuotas y valor desde la ruta activa", async () => {
+  it("autocompleta interés, cuotas y valor desde la cartera activa", async () => {
     const crearPrestamo = jest.fn().mockResolvedValue({ id: 5 });
     const { getByTestId } = await renderConApi({ crearPrestamo });
 
@@ -1511,8 +1511,8 @@ describe("ClienteScreen — header y editar ubicación", () => {
     );
   });
 });
-describe("ClienteScreen — flags de ruta (captura)", () => {
-  it("deshabilita el campo de interés cuando la ruta lo bloquea", async () => {
+describe("ClienteScreen — flags de cartera (captura)", () => {
+  it("deshabilita el campo de interés cuando la cartera lo bloquea", async () => {
     const { getByTestId } = await renderConApi({}, offlineValor, {}, jest.fn(), {
       bloquearCambioInteres: true,
     });

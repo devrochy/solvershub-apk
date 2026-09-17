@@ -2,17 +2,17 @@ import { authUrl } from "../config";
 import { ApiError } from "./client";
 import type { LoginResult } from "../types/auth";
 
-export type RolLogin = "cobrador" | "socio";
+export type RolLogin = "gestor" | "propietario";
 
 /**
- * Login del cobrador o socio (endpoints sin autenticación).
+ * Login del gestor o propietario (endpoints sin autenticación).
  */
 export async function apiLogin(
   usuario: string,
   password: string,
-  rol: RolLogin = "cobrador",
+  rol: RolLogin = "gestor",
 ): Promise<LoginResult> {
-  const path = rol === "socio" ? "/auth/socio/login" : "/auth/cobrador/login";
+  const path = rol === "propietario" ? "/auth/propietario/login" : "/auth/gestor/login";
   const res = await fetch(authUrl(path), {
     method: "POST",
     headers: { "Content-Type": "application/json" },

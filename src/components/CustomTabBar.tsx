@@ -4,29 +4,29 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 
 const ICONOS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
-  Ruta: "map",
-  Dia: "today",
+  Cartera: "map",
+  TrayectoDiario: "today",
   Clientes: "people",
 };
 
 /**
- * Tab bar custom (A9/N1): "Día" en el centro y sobresaliente (estilo FAB), con
- * "Ruta" a la izquierda y "Clientes" a la derecha. Al cambiar de tab se cierra
+ * Tab bar custom (A9/N1): "Trayecto diario" en el centro y sobresaliente (estilo FAB), con
+ * "Cartera" a la izquierda y "Clientes" a la derecha. Al cambiar de tab se cierra
  * el overlay de detalle para que el nuevo tab muestre su propia sección.
  */
 export function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   const { cerrar } = usePantallaActiva();
-  const orden = ["Ruta", "Dia", "Clientes"];
-  const rutasOrdenadas = orden
+  const orden = ["Cartera", "TrayectoDiario", "Clientes"];
+  const carterasOrdenadas = orden
     .map((name) => state.routes.find((r) => r.name === name))
     .filter((r): r is NonNullable<typeof r> => Boolean(r));
 
   return (
     <View testID="tab-bar" style={[styles.barra, { paddingBottom: Math.max(insets.bottom, 8) + 8 }]}>
-      {rutasOrdenadas.map((route, indice) => {
+      {carterasOrdenadas.map((route, indice) => {
         const descriptor = descriptors[route.key];
         const enfocado = state.index === state.routes.indexOf(route);
-        const esCentral = route.name === "Dia";
+        const esCentral = route.name === "TrayectoDiario";
         const onPress = () => {
           const evento = navigation.emit({
             type: "tabPress",
@@ -59,7 +59,7 @@ export function CustomTabBar({ state, descriptors, navigation, insets }: BottomT
                 />
               </Pressable>
               <Text style={[styles.etiqueta, enfocado && styles.etiquetaActiva]}>
-                {descriptor.options.title ?? "Día"}
+                {descriptor.options.title ?? "Trayecto diario"}
               </Text>
             </View>
           );

@@ -12,18 +12,18 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import type { RootStackParamList } from "./src/navigation/types";
 import { MainTabsNavigator } from "./src/navigation/MainTabsNavigator";
-import { RutaFlujo } from "./src/navigation/RutaFlujo";
+import { CarteraFlujo } from "./src/navigation/CarteraFlujo";
 import { PantallaActivaProvider } from "./src/navigation/pantalla-activa-context";
 import { TrayectosOverlayProvider } from "./src/navigation/trayectos-overlay-context";
 import { OfflineProvider } from "./src/offline/offline-context";
 import { LoginScreen } from "./src/screens/LoginScreen";
-import { RutaActivaProvider } from "./src/session/ruta-activa-context";
+import { CarteraActivaProvider } from "./src/session/cartera-activa-context";
 import { SessionProvider, useSession } from "./src/session/session-context";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
-  const { cobrador, loading } = useSession();
+  const { gestor, loading } = useSession();
 
   if (loading) {
     return (
@@ -37,10 +37,10 @@ function RootNavigator() {
     <NavigationContainer>
       <TrayectosOverlayProvider>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {cobrador ? (
+          {gestor ? (
             <>
               <Stack.Screen name="Main" component={MainTabsNavigator} />
-              <Stack.Screen name="Ruta" component={RutaFlujo} />
+              <Stack.Screen name="Cartera" component={CarteraFlujo} />
             </>
           ) : (
             <Stack.Screen name="Login" component={LoginScreen} />
@@ -67,9 +67,9 @@ export default function App() {
     <SafeAreaProvider>
       <SessionProvider>
         <OfflineProvider>
-          <RutaActivaProvider>
+          <CarteraActivaProvider>
             <RootContent />
-          </RutaActivaProvider>
+          </CarteraActivaProvider>
         </OfflineProvider>
       </SessionProvider>
     </SafeAreaProvider>
@@ -77,9 +77,9 @@ export default function App() {
 }
 
 function RootContent() {
-  const { cobrador } = useSession();
+  const { gestor } = useSession();
   return (
-    <PantallaActivaProvider resetKey={cobrador?.id ?? null}>
+    <PantallaActivaProvider resetKey={gestor?.id ?? null}>
       <StatusBar style="light" />
       <RootNavigator />
     </PantallaActivaProvider>

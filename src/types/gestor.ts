@@ -1,4 +1,4 @@
-import type { CobradorPermisoNombre } from "./cobrador-permisos";
+import type { GestorPermisoNombre } from "./gestor-permisos";
 import type { TipoDocumento } from "../domain/tipo-documento";
 
 export type ColorRiesgo = "azul" | "rojo" | "blanco";
@@ -14,13 +14,13 @@ export interface PerfilPublic {
   apellido: string;
 }
 
-export interface CobradorPermisoEstado {
-  permiso: CobradorPermisoNombre;
+export interface GestorPermisoEstado {
+  permiso: GestorPermisoNombre;
   habilitado: boolean;
 }
 
-export interface RutaConfigPublic {
-  rutaId: number;
+export interface CarteraConfigPublic {
+  carteraId: number;
   cuotasMinimasPrestamo: number;
   cuotasAtrasoUmbral: number;
   manejoCupoActivo: boolean;
@@ -55,17 +55,17 @@ export interface RutaConfigPublic {
   umbralMoraNotificacion: number;
 }
 
-export interface RutaApkPublic {
+export interface CarteraApkPublic {
   id: number;
   nombre: string;
   estatus: string;
   tipoInteres: number;
   numCuotas: number;
-  config: RutaConfigPublic;
-  permisos: CobradorPermisoEstado[];
+  config: CarteraConfigPublic;
+  permisos: GestorPermisoEstado[];
 }
 
-export interface ClienteDiaPublic {
+export interface ClienteTrayectoDiarioPublic {
   clienteId: number;
   nombre: string;
   enTrayecto: boolean;
@@ -85,7 +85,7 @@ export type Trayecto = ParadaGeo[];
 
 export interface TrayectoPublic {
   id: number;
-  rutaId: number;
+  carteraId: number;
   fecha: string;
   ordenClientes: Trayecto[];
   waypoints: { latitud: number; longitud: number }[];
@@ -94,14 +94,14 @@ export interface TrayectoPublic {
   tipo: TipoTrayecto;
 }
 
-export interface DiaApkPublic {
-  clientes: ClienteDiaPublic[];
+export interface TrayectoDiarioApkPublic {
+  clientes: ClienteTrayectoDiarioPublic[];
   trayectos: TrayectoPublic | null;
 }
 
 export interface VisitaPublic {
   id: number;
-  rutaId: number;
+  carteraId: number;
   clienteId: number;
   prestamoPrincipalId: number;
   fecha: string;
@@ -117,12 +117,12 @@ export interface GastoEvidenciaPublic {
   nombreOriginal: string;
   mimetype: string;
   tamaño: number;
-  rutaArchivo: string;
+  carteraArchivo: string;
 }
 
 export interface GastoPublic {
   id: number;
-  rutaId: number;
+  carteraId: number;
   descripcion: string;
   valor: number;
   aprobado: boolean;
@@ -134,7 +134,7 @@ export interface GastoPublic {
 
 export interface ClienteTarjetaPublic {
   clienteId: number;
-  rutaId: number;
+  carteraId: number;
   nombre: string;
   negocio: string | null;
   telefonoWhatsapp: string;
@@ -155,9 +155,9 @@ export interface ClienteTarjetaPublic {
   diasMora: number;
 }
 
-export interface RutaNotaPublic {
+export interface CarteraNotaPublic {
   id: number;
-  rutaId: number;
+  carteraId: number;
   nota: string;
   creadoPorRol: string;
   creadoPorId: number;
@@ -176,8 +176,8 @@ export interface EstadisticasConteosPublic {
   clientesNuevos: number;
 }
 
-export interface EstadisticasRutaPublic {
-  rutaId: number;
+export interface EstadisticasCarteraPublic {
+  carteraId: number;
   fecha: string;
   actual: EstadisticasConteosPublic;
   anterior: EstadisticasConteosPublic | null;
@@ -199,9 +199,9 @@ export interface CrearClienteInput {
   numeroDocumento: string;
 }
 
-export interface ClienteCobradorPublic {
+export interface ClienteGestorPublic {
   id: number;
-  rutaId: number;
+  carteraId: number;
   nombre: string;
   apellido: string;
   negocio: string | null;
@@ -232,7 +232,7 @@ export interface CuotaPublic {
 
 export interface PrestamoPublic {
   id: number;
-  rutaId: number;
+  carteraId: number;
   clienteId: number;
   valor: number;
   numCuotas: number;
@@ -290,7 +290,7 @@ export interface ItemLiquidacionDetalle {
 
 export interface LiquidacionPublic {
   id: number;
-  rutaId: number;
+  carteraId: number;
   fecha: string;
   periodo: string;
   cajaAnterior: number;
@@ -322,7 +322,7 @@ export interface CuotaEstado {
 
 export interface EstadoCuentaPrestamoPublic {
   prestamoId: number;
-  rutaId: number;
+  carteraId: number;
   clienteId: number;
   nombreCliente: string;
   valor: number;

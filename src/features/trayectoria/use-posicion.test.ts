@@ -12,7 +12,7 @@ const locMock = Location as jest.Mocked<typeof Location>;
 
 function apiMock() {
   return {
-    registrarPosicion: jest.fn().mockResolvedValue({ rutaId: 6 }),
+    registrarPosicion: jest.fn().mockResolvedValue({ carteraId: 6 }),
   };
 }
 
