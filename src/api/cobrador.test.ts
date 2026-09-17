@@ -47,6 +47,14 @@ describe("cobradorApi", () => {
     expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/dia");
   });
 
+  it("estadisticasRuta llama a GET /cobrador/rutas/:id/estadisticas", async () => {
+    request.mockResolvedValue({ rutaId: 6, actual: {} });
+
+    await api.estadisticasRuta(6);
+
+    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/estadisticas");
+  });
+
   it("registrarVisitaPago hace POST con el input", async () => {
     request.mockResolvedValue({ id: 1 });
 
