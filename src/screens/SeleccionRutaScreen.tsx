@@ -46,6 +46,7 @@ export function SeleccionRutaScreen({
   const [kpis, setKpis] = useState<Record<number, RutaKpi>>({});
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
+  const [reintentandoSync, setReintentandoSync] = useState(false);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -88,6 +89,17 @@ export function SeleccionRutaScreen({
     setRefrescando(true);
     await cargar();
     setRefrescando(false);
+  }
+
+  async function reintentarSync() {
+    setReintentandoSync(true);
+    try {
+      await offline.sincronizar();
+    } catch {
+      // El mensaje se mantiene en el aviso (offline.errorSync).
+    } finally {
+      setReintentandoSync(false);
+    }
   }
 
   function seleccionarRuta(ruta: RutaApkPublic) {
@@ -133,6 +145,16 @@ export function SeleccionRutaScreen({
       {offline.errorSync ? (
         <View testID="aviso-error-sync" style={styles.avisoErrorSync}>
           <Text style={styles.avisoErrorSyncTexto}>{offline.errorSync}</Text>
+          <Pressable
+            testID="btn-reintentar-sync"
+            style={styles.reintentar}
+            disabled={reintentandoSync}
+            onPress={() => void reintentarSync()}
+          >
+            <Text style={styles.reintentarTexto}>
+              {reintentandoSync ? "Reintentando…" : "Reintentar"}
+            </Text>
+          </Pressable>
         </View>
       ) : null}
 
@@ -247,6 +269,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
+  reintentar: { marginTop: 6, alignSelf: "flex-start" },
+  reintentarTexto: { color: "#b91c1c", fontWeight: "700", fontSize: 13 },
   avisoErrorSyncTexto: { color: "#991b1b", fontSize: 13, fontWeight: "600" },
   lista: { padding: 16, gap: 12, paddingBottom: 72 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },

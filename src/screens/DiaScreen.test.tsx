@@ -913,4 +913,22 @@ describe("DiaScreen — liquidación del día", () => {
     await waitFor(() => expect(shareAsync).toHaveBeenCalled());
     expect(File).toHaveBeenCalled();
   });
+
+  it("deshabilita la descarga del PDF sin conexión", async () => {
+    const { getByTestId } = await renderConApi(
+      {
+        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        listarLiquidaciones: jest.fn().mockResolvedValue([liquidacionFixture]),
+      },
+      { ...offlineValor, isOnline: false },
+      { generarReportesApk: true },
+    );
+
+    await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-liquidacion"));
+    await waitFor(() => expect(getByTestId("descargar-pdf")).toBeTruthy());
+
+    expect(getByTestId("descargar-pdf")).toBeDisabled();
+    expect(getByTestId("pdf-requiere-conexion")).toBeTruthy();
+  });
 });

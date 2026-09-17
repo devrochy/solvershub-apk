@@ -51,6 +51,7 @@ async function renderConRutas(
   api: Partial<SessionValue["api"]>,
   setRutaActiva: jest.Mock = jest.fn(),
   onRutaSeleccionada: jest.Mock = jest.fn(),
+  offlineValue: OfflineValue = offline,
 ) {
   const valor: SessionValue = {
     cobrador: {
@@ -67,7 +68,7 @@ async function renderConRutas(
     actualizarPerfil: jest.fn(),
   };
   return render(
-    <OfflineContext.Provider value={offline}>
+    <OfflineContext.Provider value={offlineValue}>
       <SessionContext.Provider value={valor}>
         <RutaActivaContext.Provider value={{ rutaActiva: null, setRutaActiva }}>
           <SeleccionRutaScreen onRutaSeleccionada={onRutaSeleccionada} />
@@ -249,5 +250,23 @@ describe("SeleccionRutaScreen — selección de ruta", () => {
       backgroundColor: "#fee2e2",
     });
     expect(getByTestId("color-badge-rojo")).toBeTruthy();
+  });
+});
+describe("SeleccionRutaScreen — reintento de sincronización", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("muestra el aviso con botón Reintentar y reintenta el sync", async () => {
+    const sincronizar = jest.fn().mockResolvedValue(undefined);
+    const { getByTestId } = await renderConRutas(
+      apiConRuta(),
+      jest.fn(),
+      jest.fn(),
+      { ...offline, errorSync: "No se pudo sincronizar.", sincronizar },
+    );
+
+    await waitFor(() => expect(getByTestId("aviso-error-sync")).toBeTruthy());
+    await fireEvent.press(getByTestId("btn-reintentar-sync"));
+
+    await waitFor(() => expect(sincronizar).toHaveBeenCalled());
   });
 });

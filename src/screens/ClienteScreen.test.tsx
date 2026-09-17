@@ -1534,3 +1534,21 @@ describe("ClienteScreen — flags de ruta (captura)", () => {
     expect(getByTestId("prestamo-interes").props.editable).toBe(true);
   });
 });
+
+describe("ClienteScreen — requiere conexión", () => {
+  it("deshabilita registrar préstamo sin conexión y lo explica", async () => {
+    const { getByTestId } = await renderConApi({}, { ...offlineValor, isOnline: false });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
+    expect(getByTestId("btn-nuevo-prestamo")).toBeDisabled();
+    expect(getByTestId("prestamos-requiere-conexion")).toBeTruthy();
+  });
+
+  it("habilita registrar préstamo con conexión", async () => {
+    const { getByTestId, queryByTestId } = await renderConApi({});
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
+    expect(getByTestId("btn-nuevo-prestamo")).not.toBeDisabled();
+    expect(queryByTestId("prestamos-requiere-conexion")).toBeNull();
+  });
+});
