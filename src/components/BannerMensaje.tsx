@@ -7,7 +7,7 @@ export interface BannerMensajeProps {
 
 /**
  * Banner de mensaje no bloqueante. Verde para éxito, rojo para error, de modo
- * que el cobrador distinga un "guardado" de un fallo de un vistazo.
+ * que el gestor distinga un "guardado" de un fallo de un vistazo.
  */
 export function BannerMensaje({ texto, tipo }: BannerMensajeProps) {
   const esExito = tipo === "exito";

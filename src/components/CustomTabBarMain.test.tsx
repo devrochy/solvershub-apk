@@ -17,17 +17,17 @@ function propsDe(
       index,
       routes: [
         { key: "perfil", name: "Perfil" },
-        { key: "rutas", name: "Rutas" },
+        { key: "carteras", name: "Carteras" },
         { key: "config", name: "Configuracion" },
       ],
-      routeNames: ["Perfil", "Rutas", "Configuracion"],
+      routeNames: ["Perfil", "Carteras", "Configuracion"],
       key: "tab",
       stale: false,
       type: "tab",
     } as never,
     descriptors: {
       perfil: { options: { title: "Perfil" } } as never,
-      rutas: { options: { title: "Rutas" } } as never,
+      carteras: { options: { title: "Carteras" } } as never,
       config: { options: { title: "Configuración" } } as never,
     },
     navigation: {
@@ -39,7 +39,7 @@ function propsDe(
 }
 
 describe("CustomTabBarMain", () => {
-  it("renderiza Perfil, Rutas (central) y Configuración", async () => {
+  it("renderiza Perfil, Carteras (central) y Configuración", async () => {
     const { getByTestId, getByText } = await render(
       <CustomTabBarMain {...propsDe(1)} />,
     );
@@ -47,10 +47,10 @@ describe("CustomTabBarMain", () => {
     expect(getByTestId("tab-main-Perfil")).toBeTruthy();
     expect(getByTestId("tab-main-central")).toBeTruthy();
     expect(getByTestId("tab-main-Configuracion")).toBeTruthy();
-    expect(getByText("Rutas")).toBeTruthy();
+    expect(getByText("Carteras")).toBeTruthy();
   });
 
-  it("navega a Rutas al tocar el tab central", async () => {
+  it("navega a Carteras al tocar el tab central", async () => {
     const navigate = jest.fn();
     const { getByTestId } = await render(
       <CustomTabBarMain {...propsDe(0, navigate)} />,
@@ -58,7 +58,7 @@ describe("CustomTabBarMain", () => {
 
     await fireEvent.press(getByTestId("tab-main-central"));
 
-    expect(navigate).toHaveBeenCalledWith("Rutas");
+    expect(navigate).toHaveBeenCalledWith("Carteras");
   });
 
   it("navega a Configuración al tocar el lateral derecho", async () => {

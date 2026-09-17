@@ -1,7 +1,7 @@
 import { contarEnMora } from "./contar-en-mora";
-import type { ClienteDiaPublic } from "../types/cobrador";
+import type { ClienteTrayectoDiarioPublic } from "../types/gestor";
 
-function cliente(color: ClienteDiaPublic["color"]): ClienteDiaPublic {
+function cliente(color: ClienteTrayectoDiarioPublic["color"]): ClienteTrayectoDiarioPublic {
   return {
     clienteId: 1,
     nombre: "test-cliente",

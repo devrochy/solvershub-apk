@@ -11,7 +11,7 @@ function token(expSec: number): string {
   const enc = (obj: object) => Buffer.from(JSON.stringify(obj)).toString("base64url");
   return `${enc({ alg: "none" })}.${enc({
     sub: 1,
-    rol: "cobrador",
+    rol: "gestor",
     tipo: "access",
     exp: expSec,
   })}.sig`;
@@ -44,11 +44,11 @@ describe("ApiClient", () => {
     });
     fetchMock.mockResolvedValue(jsonResponse({ ok: true }));
 
-    const result = await client.request<{ ok: boolean }>("/cobrador/mis-rutas");
+    const result = await client.request<{ ok: boolean }>("/gestor/mis-carteras");
 
     expect(result).toEqual({ ok: true });
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:3000/cobrador/mis-rutas",
+      "http://localhost:3000/gestor/mis-carteras",
       expect.objectContaining({
         method: "GET",
         headers: expect.objectContaining({ Authorization: `Bearer ${vigente()}` }),
@@ -63,7 +63,7 @@ describe("ApiClient", () => {
     });
     fetchMock.mockResolvedValue(new Response("Acceso denegado", { status: 403 }));
 
-    await expect(client.request("/cobrador/rutas/1/dia")).rejects.toMatchObject({
+    await expect(client.request("/gestor/carteras/1/trayecto-diario")).rejects.toMatchObject({
       status: 403,
     });
   });
@@ -80,7 +80,7 @@ describe("ApiClient", () => {
     );
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
 
-    const result = await client.request<{ ok: boolean }>("/cobrador/mis-rutas");
+    const result = await client.request<{ ok: boolean }>("/gestor/mis-carteras");
 
     expect(gateway.saveTokens).toHaveBeenCalledWith({
       accessToken: "a2",
@@ -103,7 +103,7 @@ describe("ApiClient", () => {
       )
       .mockResolvedValueOnce(jsonResponse({ ok: true }));
 
-    const result = await client.request<{ ok: boolean }>("/cobrador/mis-rutas");
+    const result = await client.request<{ ok: boolean }>("/gestor/mis-carteras");
 
     expect(gateway.saveTokens).toHaveBeenCalled();
     expect(result).toEqual({ ok: true });
@@ -118,7 +118,7 @@ describe("ApiClient", () => {
       .mockResolvedValueOnce(jsonResponse({ mensaje: "no" }, 401))
       .mockResolvedValueOnce(jsonResponse({ mensaje: "refresh inválido" }, 401));
 
-    await expect(client.request("/cobrador/mis-rutas")).rejects.toMatchObject({
+    await expect(client.request("/gestor/mis-carteras")).rejects.toMatchObject({
       status: 401,
     });
     expect(gateway.clear).toHaveBeenCalled();
@@ -127,7 +127,7 @@ describe("ApiClient", () => {
   it("lanza 401 si no hay sesión guardada", async () => {
     (gateway.getTokens as jest.Mock).mockResolvedValue(null);
 
-    await expect(client.request("/cobrador/mis-rutas")).rejects.toMatchObject({
+    await expect(client.request("/gestor/mis-carteras")).rejects.toMatchObject({
       status: 401,
     });
     expect(fetchMock).not.toHaveBeenCalled();
@@ -145,11 +145,11 @@ describe("ApiClient", () => {
         }),
       );
 
-      const bytes = await client.requestBytes("/cobrador/rutas/6/liquidaciones/1/export-pdf");
+      const bytes = await client.requestBytes("/gestor/carteras/6/liquidaciones/1/export-pdf");
 
       expect(Array.from(bytes)).toEqual([37, 80, 68, 70]);
       expect(fetchMock).toHaveBeenCalledWith(
-        "http://localhost:3000/cobrador/rutas/6/liquidaciones/1/export-pdf",
+        "http://localhost:3000/gestor/carteras/6/liquidaciones/1/export-pdf",
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: expect.any(String) }),
         }),

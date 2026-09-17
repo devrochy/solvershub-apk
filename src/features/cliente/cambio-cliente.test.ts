@@ -1,4 +1,4 @@
-import { ClienteTarjetaPublic } from "../../types/cobrador";
+import { ClienteTarjetaPublic } from "../../types/gestor";
 import {
   cambioClientePayload,
   camposCambiados,
@@ -8,7 +8,7 @@ import {
 
 const tarjeta: ClienteTarjetaPublic = {
   clienteId: 7,
-  rutaId: 6,
+  carteraId: 6,
   nombre: "Juan",
   negocio: "Tienda",
   telefonoWhatsapp: "+59170000001",

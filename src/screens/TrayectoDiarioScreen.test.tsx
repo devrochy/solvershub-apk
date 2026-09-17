@@ -1,12 +1,12 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { BackHandler } from "react-native";
-import { DiaScreen } from "./DiaScreen";
+import { TrayectoDiarioScreen } from "./TrayectoDiarioScreen";
 import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
-import { RutaActivaContext } from "../session/ruta-activa-context";
-import type { CobradorPermisoEstado } from "../types/cobrador";
+import { CarteraActivaContext } from "../session/cartera-activa-context";
+import type { GestorPermisoEstado } from "../types/gestor";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import * as useEvidenciasModule from "../features/gastos/use-evidencias";
 
@@ -70,8 +70,8 @@ import { abrirNavegacion, coordenadaDeCliente } from "../features/navegacion/nav
 import { useTrayectoria } from "../features/trayectoria/use-trayectoria";
 
 jest.mock("../offline/cache", () => ({
-  guardarDia: jest.fn().mockResolvedValue(undefined),
-  leerDia: jest.fn().mockResolvedValue(null),
+  guardarTrayectoDiario: jest.fn().mockResolvedValue(undefined),
+  leerTrayectoDiario: jest.fn().mockResolvedValue(null),
   guardarCliente: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -119,14 +119,14 @@ async function renderConApi(
   api: Partial<SessionValue["api"]>,
   offline = offlineValor,
   config: Record<string, unknown> = {},
-  permisos?: CobradorPermisoEstado[],
+  permisos?: GestorPermisoEstado[],
 ) {
   const valor: SessionValue = {
-    cobrador: { id: 20, usuario: "cobrador1", nombre: "C", apellido: "L", rol: "cobrador" },
+    gestor: { id: 20, usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
     loading: false,
     api: {
-      dia: jest.fn().mockResolvedValue({ clientes: [], trayectos: null }),
-      registrarApertura: jest.fn().mockResolvedValue({ id: 1, rutaId: 6 }),
+      trayectoDiario: jest.fn().mockResolvedValue({ clientes: [], trayectos: null }),
+      registrarApertura: jest.fn().mockResolvedValue({ id: 1, carteraId: 6 }),
       ...api,
     } as SessionValue["api"],
     login: jest.fn(),
@@ -138,22 +138,22 @@ async function renderConApi(
       <TrayectosOverlayProvider>
         <OfflineContext.Provider value={offline}>
           <SessionContext.Provider value={valor}>
-            <RutaActivaContext.Provider
+            <CarteraActivaContext.Provider
               value={{
-                rutaActiva: {
-                  rutaId: 6,
-                  rutaNombre: "Ruta",
+                carteraActiva: {
+                  carteraId: 6,
+                  carteraNombre: "Cartera",
                   tipoInteres: 20,
                   numCuotas: 8,
                   config: config as never,
                   permisos,
                 },
-                setRutaActiva: jest.fn(),
+                setCarteraActiva: jest.fn(),
               }}
             >
-              <DiaScreen />
+              <TrayectoDiarioScreen />
               <OverlaysActivos />
-            </RutaActivaContext.Provider>
+            </CarteraActivaContext.Provider>
           </SessionContext.Provider>
         </OfflineContext.Provider>
       </TrayectosOverlayProvider>
@@ -161,7 +161,7 @@ async function renderConApi(
   );
 }
 
-describe("DiaScreen — gasto offline", () => {
+describe("TrayectoDiarioScreen — gasto offline", () => {
   it("encola el gasto en la cola offline cuando hay error de red", async () => {
     const encolar = jest.fn().mockResolvedValue(undefined);
     const offlineConError: OfflineValue = { ...offlineValor, encolar };
@@ -258,25 +258,25 @@ describe("DiaScreen — gasto offline", () => {
   });
 });
 
-describe("DiaScreen — cache del día", () => {
-  const dia = {
+describe("TrayectoDiarioScreen — cache del día", () => {
+  const trayectoDiario = {
     clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
     trayectos: null,
   };
 
   it("guarda el snapshot del día al cargar online", async () => {
-    (cache.guardarDia as jest.Mock).mockResolvedValue(undefined);
-    await renderConApi({ dia: jest.fn().mockResolvedValue(dia) });
+    (cache.guardarTrayectoDiario as jest.Mock).mockResolvedValue(undefined);
+    await renderConApi({ trayectoDiario: jest.fn().mockResolvedValue(trayectoDiario) });
 
     await waitFor(() =>
-      expect(cache.guardarDia).toHaveBeenCalledWith(6, dia),
+      expect(cache.guardarTrayectoDiario).toHaveBeenCalledWith(6, trayectoDiario),
     );
   });
 
   it("lee el cache y muestra los clientes + aviso en error de red", async () => {
-    (cache.leerDia as jest.Mock).mockResolvedValue(dia);
+    (cache.leerTrayectoDiario as jest.Mock).mockResolvedValue(trayectoDiario);
     const { getByTestId, getByText } = await renderConApi({
-      dia: jest.fn().mockRejectedValue(new Error("Network request failed")),
+      trayectoDiario: jest.fn().mockRejectedValue(new Error("Network request failed")),
     });
 
     await waitFor(() => expect(getByText("Juan")).toBeTruthy());
@@ -284,9 +284,9 @@ describe("DiaScreen — cache del día", () => {
   });
 
   it("muestra error si no hay red ni cache", async () => {
-    (cache.leerDia as jest.Mock).mockResolvedValue(null);
+    (cache.leerTrayectoDiario as jest.Mock).mockResolvedValue(null);
     const { getByText } = await renderConApi({
-      dia: jest.fn().mockRejectedValue(new Error("Network request failed")),
+      trayectoDiario: jest.fn().mockRejectedValue(new Error("Network request failed")),
     });
 
     await waitFor(() =>
@@ -295,13 +295,13 @@ describe("DiaScreen — cache del día", () => {
   });
 
   it("precachea tarjeta y préstamos de cada cliente del día", async () => {
-    (cache.guardarDia as jest.Mock).mockResolvedValue(undefined);
+    (cache.guardarTrayectoDiario as jest.Mock).mockResolvedValue(undefined);
     const clientes = [
       { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
     ];
     const api = {
-      dia: jest.fn().mockResolvedValue({ clientes, trayectos: null }),
+      trayectoDiario: jest.fn().mockResolvedValue({ clientes, trayectos: null }),
       tarjeta: jest.fn().mockResolvedValue({ clienteId: 1 }),
       listarPrestamosDeCliente: jest.fn().mockResolvedValue([]),
     };
@@ -322,20 +322,20 @@ describe("DiaScreen — cache del día", () => {
   });
 });
 
-describe("DiaScreen — navegación externa", () => {
+describe("TrayectoDiarioScreen — navegación externa", () => {
   it("muestra el botón 'Cómo llegar' cuando el cliente tiene coordenadas en el trayecto", async () => {
     (coordenadaDeCliente as jest.Mock).mockReturnValue({
       latitud: -17.78,
       longitud: -63.18,
     });
-    const dia = {
+    const trayectoDiario = {
       clientes: [
         { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
-      trayectos: { id: 1, rutaId: 6, fecha: "2026-09-02", ordenClientes: [], waypoints: [], distanciaEstimadaKm: 1, tiempoEstimadoMin: 1, tipo: "planificada" },
+      trayectos: { id: 1, carteraId: 6, fecha: "2026-09-02", ordenClientes: [], waypoints: [], distanciaEstimadaKm: 1, tiempoEstimadoMin: 1, tipo: "planificada" },
     };
     const { getByTestId } = await renderConApi({
-      dia: jest.fn().mockResolvedValue(dia),
+      trayectoDiario: jest.fn().mockResolvedValue(trayectoDiario),
     });
 
     await waitFor(() => expect(getByTestId("llegar-1")).toBeTruthy());
@@ -345,14 +345,14 @@ describe("DiaScreen — navegación externa", () => {
 
   it("NO muestra el botón si el cliente no tiene coordenadas", async () => {
     (coordenadaDeCliente as jest.Mock).mockReturnValue(null);
-    const dia = {
+    const trayectoDiario = {
       clientes: [
         { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: null,
     };
     const { queryByTestId } = await renderConApi({
-      dia: jest.fn().mockResolvedValue(dia),
+      trayectoDiario: jest.fn().mockResolvedValue(trayectoDiario),
     });
 
     await waitFor(() => expect(queryByTestId("cliente-1")).toBeTruthy());
@@ -360,7 +360,7 @@ describe("DiaScreen — navegación externa", () => {
   });
 });
 
-describe("DiaScreen — re-fetch periódico (día en vivo)", () => {
+describe("TrayectoDiarioScreen — re-fetch periódico (día en vivo)", () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => {
     jest.useRealTimers();
@@ -368,25 +368,25 @@ describe("DiaScreen — re-fetch periódico (día en vivo)", () => {
   });
 
   it("recarga la lista del día automáticamente al pasar el intervalo", async () => {
-    const dia = jest.fn().mockResolvedValue({
+    const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
-    const { getByText } = await renderConApi({ dia });
+    const { getByText } = await renderConApi({ trayectoDiario });
 
     await waitFor(() => expect(getByText("Juan")).toBeTruthy());
-    expect(dia).toHaveBeenCalledTimes(1);
+    expect(trayectoDiario).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       jest.advanceTimersByTime(30000);
     });
-    await waitFor(() => expect(dia).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(trayectoDiario).toHaveBeenCalledTimes(2));
   });
 });
 
-describe("DiaScreen — apertura de ruta", () => {
-  it("registra la apertura de la ruta al montar la pantalla", async () => {
-    const registrarApertura = jest.fn().mockResolvedValue({ id: 1, rutaId: 6 });
+describe("TrayectoDiarioScreen — apertura de cartera", () => {
+  it("registra la apertura de la cartera al montar la pantalla", async () => {
+    const registrarApertura = jest.fn().mockResolvedValue({ id: 1, carteraId: 6 });
     await renderConApi({ registrarApertura });
 
     await waitFor(() =>
@@ -395,7 +395,7 @@ describe("DiaScreen — apertura de ruta", () => {
   });
 });
 
-describe("DiaScreen — trayectoria offline", () => {
+describe("TrayectoDiarioScreen — trayectoria offline", () => {
   it("encola la trayectoria cuando el envío falla por red", async () => {
     const encolar = jest.fn().mockResolvedValue(undefined);
     const offlineConError: OfflineValue = { ...offlineValor, encolar };
@@ -430,14 +430,14 @@ describe("DiaScreen — trayectoria offline", () => {
   });
 });
 
-describe("DiaScreen — gating de la lista del día", () => {
+describe("TrayectoDiarioScreen — gating de la lista del día", () => {
   it("bloquea la lista y permite generar el trayecto si no existe", async () => {
-    const dia = jest.fn().mockResolvedValue({
+    const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
     const generarTrayecto = jest.fn().mockResolvedValue([]);
-    const { getByTestId } = await renderConApi({ dia, generarTrayecto });
+    const { getByTestId } = await renderConApi({ trayectoDiario, generarTrayecto });
 
     await waitFor(() => expect(getByTestId("generar-trayecto")).toBeTruthy());
     expect(getByTestId("cliente-1").props.accessibilityState.disabled).toBe(true);
@@ -447,16 +447,16 @@ describe("DiaScreen — gating de la lista del día", () => {
   });
 });
 
-describe("DiaScreen — ver trayectos generados", () => {
+describe("TrayectoDiarioScreen — ver trayectos generados", () => {
   it("abre la lista de trayectos desde el botón y muestra las paradas en orden", async () => {
-    const dia = jest.fn().mockResolvedValue({
+    const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [
         { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
         { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
         id: 1,
-        rutaId: 6,
+        carteraId: 6,
         fecha: "2026-09-02",
         ordenClientes: [
           [
@@ -470,7 +470,7 @@ describe("DiaScreen — ver trayectos generados", () => {
         tipo: "planificada",
       },
     });
-    const { getByTestId, getByText } = await renderConApi({ dia });
+    const { getByTestId, getByText } = await renderConApi({ trayectoDiario });
 
     await waitFor(() => expect(getByTestId("ver-trayectos")).toBeTruthy());
     await fireEvent.press(getByTestId("ver-trayectos"));
@@ -481,13 +481,13 @@ describe("DiaScreen — ver trayectos generados", () => {
   });
 
   it("la capa de trayectos se cierra con gesto swipe (handlers del responder)", async () => {
-    const dia = jest.fn().mockResolvedValue({
+    const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [
         { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
         id: 1,
-        rutaId: 6,
+        carteraId: 6,
         fecha: "2026-09-02",
         ordenClientes: [[{ clienteId: 1, latitud: -17.78, longitud: -63.18 }]],
         waypoints: [],
@@ -496,7 +496,7 @@ describe("DiaScreen — ver trayectos generados", () => {
         tipo: "planificada",
       },
     });
-    const { getByTestId } = await renderConApi({ dia });
+    const { getByTestId } = await renderConApi({ trayectoDiario });
 
     await waitFor(() => expect(getByTestId("ver-trayectos")).toBeTruthy());
     await fireEvent.press(getByTestId("ver-trayectos"));
@@ -512,14 +512,14 @@ describe("DiaScreen — ver trayectos generados", () => {
     expect(props.onResponderTerminate).toBeDefined();
   });
 
-  it("el back físico de Android NO lo gestiona DiaScreen (lo hace InicioCobrador)", async () => {
-    const dia = jest.fn().mockResolvedValue({
+  it("el back físico de Android NO lo gestiona TrayectoDiarioScreen (lo hace InicioGestor)", async () => {
+    const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [
         { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
         id: 1,
-        rutaId: 6,
+        carteraId: 6,
         fecha: "2026-09-02",
         ordenClientes: [[{ clienteId: 1, latitud: -17.78, longitud: -63.18 }]],
         waypoints: [],
@@ -529,31 +529,31 @@ describe("DiaScreen — ver trayectos generados", () => {
       },
     });
     const spy = jest.spyOn(BackHandler, "addEventListener");
-    const { getByTestId } = await renderConApi({ dia });
+    const { getByTestId } = await renderConApi({ trayectoDiario });
 
     await waitFor(() => expect(getByTestId("ver-trayectos")).toBeTruthy());
     await fireEvent.press(getByTestId("ver-trayectos"));
     await waitFor(() => expect(getByTestId("trayectos-overlay")).toBeTruthy());
 
-    // DiaScreen ya no registra handler de back; el overlay lo cierra la capa host.
+    // TrayectoDiarioScreen ya no registra handler de back; el overlay lo cierra la capa host.
     expect(
       spy.mock.calls.some(([evento]) => evento === "hardwareBackPress"),
     ).toBe(false);
   });
 
   it("no muestra el botón de trayectos si no hay trayecto generado", async () => {
-    const dia = jest.fn().mockResolvedValue({
+    const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
-    const { queryByTestId } = await renderConApi({ dia });
+    const { queryByTestId } = await renderConApi({ trayectoDiario });
 
     await waitFor(() => expect(queryByTestId("generar-trayecto")).toBeTruthy());
     expect(queryByTestId("ver-trayectos")).toBeNull();
   });
 });
 
-describe("DiaScreen — cobros del día", () => {
+describe("TrayectoDiarioScreen — cobros del día", () => {
   it("muestra el header 'Cobros del día' con el botón '+ Gastos'", async () => {
     const { getByTestId, getByText } = await renderConApi({});
 
@@ -564,7 +564,7 @@ describe("DiaScreen — cobros del día", () => {
 
   it("muestra los días de mora y el compromiso de pago del día en cada cliente", async () => {
     const { getByTestId, getByText, queryByTestId } = await renderConApi({
-      dia: jest.fn().mockResolvedValue({
+      trayectoDiario: jest.fn().mockResolvedValue({
         clientes: [
           { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 5, compromisoValor: null },
           { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: 300 },
@@ -582,7 +582,7 @@ describe("DiaScreen — cobros del día", () => {
 
   it("muestra la barra de acento semántica según el estado del cliente", async () => {
     const { getByTestId } = await renderConApi({
-      dia: jest.fn().mockResolvedValue({
+      trayectoDiario: jest.fn().mockResolvedValue({
         clientes: [
           { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
           { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
@@ -641,13 +641,13 @@ describe("DiaScreen — cobros del día", () => {
       iniciar: jest.fn(),
       detener: jest.fn().mockReturnValue([]),
     });
-    const dia = jest.fn().mockResolvedValue({
+    const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [
         { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
         id: 1,
-        rutaId: 6,
+        carteraId: 6,
         fecha: "2026-09-02",
         ordenClientes: [
           [{ clienteId: 1, latitud: -17.78, longitud: -63.18 }],
@@ -664,11 +664,11 @@ describe("DiaScreen — cobros del día", () => {
     });
 
     const valor: SessionValue = {
-      cobrador: { id: 20, usuario: "c1", nombre: "C", apellido: "L", rol: "cobrador" },
+      gestor: { id: 20, usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" },
       loading: false,
       api: {
-        dia,
-        registrarApertura: jest.fn().mockResolvedValue({ id: 1, rutaId: 6 }),
+        trayectoDiario,
+        registrarApertura: jest.fn().mockResolvedValue({ id: 1, carteraId: 6 }),
       } as unknown as SessionValue["api"],
       login: jest.fn(),
       logout: jest.fn(),
@@ -679,21 +679,21 @@ describe("DiaScreen — cobros del día", () => {
         <TrayectosOverlayProvider>
           <OfflineContext.Provider value={offlineValor}>
             <SessionContext.Provider value={valor}>
-              <RutaActivaContext.Provider
+              <CarteraActivaContext.Provider
                 value={{
-                  rutaActiva: {
-                    rutaId: 6,
-                    rutaNombre: "Ruta",
+                  carteraActiva: {
+                    carteraId: 6,
+                    carteraNombre: "Cartera",
                     tipoInteres: 20,
                     numCuotas: 8,
                     config: {} as never,
                   },
-                  setRutaActiva: jest.fn(),
+                  setCarteraActiva: jest.fn(),
                 }}
               >
-                <DiaScreen />
+                <TrayectoDiarioScreen />
                 <OverlaysActivos />
-              </RutaActivaContext.Provider>
+              </CarteraActivaContext.Provider>
             </SessionContext.Provider>
           </OfflineContext.Provider>
         </TrayectosOverlayProvider>
@@ -706,7 +706,7 @@ describe("DiaScreen — cobros del día", () => {
     await waitFor(() => expect(getByTestId("mock-cliente")).toBeTruthy());
     expect((ClienteScreen as jest.Mock).mock.calls[0][0]).toEqual(
       expect.objectContaining({
-        rutaId: 6,
+        carteraId: 6,
         clienteId: 1,
         prestamoAutoSeleccionado: true,
       }),
@@ -714,14 +714,14 @@ describe("DiaScreen — cobros del día", () => {
   });
 });
 
-describe("DiaScreen — sin ruta activa", () => {
-  it("NO dispara requests con rutaId=0 (dia ni apertura) sin ruta activa", async () => {
-    const dia = jest.fn();
+describe("TrayectoDiarioScreen — sin cartera activa", () => {
+  it("NO dispara requests con carteraId=0 (trayectoDiario ni apertura) sin cartera activa", async () => {
+    const trayectoDiario = jest.fn();
     const registrarApertura = jest.fn();
     const valor: SessionValue = {
-      cobrador: { id: 20, usuario: "c1", nombre: "C", apellido: "L", rol: "cobrador" },
+      gestor: { id: 20, usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" },
       loading: false,
-      api: { dia, registrarApertura } as unknown as SessionValue["api"],
+      api: { trayectoDiario, registrarApertura } as unknown as SessionValue["api"],
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
@@ -731,23 +731,23 @@ describe("DiaScreen — sin ruta activa", () => {
         <TrayectosOverlayProvider>
           <OfflineContext.Provider value={offlineValor}>
             <SessionContext.Provider value={valor}>
-              <RutaActivaContext.Provider
-                value={{ rutaActiva: null, setRutaActiva: jest.fn() }}
+              <CarteraActivaContext.Provider
+                value={{ carteraActiva: null, setCarteraActiva: jest.fn() }}
               >
-                <DiaScreen />
-              </RutaActivaContext.Provider>
+                <TrayectoDiarioScreen />
+              </CarteraActivaContext.Provider>
             </SessionContext.Provider>
           </OfflineContext.Provider>
         </TrayectosOverlayProvider>
       </PantallaActivaProvider>,
     );
 
-    expect(dia).not.toHaveBeenCalled();
+    expect(trayectoDiario).not.toHaveBeenCalled();
     expect(registrarApertura).not.toHaveBeenCalled();
   });
 });
 
-describe("DiaScreen — liquidación del día", () => {
+describe("TrayectoDiarioScreen — liquidación del día", () => {
   const clientesConVisita = [
     { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: true, diasMora: 0, compromisoValor: null },
     { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: true, diasMora: 0, compromisoValor: null },
@@ -760,7 +760,7 @@ describe("DiaScreen — liquidación del día", () => {
 
   const liquidacionFixture = {
     id: 5,
-    rutaId: 6,
+    carteraId: 6,
     fecha: hoyLocal(),
     periodo: "diario",
     cajaAnterior: 1000,
@@ -783,7 +783,7 @@ describe("DiaScreen — liquidación del día", () => {
   it("habilita el botón solo cuando todos los clientes del día tienen visita", async () => {
     const { getByTestId } = await renderConApi(
       {
-        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        trayectoDiario: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
       },
       offlineValor,
       { generarReportesApk: true },
@@ -796,7 +796,7 @@ describe("DiaScreen — liquidación del día", () => {
   it("bloquea el botón si algún cliente no tiene visita", async () => {
     const { getByTestId } = await renderConApi(
       {
-        dia: jest.fn().mockResolvedValue({
+        trayectoDiario: jest.fn().mockResolvedValue({
           clientes: [{ ...clientesConVisita[0], visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
           trayectos: null,
         }),
@@ -811,7 +811,7 @@ describe("DiaScreen — liquidación del día", () => {
 
   it("oculta el botón de liquidación si falta el permiso generar_reporte", async () => {
     const { queryByTestId } = await renderConApi(
-      { dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }) },
+      { trayectoDiario: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }) },
       offlineValor,
       { generarReportesApk: true },
       [{ permiso: "generar_reporte", habilitado: false }],
@@ -825,7 +825,7 @@ describe("DiaScreen — liquidación del día", () => {
     const generarLiquidacion = jest.fn().mockResolvedValue(liquidacionFixture);
     const { getByTestId, getByText, getAllByText } = await renderConApi(
       {
-        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        trayectoDiario: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
         listarLiquidaciones: jest.fn().mockResolvedValue([]),
         generarLiquidacion,
       },
@@ -845,10 +845,10 @@ describe("DiaScreen — liquidación del día", () => {
     expect(getByTestId("descargar-pdf")).toBeTruthy();
   });
 
-  it("oculta caja, estimado, cobrado y cartera según la configuración de la ruta", async () => {
+  it("oculta caja, estimado, cobrado y cartera según la configuración de la cartera", async () => {
     const { getByTestId, queryByText } = await renderConApi(
       {
-        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        trayectoDiario: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
         listarLiquidaciones: jest.fn().mockResolvedValue([liquidacionFixture]),
       },
       offlineValor,
@@ -875,7 +875,7 @@ describe("DiaScreen — liquidación del día", () => {
   it("muestra caja, estimado, cobrado y cartera por defecto", async () => {
     const { getByTestId, getByText } = await renderConApi(
       {
-        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        trayectoDiario: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
         listarLiquidaciones: jest.fn().mockResolvedValue([liquidacionFixture]),
       },
       offlineValor,
@@ -897,7 +897,7 @@ describe("DiaScreen — liquidación del día", () => {
     (shareAsync as jest.Mock).mockClear();
     const { getByTestId } = await renderConApi(
       {
-        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        trayectoDiario: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
         listarLiquidaciones: jest.fn().mockResolvedValue([liquidacionFixture]),
         exportarLiquidacionPdf: jest.fn().mockResolvedValue(new Uint8Array([37, 80, 68, 70])),
       },
@@ -917,7 +917,7 @@ describe("DiaScreen — liquidación del día", () => {
   it("deshabilita la descarga del PDF sin conexión", async () => {
     const { getByTestId } = await renderConApi(
       {
-        dia: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        trayectoDiario: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
         listarLiquidaciones: jest.fn().mockResolvedValue([liquidacionFixture]),
       },
       { ...offlineValor, isOnline: false },

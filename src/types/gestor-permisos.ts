@@ -1,10 +1,10 @@
-export const COBRADOR_PERMISOS = [
+export const GESTOR_PERMISOS = [
   "registrar_prestamo",
   "registrar_pago",
   "registrar_abono",
   "registrar_gasto",
   "registrar_no_pago",
-  "anotar_notas_ruta",
+  "anotar_notas_cartera",
   "actualizar_cliente",
   "eliminar_prestamo",
   "eliminar_pago",
@@ -13,7 +13,7 @@ export const COBRADOR_PERMISOS = [
   "registrar_inyeccion",
   "ver_cartera",
   "generar_reporte",
-  "actualizar_ruta",
+  "actualizar_cartera",
 ] as const;
 
-export type CobradorPermisoNombre = (typeof COBRADOR_PERMISOS)[number];
+export type GestorPermisoNombre = (typeof GESTOR_PERMISOS)[number];

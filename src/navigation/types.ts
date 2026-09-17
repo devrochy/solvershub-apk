@@ -1,25 +1,25 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
 
-/** Tabs del flujo de ruta (a pantalla completa, sin menú principal). */
+/** Tabs del flujo de cartera (a pantalla completa, sin menú principal). */
 export type RootTabParamList = {
-  Ruta: undefined;
-  Dia: undefined;
+  Cartera: undefined;
+  TrayectoDiario: undefined;
   Clientes: undefined;
 };
 
 /** Tabs principales de la app (menú inferior). */
 export type MainTabParamList = {
   Perfil: undefined;
-  Rutas: undefined;
+  Carteras: undefined;
   Configuracion: undefined;
 };
 
 export type RootStackParamList = {
   Login: undefined;
   Main: NavigatorScreenParams<MainTabParamList> | undefined;
-  Ruta: undefined;
+  Cartera: undefined;
   Cliente: {
-    rutaId: number;
+    carteraId: number;
     clienteId: number;
     nombre: string;
     latitud?: number;
@@ -29,7 +29,7 @@ export type RootStackParamList = {
     prestamoAutoSeleccionado?: boolean;
   };
   Prestamo: {
-    rutaId: number;
+    carteraId: number;
     prestamoId: number;
     clienteNombre: string;
     telefonoWhatsapp: string;

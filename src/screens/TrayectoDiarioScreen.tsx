@@ -30,24 +30,24 @@ import { usePosicion } from "../features/trayectoria/use-posicion";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useTrayectosOverlay } from "../navigation/trayectos-overlay-context";
 import { useOffline } from "../offline/offline-context";
-import { guardarCliente, guardarDia, leerDia } from "../offline/cache";
+import { guardarCliente, guardarTrayectoDiario, leerTrayectoDiario } from "../offline/cache";
 import { clientesAprecargar } from "../offline/precarga";
 import { useSession } from "../session/session-context";
-import { useRutaActiva } from "../session/ruta-activa-context";
-import type { ClienteDiaPublic, LiquidacionPublic, TrayectoPublic } from "../types/cobrador";
+import { useCarteraActiva } from "../session/cartera-activa-context";
+import type { ClienteTrayectoDiarioPublic, LiquidacionPublic, TrayectoPublic } from "../types/gestor";
 
 /** TTL de la precarga offline de clientes (evita re-precargar cada 30s). */
 const PRECARGA_TTL_MS = 5 * 60 * 1000;
 
-export function DiaScreen() {
-  const { rutaActiva } = useRutaActiva();
-  const rutaId = rutaActiva?.rutaId ?? 0;
+export function TrayectoDiarioScreen() {
+  const { carteraActiva } = useCarteraActiva();
+  const carteraId = carteraActiva?.carteraId ?? 0;
   const { abrir: abrirPantallaActiva } = usePantallaActiva();
   const { api, logout } = useSession();
   const offline = useOffline();
   // Cliente → timestamp de su última precarga (throttle con TTL por sesión).
   const precargadosRef = useRef<Map<number, number>>(new Map());
-  const [clientes, setClientes] = useState<ClienteDiaPublic[] | null>(null);
+  const [clientes, setClientes] = useState<ClienteTrayectoDiarioPublic[] | null>(null);
   const [trayectos, setTrayectos] = useState<TrayectoPublic | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
@@ -70,7 +70,7 @@ export function DiaScreen() {
     quitar,
   } = useEvidencias();
   const trayectoria = useTrayectoria();
-  const posicion = usePosicion(api, rutaId, trayectoria.activa, trayectoria.puntos.length);
+  const posicion = usePosicion(api, carteraId, trayectoria.activa, trayectoria.puntos.length);
   const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
   const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
@@ -87,7 +87,7 @@ export function DiaScreen() {
   const [pdfMensaje, setPdfMensaje] = useState<string | null>(null);
 
   const precargarClientes = useCallback(
-    async (clientes: ClienteDiaPublic[]) => {
+    async (clientes: ClienteTrayectoDiarioPublic[]) => {
       // Pre-cache de tarjeta + préstamos de cada cliente del día para que
       // estén disponibles offline. Con TTL para no repetir ~2N requests en cada
       // re-fetch periódico (cada 30s).
@@ -108,10 +108,10 @@ export function DiaScreen() {
         pendientes.map(async (cliente) => {
           try {
             const [t, p] = await Promise.all([
-              api.tarjeta(rutaId, cliente.clienteId),
-              api.listarPrestamosDeCliente(rutaId, cliente.clienteId),
+              api.tarjeta(carteraId, cliente.clienteId),
+              api.listarPrestamosDeCliente(carteraId, cliente.clienteId),
             ]);
-            await guardarCliente(rutaId, cliente.clienteId, {
+            await guardarCliente(carteraId, cliente.clienteId, {
               tarjeta: t,
               prestamos: p,
             });
@@ -121,26 +121,26 @@ export function DiaScreen() {
         }),
       );
     },
-    [api, rutaId],
+    [api, carteraId],
   );
 
   const cargar = useCallback(async () => {
-    if (!rutaId) {
+    if (!carteraId) {
       return;
     }
     setError(null);
     setOfflineCache(false);
     try {
-      const dia = await api.dia(rutaId);
-      setClientes(dia.clientes);
-      setTrayectos(dia.trayectos);
-      await guardarDia(rutaId, dia);
-      void precargarClientes(dia.clientes);
+      const trayectoDiario = await api.trayectoDiario(carteraId);
+      setClientes(trayectoDiario.clientes);
+      setTrayectos(trayectoDiario.trayectos);
+      await guardarTrayectoDiario(carteraId, trayectoDiario);
+      void precargarClientes(trayectoDiario.clientes);
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
       } else if (esErrorDeRed(err)) {
-        const cache = await leerDia(rutaId);
+        const cache = await leerTrayectoDiario(carteraId);
         if (cache) {
           setClientes(cache.clientes);
           setTrayectos(cache.trayectos ?? null);
@@ -152,29 +152,29 @@ export function DiaScreen() {
         setError("No se pudo cargar la lista del día.");
       }
     }
-  }, [api, logout, rutaId, precargarClientes]);
+  }, [api, logout, carteraId, precargarClientes]);
 
   useEffect(() => {
-    if (!rutaId) {
+    if (!carteraId) {
       return;
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
-  }, [cargar, rutaId, offline.versionRecarga]);
+  }, [cargar, carteraId, offline.versionRecarga]);
 
   useEffect(() => {
-    if (!rutaId) {
+    if (!carteraId) {
       return;
     }
-    // Auditoría de apertura de la ruta del día (HU-41): registra el momento y
-    // las coordenadas en que el cobrador abre la ruta. Fire-and-forget.
+    // Auditoría de apertura de la cartera del día (HU-41): registra el momento y
+    // las coordenadas en que el gestor abre la cartera. Fire-and-forget.
     api
-      .registrarApertura(rutaId, {})
+      .registrarApertura(carteraId, {})
       .catch(() => undefined);
-  }, [api, rutaId]);
+  }, [api, carteraId]);
 
   useEffect(() => {
-    if (!rutaId) {
+    if (!carteraId) {
       return;
     }
     // Re-fetch periódico: la lista del día se va actualizando a medida que se
@@ -184,12 +184,12 @@ export function DiaScreen() {
       void cargar();
     }, 30000);
     return () => clearInterval(intervalo);
-  }, [cargar, rutaId]);
+  }, [cargar, carteraId]);
 
   useEffect(() => {
-    // Al cambiar de ruta, permitir precargar de nuevo sus clientes.
+    // Al cambiar de cartera, permitir precargar de nuevo sus clientes.
     precargadosRef.current = new Map();
-  }, [rutaId]);
+  }, [carteraId]);
 
   async function registrarGasto() {
     const valor = Number(gastoValor);
@@ -202,7 +202,7 @@ export function DiaScreen() {
     const input = { descripcion: gastoDescripcion.trim(), valor };
     const evidenciasOffline = evidenciasParaOffline(evidencias);
     try {
-      await api.registrarGasto(rutaId, input, evidencias);
+      await api.registrarGasto(carteraId, input, evidencias);
       setGastoDescripcion("");
       setGastoValor("");
       evidencias.forEach((e) => quitar(e.uri));
@@ -238,12 +238,12 @@ export function DiaScreen() {
   }
 
   async function generarTrayecto() {
-    if (!rutaId) {
+    if (!carteraId) {
       return;
     }
     setGenerandoTrayecto(true);
     try {
-      await api.generarTrayecto(rutaId);
+      await api.generarTrayecto(carteraId);
       await cargar();
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
@@ -265,7 +265,7 @@ export function DiaScreen() {
     setTrayectoriaEnviando(true);
     setTrayectoriaMensaje(null);
     try {
-      await api.registrarTrayectoriaReal(rutaId, { puntos });
+      await api.registrarTrayectoriaReal(carteraId, { puntos });
       setTrayectoriaMensaje("Trayectoria enviada.");
     } catch (err) {
       if (esErrorDeRed(err)) {
@@ -279,10 +279,10 @@ export function DiaScreen() {
     }
   }
 
-  if (!rutaActiva) {
+  if (!carteraActiva) {
     return (
       <View style={styles.contenedor}>
-        <Text style={styles.vacio}>Selecciona una ruta para ver el día.</Text>
+        <Text style={styles.vacio}>Selecciona una cartera para ver el día.</Text>
       </View>
     );
   }
@@ -299,11 +299,11 @@ export function DiaScreen() {
     clientes.length > 0 &&
     clientes.every((cliente) => cliente.visitaRegistrada);
 
-  const permisos = rutaActiva?.permisos;
+  const permisos = carteraActiva?.permisos;
   const tienePermisoReporte =
     !permisos || permisos.some((p) => p.permiso === "generar_reporte" && p.habilitado);
   const liquidacionVisible =
-    Boolean(rutaActiva?.config.generarReportesApk) && tienePermisoReporte;
+    Boolean(carteraActiva?.config.generarReportesApk) && tienePermisoReporte;
 
   async function abrirLiquidacion() {
     setLiquidacionMensaje(null);
@@ -312,7 +312,7 @@ export function DiaScreen() {
     setLiquidacionAbierta(true);
     setLiquidacionCargando(true);
     try {
-      const lista = await api.listarLiquidaciones(rutaId);
+      const lista = await api.listarLiquidaciones(carteraId);
       const ahora = new Date();
       const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-${String(ahora.getDate()).padStart(2, "0")}`;
       const deHoy = lista.find((l) => l.fecha === hoy) ?? null;
@@ -346,7 +346,7 @@ export function DiaScreen() {
     setLiquidacionMensaje(null);
     setLiquidacionMensajeOk(false);
     try {
-      setLiquidacion(await api.generarLiquidacion(rutaId, {}));
+      setLiquidacion(await api.generarLiquidacion(carteraId, {}));
       setLiquidacionMensaje("Liquidación del día generada.");
       setLiquidacionMensajeOk(true);
     } catch (err) {
@@ -379,7 +379,7 @@ export function DiaScreen() {
     setDescargandoPdf(true);
     setPdfMensaje(null);
     try {
-      const bytes = await api.exportarLiquidacionPdf(rutaId, liquidacion.id);
+      const bytes = await api.exportarLiquidacionPdf(carteraId, liquidacion.id);
       const archivo = new File(Paths.cache, `liquidacion-${liquidacion.fecha}.pdf`);
       await archivo.write(bytes);
       await shareAsync(archivo.uri, {
@@ -402,7 +402,7 @@ export function DiaScreen() {
   return (
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
       <HeaderPantalla>
-        <View style={estilosHeader.fila} testID="header-dia">
+        <View style={estilosHeader.fila} testID="header-trayectoDiario">
           <View style={estilosHeader.bloqueTitulo}>
             <Text style={estilosHeader.titulo}>Cobros del día</Text>
             {clientes ? (
@@ -544,7 +544,7 @@ export function DiaScreen() {
               onPress={() =>
                 abrirPantallaActiva({
                   tipo: "cliente",
-                  rutaId,
+                  carteraId,
                   clienteId: item.clienteId,
                   nombre: item.nombre,
                   ...(coords ?? {}),
@@ -678,7 +678,7 @@ export function DiaScreen() {
                     <Text style={styles.liquidacionLinea}>
                       Fecha: {liquidacion.fecha} · Periodo: {liquidacion.periodo}
                     </Text>
-                    {rutaActiva.config.mostrarCaja ?? true ? (
+                    {carteraActiva.config.mostrarCaja ?? true ? (
                       <>
                         <Text style={styles.liquidacionLinea}>
                           Caja anterior: {liquidacion.cajaAnterior}
@@ -688,12 +688,12 @@ export function DiaScreen() {
                         </Text>
                       </>
                     ) : null}
-                    {rutaActiva.config.mostrarCobroEstimado ?? true ? (
+                    {carteraActiva.config.mostrarCobroEstimado ?? true ? (
                       <Text style={styles.liquidacionLinea}>
                         Estimado a cobrar: {liquidacion.estimadoACobrar}
                       </Text>
                     ) : null}
-                    {rutaActiva.config.mostrarCobradoLiquidada ?? true ? (
+                    {carteraActiva.config.mostrarCobradoLiquidada ?? true ? (
                       <Text style={styles.liquidacionLinea}>
                         Total cobrado día: {liquidacion.totalCobradoDia}
                       </Text>
@@ -707,7 +707,7 @@ export function DiaScreen() {
                     <Text style={styles.liquidacionLinea}>
                       Total gastos: {liquidacion.totalGastos}
                     </Text>
-                    {rutaActiva.config.mostrarPrestamos ?? true ? (
+                    {carteraActiva.config.mostrarPrestamos ?? true ? (
                       <Text style={styles.liquidacionLinea}>
                         Suma cartera: {liquidacion.sumaCartera}
                       </Text>

@@ -34,7 +34,7 @@ export interface OfflineValue {
     dedupeKey: string,
   ): Promise<boolean>;
   sincronizar(): Promise<void>;
-  /** Flush de la cola + refetch de datos (rutas/día). */
+  /** Flush de la cola + refetch de datos (carteras/día). */
   sincronizarGeneral(): Promise<void>;
 }
 

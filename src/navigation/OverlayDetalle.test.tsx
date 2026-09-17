@@ -12,18 +12,18 @@ jest.mock("../screens/ClienteScreen", () => {
   };
 });
 
-jest.mock("../screens/RutaDetalleScreen", () => {
+jest.mock("../screens/CarteraDetalleScreen", () => {
   const React = require("react");
   const { View } = require("react-native");
   return {
-    RutaDetalleScreen: jest.fn((props: Record<string, unknown>) =>
-      React.createElement(View, { testID: "mock-ruta" }),
+    CarteraDetalleScreen: jest.fn((props: Record<string, unknown>) =>
+      React.createElement(View, { testID: "mock-cartera" }),
     ),
   };
 });
 
 import { ClienteScreen } from "../screens/ClienteScreen";
-import { RutaDetalleScreen } from "../screens/RutaDetalleScreen";
+import { CarteraDetalleScreen } from "../screens/CarteraDetalleScreen";
 
 describe("OverlayDetalle", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -38,7 +38,7 @@ describe("OverlayDetalle", () => {
   it("renderiza el detalle de cliente cuando la pantalla activa es cliente", async () => {
     const pantalla: PantallaActiva = {
       tipo: "cliente",
-      rutaId: 6,
+      carteraId: 6,
       clienteId: 12,
       nombre: "Juan",
     };
@@ -51,7 +51,7 @@ describe("OverlayDetalle", () => {
   it("le pasa las props de la pantalla al ClienteScreen", async () => {
     const pantalla: PantallaActiva = {
       tipo: "cliente",
-      rutaId: 6,
+      carteraId: 6,
       clienteId: 12,
       nombre: "Juan",
       latitud: -17.78,
@@ -64,7 +64,7 @@ describe("OverlayDetalle", () => {
     const props = (ClienteScreen as jest.Mock).mock.calls[0][0];
     expect(props).toEqual(
       expect.objectContaining({
-        rutaId: 6,
+        carteraId: 6,
         clienteId: 12,
         latitud: -17.78,
         longitud: -63.18,
@@ -80,7 +80,7 @@ describe("OverlayDetalle", () => {
   it("envuelve el detalle con el gesto de cerrar (handlers del responder)", async () => {
     const pantalla: PantallaActiva = {
       tipo: "cliente",
-      rutaId: 6,
+      carteraId: 6,
       clienteId: 12,
       nombre: "Juan",
     };
@@ -98,20 +98,20 @@ describe("OverlayDetalle", () => {
     expect(props.onResponderTerminate).toBeDefined();
   });
 
-  it("renderiza el detalle de ruta cuando la pantalla activa es ruta", async () => {
+  it("renderiza el detalle de cartera cuando la pantalla activa es cartera", async () => {
     const pantalla: PantallaActiva = {
-      tipo: "ruta",
-      rutaId: 6,
-      rutaNombre: "Ruta Centro",
+      tipo: "cartera",
+      carteraId: 6,
+      carteraNombre: "Cartera Centro",
     };
     const { getByTestId } = await render(
       <OverlayDetalle pantalla={pantalla} onCerrar={jest.fn()} />,
     );
-    expect(getByTestId("mock-ruta")).toBeTruthy();
-    expect((RutaDetalleScreen as jest.Mock).mock.calls[0][0]).toEqual(
+    expect(getByTestId("mock-cartera")).toBeTruthy();
+    expect((CarteraDetalleScreen as jest.Mock).mock.calls[0][0]).toEqual(
       expect.objectContaining({
-        rutaId: 6,
-        rutaNombre: "Ruta Centro",
+        carteraId: 6,
+        carteraNombre: "Cartera Centro",
         onCerrar: expect.any(Function),
       }),
     );
@@ -120,7 +120,7 @@ describe("OverlayDetalle", () => {
   it("no renderiza nada para una pantalla de préstamo sin vista propia", async () => {
     const pantalla: PantallaActiva = {
       tipo: "prestamo",
-      rutaId: 6,
+      carteraId: 6,
       prestamoId: 9,
       clienteNombre: "Juan",
       telefonoWhatsapp: "+5917000111",
@@ -131,6 +131,6 @@ describe("OverlayDetalle", () => {
       <OverlayDetalle pantalla={pantalla} onCerrar={jest.fn()} />,
     );
     expect(queryByTestId("mock-cliente")).toBeNull();
-    expect(queryByTestId("mock-ruta")).toBeNull();
+    expect(queryByTestId("mock-cartera")).toBeNull();
   });
 });

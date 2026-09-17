@@ -36,16 +36,16 @@ import {
 } from "../features/cliente/use-evidencias-cliente";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useSession } from "../session/session-context";
-import { useRutaActiva } from "../session/ruta-activa-context";
-import type { ClienteCobradorPublic } from "../types/cobrador";
+import { useCarteraActiva } from "../session/cartera-activa-context";
+import type { ClienteGestorPublic } from "../types/gestor";
 
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
 
 export function ClientesScreen() {
-  const { rutaActiva } = useRutaActiva();
+  const { carteraActiva } = useCarteraActiva();
   const { api, logout } = useSession();
   const { abrir } = usePantallaActiva();
-  const [clientes, setClientes] = useState<ClienteCobradorPublic[] | null>(null);
+  const [clientes, setClientes] = useState<ClienteGestorPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
 
@@ -82,12 +82,12 @@ export function ClientesScreen() {
   const setLngActual = esDomicilio ? setLongitudDomicilio : setLongitud;
 
   const cargar = useCallback(async () => {
-    if (!rutaActiva) {
+    if (!carteraActiva) {
       return;
     }
     setError(null);
     try {
-      setClientes(await api.listarClientesDeRuta(rutaActiva.rutaId));
+      setClientes(await api.listarClientesDeCartera(carteraActiva.carteraId));
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
@@ -95,7 +95,7 @@ export function ClientesScreen() {
         setError("No se pudieron cargar los clientes.");
       }
     }
-  }, [api, logout, rutaActiva]);
+  }, [api, logout, carteraActiva]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
@@ -142,8 +142,8 @@ export function ClientesScreen() {
     setNegocio("");
     setTelefono("");
     setTope(
-      rutaActiva && rutaActiva.config.cupoDefault > 0
-        ? String(rutaActiva.config.cupoDefault)
+      carteraActiva && carteraActiva.config.cupoDefault > 0
+        ? String(carteraActiva.config.cupoDefault)
         : "",
     );
     setDireccion("");
@@ -172,7 +172,7 @@ export function ClientesScreen() {
       setLatitud(String(pos.coords.latitude));
       setLongitud(String(pos.coords.longitude));
     } catch {
-      // Sin GPS: se deja la coordenada por defecto (el cobrador puede mover el pin).
+      // Sin GPS: se deja la coordenada por defecto (el gestor puede mover el pin).
     } finally {
       setUbicandoGps(false);
     }
@@ -202,7 +202,7 @@ export function ClientesScreen() {
   }
 
   async function guardarNuevoCliente() {
-    if (!rutaActiva) {
+    if (!carteraActiva) {
       return;
     }
     const lat = Number(latitud);
@@ -262,19 +262,19 @@ export function ClientesScreen() {
       evidenciasCliente.evidencias.map((e) => e.campo),
     );
     if (
-      rutaActiva.config.reconocimientoFacialActivo &&
+      carteraActiva.config.reconocimientoFacialActivo &&
       !camposEvidencia.has("foto_facial")
     ) {
       console.log("[crear-cliente] bloqueado: falta foto_facial");
-      setMensaje("Esta ruta exige la foto del cliente (foto facial).");
+      setMensaje("Esta cartera exige la foto del cliente (foto facial).");
       return;
     }
     if (
-      rutaActiva.config.registroDocumentoCliente &&
+      carteraActiva.config.registroDocumentoCliente &&
       !camposEvidencia.has("documento_frente")
     ) {
       console.log("[crear-cliente] bloqueado: falta documento_frente");
-      setMensaje("Esta ruta exige el documento (frente).");
+      setMensaje("Esta cartera exige el documento (frente).");
       return;
     }
     const input = {
@@ -295,7 +295,7 @@ export function ClientesScreen() {
     setMensaje(null);
     try {
       console.log("[crear-cliente] enviando", {
-        rutaId: rutaActiva.rutaId,
+        carteraId: carteraActiva.carteraId,
         nombre: input.nombre,
         telefonoWhatsapp: input.telefonoWhatsapp,
         lat,
@@ -306,7 +306,7 @@ export function ClientesScreen() {
           uri: e.uri.slice(0, 60),
         })),
       });
-      await api.crearCliente(rutaActiva.rutaId, input, evidenciasCliente.evidencias);
+      await api.crearCliente(carteraActiva.carteraId, input, evidenciasCliente.evidencias);
       console.log("[crear-cliente] creado OK");
       setCreadoOk(true);
       setNombre("");
@@ -355,10 +355,10 @@ export function ClientesScreen() {
     }
   }
 
-  if (!rutaActiva) {
+  if (!carteraActiva) {
     return (
       <View style={styles.contenedor}>
-        <Text style={styles.vacio}>Selecciona una ruta para ver sus clientes.</Text>
+        <Text style={styles.vacio}>Selecciona una cartera para ver sus clientes.</Text>
       </View>
     );
   }
@@ -367,7 +367,7 @@ export function ClientesScreen() {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
-  const nombreCompleto = (c: ClienteCobradorPublic) =>
+  const nombreCompleto = (c: ClienteGestorPublic) =>
     `${c.nombre} ${c.apellido}`.trim();
 
   return (
@@ -375,7 +375,7 @@ export function ClientesScreen() {
       <HeaderPantalla>
         <View style={estilosHeader.fila}>
           <View style={estilosHeader.bloqueTitulo}>
-            <Text style={estilosHeader.titulo}>{rutaActiva.rutaNombre}</Text>
+            <Text style={estilosHeader.titulo}>{carteraActiva.carteraNombre}</Text>
             <Text style={estilosHeader.subtitulo}>{clientes.length} clientes</Text>
           </View>
           <Pressable
@@ -395,7 +395,7 @@ export function ClientesScreen() {
           <RefreshControl refreshing={refrescando} onRefresh={refrescar} />
         }
         ListEmptyComponent={
-          <Text style={styles.vacio}>Esta ruta no tiene clientes.</Text>
+          <Text style={styles.vacio}>Esta cartera no tiene clientes.</Text>
         }
         ListHeaderComponent={
           error ? (
@@ -411,7 +411,7 @@ export function ClientesScreen() {
             onPress={() =>
               abrir({
                 tipo: "cliente",
-                rutaId: item.rutaId,
+                carteraId: item.carteraId,
                 clienteId: item.id,
                 nombre: nombreCompleto(item),
                 latitud: item.latitud,

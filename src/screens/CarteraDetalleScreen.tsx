@@ -18,21 +18,21 @@ import { contarEnMora } from "../domain/contar-en-mora";
 import { etiquetaEstatus } from "../domain/estatus";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
-import { guardarEstadisticasRuta, leerEstadisticasRuta } from "../offline/cache";
+import { guardarEstadisticasCartera, leerEstadisticasCartera } from "../offline/cache";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
-import { useRutaActiva } from "../session/ruta-activa-context";
+import { useCarteraActiva } from "../session/cartera-activa-context";
 import type {
-  ClienteCobradorPublic,
-  DiaApkPublic,
+  ClienteGestorPublic,
+  TrayectoDiarioApkPublic,
   EstadisticasConteosPublic,
-  EstadisticasRutaPublic,
-  RutaNotaPublic,
-} from "../types/cobrador";
+  EstadisticasCarteraPublic,
+  CarteraNotaPublic,
+} from "../types/gestor";
 
-export interface RutaDetalleScreenProps {
-  rutaId?: number;
-  rutaNombre?: string;
+export interface CarteraDetalleScreenProps {
+  carteraId?: number;
+  carteraNombre?: string;
   onCerrar?(): void;
 }
 
@@ -59,31 +59,31 @@ const PARES_ESTADISTICA: { campo: keyof EstadisticasConteosPublic; label: string
 ];
 
 /**
- * Detalle de ruta (B3/N3): información de la ruta con KPIs (total clientes,
+ * Detalle de cartera (B3/N3): información de la cartera con KPIs (total clientes,
  * clientes del día, en mora, estado) y sección de notas con alta desde un
- * modal. Se usa como pestaña "Ruta" del menú (lee la ruta activa del contexto)
- * y, opcionalmente, como overlay con props. La edición de ruta es solo lectura
+ * modal. Se usa como pestaña "Cartera" del menú (lee la cartera activa del contexto)
+ * y, opcionalmente, como overlay con props. La edición de cartera es solo lectura
  * por ahora (backlog); la edición real se realiza desde el panel admin.
  */
-export function RutaDetalleScreen({
-  rutaId: rutaIdProp,
-  rutaNombre: rutaNombreProp,
+export function CarteraDetalleScreen({
+  carteraId: carteraIdProp,
+  carteraNombre: carteraNombreProp,
   onCerrar,
-}: RutaDetalleScreenProps = {}) {
+}: CarteraDetalleScreenProps = {}) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { api, logout } = useSession();
-  const { rutaActiva, setRutaActiva } = useRutaActiva();
+  const { carteraActiva, setCarteraActiva } = useCarteraActiva();
 
-  const rutaId = rutaIdProp ?? rutaActiva?.rutaId ?? 0;
-  const rutaNombre = rutaNombreProp ?? rutaActiva?.rutaNombre ?? "";
+  const carteraId = carteraIdProp ?? carteraActiva?.carteraId ?? 0;
+  const carteraNombre = carteraNombreProp ?? carteraActiva?.carteraNombre ?? "";
   const cerrar = onCerrar ?? (() => navigation.navigate("Main"));
 
-  const [clientes, setClientes] = useState<ClienteCobradorPublic[] | null>(null);
-  const [dia, setDia] = useState<DiaApkPublic | null>(null);
-  const [notas, setNotas] = useState<RutaNotaPublic[] | null>(null);
+  const [clientes, setClientes] = useState<ClienteGestorPublic[] | null>(null);
+  const [trayectoDiario, setDia] = useState<TrayectoDiarioApkPublic | null>(null);
+  const [notas, setNotas] = useState<CarteraNotaPublic[] | null>(null);
   const [estatus, setEstatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [estadisticas, setEstadisticas] = useState<EstadisticasRutaPublic | null>(null);
+  const [estadisticas, setEstadisticas] = useState<EstadisticasCarteraPublic | null>(null);
   const [estadisticasOffline, setEstadisticasOffline] = useState(false);
 
   const [notaAbierta, setNotaAbierta] = useState(false);
@@ -91,7 +91,7 @@ export function RutaDetalleScreen({
   const [notaEnviando, setNotaEnviando] = useState(false);
   const [notaMensaje, setNotaMensaje] = useState<string | null>(null);
   const [avisoEdicion, setAvisoEdicion] = useState(false);
-  const [nombreRuta, setNombreRuta] = useState(rutaNombre);
+  const [nombreCartera, setNombreCartera] = useState(carteraNombre);
   const [editarAbierto, setEditarAbierto] = useState(false);
   const [editNombre, setEditNombre] = useState("");
   const [editTipoInteres, setEditTipoInteres] = useState("");
@@ -100,29 +100,29 @@ export function RutaDetalleScreen({
   const [editMensaje, setEditMensaje] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
-    if (!rutaId) {
+    if (!carteraId) {
       return;
     }
     setError(null);
     try {
-      const [misRutas, listaClientes, diaRuta, listaNotas] = await Promise.all([
-        api.misRutas(),
-        api.listarClientesDeRuta(rutaId),
-        api.dia(rutaId),
-        api.listarNotas(rutaId),
+      const [misCarteras, listaClientes, diaCartera, listaNotas] = await Promise.all([
+        api.misCarteras(),
+        api.listarClientesDeCartera(carteraId),
+        api.trayectoDiario(carteraId),
+        api.listarNotas(carteraId),
       ]);
       setClientes(listaClientes);
-      setDia(diaRuta);
+      setDia(diaCartera);
       setNotas(listaNotas);
-      setEstatus(misRutas.find((r) => r.id === rutaId)?.estatus ?? "activo");
+      setEstatus(misCarteras.find((r) => r.id === carteraId)?.estatus ?? "activo");
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
       } else {
-        setError("No se pudieron cargar los datos de la ruta.");
+        setError("No se pudieron cargar los datos de la cartera.");
       }
     }
-  }, [api, rutaId, logout]);
+  }, [api, carteraId, logout]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
@@ -130,21 +130,21 @@ export function RutaDetalleScreen({
   }, [cargar]);
 
   const cargarEstadisticas = useCallback(async () => {
-    if (!rutaId) {
+    if (!carteraId) {
       return;
     }
     try {
-      const datos = await api.estadisticasRuta(rutaId);
+      const datos = await api.estadisticasCartera(carteraId);
       setEstadisticas(datos);
       setEstadisticasOffline(false);
-      await guardarEstadisticasRuta(rutaId, datos);
+      await guardarEstadisticasCartera(carteraId, datos);
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
         return;
       }
       if (esErrorDeRed(err)) {
-        const cache = await leerEstadisticasRuta(rutaId);
+        const cache = await leerEstadisticasCartera(carteraId);
         if (cache) {
           setEstadisticas(cache);
           setEstadisticasOffline(true);
@@ -154,7 +154,7 @@ export function RutaDetalleScreen({
       // Las estadísticas no deben bloquear el resto de la pantalla.
       setEstadisticas(null);
     }
-  }, [api, logout, rutaId]);
+  }, [api, logout, carteraId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
@@ -162,9 +162,9 @@ export function RutaDetalleScreen({
   }, [cargarEstadisticas]);
 
   function abrirEdicion() {
-    setEditNombre(nombreRuta);
-    setEditTipoInteres(String(rutaActiva?.tipoInteres ?? ""));
-    setEditNumCuotas(String(rutaActiva?.numCuotas ?? ""));
+    setEditNombre(nombreCartera);
+    setEditTipoInteres(String(carteraActiva?.tipoInteres ?? ""));
+    setEditNumCuotas(String(carteraActiva?.numCuotas ?? ""));
     setEditMensaje(null);
     setEditarAbierto(true);
   }
@@ -189,19 +189,19 @@ export function RutaDetalleScreen({
     setEditEnviando(true);
     setEditMensaje(null);
     try {
-      await api.actualizarRuta(rutaId, { nombre });
-      await api.actualizarConfiguracionRuta(rutaId, { tipoInteres, numCuotas });
+      await api.actualizarCartera(carteraId, { nombre });
+      await api.actualizarConfiguracionCartera(carteraId, { tipoInteres, numCuotas });
     } catch (err) {
       setEditEnviando(false);
       setEditMensaje(
-        apiErrorStatus(err) === 401 ? "Sesión expirada." : "No se pudo guardar la ruta.",
+        apiErrorStatus(err) === 401 ? "Sesión expirada." : "No se pudo guardar la cartera.",
       );
       return;
     }
 
-    setNombreRuta(nombre);
-    if (rutaActiva) {
-      setRutaActiva({ ...rutaActiva, rutaNombre: nombre, tipoInteres, numCuotas });
+    setNombreCartera(nombre);
+    if (carteraActiva) {
+      setCarteraActiva({ ...carteraActiva, carteraNombre: nombre, tipoInteres, numCuotas });
     }
     setEditEnviando(false);
     setEditarAbierto(false);
@@ -216,7 +216,7 @@ export function RutaDetalleScreen({
     setNotaEnviando(true);
     setNotaMensaje(null);
     try {
-      await api.crearNota(rutaId, notaTexto.trim());
+      await api.crearNota(carteraId, notaTexto.trim());
     } catch {
       setNotaMensaje("No se pudo guardar la nota.");
       setNotaEnviando(false);
@@ -230,39 +230,39 @@ export function RutaDetalleScreen({
     void cargar();
   }
 
-  if (!rutaId) {
+  if (!carteraId) {
     return (
       <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
         <HeaderPantalla>
           <View style={estilosHeader.fila}>
             <Text style={estilosHeader.titulo}>
-              Ruta
+              Cartera
             </Text>
             <View style={estilosHeader.columnaDerecha} />
           </View>
         </HeaderPantalla>
-        <View style={styles.sinRuta}>
-          <Text style={styles.sinRutaTexto}>Selecciona una ruta para ver su información.</Text>
-          <Pressable testID="btn-ir-seleccion" style={styles.botonSinRuta} onPress={cerrar}>
-            <Text style={styles.botonSinRutaTexto}>Seleccionar ruta</Text>
+        <View style={styles.sinCartera}>
+          <Text style={styles.sinCarteraTexto}>Selecciona una cartera para ver su información.</Text>
+          <Pressable testID="btn-ir-seleccion" style={styles.botonSinCartera} onPress={cerrar}>
+            <Text style={styles.botonSinCarteraTexto}>Seleccionar cartera</Text>
           </Pressable>
         </View>
       </SafeAreaView>
     );
   }
 
-  if (!clientes || !dia || !notas || estatus === null) {
+  if (!clientes || !trayectoDiario || !notas || estatus === null) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
-  const enMora = contarEnMora(dia.clientes);
-  const puedeEditar = (rutaActiva?.permisos ?? []).some(
-    (p) => p.permiso === "actualizar_ruta" && p.habilitado,
+  const enMora = contarEnMora(trayectoDiario.clientes);
+  const puedeEditar = (carteraActiva?.permisos ?? []).some(
+    (p) => p.permiso === "actualizar_cartera" && p.habilitado,
   );
 
   return (
     <View
-      testID="ruta-detalle-root"
+      testID="cartera-detalle-root"
       style={styles.contenedor}
     >
       <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
@@ -270,7 +270,7 @@ export function RutaDetalleScreen({
           <View style={estilosHeader.fila}>
             <View style={estilosHeader.bloqueTitulo}>
               <Text style={estilosHeader.titulo}>
-                {nombreRuta}
+                {nombreCartera}
               </Text>
               {clientes ? (
                 <Text style={estilosHeader.subtitulo}>
@@ -279,7 +279,7 @@ export function RutaDetalleScreen({
               ) : null}
             </View>
             <Pressable
-              testID="btn-editar-ruta"
+              testID="btn-editar-cartera"
               style={estilosHeader.accionPill}
               onPress={() => (puedeEditar ? abrirEdicion() : setAvisoEdicion(true))}
             >
@@ -292,14 +292,14 @@ export function RutaDetalleScreen({
       {avisoEdicion ? (
         <View style={styles.aviso}>
           <Text style={styles.avisoTexto}>
-            La edición de ruta se realiza desde el panel.
+            La edición de cartera se realiza desde el panel.
           </Text>
         </View>
       ) : null}
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContenido}>
         <View style={styles.seccion}>
-          <Text style={styles.seccionTitulo}>Información de la ruta</Text>
+          <Text style={styles.seccionTitulo}>Información de la cartera</Text>
           <View style={styles.kpis}>
             <View style={styles.kpi}>
               <MaterialIcons name="people" size={22} color="#172f6c" />
@@ -310,8 +310,8 @@ export function RutaDetalleScreen({
             </View>
             <View style={styles.kpi}>
               <MaterialIcons name="today" size={22} color="#0e7490" />
-              <Text style={styles.kpiValor} testID="kpi-clientes-dia">
-                {dia.clientes.length}
+              <Text style={styles.kpiValor} testID="kpi-clientes-trayectoDiario">
+                {trayectoDiario.clientes.length}
               </Text>
               <Text style={styles.kpiEtiqueta}>Del día</Text>
             </View>
@@ -384,7 +384,7 @@ export function RutaDetalleScreen({
             </Pressable>
           </View>
           {notas.length === 0 ? (
-            <Text style={styles.vacio}>Esta ruta no tiene notas.</Text>
+            <Text style={styles.vacio}>Esta cartera no tiene notas.</Text>
           ) : (
             notas.map((nota) => (
               <View key={nota.id} style={styles.nota} testID={`nota-item-${nota.id}`}>
@@ -410,7 +410,7 @@ export function RutaDetalleScreen({
         <CampoModal
           testID="nota-textarea"
           label="Nota"
-          placeholder="Escribe una nota para la ruta…"
+          placeholder="Escribe una nota para la cartera…"
           multiline
           style={styles.textarea}
           value={notaTexto}
@@ -424,22 +424,22 @@ export function RutaDetalleScreen({
 
       <ModalConFooter
         visible={editarAbierto}
-        titulo="Editar ruta"
+        titulo="Editar cartera"
         onCerrar={() => setEditarAbierto(false)}
         onCancelar={() => setEditarAbierto(false)}
         onConfirmar={guardarEdicion}
         confirmando={editEnviando}
-        confirmarTestID="ruta-editar-guardar"
+        confirmarTestID="cartera-editar-guardar"
       >
         <CampoModal
-          testID="editar-ruta-nombre"
+          testID="editar-cartera-nombre"
           label="Nombre"
-          placeholder="Nombre de la ruta"
+          placeholder="Nombre de la cartera"
           value={editNombre}
           onChangeText={setEditNombre}
         />
         <CampoModal
-          testID="editar-ruta-tipoInteres"
+          testID="editar-cartera-tipoInteres"
           label="Interés %"
           placeholder="Interés"
           keyboardType="decimal-pad"
@@ -447,7 +447,7 @@ export function RutaDetalleScreen({
           onChangeText={setEditTipoInteres}
         />
         <CampoModal
-          testID="editar-ruta-numCuotas"
+          testID="editar-cartera-numCuotas"
           label="Nº de cuotas"
           placeholder="Número de cuotas"
           keyboardType="number-pad"
@@ -464,15 +464,15 @@ export function RutaDetalleScreen({
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  sinRuta: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
-  sinRutaTexto: { color: "#64748b", fontSize: 15, textAlign: "center" },
-  botonSinRuta: {
+  sinCartera: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
+  sinCarteraTexto: { color: "#64748b", fontSize: 15, textAlign: "center" },
+  botonSinCartera: {
     backgroundColor: "#172f6c",
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
-  botonSinRutaTexto: { color: "#ffffff", fontWeight: "600" },
+  botonSinCarteraTexto: { color: "#ffffff", fontWeight: "600" },
   aviso: {
     backgroundColor: "#fef9c3",
     borderBottomWidth: 1,

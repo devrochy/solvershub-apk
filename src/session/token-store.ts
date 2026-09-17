@@ -4,9 +4,9 @@ import type { TokenPair } from "../types/auth";
 
 const ACCESS_KEY = "cobranza_access_token";
 const REFRESH_KEY = "cobranza_refresh_token";
-const PROFILE_KEY = "cobranza_cobrador_profile";
+const PROFILE_KEY = "cobranza_gestor_profile";
 
-export type RolUsuario = "cobrador" | "socio";
+export type RolUsuario = "gestor" | "propietario";
 
 export interface UsuarioPerfil {
   id: number;

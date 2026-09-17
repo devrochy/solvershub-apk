@@ -2,7 +2,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ClientesScreen } from "./ClientesScreen";
 import { ApiError } from "../api/client";
 import { SessionContext, SessionValue } from "../session/session-context";
-import { RutaActivaContext } from "../session/ruta-activa-context";
+import { CarteraActivaContext } from "../session/cartera-activa-context";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import { OverlaysActivos } from "../navigation/OverlaysActivos";
@@ -30,7 +30,7 @@ const offline: OfflineValue = {
 
 const cliente = {
   id: 11,
-  rutaId: 6,
+  carteraId: 6,
   nombre: "Juan",
   apellido: "Perez",
   negocio: "Tienda Central",
@@ -46,24 +46,24 @@ const cliente = {
   createdAt: "2026-08-01T00:00:00.000Z",
 };
 
-async function renderConRutaActiva(
+async function renderConCarteraActiva(
   api: Partial<SessionValue["api"]>,
-  rutaActiva: {
-    rutaId: number;
-    rutaNombre: string;
+  carteraActiva: {
+    carteraId: number;
+    carteraNombre: string;
     tipoInteres: number;
     numCuotas: number;
     config: never;
   } | null = {
-    rutaId: 6,
-    rutaNombre: "Ruta Centro",
+    carteraId: 6,
+    carteraNombre: "Cartera Centro",
     tipoInteres: 20,
     numCuotas: 8,
     config: {} as never,
   },
 ) {
   const valor: SessionValue = {
-    cobrador: { id: 20, usuario: "cobrador1", nombre: "Carlos", apellido: "López", rol: "cobrador" },
+    gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
     loading: false,
     api: api as SessionValue["api"],
     login: jest.fn(),
@@ -75,12 +75,12 @@ async function renderConRutaActiva(
       <TrayectosOverlayProvider>
         <OfflineContext.Provider value={offline}>
           <SessionContext.Provider value={valor}>
-            <RutaActivaContext.Provider
-              value={{ rutaActiva, setRutaActiva: jest.fn() }}
+            <CarteraActivaContext.Provider
+              value={{ carteraActiva, setCarteraActiva: jest.fn() }}
             >
               <ClientesScreen />
               <OverlaysActivos />
-            </RutaActivaContext.Provider>
+            </CarteraActivaContext.Provider>
           </SessionContext.Provider>
         </OfflineContext.Provider>
       </TrayectosOverlayProvider>
@@ -89,9 +89,9 @@ async function renderConRutaActiva(
 }
 
 describe("ClientesScreen", () => {
-  it("muestra la lista de clientes de la ruta activa", async () => {
-    const { getByText } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+  it("muestra la lista de clientes de la cartera activa", async () => {
+    const { getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByText("Juan Perez")).toBeTruthy());
@@ -99,8 +99,8 @@ describe("ClientesScreen", () => {
   });
 
   it("muestra la barra de acento semántica según el color de riesgo", async () => {
-    const { getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByTestId("cliente-acento-11")).toBeTruthy());
@@ -108,16 +108,16 @@ describe("ClientesScreen", () => {
   });
 
   it("muestra avatar con iniciales si el cliente no tiene foto", async () => {
-    const { getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByTestId("avatar-icono")).toBeTruthy());
   });
 
   it("navega al cliente al tocarlo (abre el detalle como pantalla activa)", async () => {
-    const { getByText, getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByText, getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByText("Juan Perez")).toBeTruthy());
@@ -127,13 +127,13 @@ describe("ClientesScreen", () => {
     await waitFor(() => expect(getByTestId("mock-cliente")).toBeTruthy());
   });
 
-  it("muestra mensaje si no hay ruta activa", async () => {
-    const { getByText } = await renderConRutaActiva(
-      { listarClientesDeRuta: jest.fn() },
+  it("muestra mensaje si no hay cartera activa", async () => {
+    const { getByText } = await renderConCarteraActiva(
+      { listarClientesDeCartera: jest.fn() },
       null,
     );
 
-    expect(getByText(/Selecciona una ruta/)).toBeTruthy();
+    expect(getByText(/Selecciona una cartera/)).toBeTruthy();
   });
 
   it("muestra error y permite reintentar", async () => {
@@ -141,8 +141,8 @@ describe("ClientesScreen", () => {
       .fn()
       .mockRejectedValueOnce(new Error("red"))
       .mockResolvedValueOnce([cliente]);
-    const { getByText, getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: listar,
+    const { getByText, getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: listar,
     });
 
     await waitFor(() => expect(getByText("Reintentar")).toBeTruthy());
@@ -152,8 +152,8 @@ describe("ClientesScreen", () => {
   });
 
   it("'+ Cliente' abre el modal de nuevo cliente con el formulario", async () => {
-    const { getByTestId, getByText } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId, getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
@@ -170,12 +170,12 @@ describe("ClientesScreen", () => {
 
   it("guardar crea el cliente vía crearCliente y refresca la lista", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const listarClientesDeRuta = jest
+    const listarClientesDeCartera = jest
       .fn()
       .mockResolvedValueOnce([cliente])
       .mockResolvedValueOnce([cliente, { ...cliente, id: 50, nombre: "Ana", apellido: "Ríos" }]);
-    const { getByTestId, getByText } = await renderConRutaActiva({
-      listarClientesDeRuta,
+    const { getByTestId, getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera,
       crearCliente,
     });
 
@@ -215,8 +215,8 @@ describe("ClientesScreen", () => {
 
   it("bloquea el alta si el documento no es válido para el tipo", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const { getByTestId, getByText } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId, getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
     });
 
@@ -237,8 +237,8 @@ describe("ClientesScreen", () => {
 
   it("permite elegir el tipo de documento y lo envía al crear", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const { getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
     });
 
@@ -266,8 +266,8 @@ describe("ClientesScreen", () => {
 
   it("permite registrar el domicilio (opcional) junto con la ubicación del negocio", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const { getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
     });
 
@@ -304,9 +304,9 @@ describe("ClientesScreen", () => {
     );
   });
 
-  it("el botón '+ Cliente' solo se muestra con ruta activa", async () => {
-    const { queryByTestId } = await renderConRutaActiva(
-      { listarClientesDeRuta: jest.fn() },
+  it("el botón '+ Cliente' solo se muestra con cartera activa", async () => {
+    const { queryByTestId } = await renderConCarteraActiva(
+      { listarClientesDeCartera: jest.fn() },
       null,
     );
 
@@ -315,8 +315,8 @@ describe("ClientesScreen", () => {
 
   it("NO envía coordenadas 0,0 si el usuario deja vacío el campo latitud/longitud", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const { getByTestId, getByText } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId, getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
     });
 
@@ -338,8 +338,8 @@ describe("ClientesScreen", () => {
 
   it("NO envía un tope de deuda NaN ni negativo", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const { getByTestId, getByText } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId, getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
     });
 
@@ -358,16 +358,16 @@ describe("ClientesScreen", () => {
     expect(getByText("El tope de deuda debe ser un número válido.")).toBeTruthy();
   });
 
-  it("pre-llena el tope máximo con el cupoDefault de la ruta activa", async () => {
+  it("pre-llena el tope máximo con el cupoDefault de la cartera activa", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const { getByTestId } = await renderConRutaActiva(
+    const { getByTestId } = await renderConCarteraActiva(
       {
-        listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+        listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
         crearCliente,
       },
       {
-        rutaId: 6,
-        rutaNombre: "Ruta Centro",
+        carteraId: 6,
+        carteraNombre: "Cartera Centro",
         tipoInteres: 20,
         numCuotas: 8,
         config: { cupoDefault: 1500 } as never,
@@ -381,8 +381,8 @@ describe("ClientesScreen", () => {
   });
 
   it("muestra el avatar editable y los botones de documento frente/reverso en el modal", async () => {
-    const { getByTestId, getByText } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId, getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
@@ -396,12 +396,12 @@ describe("ClientesScreen", () => {
 
   it("muestra el check verde de éxito tras crear el cliente", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const listarClientesDeRuta = jest
+    const listarClientesDeCartera = jest
       .fn()
       .mockResolvedValueOnce([cliente])
       .mockResolvedValueOnce([cliente, { ...cliente, id: 50 }]);
-    const { getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta,
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera,
       crearCliente,
     });
 
@@ -422,8 +422,8 @@ describe("ClientesScreen", () => {
     (Location.geocodeAsync as jest.Mock).mockResolvedValue([
       { latitude: -17.4, longitude: -66.1 },
     ]);
-    const { getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
@@ -440,8 +440,8 @@ describe("ClientesScreen", () => {
   });
 
   it("ofrece cámara y librería para la foto del avatar en el nuevo cliente", async () => {
-    const { getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
@@ -455,8 +455,8 @@ describe("ClientesScreen", () => {
   });
 
   it("un toque en el documento frente abre el modal de fuente (galería/cámara)", async () => {
-    const { getByTestId } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
     await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
@@ -468,16 +468,16 @@ describe("ClientesScreen", () => {
     expect(getByTestId("fuente-modal")).toBeTruthy();
   });
 
-  it("avisa que la ruta exige foto y documento antes de crear si faltan", async () => {
+  it("avisa que la cartera exige foto y documento antes de crear si faltan", async () => {
     const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
-    const { getByTestId, getByText } = await renderConRutaActiva(
+    const { getByTestId, getByText } = await renderConCarteraActiva(
       {
-        listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+        listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
         crearCliente,
       },
       {
-        rutaId: 6,
-        rutaNombre: "Ruta Centro",
+        carteraId: 6,
+        carteraNombre: "Cartera Centro",
         tipoInteres: 20,
         numCuotas: 8,
         config: {
@@ -497,15 +497,15 @@ describe("ClientesScreen", () => {
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     expect(crearCliente).not.toHaveBeenCalled();
-    expect(getByText("Esta ruta exige la foto del cliente (foto facial).")).toBeTruthy();
+    expect(getByText("Esta cartera exige la foto del cliente (foto facial).")).toBeTruthy();
   });
 
   it("muestra un mensaje claro si el backend rechaza por fotos demasiado grandes (413)", async () => {
     const crearCliente = jest
       .fn()
       .mockRejectedValue(new ApiError(413, '{"message":"File too large"}'));
-    const { getByTestId, getByText } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId, getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
     });
 
@@ -531,8 +531,8 @@ describe("ClientesScreen", () => {
       .mockRejectedValue(
         new ApiError(400, '{"message":["El teléfono de WhatsApp no es válido"]}'),
       );
-    const { getByTestId, getByText } = await renderConRutaActiva({
-      listarClientesDeRuta: jest.fn().mockResolvedValue([cliente]),
+    const { getByTestId, getByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
     });
 

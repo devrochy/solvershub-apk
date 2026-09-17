@@ -10,7 +10,7 @@ import {
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
-import type { EstadoCuentaPrestamoPublic } from "../types/cobrador";
+import type { EstadoCuentaPrestamoPublic } from "../types/gestor";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Prestamo">;
 
@@ -38,7 +38,7 @@ const LEYENDA: { tipo: TipoCuotaCanvas; texto: string }[] = [
 ];
 
 export function PrestamoScreen({ route }: Props) {
-  const { rutaId, prestamoId, clienteNombre, telefonoWhatsapp, valor, numCuotas } =
+  const { carteraId, prestamoId, clienteNombre, telefonoWhatsapp, valor, numCuotas } =
     route.params;
   const { api, logout } = useSession();
   const [estado, setEstado] = useState<EstadoCuentaPrestamoPublic | null>(null);
@@ -47,7 +47,7 @@ export function PrestamoScreen({ route }: Props) {
   const cargar = useCallback(async () => {
     setError(null);
     try {
-      setEstado(await api.obtenerEstadoCuentaPrestamo(rutaId, prestamoId));
+      setEstado(await api.obtenerEstadoCuentaPrestamo(carteraId, prestamoId));
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
@@ -55,7 +55,7 @@ export function PrestamoScreen({ route }: Props) {
         setError("No se pudo cargar el estado del préstamo.");
       }
     }
-  }, [api, logout, rutaId, prestamoId]);
+  }, [api, logout, carteraId, prestamoId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)

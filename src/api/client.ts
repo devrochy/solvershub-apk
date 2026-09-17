@@ -27,7 +27,7 @@ export interface RequestOptions {
 /**
  * Cliente HTTP tipado hacia el backend de CobraIA. Adjunta el Bearer,
  * refresca el access token al expirar y reintenta una vez ante un 401.
- * Si el refresh falla, limpia la sesión (el guard de rutas vuelve al login).
+ * Si el refresh falla, limpia la sesión (el guard de carteras vuelve al login).
  */
 export class ApiClient {
   private refreshing: Promise<TokenPair | null> | null = null;

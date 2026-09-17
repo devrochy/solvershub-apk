@@ -16,34 +16,34 @@ import { contarEnMora } from "../domain/contar-en-mora";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
-import { useRutaActiva } from "../session/ruta-activa-context";
-import type { RutaApkPublic } from "../types/cobrador";
+import { useCarteraActiva } from "../session/cartera-activa-context";
+import type { CarteraApkPublic } from "../types/gestor";
 
-interface RutaKpi {
+interface CarteraKpi {
   totalClientes: number;
   clientesDia: number;
   enMora: number;
 }
 
 /**
- * Selección de ruta (N1): pantalla de stack mostrada tras el login SIN tab
- * bar. Lista las rutas del cobrador con KPIs de cartera. Al tocar una ruta se
- * fija como ruta activa y se navega al Main (tabs), que abre por defecto en
- * la pestaña "Día".
+ * Selección de cartera (N1): pantalla de stack mostrada tras el login SIN tab
+ * bar. Lista las carteras del gestor con KPIs de cartera. Al tocar una cartera se
+ * fija como cartera activa y se navega al Main (tabs), que abre por defecto en
+ * la pestaña "Trayecto diario".
  */
-export interface SeleccionRutaScreenProps {
-  /** Se invoca al elegir una ruta (para abrir la capa de pestañas encima). */
-  onRutaSeleccionada?: () => void;
+export interface SeleccionCarteraScreenProps {
+  /** Se invoca al elegir una cartera (para abrir la capa de pestañas encima). */
+  onCarteraSeleccionada?: () => void;
 }
 
-export function SeleccionRutaScreen({
-  onRutaSeleccionada,
-}: SeleccionRutaScreenProps = {}) {
-  const { api, cobrador, logout } = useSession();
-  const { setRutaActiva } = useRutaActiva();
+export function SeleccionCarteraScreen({
+  onCarteraSeleccionada,
+}: SeleccionCarteraScreenProps = {}) {
+  const { api, gestor, logout } = useSession();
+  const { setCarteraActiva } = useCarteraActiva();
   const offline = useOffline();
-  const [rutas, setRutas] = useState<RutaApkPublic[] | null>(null);
-  const [kpis, setKpis] = useState<Record<number, RutaKpi>>({});
+  const [carteras, setCarteras] = useState<CarteraApkPublic[] | null>(null);
+  const [kpis, setKpis] = useState<Record<number, CarteraKpi>>({});
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
   const [reintentandoSync, setReintentandoSync] = useState(false);
@@ -51,31 +51,31 @@ export function SeleccionRutaScreen({
   const cargar = useCallback(async () => {
     setError(null);
     try {
-      const misRutas = await api.misRutas();
+      const misCarteras = await api.misCarteras();
       const resultados = await Promise.all(
-        misRutas.map(async (ruta) => {
-          const [clientes, dia] = await Promise.allSettled([
-            api.listarClientesDeRuta(ruta.id),
-            api.dia(ruta.id),
+        misCarteras.map(async (cartera) => {
+          const [clientes, trayectoDiario] = await Promise.allSettled([
+            api.listarClientesDeCartera(cartera.id),
+            api.trayectoDiario(cartera.id),
           ]);
           const listaClientes =
             clientes.status === "fulfilled" ? clientes.value : [];
-          const diaRuta = dia.status === "fulfilled" ? dia.value : null;
+          const diaCartera = trayectoDiario.status === "fulfilled" ? trayectoDiario.value : null;
           return {
-            rutaId: ruta.id,
+            carteraId: cartera.id,
             totalClientes: listaClientes.length,
-            clientesDia: diaRuta?.clientes.length ?? 0,
-            enMora: diaRuta ? contarEnMora(diaRuta.clientes) : 0,
+            clientesDia: diaCartera?.clientes.length ?? 0,
+            enMora: diaCartera ? contarEnMora(diaCartera.clientes) : 0,
           };
         }),
       );
-      setRutas(misRutas);
-      setKpis(Object.fromEntries(resultados.map((k) => [k.rutaId, k])));
+      setCarteras(misCarteras);
+      setKpis(Object.fromEntries(resultados.map((k) => [k.carteraId, k])));
     } catch (err) {
       if (apiErrorStatus(err) === 401) {
         await logout();
       } else {
-        setError("No se pudieron cargar tus rutas.");
+        setError("No se pudieron cargar tus carteras.");
       }
     }
   }, [api, logout]);
@@ -102,31 +102,31 @@ export function SeleccionRutaScreen({
     }
   }
 
-  function seleccionarRuta(ruta: RutaApkPublic) {
-    setRutaActiva({
-      rutaId: ruta.id,
-      rutaNombre: ruta.nombre,
-      tipoInteres: ruta.tipoInteres,
-      numCuotas: ruta.numCuotas,
-      config: ruta.config,
-      permisos: ruta.permisos,
+  function seleccionarCartera(cartera: CarteraApkPublic) {
+    setCarteraActiva({
+      carteraId: cartera.id,
+      carteraNombre: cartera.nombre,
+      tipoInteres: cartera.tipoInteres,
+      numCuotas: cartera.numCuotas,
+      config: cartera.config,
+      permisos: cartera.permisos,
     });
-    onRutaSeleccionada?.();
+    onCarteraSeleccionada?.();
   }
 
-  if (!rutas) {
+  if (!carteras) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
       <HeaderPantalla>
-        <View style={estilosHeader.fila} testID="header-seleccion-ruta">
+        <View style={estilosHeader.fila} testID="header-seleccion-cartera">
           <View style={estilosHeader.bloqueTitulo}>
             <Text style={estilosHeader.titulo}>
-              Hola, {cobrador?.nombre ?? "cobrador"}
+              Hola, {gestor?.nombre ?? "gestor"}
             </Text>
-            <Text style={estilosHeader.subtitulo}>Selecciona una ruta</Text>
+            <Text style={estilosHeader.subtitulo}>Selecciona una cartera</Text>
           </View>
           <View style={estilosHeader.accionesDerecha}>
             {offline.sinSubir > 0 ? (
@@ -158,22 +158,22 @@ export function SeleccionRutaScreen({
         </View>
       ) : null}
 
-      {error && rutas ? (
+      {error && carteras ? (
         <View testID="aviso-error-refresh" style={styles.avisoErrorSync}>
           <Text style={styles.avisoErrorSyncTexto}>{error}</Text>
         </View>
       ) : null}
 
       <FlatList
-        testID="lista-rutas"
-        data={rutas}
-        keyExtractor={(ruta) => String(ruta.id)}
+        testID="lista-carteras"
+        data={carteras}
+        keyExtractor={(cartera) => String(cartera.id)}
         contentContainerStyle={styles.lista}
         refreshControl={
           <RefreshControl refreshing={refrescando} onRefresh={refrescar} />
         }
         ListEmptyComponent={
-          <Text style={styles.vacio}>No tienes rutas asignadas.</Text>
+          <Text style={styles.vacio}>No tienes carteras asignadas.</Text>
         }
         renderItem={({ item }) => {
           const kpi = kpis[item.id] ?? {
@@ -185,16 +185,16 @@ export function SeleccionRutaScreen({
           const claveEstado = activa ? "verde" : "rojo";
           return (
             <Pressable
-              testID={`ruta-${item.id}`}
+              testID={`cartera-${item.id}`}
               style={[
                 styles.tarjeta,
                 { borderColor: bordeDeEstado(claveEstado) },
                 !activa && styles.tarjetaInactiva,
               ]}
-              onPress={() => seleccionarRuta(item)}
+              onPress={() => seleccionarCartera(item)}
             >
               <View
-                testID={`ruta-header-${item.id}`}
+                testID={`cartera-header-${item.id}`}
                 style={[
                   styles.tarjetaHeader,
                   { backgroundColor: fondoDeEstado(claveEstado) },
@@ -221,7 +221,7 @@ export function SeleccionRutaScreen({
                   </View>
                   <View style={styles.kpi}>
                     <MaterialIcons name="today" size={26} color="#0e7490" />
-                    <Text style={styles.kpiValor} testID={`kpi-dia-${item.id}`}>
+                    <Text style={styles.kpiValor} testID={`kpi-trayectoDiario-${item.id}`}>
                       {kpi.clientesDia}
                     </Text>
                     <Text style={styles.kpiEtiqueta}>del día</Text>

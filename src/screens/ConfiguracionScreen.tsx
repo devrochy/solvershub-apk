@@ -12,7 +12,7 @@ function formatearUltimaSincronizacion(ts: number | null): string {
 /**
  * Configuración de la app: información de la aplicación y estado/sincronización
  * manual (última sincronización, pendientes, sincronizar y sincronizar general).
- * El cierre de sesión vive en el header de la lista de rutas.
+ * El cierre de sesión vive en el header de la lista de carteras.
  */
 export function ConfiguracionScreen() {
   const offline = useOffline();

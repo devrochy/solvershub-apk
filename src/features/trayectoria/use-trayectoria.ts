@@ -28,7 +28,7 @@ export function useTrayectoria(): UseTrayectoriaResult {
   const montadoRef = useRef(true);
 
   async function persistir(activaActual: boolean) {
-    // Persiste la trayectoria para no perderla si la app se cierra a mitad de ruta.
+    // Persiste la trayectoria para no perderla si la app se cierra a mitad de cartera.
     await guardarTrayectoriaActiva({ puntos: puntosRef.current, activa: activaActual });
   }
 
@@ -88,7 +88,7 @@ export function useTrayectoria(): UseTrayectoriaResult {
         if (!montadoRef.current || !trayectoria) {
           return;
         }
-        // Restaura los puntos de una ruta en curso y reanuda el GPS si seguía activo.
+        // Restaura los puntos de una cartera en curso y reanuda el GPS si seguía activo.
         puntosRef.current = trayectoria.puntos;
         setPuntos(trayectoria.puntos);
         if (trayectoria.activa) {

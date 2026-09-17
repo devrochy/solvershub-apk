@@ -4,21 +4,21 @@ jest.mock("expo-file-system", () => ({
   })),
 }));
 
-import { cobradorApi } from "./cobrador";
+import { gestorApi } from "./gestor";
 
-describe("cobradorApi", () => {
+describe("gestorApi", () => {
   const request = jest.fn();
   const requestBytes = jest.fn();
-  const api = cobradorApi({ request, requestBytes } as never);
+  const api = gestorApi({ request, requestBytes } as never);
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("misRutas llama a GET /cobrador/mis-rutas", async () => {
+  it("misCarteras llama a GET /gestor/mis-carteras", async () => {
     request.mockResolvedValue([]);
 
-    await api.misRutas();
+    await api.misCarteras();
 
-    expect(request).toHaveBeenCalledWith("/cobrador/mis-rutas");
+    expect(request).toHaveBeenCalledWith("/gestor/mis-carteras");
   });
 
   it("actualizarPerfil hace PATCH /perfil con nombre y apellido", async () => {
@@ -39,20 +39,20 @@ describe("cobradorApi", () => {
     });
   });
 
-  it("dia llama a GET /cobrador/rutas/:id/dia", async () => {
+  it("trayectoDiario llama a GET /gestor/carteras/:id/trayecto-diario", async () => {
     request.mockResolvedValue({ clientes: [], trayectos: null });
 
-    await api.dia(6);
+    await api.trayectoDiario(6);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/dia");
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/trayecto-diario");
   });
 
-  it("estadisticasRuta llama a GET /cobrador/rutas/:id/estadisticas", async () => {
-    request.mockResolvedValue({ rutaId: 6, actual: {} });
+  it("estadisticasCartera llama a GET /gestor/carteras/:id/estadisticas", async () => {
+    request.mockResolvedValue({ carteraId: 6, actual: {} });
 
-    await api.estadisticasRuta(6);
+    await api.estadisticasCartera(6);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/estadisticas");
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/estadisticas");
   });
 
   it("registrarVisitaPago hace POST con el input", async () => {
@@ -61,7 +61,7 @@ describe("cobradorApi", () => {
     const input = { prestamoId: 1, clienteId: 2, resultado: "pago" as const };
     await api.registrarVisitaPago(6, input);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/visitas/pago", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/visitas/pago", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
@@ -79,7 +79,7 @@ describe("cobradorApi", () => {
     };
     await api.registrarVisitaNoPago(6, input);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/visitas/no-pago", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/visitas/no-pago", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
@@ -121,7 +121,7 @@ describe("cobradorApi", () => {
     };
     await api.registrarTrayectoriaReal(6, input);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/trayectoria-real", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/trayectoria-real", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
@@ -133,7 +133,7 @@ describe("cobradorApi", () => {
 
     await api.tarjeta(6, 2);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2/tarjeta");
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/clientes/2/tarjeta");
   });
 
   it("listarPrestamosDeCliente llama a GET de préstamos del cliente", async () => {
@@ -141,7 +141,7 @@ describe("cobradorApi", () => {
 
     await api.listarPrestamosDeCliente(6, 2);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2/prestamos");
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/clientes/2/prestamos");
   });
 
   it("detalleCuota llama a GET del detalle de la cuota", async () => {
@@ -156,7 +156,7 @@ describe("cobradorApi", () => {
     await api.detalleCuota(6, 1, 10);
 
     expect(request).toHaveBeenCalledWith(
-      "/cobrador/rutas/6/prestamos/1/cuotas/10/detalle",
+      "/gestor/carteras/6/prestamos/1/cuotas/10/detalle",
     );
   });
 
@@ -170,7 +170,7 @@ describe("cobradorApi", () => {
       diasEntreCuotas: 7,
     });
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/prestamos", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/prestamos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -191,7 +191,7 @@ describe("cobradorApi", () => {
       motivo: "corrección",
     });
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/cuotas/10", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/cuotas/10", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -207,7 +207,7 @@ describe("cobradorApi", () => {
 
     await api.eliminarCuota(6, 10, { password: "secreto", motivo: "error" });
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/cuotas/10", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/cuotas/10", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: "secreto", motivo: "error" }),
@@ -219,7 +219,7 @@ describe("cobradorApi", () => {
 
     await api.eliminarAbono(6, 30, { password: "secreto", motivo: "error" });
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/abonos/30", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/abonos/30", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: "secreto", motivo: "error" }),
@@ -227,23 +227,23 @@ describe("cobradorApi", () => {
   });
 
   it("registrarApertura hace POST con las coordenadas", async () => {
-    request.mockResolvedValue({ id: 1, rutaId: 6 });
+    request.mockResolvedValue({ id: 1, carteraId: 6 });
 
     await api.registrarApertura(6, { latitud: -17.78, longitud: -63.18 });
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/apertura", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/apertura", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ latitud: -17.78, longitud: -63.18 }),
     });
   });
 
-  it("listarNotas llama a GET de notas de la ruta", async () => {
+  it("listarNotas llama a GET de notas de la cartera", async () => {
     request.mockResolvedValue([{ id: 1, nota: "Nota" }]);
 
     await api.listarNotas(6);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/notas");
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/notas");
   });
 
   it("crearNota hace POST con el texto de la nota", async () => {
@@ -251,7 +251,7 @@ describe("cobradorApi", () => {
 
     await api.crearNota(6, "Comprar combustible");
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/notas", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/notas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nota: "Comprar combustible" }),
@@ -263,19 +263,19 @@ describe("cobradorApi", () => {
 
     await api.generarLiquidacion(6, { comentario: "cierre" });
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/liquidaciones", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/liquidaciones", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ comentario: "cierre" }),
     });
   });
 
-  it("listarLiquidaciones llama a GET de liquidaciones de la ruta", async () => {
+  it("listarLiquidaciones llama a GET de liquidaciones de la cartera", async () => {
     request.mockResolvedValue([]);
 
     await api.listarLiquidaciones(6);
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/liquidaciones");
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/liquidaciones");
   });
 
   it("exportarLiquidacionPdf usa requestBytes en el endpoint export-pdf", async () => {
@@ -284,7 +284,7 @@ describe("cobradorApi", () => {
     const bytes = await api.exportarLiquidacionPdf(6, 5);
 
     expect(requestBytes).toHaveBeenCalledWith(
-      "/cobrador/rutas/6/liquidaciones/5/export-pdf",
+      "/gestor/carteras/6/liquidaciones/5/export-pdf",
     );
     expect(Array.from(bytes)).toEqual([37, 80, 68, 70]);
   });
@@ -339,7 +339,7 @@ describe("cobradorApi", () => {
       longitud: -63.19,
     });
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/clientes/2", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ latitud: -17.79, longitud: -63.19 }),
@@ -354,7 +354,7 @@ describe("cobradorApi", () => {
       longitudDomicilio: -63.2,
     });
 
-    expect(request).toHaveBeenCalledWith("/cobrador/rutas/6/clientes/2", {
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/clientes/2", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ latitudDomicilio: -17.8, longitudDomicilio: -63.2 }),

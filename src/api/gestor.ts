@@ -1,12 +1,12 @@
 import type {
-  ClienteCobradorPublic,
+  ClienteGestorPublic,
   ClienteTarjetaPublic,
   CrearClienteInput,
   CuotaPublic,
   DetalleCuotaPublic,
-  DiaApkPublic,
+  TrayectoDiarioApkPublic,
   EstadoCuentaPrestamoPublic,
-  EstadisticasRutaPublic,
+  EstadisticasCarteraPublic,
   GastoPublic,
   LiquidacionPublic,
   PerfilPublic,
@@ -15,10 +15,10 @@ import type {
   RegistrarPrestamoInput,
   RegistrarTrayectoriaRealInput,
   RegistrarVisitaInput,
-  RutaApkPublic,
-  RutaNotaPublic,
+  CarteraApkPublic,
+  CarteraNotaPublic,
   VisitaPublic,
-} from "../types/cobrador";
+} from "../types/gestor";
 import type { ApiClient } from "./client";
 import { construirMultipart } from "./multipart";
 
@@ -28,17 +28,17 @@ function jsonBody(input: unknown): string {
   return JSON.stringify(input);
 }
 
-export interface CobradorApi {
-  misRutas(): Promise<RutaApkPublic[]>;
+export interface GestorApi {
+  misCarteras(): Promise<CarteraApkPublic[]>;
   actualizarPerfil(input: {
     nombre: string;
     apellido: string;
   }): Promise<PerfilPublic>;
-  dia(rutaId: number): Promise<DiaApkPublic>;
-  estadisticasRuta(rutaId: number): Promise<EstadisticasRutaPublic>;
-  generarTrayecto(rutaId: number): Promise<unknown>;
+  trayectoDiario(carteraId: number): Promise<TrayectoDiarioApkPublic>;
+  estadisticasCartera(carteraId: number): Promise<EstadisticasCarteraPublic>;
+  generarTrayecto(carteraId: number): Promise<unknown>;
   actualizarCliente(
-    rutaId: number,
+    carteraId: number,
     clienteId: number,
     input: {
       latitud?: number;
@@ -46,119 +46,119 @@ export interface CobradorApi {
       latitudDomicilio?: number | null;
       longitudDomicilio?: number | null;
     },
-  ): Promise<ClienteCobradorPublic>;
+  ): Promise<ClienteGestorPublic>;
   registrarVisitaPago(
-    rutaId: number,
+    carteraId: number,
     input: RegistrarVisitaInput,
   ): Promise<VisitaPublic>;
   registrarVisitaNoPago(
-    rutaId: number,
+    carteraId: number,
     input: RegistrarVisitaInput,
   ): Promise<VisitaPublic>;
   registrarGasto(
-    rutaId: number,
+    carteraId: number,
     input: RegistrarGastoInput,
     evidencias: { uri: string; name: string; type: string }[],
   ): Promise<GastoPublic>;
   registrarTrayectoriaReal(
-    rutaId: number,
+    carteraId: number,
     input: RegistrarTrayectoriaRealInput,
   ): Promise<{ id: number; tipo: "real" }>;
-  tarjeta(rutaId: number, clienteId: number): Promise<ClienteTarjetaPublic>;
+  tarjeta(carteraId: number, clienteId: number): Promise<ClienteTarjetaPublic>;
   agregarEvidenciasCliente(
-    rutaId: number,
+    carteraId: number,
     clienteId: number,
     evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
   ): Promise<{ clienteId: number }>;
-  listarClientesDeRuta(rutaId: number): Promise<ClienteCobradorPublic[]>;
+  listarClientesDeCartera(carteraId: number): Promise<ClienteGestorPublic[]>;
   crearCliente(
-    rutaId: number,
+    carteraId: number,
     input: CrearClienteInput,
     evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
-  ): Promise<ClienteCobradorPublic>;
-  listarNotas(rutaId: number): Promise<RutaNotaPublic[]>;
-  crearNota(rutaId: number, nota: string): Promise<RutaNotaPublic>;
+  ): Promise<ClienteGestorPublic>;
+  listarNotas(carteraId: number): Promise<CarteraNotaPublic[]>;
+  crearNota(carteraId: number, nota: string): Promise<CarteraNotaPublic>;
   obtenerEstadoCuentaPrestamo(
-    rutaId: number,
+    carteraId: number,
     prestamoId: number,
   ): Promise<EstadoCuentaPrestamoPublic>;
   detalleCuota(
-    rutaId: number,
+    carteraId: number,
     prestamoId: number,
     cuotaId: number,
   ): Promise<DetalleCuotaPublic>;
   listarPrestamosDeCliente(
-    rutaId: number,
+    carteraId: number,
     clienteId: number,
   ): Promise<PrestamoPublic[]>;
   crearPrestamo(
-    rutaId: number,
+    carteraId: number,
     input: RegistrarPrestamoInput,
   ): Promise<PrestamoPublic>;
   editarCuota(
-    rutaId: number,
+    carteraId: number,
     cuotaId: number,
     input: { valorEsperado?: number; password: string; motivo: string },
   ): Promise<CuotaPublic>;
   eliminarCuota(
-    rutaId: number,
+    carteraId: number,
     cuotaId: number,
     input: { password: string; motivo: string },
   ): Promise<{ id: number }>;
   eliminarAbono(
-    rutaId: number,
+    carteraId: number,
     abonoId: number,
     input: { password: string; motivo: string },
   ): Promise<{ id: number }>;
   eliminarPago(
-    rutaId: number,
+    carteraId: number,
     pagoId: number,
     input: { password: string; motivo: string },
   ): Promise<{ id: number }>;
   generarLiquidacion(
-    rutaId: number,
+    carteraId: number,
     input: { comentario?: string | null },
   ): Promise<LiquidacionPublic>;
-  listarLiquidaciones(rutaId: number): Promise<LiquidacionPublic[]>;
-  exportarLiquidacionPdf(rutaId: number, liquidacionId: number): Promise<Uint8Array>;
+  listarLiquidaciones(carteraId: number): Promise<LiquidacionPublic[]>;
+  exportarLiquidacionPdf(carteraId: number, liquidacionId: number): Promise<Uint8Array>;
   registrarApertura(
-    rutaId: number,
+    carteraId: number,
     input: { latitud?: number; longitud?: number },
-  ): Promise<{ id: number; rutaId: number }>;
+  ): Promise<{ id: number; carteraId: number }>;
   registrarPosicion(
-    rutaId: number,
+    carteraId: number,
     input: { latitud: number; longitud: number },
-  ): Promise<{ rutaId: number; latitud: number; longitud: number }>;
-  actualizarRuta(
-    rutaId: number,
+  ): Promise<{ carteraId: number; latitud: number; longitud: number }>;
+  actualizarCartera(
+    carteraId: number,
     input: { nombre: string; descripcion?: string | null },
   ): Promise<{ id: number; nombre: string }>;
-  actualizarConfiguracionRuta(
-    rutaId: number,
+  actualizarConfiguracionCartera(
+    carteraId: number,
     input: { tipoInteres?: number; numCuotas?: number },
   ): Promise<{ id: number; tipoInteres: number; numCuotas: number }>;
 }
 
-export function cobradorApi(client: ApiClient): CobradorApi {
+export function gestorApi(client: ApiClient): GestorApi {
   return {
-    misRutas: () => client.request<RutaApkPublic[]>("/cobrador/mis-rutas"),
+    misCarteras: () => client.request<CarteraApkPublic[]>("/gestor/mis-carteras"),
 
-    actualizarRuta: (
-      rutaId: number,
+    actualizarCartera: (
+      carteraId: number,
       input: { nombre: string; descripcion?: string | null },
     ) =>
-      client.request<{ id: number; nombre: string }>(`/cobrador/rutas/${rutaId}`, {
+      client.request<{ id: number; nombre: string }>(`/gestor/carteras/${carteraId}`, {
         method: "PATCH",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
-    actualizarConfiguracionRuta: (
-      rutaId: number,
+    actualizarConfiguracionCartera: (
+      carteraId: number,
       input: { tipoInteres?: number; numCuotas?: number },
     ) =>
       client.request<{ id: number; tipoInteres: number; numCuotas: number }>(
-        `/cobrador/rutas/${rutaId}/configuracion`,
+        `/gestor/carteras/${carteraId}/configuracion`,
         {
           method: "PATCH",
           headers: JSON_HEADERS,
@@ -174,7 +174,7 @@ export function cobradorApi(client: ApiClient): CobradorApi {
       }),
 
     actualizarCliente: (
-      rutaId: number,
+      carteraId: number,
       clienteId: number,
       input: {
         latitud?: number;
@@ -183,8 +183,8 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         longitudDomicilio?: number | null;
       },
     ) =>
-      client.request<ClienteCobradorPublic>(
-        `/cobrador/rutas/${rutaId}/clientes/${clienteId}`,
+      client.request<ClienteGestorPublic>(
+        `/gestor/carteras/${carteraId}/clientes/${clienteId}`,
         {
           method: "PATCH",
           headers: JSON_HEADERS,
@@ -192,33 +192,33 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         },
       ),
 
-    dia: (rutaId: number) =>
-      client.request<DiaApkPublic>(`/cobrador/rutas/${rutaId}/dia`),
+    trayectoDiario: (carteraId: number) =>
+      client.request<TrayectoDiarioApkPublic>(`/gestor/carteras/${carteraId}/trayecto-diario`),
 
-    estadisticasRuta: (rutaId: number) =>
-      client.request<EstadisticasRutaPublic>(`/cobrador/rutas/${rutaId}/estadisticas`),
+    estadisticasCartera: (carteraId: number) =>
+      client.request<EstadisticasCarteraPublic>(`/gestor/carteras/${carteraId}/estadisticas`),
 
-    generarTrayecto: (rutaId: number) =>
-      client.request<unknown>(`/cobrador/rutas/${rutaId}/trayecto`, {
+    generarTrayecto: (carteraId: number) =>
+      client.request<unknown>(`/gestor/carteras/${carteraId}/trayecto`, {
         method: "POST",
       }),
 
-    registrarVisitaPago: (rutaId: number, input: RegistrarVisitaInput) =>
-      client.request<VisitaPublic>(`/cobrador/rutas/${rutaId}/visitas/pago`, {
+    registrarVisitaPago: (carteraId: number, input: RegistrarVisitaInput) =>
+      client.request<VisitaPublic>(`/gestor/carteras/${carteraId}/visitas/pago`, {
         method: "POST",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
-    registrarVisitaNoPago: (rutaId: number, input: RegistrarVisitaInput) =>
-      client.request<VisitaPublic>(`/cobrador/rutas/${rutaId}/visitas/no-pago`, {
+    registrarVisitaNoPago: (carteraId: number, input: RegistrarVisitaInput) =>
+      client.request<VisitaPublic>(`/gestor/carteras/${carteraId}/visitas/no-pago`, {
         method: "POST",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
     registrarGasto: async (
-      rutaId: number,
+      carteraId: number,
       input: RegistrarGastoInput,
       evidencias: { uri: string; name: string; type: string }[],
     ) => {
@@ -226,7 +226,7 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         { descripcion: input.descripcion, valor: String(input.valor) },
         evidencias.map((archivo) => ({ campo: "evidencias", ...archivo })),
       );
-      return client.request<GastoPublic>(`/cobrador/rutas/${rutaId}/gastos`, {
+      return client.request<GastoPublic>(`/gestor/carteras/${carteraId}/gastos`, {
         method: "POST",
         body,
         headers: { "Content-Type": `multipart/form-data; boundary=${boundary}` },
@@ -234,11 +234,11 @@ export function cobradorApi(client: ApiClient): CobradorApi {
     },
 
     registrarTrayectoriaReal: (
-      rutaId: number,
+      carteraId: number,
       input: RegistrarTrayectoriaRealInput,
     ) =>
       client.request<{ id: number; tipo: "real" }>(
-        `/cobrador/rutas/${rutaId}/trayectoria-real`,
+        `/gestor/carteras/${carteraId}/trayectoria-real`,
         {
           method: "POST",
           headers: JSON_HEADERS,
@@ -246,19 +246,19 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         },
       ),
 
-    tarjeta: (rutaId: number, clienteId: number) =>
+    tarjeta: (carteraId: number, clienteId: number) =>
       client.request<ClienteTarjetaPublic>(
-        `/cobrador/rutas/${rutaId}/clientes/${clienteId}/tarjeta`,
+        `/gestor/carteras/${carteraId}/clientes/${clienteId}/tarjeta`,
       ),
 
     agregarEvidenciasCliente: async (
-      rutaId: number,
+      carteraId: number,
       clienteId: number,
       evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
     ) => {
       const { body, boundary } = await construirMultipart({}, evidencias);
       return client.request<{ clienteId: number }>(
-        `/cobrador/rutas/${rutaId}/clientes/${clienteId}/evidencias`,
+        `/gestor/carteras/${carteraId}/clientes/${clienteId}/evidencias`,
         {
           method: "POST",
           body,
@@ -267,11 +267,11 @@ export function cobradorApi(client: ApiClient): CobradorApi {
       );
     },
 
-    listarClientesDeRuta: (rutaId: number) =>
-      client.request<ClienteCobradorPublic[]>(`/cobrador/rutas/${rutaId}/clientes`),
+    listarClientesDeCartera: (carteraId: number) =>
+      client.request<ClienteGestorPublic[]>(`/gestor/carteras/${carteraId}/clientes`),
 
     crearCliente: async (
-      rutaId: number,
+      carteraId: number,
       input: CrearClienteInput,
       evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
     ) => {
@@ -298,8 +298,8 @@ export function cobradorApi(client: ApiClient): CobradorApi {
         campos.longitudDomicilio = String(input.longitudDomicilio);
       }
       const { body, boundary } = await construirMultipart(campos, evidencias);
-      return client.request<ClienteCobradorPublic>(
-        `/cobrador/rutas/${rutaId}/clientes`,
+      return client.request<ClienteGestorPublic>(
+        `/gestor/carteras/${carteraId}/clientes`,
         {
           method: "POST",
           body,
@@ -308,103 +308,103 @@ export function cobradorApi(client: ApiClient): CobradorApi {
       );
     },
 
-    listarNotas: (rutaId: number) =>
-      client.request<RutaNotaPublic[]>(`/cobrador/rutas/${rutaId}/notas`),
+    listarNotas: (carteraId: number) =>
+      client.request<CarteraNotaPublic[]>(`/gestor/carteras/${carteraId}/notas`),
 
-    crearNota: (rutaId: number, nota: string) =>
-      client.request<RutaNotaPublic>(`/cobrador/rutas/${rutaId}/notas`, {
+    crearNota: (carteraId: number, nota: string) =>
+      client.request<CarteraNotaPublic>(`/gestor/carteras/${carteraId}/notas`, {
         method: "POST",
         headers: JSON_HEADERS,
         body: jsonBody({ nota }),
       }),
 
-    obtenerEstadoCuentaPrestamo: (rutaId: number, prestamoId: number) =>
+    obtenerEstadoCuentaPrestamo: (carteraId: number, prestamoId: number) =>
       client.request<EstadoCuentaPrestamoPublic>(
-        `/cobrador/rutas/${rutaId}/prestamos/${prestamoId}/estado-cuenta`,
+        `/gestor/carteras/${carteraId}/prestamos/${prestamoId}/estado-cuenta`,
       ),
 
-    listarPrestamosDeCliente: (rutaId: number, clienteId: number) =>
+    listarPrestamosDeCliente: (carteraId: number, clienteId: number) =>
       client.request<PrestamoPublic[]>(
-        `/cobrador/rutas/${rutaId}/clientes/${clienteId}/prestamos`,
+        `/gestor/carteras/${carteraId}/clientes/${clienteId}/prestamos`,
       ),
 
-    detalleCuota: (rutaId: number, prestamoId: number, cuotaId: number) =>
+    detalleCuota: (carteraId: number, prestamoId: number, cuotaId: number) =>
       client.request<DetalleCuotaPublic>(
-        `/cobrador/rutas/${rutaId}/prestamos/${prestamoId}/cuotas/${cuotaId}/detalle`,
+        `/gestor/carteras/${carteraId}/prestamos/${prestamoId}/cuotas/${cuotaId}/detalle`,
       ),
 
-    crearPrestamo: (rutaId: number, input: RegistrarPrestamoInput) =>
-      client.request<PrestamoPublic>(`/cobrador/rutas/${rutaId}/prestamos`, {
+    crearPrestamo: (carteraId: number, input: RegistrarPrestamoInput) =>
+      client.request<PrestamoPublic>(`/gestor/carteras/${carteraId}/prestamos`, {
         method: "POST",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
     editarCuota: (
-      rutaId: number,
+      carteraId: number,
       cuotaId: number,
       input: { valorEsperado?: number; password: string; motivo: string },
     ) =>
-      client.request<CuotaPublic>(`/cobrador/rutas/${rutaId}/cuotas/${cuotaId}`, {
+      client.request<CuotaPublic>(`/gestor/carteras/${carteraId}/cuotas/${cuotaId}`, {
         method: "PATCH",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
     eliminarCuota: (
-      rutaId: number,
+      carteraId: number,
       cuotaId: number,
       input: { password: string; motivo: string },
     ) =>
-      client.request<{ id: number }>(`/cobrador/rutas/${rutaId}/cuotas/${cuotaId}`, {
+      client.request<{ id: number }>(`/gestor/carteras/${carteraId}/cuotas/${cuotaId}`, {
         method: "DELETE",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
     eliminarAbono: (
-      rutaId: number,
+      carteraId: number,
       abonoId: number,
       input: { password: string; motivo: string },
     ) =>
-      client.request<{ id: number }>(`/cobrador/rutas/${rutaId}/abonos/${abonoId}`, {
+      client.request<{ id: number }>(`/gestor/carteras/${carteraId}/abonos/${abonoId}`, {
         method: "DELETE",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
     eliminarPago: (
-      rutaId: number,
+      carteraId: number,
       pagoId: number,
       input: { password: string; motivo: string },
     ) =>
-      client.request<{ id: number }>(`/cobrador/rutas/${rutaId}/pagos/${pagoId}`, {
+      client.request<{ id: number }>(`/gestor/carteras/${carteraId}/pagos/${pagoId}`, {
         method: "DELETE",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
-    generarLiquidacion: (rutaId: number, input: { comentario?: string | null }) =>
-      client.request<LiquidacionPublic>(`/cobrador/rutas/${rutaId}/liquidaciones`, {
+    generarLiquidacion: (carteraId: number, input: { comentario?: string | null }) =>
+      client.request<LiquidacionPublic>(`/gestor/carteras/${carteraId}/liquidaciones`, {
         method: "POST",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
-    listarLiquidaciones: (rutaId: number) =>
-      client.request<LiquidacionPublic[]>(`/cobrador/rutas/${rutaId}/liquidaciones`),
+    listarLiquidaciones: (carteraId: number) =>
+      client.request<LiquidacionPublic[]>(`/gestor/carteras/${carteraId}/liquidaciones`),
 
-    exportarLiquidacionPdf: (rutaId: number, liquidacionId: number) =>
+    exportarLiquidacionPdf: (carteraId: number, liquidacionId: number) =>
       client.requestBytes(
-        `/cobrador/rutas/${rutaId}/liquidaciones/${liquidacionId}/export-pdf`,
+        `/gestor/carteras/${carteraId}/liquidaciones/${liquidacionId}/export-pdf`,
       ),
 
     registrarApertura: (
-      rutaId: number,
+      carteraId: number,
       input: { latitud?: number; longitud?: number },
     ) =>
-      client.request<{ id: number; rutaId: number }>(
-        `/cobrador/rutas/${rutaId}/apertura`,
+      client.request<{ id: number; carteraId: number }>(
+        `/gestor/carteras/${carteraId}/apertura`,
         {
           method: "POST",
           headers: JSON_HEADERS,
@@ -413,11 +413,11 @@ export function cobradorApi(client: ApiClient): CobradorApi {
       ),
 
     registrarPosicion: (
-      rutaId: number,
+      carteraId: number,
       input: { latitud: number; longitud: number },
     ) =>
-      client.request<{ rutaId: number; latitud: number; longitud: number }>(
-        `/cobrador/rutas/${rutaId}/posicion`,
+      client.request<{ carteraId: number; latitud: number; longitud: number }>(
+        `/gestor/carteras/${carteraId}/posicion`,
         {
           method: "POST",
           headers: JSON_HEADERS,

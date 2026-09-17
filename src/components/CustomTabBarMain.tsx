@@ -4,12 +4,12 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
 const ICONOS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   Perfil: "person",
-  Rutas: "map",
+  Carteras: "map",
   Configuracion: "settings",
 };
 
 /**
- * Menú inferior principal: "Rutas" en el centro y sobresaliente (estilo FAB),
+ * Menú inferior principal: "Carteras" en el centro y sobresaliente (estilo FAB),
  * con "Perfil" a la izquierda y "Configuración" a la derecha.
  */
 export function CustomTabBarMain({
@@ -18,8 +18,8 @@ export function CustomTabBarMain({
   navigation,
   insets,
 }: BottomTabBarProps) {
-  const orden = ["Perfil", "Rutas", "Configuracion"];
-  const rutasOrdenadas = orden
+  const orden = ["Perfil", "Carteras", "Configuracion"];
+  const carterasOrdenadas = orden
     .map((name) => state.routes.find((r) => r.name === name))
     .filter((r): r is NonNullable<typeof r> => Boolean(r));
 
@@ -28,10 +28,10 @@ export function CustomTabBarMain({
       testID="tab-bar-main"
       style={[styles.barra, { paddingBottom: Math.max(insets.bottom, 8) + 8 }]}
     >
-      {rutasOrdenadas.map((route) => {
+      {carterasOrdenadas.map((route) => {
         const descriptor = descriptors[route.key];
         const enfocado = state.index === state.routes.indexOf(route);
-        const esCentral = route.name === "Rutas";
+        const esCentral = route.name === "Carteras";
         const onPress = () => {
           const evento = navigation.emit({
             type: "tabPress",
@@ -58,7 +58,7 @@ export function CustomTabBarMain({
                 />
               </Pressable>
               <Text style={[styles.etiqueta, enfocado && styles.etiquetaActiva]}>
-                {descriptor.options.title ?? "Rutas"}
+                {descriptor.options.title ?? "Carteras"}
               </Text>
             </View>
           );

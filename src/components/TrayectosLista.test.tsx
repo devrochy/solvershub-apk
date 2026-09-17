@@ -1,19 +1,19 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { Linking } from "react-native";
 import { TrayectosLista } from "./TrayectosLista";
-import type { ClienteDiaPublic, TrayectoPublic } from "../types/cobrador";
+import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "../types/gestor";
 
 jest.mock("../features/navegacion/navegacion", () => {
   const real = jest.requireActual("../features/navegacion/navegacion");
   return {
     ...real,
-    enlaceGoogleMapsRuta: jest.fn(() => "https://maps.test/ruta"),
+    enlaceGoogleMapsCartera: jest.fn(() => "https://maps.test/cartera"),
   };
 });
 
-import { enlaceGoogleMapsRuta } from "../features/navegacion/navegacion";
+import { enlaceGoogleMapsCartera } from "../features/navegacion/navegacion";
 
-const clientes: ClienteDiaPublic[] = [
+const clientes: ClienteTrayectoDiarioPublic[] = [
   { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
   { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
   { clienteId: 3, nombre: "Luis", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
@@ -21,7 +21,7 @@ const clientes: ClienteDiaPublic[] = [
 
 const trayectos: TrayectoPublic = {
   id: 1,
-  rutaId: 6,
+  carteraId: 6,
   fecha: "2026-09-02",
   ordenClientes: [
     [
@@ -59,8 +59,8 @@ describe("TrayectosLista", () => {
     );
 
     await fireEvent.press(getByTestId("navegar-trayecto-0"));
-    expect(enlaceGoogleMapsRuta).toHaveBeenCalled();
-    expect(Linking.openURL).toHaveBeenCalledWith("https://maps.test/ruta");
+    expect(enlaceGoogleMapsCartera).toHaveBeenCalled();
+    expect(Linking.openURL).toHaveBeenCalledWith("https://maps.test/cartera");
   });
 
   it("muestra el header sin columnas vacías (la fila contiene solo el bloque de título)", async () => {

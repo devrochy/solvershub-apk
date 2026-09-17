@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CobraIA Cobrador",
+    "name": "CobraIA Gestor",
     "slug": "app-cobranza-apk",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -43,7 +43,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "La app usa tu ubicación para registrar la trayectoria de la ruta."
+          "locationWhenInUsePermission": "La app usa tu ubicación para registrar la trayectoria de la cartera."
         }
       ],
       "expo-sharing"

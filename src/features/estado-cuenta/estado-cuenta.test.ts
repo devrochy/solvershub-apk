@@ -2,11 +2,11 @@ import {
   enlaceWhatsApp,
   textoReportePrestamo,
 } from "./estado-cuenta";
-import type { ClienteTarjetaPublic, PrestamoPublic } from "../../types/cobrador";
+import type { ClienteTarjetaPublic, PrestamoPublic } from "../../types/gestor";
 
 const prestamo: PrestamoPublic = {
   id: 1,
-  rutaId: 6,
+  carteraId: 6,
   clienteId: 2,
   valor: 1000,
   numCuotas: 2,
@@ -34,7 +34,7 @@ const prestamo: PrestamoPublic = {
 
 const tarjeta: ClienteTarjetaPublic = {
   clienteId: 2,
-  rutaId: 6,
+  carteraId: 6,
   nombre: "Juan",
   negocio: null,
   telefonoWhatsapp: "+59170000000",

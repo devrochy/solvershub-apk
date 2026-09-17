@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react-native";
-import { RutaFlujo } from "./RutaFlujo";
+import { CarteraFlujo } from "./CarteraFlujo";
 
 jest.mock("./TabsNavigator", () => ({ TabsNavigator: () => null }));
 jest.mock("./OverlaysActivos", () => ({ OverlaysActivos: () => null }));
@@ -10,9 +10,9 @@ jest.mock("./trayectos-overlay-context", () => ({
   useTrayectosOverlay: () => ({ contenido: null, cerrar: jest.fn() }),
 }));
 
-describe("RutaFlujo", () => {
-  it("monta el flujo de ruta (tabs + overlays) sin errores", async () => {
-    const { toJSON } = await render(<RutaFlujo />);
+describe("CarteraFlujo", () => {
+  it("monta el flujo de cartera (tabs + overlays) sin errores", async () => {
+    const { toJSON } = await render(<CarteraFlujo />);
 
     expect(toJSON()).toBeTruthy();
   });

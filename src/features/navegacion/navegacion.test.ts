@@ -3,14 +3,14 @@ import {
   abrirNavegacion,
   coordenadaDeCliente,
   enlaceGoogleMaps,
-  enlaceGoogleMapsRuta,
+  enlaceGoogleMapsCartera,
   enlaceWaze,
 } from "./navegacion";
-import type { TrayectoPublic } from "../../types/cobrador";
+import type { TrayectoPublic } from "../../types/gestor";
 
 const trayectos: TrayectoPublic = {
   id: 1,
-  rutaId: 6,
+  carteraId: 6,
   fecha: "2026-09-02",
   ordenClientes: [
     [{ clienteId: 1, latitud: -17.78, longitud: -63.18 }],
@@ -66,8 +66,8 @@ describe("navegacion", () => {
     );
   });
 
-  it("enlaceGoogleMapsRuta encadena las paradas en el orden del trayecto", () => {
-    const url = enlaceGoogleMapsRuta([
+  it("enlaceGoogleMapsCartera encadena las paradas en el orden del trayecto", () => {
+    const url = enlaceGoogleMapsCartera([
       { latitud: -17.78, longitud: -63.18 },
       { latitud: -17.79, longitud: -63.19 },
       { latitud: -17.8, longitud: -63.2 },
@@ -77,8 +77,8 @@ describe("navegacion", () => {
     );
   });
 
-  it("enlaceGoogleMapsRuta devuelve null si hay menos de 1 parada con coords", () => {
-    expect(enlaceGoogleMapsRuta([])).toBeNull();
-    expect(enlaceGoogleMapsRuta([{ latitud: undefined as never, longitud: 0 }])).toBeNull();
+  it("enlaceGoogleMapsCartera devuelve null si hay menos de 1 parada con coords", () => {
+    expect(enlaceGoogleMapsCartera([])).toBeNull();
+    expect(enlaceGoogleMapsCartera([{ latitud: undefined as never, longitud: 0 }])).toBeNull();
   });
 });

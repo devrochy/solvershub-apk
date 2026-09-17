@@ -26,7 +26,7 @@ export function HeaderPantalla({ children }: { children: ReactNode }) {
  *   subtítulo 13 azul-claro).
  * - `columnaIzq`/`columnaDerecha`: ranuras laterales de ancho fijo (72) para
  *   back y acciones. Solo se usan en las vistas con back/acción lateral
- *   (ClienteScreen, RutaDetalleScreen); el resto parte el título en x=16 y se
+ *   (ClienteScreen, CarteraDetalleScreen); el resto parte el título en x=16 y se
  *   apoya en `accionesDerecha` cuando hay contenido al final (badge+Salir).
  * - `accionTexto`: acción de texto plano (Salir/Editar) sobre el azul.
  * - `accionPill`/`accionPillTexto`: CTA en píldora blanca con texto navy.

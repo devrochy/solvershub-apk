@@ -1,4 +1,4 @@
-import type { ClienteTarjetaPublic } from "../../types/cobrador";
+import type { ClienteTarjetaPublic } from "../../types/gestor";
 import type { TipoDocumento } from "../../domain/tipo-documento";
 
 export interface CambioClienteInput {

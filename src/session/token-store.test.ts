@@ -34,16 +34,16 @@ describe("token-store (nativo -> expo-secure-store)", () => {
 
   it("writeProfile guarda el perfil y readProfile lo recupera", async () => {
     (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(
-      JSON.stringify({ id: 1, usuario: "c1", nombre: "C", apellido: "L", rol: "cobrador" }),
+      JSON.stringify({ id: 1, usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" }),
     );
 
-    await writeProfile({ id: 1, usuario: "c1", nombre: "C", apellido: "L", rol: "cobrador" });
+    await writeProfile({ id: 1, usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" });
     await expect(readProfile()).resolves.toEqual({
       id: 1,
       usuario: "c1",
       nombre: "C",
       apellido: "L",
-      rol: "cobrador",
+      rol: "gestor",
     });
   });
 
@@ -57,7 +57,7 @@ describe("token-store (nativo -> expo-secure-store)", () => {
       "cobranza_refresh_token",
     );
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(
-      "cobranza_cobrador_profile",
+      "cobranza_gestor_profile",
     );
   });
 });
@@ -128,7 +128,7 @@ describe("token-store (web -> solo memoria)", () => {
   });
 
   it("writeProfile/readProfile usan memoria y no persisten en web", async () => {
-    const perfil = { id: 1, usuario: "c1", nombre: "C", apellido: "L", rol: "cobrador" as const };
+    const perfil = { id: 1, usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" as const };
 
     await writeProfile(perfil);
 

@@ -19,7 +19,7 @@ export function LoginScreen() {
   const { login } = useSession();
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
-  const [rol, setRol] = useState<RolLogin>("cobrador");
+  const [rol, setRol] = useState<RolLogin>("gestor");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,21 +61,21 @@ export function LoginScreen() {
 
           <View style={styles.roles}>
             <Pressable
-              testID="rol-cobrador"
-              style={[styles.rol, rol === "cobrador" && styles.rolActivo]}
-              onPress={() => setRol("cobrador")}
+              testID="rol-gestor"
+              style={[styles.rol, rol === "gestor" && styles.rolActivo]}
+              onPress={() => setRol("gestor")}
             >
-              <Text style={rol === "cobrador" ? styles.rolTextoActivo : styles.rolTexto}>
-                Cobrador
+              <Text style={rol === "gestor" ? styles.rolTextoActivo : styles.rolTexto}>
+                Gestor
               </Text>
             </Pressable>
             <Pressable
-              testID="rol-socio"
-              style={[styles.rol, rol === "socio" && styles.rolActivo]}
-              onPress={() => setRol("socio")}
+              testID="rol-propietario"
+              style={[styles.rol, rol === "propietario" && styles.rolActivo]}
+              onPress={() => setRol("propietario")}
             >
-              <Text style={rol === "socio" ? styles.rolTextoActivo : styles.rolTexto}>
-                Socio
+              <Text style={rol === "propietario" ? styles.rolTextoActivo : styles.rolTexto}>
+                Propietario
               </Text>
             </Pressable>
           </View>

@@ -1,12 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type {
   ClienteTarjetaPublic,
-  DiaApkPublic,
-  EstadisticasRutaPublic,
+  TrayectoDiarioApkPublic,
+  EstadisticasCarteraPublic,
   PrestamoPublic,
-} from "../types/cobrador";
+} from "../types/gestor";
 
-const PREFIJO_DIA = "cobranza_cache_dia";
+const PREFIJO_TRAYECTO_DIARIO = "cobranza_cache_trayecto_diario";
 const PREFIJO_CLIENTE = "cobranza_cache_cliente";
 const PREFIJO_ESTADISTICAS = "cobranza_cache_estadisticas";
 
@@ -31,38 +31,38 @@ async function escribir(clave: string, valor: unknown): Promise<void> {
   await AsyncStorage.setItem(clave, JSON.stringify(valor));
 }
 
-export async function guardarDia(rutaId: number, dia: DiaApkPublic): Promise<void> {
-  await escribir(`${PREFIJO_DIA}_${rutaId}`, dia);
+export async function guardarTrayectoDiario(carteraId: number, trayectoDiario: TrayectoDiarioApkPublic): Promise<void> {
+  await escribir(`${PREFIJO_TRAYECTO_DIARIO}_${carteraId}`, trayectoDiario);
 }
 
-export async function leerDia(rutaId: number): Promise<DiaApkPublic | null> {
-  return leer<DiaApkPublic>(`${PREFIJO_DIA}_${rutaId}`);
+export async function leerTrayectoDiario(carteraId: number): Promise<TrayectoDiarioApkPublic | null> {
+  return leer<TrayectoDiarioApkPublic>(`${PREFIJO_TRAYECTO_DIARIO}_${carteraId}`);
 }
 
 export async function guardarCliente(
-  rutaId: number,
+  carteraId: number,
   clienteId: number,
   cache: ClienteCache,
 ): Promise<void> {
-  await escribir(`${PREFIJO_CLIENTE}_${rutaId}_${clienteId}`, cache);
+  await escribir(`${PREFIJO_CLIENTE}_${carteraId}_${clienteId}`, cache);
 }
 
 export async function leerCliente(
-  rutaId: number,
+  carteraId: number,
   clienteId: number,
 ): Promise<ClienteCache | null> {
-  return leer<ClienteCache>(`${PREFIJO_CLIENTE}_${rutaId}_${clienteId}`);
+  return leer<ClienteCache>(`${PREFIJO_CLIENTE}_${carteraId}_${clienteId}`);
 }
 
-export async function guardarEstadisticasRuta(
-  rutaId: number,
-  estadisticas: EstadisticasRutaPublic,
+export async function guardarEstadisticasCartera(
+  carteraId: number,
+  estadisticas: EstadisticasCarteraPublic,
 ): Promise<void> {
-  await escribir(`${PREFIJO_ESTADISTICAS}_${rutaId}`, estadisticas);
+  await escribir(`${PREFIJO_ESTADISTICAS}_${carteraId}`, estadisticas);
 }
 
-export async function leerEstadisticasRuta(
-  rutaId: number,
-): Promise<EstadisticasRutaPublic | null> {
-  return leer<EstadisticasRutaPublic>(`${PREFIJO_ESTADISTICAS}_${rutaId}`);
+export async function leerEstadisticasCartera(
+  carteraId: number,
+): Promise<EstadisticasCarteraPublic | null> {
+  return leer<EstadisticasCarteraPublic>(`${PREFIJO_ESTADISTICAS}_${carteraId}`);
 }
