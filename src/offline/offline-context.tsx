@@ -17,11 +17,16 @@ import {
   listarCola,
   removerDeCola,
 } from "./cola";
+import { guardarUltimaSincronizacion, leerUltimaSincronizacion } from "./sync-meta";
 
 export interface OfflineValue {
   isOnline: boolean;
   sinSubir: number;
   errorSync: string | null;
+  /** Timestamp (ms) de la última sincronización exitosa; `null` si nunca. */
+  ultimaSincronizacion: number | null;
+  /** Se incrementa al "sincronizar general" para que las pantallas re-consulten. */
+  versionRecarga: number;
   encolar(tipoEvento: string, payload: Record<string, unknown>): Promise<void>;
   encolarSiNoExiste(
     tipoEvento: string,
@@ -29,6 +34,8 @@ export interface OfflineValue {
     dedupeKey: string,
   ): Promise<boolean>;
   sincronizar(): Promise<void>;
+  /** Flush de la cola + refetch de datos (rutas/día). */
+  sincronizarGeneral(): Promise<void>;
 }
 
 export const OfflineContext = createContext<OfflineValue | null>(null);
@@ -37,6 +44,8 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [sinSubir, setSinSubir] = useState(0);
   const [errorSync, setErrorSync] = useState<string | null>(null);
+  const [ultimaSincronizacion, setUltimaSincronizacion] = useState<number | null>(null);
+  const [versionRecarga, setVersionRecarga] = useState(0);
 
   useEffect(() => {
     let activo = true;
@@ -57,6 +66,14 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
         if (activo) {
           // eslint-disable-next-line react-hooks/set-state-in-effect -- async on-mount
           setSinSubir(n);
+        }
+      })
+      .catch(() => undefined);
+    leerUltimaSincronizacion()
+      .then((ts) => {
+        if (activo) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- async on-mount
+          setUltimaSincronizacion(ts);
         }
       })
       .catch(() => undefined);
@@ -95,16 +112,18 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   );
 
   const sincronizar = useCallback(async () => {
-    const eventos = await listarCola();
-    if (eventos.length === 0) {
-      return;
-    }
     try {
-      const confirmados = await sincronizarCola(eventos, DEVICE_API_KEY);
-      for (const id of confirmados) {
-        await removerDeCola(id);
+      const eventos = await listarCola();
+      if (eventos.length > 0) {
+        const confirmados = await sincronizarCola(eventos, DEVICE_API_KEY);
+        for (const id of confirmados) {
+          await removerDeCola(id);
+        }
       }
       setErrorSync(null);
+      const ts = Date.now();
+      setUltimaSincronizacion(ts);
+      await guardarUltimaSincronizacion(ts);
     } catch {
       // Device key inválida/ausente, 401 del backend o error de red: la cola
       // se queda pendiente y se expone el error para que la UI avise.
@@ -115,6 +134,13 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     }
     await actualizarContador();
   }, [actualizarContador]);
+
+  const sincronizarGeneral = useCallback(async () => {
+    // Flush de la cola + refetch: se incrementa versionRecarga para que las
+    // pantallas vuelvan a consultar sus datos.
+    await sincronizar();
+    setVersionRecarga((v) => v + 1);
+  }, [sincronizar]);
 
   useEffect(() => {
     if (isOnline) {
@@ -128,11 +154,24 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       isOnline,
       sinSubir,
       errorSync,
+      ultimaSincronizacion,
+      versionRecarga,
       encolar,
       encolarSiNoExiste,
       sincronizar,
+      sincronizarGeneral,
     }),
-    [isOnline, sinSubir, errorSync, encolar, encolarSiNoExiste, sincronizar],
+    [
+      isOnline,
+      sinSubir,
+      errorSync,
+      ultimaSincronizacion,
+      versionRecarga,
+      encolar,
+      encolarSiNoExiste,
+      sincronizar,
+      sincronizarGeneral,
+    ],
   );
 
   return <OfflineContext.Provider value={value}>{children}</OfflineContext.Provider>;
