@@ -13,6 +13,7 @@ import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge, bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";
 import { contarEnMora } from "../domain/contar-en-mora";
+import { BotonMenu } from "../components/BotonMenu";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
@@ -122,6 +123,7 @@ export function SeleccionCarteraScreen({
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
       <HeaderPantalla>
         <View style={estilosHeader.fila} testID="header-seleccion-cartera">
+          <BotonMenu />
           <View style={estilosHeader.bloqueTitulo}>
             <Text style={estilosHeader.titulo}>
               Hola, {gestor?.nombre ?? "gestor"}

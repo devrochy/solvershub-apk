@@ -5,12 +5,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons } from "@expo/vector-icons";
 import { apiErrorStatus } from "../api/client";
 import type { RolLogin } from "../api/auth";
 import { useSession } from "../session/session-context";
@@ -20,6 +22,7 @@ export function LoginScreen() {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [rol, setRol] = useState<RolLogin>("gestor");
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,79 +50,101 @@ export function LoginScreen() {
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right", "bottom"]}>
       <KeyboardAvoidingView
-        style={styles.formFlex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.form}>
-          <View style={styles.logoMarco}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <View style={styles.form}>
             <Image
-              source={require("../../assets/logo.png")}
+              testID="login-logo"
+              source={require("../../assets/logo-gestor.png")}
               style={styles.logo}
               resizeMode="contain"
             />
-          </View>
 
-          <View style={styles.roles}>
-            <Pressable
-              testID="rol-gestor"
-              style={[styles.rol, rol === "gestor" && styles.rolActivo]}
-              onPress={() => setRol("gestor")}
-            >
-              <Text style={rol === "gestor" ? styles.rolTextoActivo : styles.rolTexto}>
-                Gestor
+            <View style={styles.roles}>
+              <Pressable
+                testID="rol-gestor"
+                style={[styles.rol, rol === "gestor" && styles.rolActivo]}
+                onPress={() => setRol("gestor")}
+              >
+                <Text style={rol === "gestor" ? styles.rolTextoActivo : styles.rolTexto}>
+                  Gestor
+                </Text>
+              </Pressable>
+              <Pressable
+                testID="rol-propietario"
+                style={[styles.rol, rol === "propietario" && styles.rolActivo]}
+                onPress={() => setRol("propietario")}
+              >
+                <Text style={rol === "propietario" ? styles.rolTextoActivo : styles.rolTexto}>
+                  Propietario
+                </Text>
+              </Pressable>
+            </View>
+
+            <TextInput
+              testID="usuario-input"
+              style={styles.input}
+              placeholder="Usuario"
+              placeholderTextColor="#94a3b8"
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={usuario}
+              onChangeText={setUsuario}
+            />
+            <View style={styles.passwordWrap}>
+              <TextInput
+                testID="password-input"
+                style={styles.passwordInput}
+                placeholder="Contraseña"
+                placeholderTextColor="#94a3b8"
+                secureTextEntry={!mostrarPassword}
+                value={password}
+                onChangeText={setPassword}
+                onSubmitEditing={handleSubmit}
+              />
+              <Pressable
+                testID="password-toggle"
+                accessibilityRole="button"
+                accessibilityLabel={
+                  mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
+                hitSlop={8}
+                onPress={() => setMostrarPassword((valor) => !valor)}
+              >
+                <MaterialIcons
+                  name={mostrarPassword ? "visibility-off" : "visibility"}
+                  size={22}
+                  color="#64748b"
+                />
+              </Pressable>
+            </View>
+
+            {error ? (
+              <Text testID="error-text" style={styles.error}>
+                {error}
               </Text>
-            </Pressable>
+            ) : null}
+
             <Pressable
-              testID="rol-propietario"
-              style={[styles.rol, rol === "propietario" && styles.rolActivo]}
-              onPress={() => setRol("propietario")}
+              testID="login-button"
+              style={[styles.boton, !puedeEnviar && styles.botonDeshabilitado]}
+              disabled={!puedeEnviar}
+              onPress={handleSubmit}
             >
-              <Text style={rol === "propietario" ? styles.rolTextoActivo : styles.rolTexto}>
-                Propietario
-              </Text>
+              {submitting ? (
+                <ActivityIndicator color="#172f6c" />
+              ) : (
+                <Text style={styles.botonTexto}>Entrar</Text>
+              )}
             </Pressable>
           </View>
-
-          <TextInput
-            testID="usuario-input"
-            style={styles.input}
-            placeholder="Usuario"
-            placeholderTextColor="#94a3b8"
-            autoCapitalize="none"
-            autoCorrect={false}
-            value={usuario}
-            onChangeText={setUsuario}
-          />
-          <TextInput
-            testID="password-input"
-            style={styles.input}
-            placeholder="Contraseña"
-            placeholderTextColor="#94a3b8"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            onSubmitEditing={handleSubmit}
-          />
-
-          {error ? (
-            <Text testID="error-text" style={styles.error}>
-              {error}
-            </Text>
-          ) : null}
-
-          <Pressable
-            testID="login-button"
-            style={[styles.boton, !puedeEnviar && styles.botonDeshabilitado]}
-            disabled={!puedeEnviar}
-            onPress={handleSubmit}
-          >
-            {submitting ? (
-              <ActivityIndicator color="#172f6c" />
-            ) : (
-              <Text style={styles.botonTexto}>Entrar</Text>
-            )}
-          </Pressable>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -130,25 +155,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#172f6c",
   },
-  logoMarco: {
-    alignSelf: "center",
-    marginBottom: 20,
-    borderRadius: 24,
-    borderCurve: "continuous",
-    overflow: "hidden",
-    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.35)",
-  },
-  logo: {
-    width: 140,
-    height: 140,
-  },
-  formFlex: {
-    flex: 1,
+  flex: { flex: 1 },
+  scroll: {
+    flexGrow: 1,
     justifyContent: "center",
     padding: 24,
   },
   form: {
     gap: 12,
+  },
+  logo: {
+    width: "40%",
+    aspectRatio: 1,
+    alignSelf: "center",
+    marginBottom: 24,
   },
   roles: { flexDirection: "row", gap: 8 },
   rol: {
@@ -167,6 +187,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#dbeafe",
     borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#334155",
+  },
+  passwordWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#dbeafe",
+    borderRadius: 8,
+    paddingRight: 10,
+  },
+  passwordInput: {
+    flex: 1,
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,

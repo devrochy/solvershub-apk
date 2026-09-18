@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Avatar } from "../components/Avatar";
+import { BotonMenu } from "../components/BotonMenu";
 import { CampoModal } from "../components/CampoModal";
 import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
@@ -86,6 +87,7 @@ export function PerfilScreen() {
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
       <HeaderPantalla>
         <View style={estilosHeader.fila} testID="header-perfil">
+          <BotonMenu />
           <View style={estilosHeader.bloqueTitulo}>
             <Text style={estilosHeader.titulo}>Perfil</Text>
             <Text style={estilosHeader.subtitulo}>Tus datos de usuario</Text>

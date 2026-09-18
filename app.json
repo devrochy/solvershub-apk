@@ -46,7 +46,16 @@
           "locationWhenInUsePermission": "La app usa tu ubicación para registrar la trayectoria de la cartera."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#172f6c",
+          "image": "./assets/logo-gestor.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
+      ]
     ],
     "extra": {
       "eas": {

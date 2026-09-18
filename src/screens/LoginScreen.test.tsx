@@ -68,4 +68,22 @@ describe("LoginScreen", () => {
       ),
     );
   });
+
+  it("oculta la contraseña por defecto y el ojo la muestra y la vuelve a ocultar", async () => {
+    const { getByTestId } = await renderConSesion(jest.fn());
+
+    expect(getByTestId("password-input")).toHaveProp("secureTextEntry", true);
+
+    await fireEvent.press(getByTestId("password-toggle"));
+    expect(getByTestId("password-input")).toHaveProp("secureTextEntry", false);
+
+    await fireEvent.press(getByTestId("password-toggle"));
+    expect(getByTestId("password-input")).toHaveProp("secureTextEntry", true);
+  });
+
+  it("renderiza el logo sin marco", async () => {
+    const { getByTestId } = await renderConSesion(jest.fn());
+
+    expect(getByTestId("login-logo")).toBeTruthy();
+  });
 });
