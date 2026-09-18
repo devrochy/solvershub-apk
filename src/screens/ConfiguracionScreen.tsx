@@ -2,8 +2,8 @@ import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
-import { BotonMenu } from "../components/BotonMenu";
-import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
+import { useNavigation } from "@react-navigation/native";
+import { HeaderApp } from "../components/HeaderApp";
 import { useOffline } from "../offline/offline-context";
 
 function formatearUltimaSincronizacion(ts: number | null): string {
@@ -16,6 +16,7 @@ function formatearUltimaSincronizacion(ts: number | null): string {
  * El cierre de sesión vive en el header de la lista de carteras.
  */
 export function ConfiguracionScreen() {
+  const navigation = useNavigation();
   const offline = useOffline();
   const [sincronizando, setSincronizando] = useState(false);
   const [mensaje, setMensaje] = useState<{ texto: string; error: boolean } | null>(null);
@@ -40,17 +41,11 @@ export function ConfiguracionScreen() {
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-      <HeaderPantalla>
-        <View style={estilosHeader.fila} testID="header-configuracion">
-          <BotonMenu />
-          <View style={estilosHeader.bloqueTitulo}>
-            <Text style={estilosHeader.titulo}>Configuración</Text>
-            <Text style={estilosHeader.subtitulo}>
-              Información de la aplicación
-            </Text>
-          </View>
-        </View>
-      </HeaderPantalla>
+      <HeaderApp
+        titulo="Configuración"
+        subtitulo="Información de la aplicación"
+        onVolver={() => navigation.goBack()}
+      />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.tarjeta}>

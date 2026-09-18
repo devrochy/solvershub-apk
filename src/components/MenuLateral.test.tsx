@@ -48,9 +48,9 @@ describe("MenuLateral", () => {
     const { getByTestId } = await renderMenu();
 
     await fireEvent.press(getByTestId("btn-menu"));
-    await fireEvent.press(getByTestId("menu-item-Perfil"));
+    await fireEvent.press(getByTestId("menu-item-perfil"));
 
-    expect(mockNavigate).toHaveBeenCalledWith("Main", { screen: "Perfil" });
+    expect(mockNavigate).toHaveBeenCalledWith("Perfil");
     expect(getByTestId("menu-lateral")).toHaveProp("pointerEvents", "none");
   });
 

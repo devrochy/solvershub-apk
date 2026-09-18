@@ -11,6 +11,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../navigation/types";
 import { File, Paths } from "expo-file-system";
 import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
@@ -18,7 +21,9 @@ import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
 import { colorDeEstado } from "../components/ColorBadge";
 import { EvidenciaPicker } from "../components/EvidenciaPicker";
-import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
+import { HeaderApp } from "../components/HeaderApp";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import {
@@ -40,6 +45,8 @@ import type { ClienteTrayectoDiarioPublic, LiquidacionPublic, TrayectoPublic } f
 const PRECARGA_TTL_MS = 5 * 60 * 1000;
 
 export function TrayectoDiarioScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { carteraActiva } = useCarteraActiva();
   const carteraId = carteraActiva?.carteraId ?? 0;
   const { abrir: abrirPantallaActiva } = usePantallaActiva();
@@ -401,16 +408,15 @@ export function TrayectoDiarioScreen() {
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-      <HeaderPantalla>
-        <View style={estilosHeader.fila} testID="header-trayectoDiario">
-          <View style={estilosHeader.bloqueTitulo}>
-            <Text style={estilosHeader.titulo}>Cobros del día</Text>
-            {clientes ? (
-              <Text style={estilosHeader.subtitulo}>
-                {clientes.length} cliente{clientes.length === 1 ? "" : "s"}
-              </Text>
-            ) : null}
-          </View>
+      <HeaderApp
+        titulo="Cobros del día"
+        subtitulo={
+          clientes
+            ? `${clientes.length} cliente${clientes.length === 1 ? "" : "s"}`
+            : undefined
+        }
+        onVolver={() => navigation.goBack()}
+        acciones={
           <Pressable
             testID="nuevo-gasto"
             style={estilosHeader.accionPill}
@@ -421,8 +427,14 @@ export function TrayectoDiarioScreen() {
           >
             <Text style={estilosHeader.accionPillTexto}>+ Gastos</Text>
           </Pressable>
-        </View>
-      </HeaderPantalla>
+        }
+      />
+      <Breadcrumb
+        items={[
+          { key: "carteras", label: "Carteras", onPress: () => navigation.navigate("Main") },
+          { key: "trayecto", label: "Trayecto diario" },
+        ]}
+      />
       <FlatList
         data={clientes}
         keyExtractor={(cliente) => String(cliente.clienteId)}

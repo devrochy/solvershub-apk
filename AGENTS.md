@@ -6,7 +6,7 @@ Este archivo se carga automáticamente en cada sesión de OpenCode. Es la fuente
 
 - **Producto**: APK del gestor de la plataforma de préstamos y cobranza (CobraIA). Consume la API del backend NestJS (`devrochy/app-cobranza`) vía HTTP (modo en línea) y la API de sincronización offline (device key) en modo offline.
 - **Stack**: Expo (React Native) + TypeScript. Navegación con React Navigation (native-stack). Sesión JWT (jose) en `expo-secure-store`. Tests con Jest (`jest-expo`) + React Native Testing Library.
-- **Endpoints del backend** (fuente de verdad en `devrochy/app-cobranza`): `POST /auth/gestor/login`, `POST /auth/refresh`, `GET /gestor/mis-carteras`, `GET /gestor/carteras/:id/trayecto-diario`, `POST /gestor/carteras/:id/visitas/pago|no-pago`, `POST /gestor/carteras/:id/gastos`, `POST /gestor/carteras/:id/trayectoria-real`, `GET /gestor/carteras/:id/clientes/:clienteId/tarjeta`, `POST /sync-offline/eventos`, `GET /sync-offline/trayecto-diario`. **No inventar endpoints ni campos**: verificar contra el backend.
+- **Endpoints del backend** (fuente de verdad en `devrochy/app-cobranza`): `POST /auth/gestor/login`, `POST /auth/refresh`, `GET /gestor/mis-carteras`, `GET /gestor/notificaciones`, `GET /gestor/carteras/:id/trayecto-diario`, `POST /gestor/carteras/:id/visitas/pago|no-pago`, `POST /gestor/carteras/:id/gastos`, `POST /gestor/carteras/:id/trayectoria-real`, `GET /gestor/carteras/:id/clientes/:clienteId/tarjeta`, `POST /sync-offline/eventos`, `GET /sync-offline/trayecto-diario`. **No inventar endpoints ni campos**: verificar contra el backend.
 
 ## 1. Modo de Planeación vs. Modo de Ejecución
 

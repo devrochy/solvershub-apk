@@ -1,23 +1,10 @@
-import type { NavigatorScreenParams } from "@react-navigation/native";
-
-/** Tabs del flujo de cartera (a pantalla completa, sin menú principal). */
-export type RootTabParamList = {
-  Cartera: undefined;
-  TrayectoDiario: undefined;
-  Clientes: undefined;
-};
-
-/** Tabs principales de la app (menú inferior). */
-export type MainTabParamList = {
-  Perfil: undefined;
-  Carteras: undefined;
-  Configuracion: undefined;
-};
-
 export type RootStackParamList = {
   Login: undefined;
-  Main: NavigatorScreenParams<MainTabParamList> | undefined;
-  Cartera: undefined;
+  Main: undefined;
+  Cartera: { seccion?: "Cartera" | "TrayectoDiario" | "Clientes" } | undefined;
+  Perfil: undefined;
+  Configuracion: undefined;
+  Notificaciones: undefined;
   Cliente: {
     carteraId: number;
     clienteId: number;

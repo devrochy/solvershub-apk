@@ -7,11 +7,22 @@ import {
   useState,
 } from "react";
 
+export interface MenuItem {
+  key: string;
+  label: string;
+  icon: string;
+  onPress(): void;
+  activo?: boolean;
+}
+
 export interface MenuLateralValue {
   abierto: boolean;
   abrir(): void;
   cerrar(): void;
   alternar(): void;
+  /** Ítems contextuales (secciones de la cartera, filtros, etc.). */
+  itemsExtra: MenuItem[];
+  setItemsExtra(items: MenuItem[]): void;
 }
 
 const NOOP = () => {};
@@ -25,18 +36,21 @@ const MenuLateralContext = createContext<MenuLateralValue>({
   abrir: NOOP,
   cerrar: NOOP,
   alternar: NOOP,
+  itemsExtra: [],
+  setItemsExtra: NOOP,
 });
 
 export function MenuLateralProvider({ children }: { children: ReactNode }) {
   const [abierto, setAbierto] = useState(false);
+  const [itemsExtra, setItemsExtra] = useState<MenuItem[]>([]);
 
   const abrir = useCallback(() => setAbierto(true), []);
   const cerrar = useCallback(() => setAbierto(false), []);
   const alternar = useCallback(() => setAbierto((valor) => !valor), []);
 
   const value = useMemo(
-    () => ({ abierto, abrir, cerrar, alternar }),
-    [abierto, abrir, cerrar, alternar],
+    () => ({ abierto, abrir, cerrar, alternar, itemsExtra, setItemsExtra }),
+    [abierto, abrir, cerrar, alternar, itemsExtra],
   );
 
   return <MenuLateralContext.Provider value={value}>{children}</MenuLateralContext.Provider>;

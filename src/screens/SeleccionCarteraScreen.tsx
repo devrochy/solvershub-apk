@@ -13,8 +13,7 @@ import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge, bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";
 import { contarEnMora } from "../domain/contar-en-mora";
-import { BotonMenu } from "../components/BotonMenu";
-import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
+import { HeaderApp } from "../components/HeaderApp";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
@@ -47,6 +46,7 @@ export function SeleccionCarteraScreen({
   const [kpis, setKpis] = useState<Record<number, CarteraKpi>>({});
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
+  const [filtroEstatus, setFiltroEstatus] = useState<"activo" | "inactivo">("activo");
   const [reintentandoSync, setReintentandoSync] = useState(false);
 
   const cargar = useCallback(async () => {
@@ -119,30 +119,40 @@ export function SeleccionCarteraScreen({
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
+  const carterasFiltradas = carteras.filter((cartera) =>
+    filtroEstatus === "activo"
+      ? cartera.estatus === "activo"
+      : cartera.estatus !== "activo",
+  );
+
   return (
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-      <HeaderPantalla>
-        <View style={estilosHeader.fila} testID="header-seleccion-cartera">
-          <BotonMenu />
-          <View style={estilosHeader.bloqueTitulo}>
-            <Text style={estilosHeader.titulo}>
-              Hola, {gestor?.nombre ?? "gestor"}
+      <HeaderApp
+        titulo={`Hola, ${gestor?.nombre ?? "gestor"}`}
+        subtitulo="Selecciona una cartera"
+        acciones={
+          offline.sinSubir > 0 ? (
+            <View testID="badge-sin-subir" style={styles.badge}>
+              <Text style={styles.badgeTexto}>{offline.sinSubir} sin subir</Text>
+            </View>
+          ) : null
+        }
+      />
+
+      <View style={styles.tabs}>
+        {(["activo", "inactivo"] as const).map((est) => (
+          <Pressable
+            key={est}
+            testID={`filtro-carteras-${est}`}
+            style={[styles.tab, filtroEstatus === est && styles.tabActivo]}
+            onPress={() => setFiltroEstatus(est)}
+          >
+            <Text style={filtroEstatus === est ? styles.tabTextoActivo : styles.tabTexto}>
+              {est === "activo" ? "Activas" : "Inactivas"}
             </Text>
-            <Text style={estilosHeader.subtitulo}>Selecciona una cartera</Text>
-          </View>
-          <View style={estilosHeader.accionesDerecha}>
-            {offline.sinSubir > 0 ? (
-              <View testID="badge-sin-subir" style={styles.badge}>
-                <Text style={styles.badgeTexto}>{offline.sinSubir} sin subir</Text>
-              </View>
-            ) : null}
-            <Pressable testID="btn-salir" style={estilosHeader.accionPill} onPress={logout}>
-              <MaterialIcons name="logout" size={18} color="#172f6c" />
-              <Text style={estilosHeader.accionPillTexto}>Salir</Text>
-            </Pressable>
-          </View>
-        </View>
-      </HeaderPantalla>
+          </Pressable>
+        ))}
+      </View>
 
       {offline.errorSync ? (
         <View testID="aviso-error-sync" style={styles.avisoErrorSync}>
@@ -168,7 +178,7 @@ export function SeleccionCarteraScreen({
 
       <FlatList
         testID="lista-carteras"
-        data={carteras}
+        data={carterasFiltradas}
         keyExtractor={(cartera) => String(cartera.id)}
         contentContainerStyle={styles.lista}
         refreshControl={
@@ -254,6 +264,22 @@ export function SeleccionCarteraScreen({
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  tabs: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  tab: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: "#e2e8f0",
+  },
+  tabActivo: { backgroundColor: "#172f6c" },
+  tabTexto: { color: "#334155", fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
+  tabTextoActivo: { color: "#ffffff", fontWeight: "700", fontFamily: "Roboto_700Bold" },
   badge: {
     backgroundColor: "#f59e0b",
     borderRadius: 999,

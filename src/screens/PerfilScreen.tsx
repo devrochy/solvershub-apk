@@ -8,10 +8,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { Avatar } from "../components/Avatar";
-import { BotonMenu } from "../components/BotonMenu";
+import { HeaderApp } from "../components/HeaderApp";
 import { CampoModal } from "../components/CampoModal";
-import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
+import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { useSession } from "../session/session-context";
 
@@ -46,6 +47,7 @@ function Dato({
  * modal, igual que el resto de las vistas.
  */
 export function PerfilScreen() {
+  const navigation = useNavigation();
   const { gestor, actualizarPerfil } = useSession();
   const [editando, setEditando] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -85,25 +87,21 @@ export function PerfilScreen() {
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-      <HeaderPantalla>
-        <View style={estilosHeader.fila} testID="header-perfil">
-          <BotonMenu />
-          <View style={estilosHeader.bloqueTitulo}>
-            <Text style={estilosHeader.titulo}>Perfil</Text>
-            <Text style={estilosHeader.subtitulo}>Tus datos de usuario</Text>
-          </View>
-          <View style={estilosHeader.accionesDerecha}>
-            <Pressable
-              testID="btn-editar-perfil"
-              style={estilosHeader.accionPill}
-              onPress={abrirEdicion}
-            >
-              <MaterialIcons name="edit" size={16} color="#172f6c" />
-              <Text style={estilosHeader.accionPillTexto}>Editar</Text>
-            </Pressable>
-          </View>
-        </View>
-      </HeaderPantalla>
+      <HeaderApp
+        titulo="Perfil"
+        subtitulo="Tus datos de usuario"
+        onVolver={() => navigation.goBack()}
+        acciones={
+          <Pressable
+            testID="btn-editar-perfil"
+            style={estilosHeader.accionPill}
+            onPress={abrirEdicion}
+          >
+            <MaterialIcons name="edit" size={16} color="#172f6c" />
+            <Text style={estilosHeader.accionPillTexto}>Editar</Text>
+          </Pressable>
+        }
+      />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.tarjeta}>
