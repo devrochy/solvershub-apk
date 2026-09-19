@@ -70,7 +70,7 @@ export function MenuLateral() {
           { paddingTop: insets.top + 20, transform: [{ translateX }] },
         ]}
       >
-        <Text style={styles.marca}>CobraIA</Text>
+        <Text style={styles.marca}>Solver</Text>
         <Text style={styles.usuario}>{gestor ? `@${gestor.usuario}` : ""}</Text>
 
         <View style={styles.items}>

@@ -246,7 +246,7 @@ export function SeleccionCarteraScreen({
       />
 
       <View testID="cobraia-flotante" style={styles.cobraiaFlotante} pointerEvents="none">
-        <Text style={styles.cobraiaFlotanteTexto}>CobraIA</Text>
+        <Text style={styles.cobraiaFlotanteTexto}>Solver</Text>
       </View>
     </SafeAreaView>
   );

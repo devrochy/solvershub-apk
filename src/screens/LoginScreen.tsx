@@ -61,7 +61,7 @@ export function LoginScreen() {
           <View style={styles.form}>
             <Image
               testID="login-logo"
-              source={require("../../assets/logo-gestor.png")}
+              source={require("../../assets/logo-solver.png")}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -165,8 +165,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logo: {
-    width: "55%",
-    aspectRatio: 729 / 250,
+    width: "28%",
+    aspectRatio: 697 / 218,
     alignSelf: "center",
     marginBottom: 16,
   },

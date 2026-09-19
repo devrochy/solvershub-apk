@@ -4,7 +4,7 @@ import { OfflineContext, OfflineValue } from "../offline/offline-context";
 
 jest.mock("expo-constants", () => ({
   __esModule: true,
-  default: { expoConfig: { name: "CobraIA", version: "1.0.0" } },
+  default: { expoConfig: { name: "Solver", version: "1.0.0" } },
 }));
 
 async function renderConOffline(overrides: Partial<OfflineValue> = {}) {
@@ -32,7 +32,7 @@ describe("ConfiguracionScreen", () => {
   it("muestra el nombre y la versión de la app", async () => {
     const { getByTestId } = await renderConOffline();
 
-    expect(getByTestId("config-app").props.children).toBe("CobraIA");
+    expect(getByTestId("config-app").props.children).toBe("Solver");
     expect(getByTestId("config-version").props.children).toBe("1.0.0");
   });
 

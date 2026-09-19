@@ -25,7 +25,7 @@ export interface RequestOptions {
 }
 
 /**
- * Cliente HTTP tipado hacia el backend de CobraIA. Adjunta el Bearer,
+ * Cliente HTTP tipado hacia el backend de Solver. Adjunta el Bearer,
  * refresca el access token al expirar y reintenta una vez ante un 401.
  * Si el refresh falla, limpia la sesión (el guard de carteras vuelve al login).
  */
