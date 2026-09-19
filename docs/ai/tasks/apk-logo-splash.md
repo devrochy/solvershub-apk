@@ -5,13 +5,13 @@ tags: [tarea]
 
 # Tarea: logo del login + íconos y splash de Solver
 
-- **Origen:** Petición directa del usuario (2026-09-18), iterando: (1) reducir el logo del login; (2) reemplazar el ícono del splash por el de Solver con fondo azul; (3) el logo seguía grande y el splash cortaba la "S"; (4) usar `logo-transparente.png` ajustado a la pantalla y el launcher con el estilo del splash.
+- **Origen:** Petición directa del usuario (2026-09-18), iterando: reducir el logo del login; reemplazar el ícono del splash por el de Solver con fondo azul; el splash cortaba la "S"; usar `logo-transparente.png` ajustado a la pantalla y el launcher con el estilo del splash; y, tras instalar en un OPPO CPH2603, el logo seguía ocupando toda la pantalla.
 - **Estado:** completada
 - **Fecha inicio:** 2026-09-18
 
 ## Objetivo
 
-Login con `logo-transparente.png` ajustado al ancho de la pantalla, y branding Solver consistente: splash + launcher con el wordmark sobre el azul de login (`#172f6c`), nombre de app "Solver".
+Login con el wordmark Solver a un tamaño controlado (~30% del ancho de pantalla), y branding Solver consistente: splash + launcher con el wordmark sobre el azul de login (`#172f6c`), nombre de app "Solver".
 
 ## Fuera de alcance
 
@@ -20,45 +20,34 @@ Login con `logo-transparente.png` ajustado al ancho de la pantalla, y branding S
 
 ## Diagnóstico (clave)
 
-- **EAS Build archiva desde el commit; NO incluye cambios sin commitear.** Los APK previos eran `40b445d` (original) y `027aac2` (login 55%). Por eso el ajuste nunca llegaba → **ahora se commitea antes de construir**.
-- **Corte de la "S" en el splash:** Android 12+ recorta el ícono del splash con máscara circular. El wordmark **recortado** se corta; el **cuadrado con padding** `logo-transparente.png` (1024×1024; diagonal del wordmark 730 < 1024) cabe sin cortes.
-- **Consistencia launcher/splash:** el splash compone el wordmark al **68%** del cuadrado; el launcher se regeneró con la misma composición.
+1. **EAS Build archiva desde el commit; no incluye cambios sin commitear.** Los APK previos eran `40b445d` (original) y `027aac2` (login 55%). → **commitear antes de construir**.
+2. **Corte de la "S" en el splash:** Android 12+ recorta el ícono con máscara circular; el cuadrado con padding `logo-transparente.png` (1024×1024; diagonal del wordmark 730 < 1024) cabe sin cortes.
+3. **Bug real del login (medido en dispositivo):** con `width:"70%"` + `aspectRatio:1`, la `Image` **no aplicaba el tamaño** y se renderizaba a su tamaño intrínseco (1024 dp): el wordmark ocupaba el **100% del ancho** (y se cortaba en los bordes). Verificado con `adb exec-out screencap` + análisis de píxeles. → **solución: tamaño numérico explícito** (`useWindowDimensions`), que sí se aplica.
 
 ## Bloques
 
-- [x] Bloque 1: login con `logo-transparente.png` (cuadrado, `resizeMode:"contain"`), `width:"70%"`, `aspectRatio:1` → el wordmark queda centrado sobre el fondo azul (~163 px en teléfono de 390).
-- [x] Bloque 2: launcher estilo splash, compuesto sobre `#172f6c`:
-  - `icon.png` 1024 = azul + logo al 100% (wordmark 68%, igual que el splash).
-  - `android-icon-foreground.png` 512 = logo 465 (wordmark ~317, dentro de la zona segura).
-  - `android-icon-background.png` 512 = azul sólido.
-  - `android-icon-monochrome.png` 432 = silueta blanca (logo 390).
-  - `favicon.png` 48.
-- [x] Bloque 3: `app.json` — `name:"Solver"`, splash `image:./assets/logo-transparente.png` @250 `resizeMode:"contain"`, `adaptiveIcon.backgroundColor:"#172f6c"`.
-- [x] Bloque 4: renombre de textos visibles "CobraIA"→"Solver" (`MenuLateral`, `SeleccionCarteraScreen` flotante, `ConfiguracionScreen` + test; comentario en `api/client.ts`).
-- [x] Bloque 5: eliminar assets sin uso (`logo-gestor.png` y `logo-solver.png`).
+- [x] Bloque 1: login — `logo-transparente.png` con tamaño **explícito** `logoTamano = Math.round(anchoPantalla * 0.44)` (wordmark ≈ 30% del ancho), `resizeMode:"contain"`; `form` con `width:"100%"`.
+- [x] Bloque 2: launcher estilo splash, compuesto sobre `#172f6c`: `icon.png` 1024 (wordmark 68%), `android-icon-foreground.png` 512 (dentro de zona segura), `android-icon-background.png` 512 (azul), `android-icon-monochrome.png` 432 (silueta), `favicon.png` 48.
+- [x] Bloque 3: `app.json` — `name:"Solver"`, splash `logo-transparente.png` @250 `contain` sobre `#172f6c`, `adaptiveIcon.backgroundColor:"#172f6c"`.
+- [x] Bloque 4: renombre de textos visibles "CobraIA"→"Solver" (menú, selección de cartera, configuración + test, comentario en `api/client.ts`).
+- [x] Bloque 5: eliminar `logo-gestor.png` y `logo-solver.png` (sin uso).
 
 ## Decisiones tomadas durante la implementación
 
-- Cambio de asset/estilo: exento de TDD por no tener comportamiento de runtime testeable. `check.sh` en verde.
-- Generación de assets sin dependencias nuevas: `pngjs` (composición) + `sips` (redimensionado).
-- Login con el cuadrado completo de `logo-transparente.png` al 70% (pedido del usuario), aunque reserva una caja cuadrada con padding transparente.
-- Launcher adaptativo con el wordmark dentro de la zona segura (~62%), azul por `backgroundColor`.
+- Tamaño del logo con **números explícitos** (no `%` + `aspectRatio`) por el bug observado en la New Architecture.
+- Assets generados sin dependencias nuevas: `pngjs` (composición) + `sips` (redimensionado).
+- No tocar `package`/`bundleIdentifier`.
 
 ## Ambigüedades resueltas con el usuario
 
-- Login → `logo-transparente.png`, `width:"70%"`, `resizeMode:"contain"`.
+- Login → `logo-transparente.png`, wordmark ~30% del ancho.
 - Splash → `logo-transparente.png` cuadrado @250, `contain`, fondo `#172f6c`.
 - Launcher → mismo estilo del splash (wordmark al 68% sobre azul).
 - Nombre → **"Solver"**.
 
 ## Resultado final
 
-- Comandos ejecutados para verificar:
-  - `npm run lint` → 0 errores (80 warnings preexistentes); `npm run typecheck` → OK.
-  - `npm test -- --testTimeout=30000` → **59 suites / 429 tests en verde**.
-  - `npx expo config --type public` → `name:'Solver'`, splash `logo-transparente.png` @250, íconos `icon.png`/`android-icon-*`/`favicon.png`.
-- Archivos: `app.json`, `src/screens/LoginScreen.tsx`, `src/screens/SeleccionCarteraScreen.tsx`, `src/screens/ConfiguracionScreen.tsx` (+test), `src/components/MenuLateral.tsx`, `src/api/client.ts`, `assets/logo-transparente.png`, `icon.png`, `android-icon-foreground.png`, `android-icon-background.png`, `android-icon-monochrome.png`, `favicon.png`; eliminados `assets/logo-gestor.png` y `assets/logo-solver.png`.
-- Build (EAS `preview`, APK internal), commit `5b14213`:
-  - Build: https://expo.dev/accounts/devrochy/projects/app-cobranza-apk/builds/8e32fb82-1c83-4c05-909f-af7b2da41e97
-  - APK: https://expo.dev/artifacts/eas/OZ7KkTbFRWiSIMkRdr-KC-EiQWAVrT9pfpX-ueYiOQk.apk
-- Pendientes/seguimiento: verificación visual en dispositivo; si se quiere un símbolo cuadrado en vez del wordmark, aportar el asset.
+- Verificación: `npm run lint` → 0 errores (80 warnings preexistentes); `npm run typecheck` → OK; `npm test -- --testTimeout=30000` → **59 suites / 429 tests**; `npx expo config` resuelve name/splash/íconos.
+- Instalado en dispositivo OPPO CPH2603 (`1080×2412`, 408 dpi) por `adb install -r`. Medición del render: con el bug, el wordmark ocupaba 100% del ancho; con el fix se espera ~30%.
+- Build (EAS `preview`, APK internal): _(se completa tras el rebuild)_
+- Pendientes/seguimiento: verificación visual en dispositivo; launcher: assets azules correctos, revisar caché/tema de ColorOS si no se refresca; si se quiere símbolo cuadrado, aportar asset.
