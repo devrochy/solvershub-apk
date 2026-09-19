@@ -31,7 +31,7 @@ export function CarteraFlujo({ route, navigation }: Props) {
     const items: MenuItem[] = [
       {
         key: "seccion-cartera",
-        label: "Cartera",
+        label: "Inicio",
         icon: "store",
         activo: seccion === "Cartera",
         onPress: () => setSeccion("Cartera"),

@@ -162,6 +162,14 @@ describe("CarteraDetalleScreen", () => {
     expect(getByText("Activo")).toBeTruthy();
   });
 
+  it("el header dice 'Inicio' y no muestra botón atrás", async () => {
+    const { getByText, queryByTestId } = await renderDetalle();
+
+    await waitFor(() => expect(getByText("Inicio")).toBeTruthy());
+    expect(getByText("Cartera Centro")).toBeTruthy();
+    expect(queryByTestId("btn-volver")).toBeNull();
+  });
+
   it("lista las notas con su texto", async () => {
     const { getByTestId, getByText } = await renderDetalle();
 

@@ -235,7 +235,7 @@ export function CarteraDetalleScreen({
   if (!carteraId) {
     return (
       <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-        <HeaderApp titulo="Cartera" onVolver={cerrar} />
+        <HeaderApp titulo="Inicio" />
         <View style={styles.sinCartera}>
           <Text style={styles.sinCarteraTexto}>Selecciona una cartera para ver su información.</Text>
           <Pressable testID="btn-ir-seleccion" style={styles.botonSinCartera} onPress={cerrar}>
@@ -262,13 +262,8 @@ export function CarteraDetalleScreen({
     >
       <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
         <HeaderApp
-          titulo={nombreCartera}
-          subtitulo={
-            clientes
-              ? `${clientes.length} cliente${clientes.length === 1 ? "" : "s"}`
-              : undefined
-          }
-          onVolver={cerrar}
+          titulo="Inicio"
+          subtitulo={nombreCartera}
           acciones={
             <Pressable
               testID="btn-editar-cartera"

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -23,6 +23,17 @@ interface CarteraKpi {
   totalClientes: number;
   clientesDia: number;
   enMora: number;
+}
+
+function aCarteraActiva(cartera: CarteraApkPublic) {
+  return {
+    carteraId: cartera.id,
+    carteraNombre: cartera.nombre,
+    tipoInteres: cartera.tipoInteres,
+    numCuotas: cartera.numCuotas,
+    config: cartera.config,
+    permisos: cartera.permisos,
+  };
 }
 
 /**
@@ -104,16 +115,25 @@ export function SeleccionCarteraScreen({
   }
 
   function seleccionarCartera(cartera: CarteraApkPublic) {
-    setCarteraActiva({
-      carteraId: cartera.id,
-      carteraNombre: cartera.nombre,
-      tipoInteres: cartera.tipoInteres,
-      numCuotas: cartera.numCuotas,
-      config: cartera.config,
-      permisos: cartera.permisos,
-    });
+    setCarteraActiva(aCarteraActiva(cartera));
     onCarteraSeleccionada?.();
   }
+
+  // Inicio: con una sola cartera se fija activa y se navega directo al detalle
+  // (una vez). El callback va por ref para no depender de su identidad.
+  const autoSeleccion = useRef(false);
+  const onSeleccionadaRef = useRef(onCarteraSeleccionada);
+  useEffect(() => {
+    onSeleccionadaRef.current = onCarteraSeleccionada;
+  });
+  useEffect(() => {
+    if (autoSeleccion.current || !carteras || carteras.length !== 1) {
+      return;
+    }
+    autoSeleccion.current = true;
+    setCarteraActiva(aCarteraActiva(carteras[0]));
+    onSeleccionadaRef.current?.();
+  }, [carteras, setCarteraActiva]);
 
   if (!carteras) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
@@ -139,6 +159,10 @@ export function SeleccionCarteraScreen({
         }
       />
 
+      {carteras.length === 1 ? (
+        <CargaError cargando error={null} onReintentar={cargar} />
+      ) : (
+        <>
       <View style={styles.tabs}>
         {(["activo", "inactivo"] as const).map((est) => (
           <Pressable
@@ -254,10 +278,8 @@ export function SeleccionCarteraScreen({
           );
         }}
       />
-
-      <View testID="cobraia-flotante" style={styles.cobraiaFlotante} pointerEvents="none">
-        <Text style={styles.cobraiaFlotanteTexto}>Solver</Text>
-      </View>
+        </>
+      )}
     </SafeAreaView>
   );
 }
@@ -329,16 +351,5 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     justifyContent: "center",
-  },
-  cobraiaFlotante: {
-    position: "absolute",
-    bottom: 90,
-    right: 16,
-  },
-  cobraiaFlotanteTexto: {
-    color: "#cbd5e1",
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 1,
   },
 });
