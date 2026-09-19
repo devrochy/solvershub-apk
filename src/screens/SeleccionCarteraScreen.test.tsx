@@ -47,6 +47,24 @@ function apiConCartera(kpis: { clientes: unknown[]; trayectoDiario: unknown } = 
   };
 }
 
+const cartera2 = {
+  id: 7,
+  nombre: "Cartera Manizales",
+  estatus: "activo",
+  tipoInteres: 25,
+  numCuotas: 10,
+  config: { carteraId: 7, periodoLiquidacion: "semanal", cupoDefault: 2000 },
+  permisos: [{ permiso: "ver_cartera", habilitado: true }],
+};
+
+function apiConCarteras(lista: unknown[]) {
+  return {
+    misCarteras: jest.fn().mockResolvedValue(lista),
+    listarClientesDeCartera: jest.fn().mockResolvedValue([]),
+    trayectoDiario: jest.fn().mockResolvedValue(diaVacio),
+  };
+}
+
 async function renderConCarteras(
   api: Partial<SessionValue["api"]>,
   setCarteraActiva: jest.Mock = jest.fn(),
@@ -120,7 +138,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
     const setCarteraActiva = jest.fn();
     const onCarteraSeleccionada = jest.fn();
     const { getByTestId } = await renderConCarteras(
-      apiConCartera(),
+      apiConCarteras([cartera, cartera2]),
       setCarteraActiva,
       onCarteraSeleccionada,
     );
@@ -254,6 +272,38 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
       backgroundColor: "#fee2e2",
     });
     expect(getByTestId("color-badge-rojo")).toBeTruthy();
+  });
+
+  it("con una sola cartera, la fija activa y navega automáticamente al detalle (Inicio)", async () => {
+    const setCarteraActiva = jest.fn();
+    const onCarteraSeleccionada = jest.fn();
+    await renderConCarteras(apiConCartera(), setCarteraActiva, onCarteraSeleccionada);
+
+    await waitFor(() => expect(onCarteraSeleccionada).toHaveBeenCalledTimes(1));
+    expect(setCarteraActiva).toHaveBeenCalledWith(
+      expect.objectContaining({ carteraId: 6, carteraNombre: "Cartera Centro" }),
+    );
+  });
+
+  it("con varias carteras, no auto-selecciona (espera la elección del gestor)", async () => {
+    const onCarteraSeleccionada = jest.fn();
+    const { getByTestId } = await renderConCarteras(
+      apiConCarteras([cartera, cartera2]),
+      jest.fn(),
+      onCarteraSeleccionada,
+    );
+
+    await waitFor(() => expect(getByTestId("cartera-6")).toBeTruthy());
+    expect(onCarteraSeleccionada).not.toHaveBeenCalled();
+  });
+
+  it("no muestra el texto flotante 'Solver'", async () => {
+    const { getByTestId, queryByTestId } = await renderConCarteras(
+      apiConCarteras([cartera, cartera2]),
+    );
+
+    await waitFor(() => expect(getByTestId("cartera-6")).toBeTruthy());
+    expect(queryByTestId("cobraia-flotante")).toBeNull();
   });
 });
 describe("SeleccionCarteraScreen — reintento de sincronización", () => {
