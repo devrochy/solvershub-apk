@@ -49,5 +49,10 @@ Login con el wordmark Solver a un tamaño controlado (~30% del ancho de pantalla
 
 - Verificación: `npm run lint` → 0 errores (80 warnings preexistentes); `npm run typecheck` → OK; `npm test -- --testTimeout=30000` → **59 suites / 429 tests**; `npx expo config` resuelve name/splash/íconos.
 - Instalado en dispositivo OPPO CPH2603 (`1080×2412`, 408 dpi) por `adb install -r`. Medición del render: con el bug, el wordmark ocupaba 100% del ancho; con el fix se espera ~30%.
-- Build (EAS `preview`, APK internal): _(se completa tras el rebuild)_
-- Pendientes/seguimiento: verificación visual en dispositivo; launcher: assets azules correctos, revisar caché/tema de ColorOS si no se refresca; si se quiere símbolo cuadrado, aportar asset.
+- Build (EAS `preview`, APK internal), commit `a01f590`:
+  - Build: https://expo.dev/accounts/devrochy/projects/app-cobranza-apk/builds/ace55568-9423-492f-a5aa-c6be22d34fdf
+  - APK: https://expo.dev/artifacts/eas/pGnnNxthPEewQei8nLvYAzAmkN-VpFoZvC47t5Qd8GY.apk
+- Verificación en dispositivo (OPPO CPH2603), tras `adb install -r`:
+  - **Login:** medido en pantalla → wordmark **323 px = 29.9%** del ancho (objetivo ~30%); formulario al 88.7%. Corrige el bug de render (antes ocupaba 100%).
+  - **Launcher:** el ícono/etiqueta viejos estaban **cacheados** por ColorOS (mostraba "CobraIA" y un ícono no azul). Tras **forzar el launcher** (`am force-stop com.android.launcher`), se refrescó: etiqueta **"Solver"** e ícono azul con el wordmark (check cian verificado por píxeles).
+- Pendientes/seguimiento: si el launcher no refresca solo en otro equipo, reinstalar/reiniciar el launcher; si se quiere un símbolo cuadrado en vez del wordmark, aportar el asset.
