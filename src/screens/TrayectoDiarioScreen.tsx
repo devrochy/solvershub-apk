@@ -430,8 +430,8 @@ export function TrayectoDiarioScreen() {
       />
       <Breadcrumb
         items={[
-          { key: "carteras", label: "Carteras", onPress: () => navigation.navigate("Main") },
-          { key: "trayecto", label: "Trayecto diario" },
+          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
+          { key: "diario", label: "Diario" },
         ]}
       />
       <FlatList

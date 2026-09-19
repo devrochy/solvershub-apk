@@ -17,7 +17,6 @@ import { CampoModal } from "../components/CampoModal";
 import { contarEnMora } from "../domain/contar-en-mora";
 import { etiquetaEstatus } from "../domain/estatus";
 import { HeaderApp } from "../components/HeaderApp";
-import { Breadcrumb } from "../components/Breadcrumb";
 import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { guardarEstadisticasCartera, leerEstadisticasCartera } from "../offline/cache";
@@ -275,13 +274,6 @@ export function CarteraDetalleScreen({
             </Pressable>
           }
         />
-
-      <Breadcrumb
-        items={[
-          { key: "carteras", label: "Carteras", onPress: () => navigation.navigate("Main") },
-          { key: "cartera", label: "Cartera" },
-        ]}
-      />
 
       {avisoEdicion ? (
         <View style={styles.aviso}>

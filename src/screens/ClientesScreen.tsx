@@ -429,7 +429,7 @@ export function ClientesScreen({
       </View>
       <Breadcrumb
         items={[
-          { key: "carteras", label: "Carteras", onPress: () => navigation.navigate("Main") },
+          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
           { key: "clientes", label: "Clientes" },
         ]}
       />

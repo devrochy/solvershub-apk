@@ -3,8 +3,11 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HeaderApp } from "../components/HeaderApp";
+import { Breadcrumb } from "../components/Breadcrumb";
 import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
+import type { RootStackParamList } from "../navigation/types";
 import { useNotificaciones } from "../session/notificaciones-context";
 import type { NotificacionTipo } from "../types/gestor";
 
@@ -18,7 +21,7 @@ const ICONO: Record<NotificacionTipo, keyof typeof MaterialIcons.glyphMap> = {
 
 /** Feed de notificaciones: pagos, gastos, no-pagos, aprobaciones y liquidaciones. */
 export function NotificacionesScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { items, cargando, cargar, marcarVistas } = useNotificaciones();
 
   useEffect(() => {
@@ -35,6 +38,13 @@ export function NotificacionesScreen() {
       <HeaderApp
         titulo="Notificaciones"
         subtitulo={`${items.length} evento${items.length === 1 ? "" : "s"}`}
+      />
+
+      <Breadcrumb
+        items={[
+          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
+          { key: "notificaciones", label: "Notificaciones" },
+        ]}
       />
 
       <FlatList

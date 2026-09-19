@@ -3,9 +3,12 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HeaderApp } from "../components/HeaderApp";
+import { Breadcrumb } from "../components/Breadcrumb";
 import { useOffline } from "../offline/offline-context";
 import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
+import type { RootStackParamList } from "../navigation/types";
 
 function formatearUltimaSincronizacion(ts: number | null): string {
   return ts ? new Date(ts).toLocaleString("es") : "Nunca";
@@ -17,7 +20,7 @@ function formatearUltimaSincronizacion(ts: number | null): string {
  * El cierre de sesión vive en el header de la lista de carteras.
  */
 export function ConfiguracionScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const offline = useOffline();
   const [sincronizando, setSincronizando] = useState(false);
   const [mensaje, setMensaje] = useState<{ texto: string; error: boolean } | null>(null);
@@ -50,6 +53,13 @@ export function ConfiguracionScreen() {
       <HeaderApp
         titulo="Configuración"
         subtitulo="Información de la aplicación"
+      />
+
+      <Breadcrumb
+        items={[
+          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
+          { key: "configuracion", label: "Configuración" },
+        ]}
       />
 
       <ScrollView contentContainerStyle={styles.scroll}>

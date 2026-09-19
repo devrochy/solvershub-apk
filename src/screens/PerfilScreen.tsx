@@ -9,8 +9,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
+import type { RootStackParamList } from "../navigation/types";
 import { Avatar } from "../components/Avatar";
+import { Breadcrumb } from "../components/Breadcrumb";
 import { HeaderApp } from "../components/HeaderApp";
 import { CampoModal } from "../components/CampoModal";
 import { estilosHeader } from "../components/HeaderPantalla";
@@ -48,7 +51,7 @@ function Dato({
  * modal, igual que el resto de las vistas.
  */
 export function PerfilScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { gestor, actualizarPerfil } = useSession();
   const [editando, setEditando] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -106,6 +109,13 @@ export function PerfilScreen() {
             <Text style={estilosHeader.accionPillTexto}>Editar</Text>
           </Pressable>
         }
+      />
+
+      <Breadcrumb
+        items={[
+          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
+          { key: "perfil", label: "Perfil" },
+        ]}
       />
 
       <ScrollView contentContainerStyle={styles.scroll}>
