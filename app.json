@@ -48,6 +48,14 @@
       ],
       "expo-sharing",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#172f6c",
@@ -55,7 +63,8 @@
           "imageWidth": 250,
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "extra": {
       "eas": {

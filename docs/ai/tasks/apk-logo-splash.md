@@ -23,6 +23,7 @@ Login con el wordmark Solver a un tamaño controlado (~30% del ancho de pantalla
 1. **EAS Build archiva desde el commit; no incluye cambios sin commitear.** Los APK previos eran `40b445d` (original) y `027aac2` (login 55%). → **commitear antes de construir**.
 2. **Corte de la "S" en el splash:** Android 12+ recorta el ícono con máscara circular; el cuadrado con padding `logo-transparente.png` (1024×1024; diagonal del wordmark 730 < 1024) cabe sin cortes.
 3. **Bug real del login (medido en dispositivo):** con `width:"70%"` + `aspectRatio:1`, la `Image` **no aplicaba el tamaño** y se renderizaba a su tamaño intrínseco (1024 dp): el wordmark ocupaba el **100% del ancho** (y se cortaba en los bordes). Verificado con `adb exec-out screencap` + análisis de píxeles. → **solución: tamaño numérico explícito** (`useWindowDimensions`), que sí se aplica.
+4. **"No se pudo conectar" en el login:** el `AndroidManifest.xml` del APK **no declara `usesCleartextTraffic` ni `networkSecurityConfig`**; con `targetSdk 36` Android **bloquea el HTTP sin cifrar** por defecto (el build `preview` es release; el manifest de debug no aplica). El backend HTTP local (`http://192.168.40.5:3000`) queda inalcanzable. → **solución: `expo-build-properties` con `android.usesCleartextTraffic: true`.**
 
 ## Bloques
 
@@ -31,6 +32,7 @@ Login con el wordmark Solver a un tamaño controlado (~30% del ancho de pantalla
 - [x] Bloque 3: `app.json` — `name:"Solver"`, splash `logo-transparente.png` @250 `contain` sobre `#172f6c`, `adaptiveIcon.backgroundColor:"#172f6c"`.
 - [x] Bloque 4: renombre de textos visibles "CobraIA"→"Solver" (menú, selección de cartera, configuración + test, comentario en `api/client.ts`).
 - [x] Bloque 5: eliminar `logo-gestor.png` y `logo-solver.png` (sin uso).
+- [x] Bloque 6: permitir HTTP en el APK de pruebas — `expo-build-properties` con `android.usesCleartextTraffic: true` (necesario para conectar al backend local `http://192.168.40.5:3000`).
 
 ## Decisiones tomadas durante la implementación
 
