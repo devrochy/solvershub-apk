@@ -52,7 +52,7 @@
         {
           "backgroundColor": "#172f6c",
           "image": "./assets/logo-gestor.png",
-          "imageWidth": 200,
+          "imageWidth": 160,
           "resizeMode": "contain"
         }
       ]

@@ -165,10 +165,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logo: {
-    width: "40%",
-    aspectRatio: 1,
+    width: "55%",
+    aspectRatio: 729 / 250,
     alignSelf: "center",
-    marginBottom: 24,
+    marginBottom: 16,
   },
   roles: { flexDirection: "row", gap: 8 },
   rol: {
