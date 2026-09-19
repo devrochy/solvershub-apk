@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -18,6 +18,8 @@ import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva, aCarteraActiva } from "../session/cartera-activa-context";
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type { CarteraApkPublic } from "../types/gestor";
 
 interface CarteraKpi {
@@ -49,6 +51,9 @@ export function SeleccionCarteraScreen({
   const [refrescando, setRefrescando] = useState(false);
   const [filtroEstatus, setFiltroEstatus] = useState<"activo" | "inactivo">("activo");
   const [reintentandoSync, setReintentandoSync] = useState(false);
+
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -266,7 +271,7 @@ export function SeleccionCarteraScreen({
               <View style={styles.tarjetaCuerpo}>
                 <View style={styles.kpis}>
                   <View style={styles.kpi}>
-                    <MaterialIcons name="people" size={26} color="#172f6c" />
+                    <MaterialIcons name="people" size={26} color={colores.acento} />
                     <Text style={styles.kpiValor} testID={`kpi-clientes-${item.id}`}>
                       {kpi.totalClientes}
                     </Text>
@@ -301,72 +306,74 @@ export function SeleccionCarteraScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  tabs: {
-    flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: "#e2e8f0",
-  },
-  tabActivo: { backgroundColor: "#172f6c" },
-  tabTexto: { color: "#334155", fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
-  tabTextoActivo: { color: "#ffffff", fontWeight: "700", fontFamily: "Roboto_700Bold" },
-  badge: {
-    backgroundColor: "#f59e0b",
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  badgeTexto: { color: "#ffffff", fontSize: 12, fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
-  avisoErrorSync: {
-    backgroundColor: "#fee2e2",
-    borderWidth: 1,
-    borderColor: "#fca5a5",
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  reintentar: { marginTop: 6, alignSelf: "flex-start" },
-  reintentarTexto: { color: "#b91c1c", fontWeight: "700", fontSize: 13 },
-  avisoErrorSyncTexto: { color: "#991b1b", fontSize: 13, fontWeight: "600" },
-  lista: { padding: 16, gap: 12, paddingBottom: 72 },
-  vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
-  tarjeta: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    overflow: "hidden",
-  },
-  tarjetaHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  tarjetaHeaderTexto: { fontWeight: "700", fontSize: 14 },
-  tarjetaInactiva: { opacity: 0.75 },
-  tarjetaCuerpo: { padding: 16 },
-  kpis: { flexDirection: "row", gap: 10 },
-  kpi: { flex: 1, alignItems: "center", gap: 2 },
-  kpiValor: { fontSize: 18, fontWeight: "800", color: "#0f172a" },
-  kpiEtiqueta: { fontSize: 11, color: "#64748b", fontWeight: "600" },
-  chevron: {
-    position: "absolute",
-    right: 12,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-  },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: c.fondo },
+    tabs: {
+      flexDirection: "row",
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingTop: 12,
+    },
+    tab: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 8,
+      borderRadius: 999,
+      backgroundColor: c.borde,
+    },
+    tabActivo: { backgroundColor: c.primario },
+    tabTexto: { color: c.texto, fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
+    tabTextoActivo: { color: "#ffffff", fontWeight: "700", fontFamily: "Roboto_700Bold" },
+    badge: {
+      backgroundColor: "#f59e0b",
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    },
+    badgeTexto: { color: "#ffffff", fontSize: 12, fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
+    avisoErrorSync: {
+      backgroundColor: "#fee2e2",
+      borderWidth: 1,
+      borderColor: "#fca5a5",
+      marginHorizontal: 16,
+      marginTop: 12,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    reintentar: { marginTop: 6, alignSelf: "flex-start" },
+    reintentarTexto: { color: c.peligro, fontWeight: "700", fontSize: 13 },
+    avisoErrorSyncTexto: { color: c.peligro, fontSize: 13, fontWeight: "600" },
+    lista: { padding: 16, gap: 12, paddingBottom: 72 },
+    vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24 },
+    tarjeta: {
+      backgroundColor: c.tarjeta,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: c.borde,
+      overflow: "hidden",
+    },
+    tarjetaHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+    tarjetaHeaderTexto: { fontWeight: "700", fontSize: 14 },
+    tarjetaInactiva: { opacity: 0.75 },
+    tarjetaCuerpo: { padding: 16 },
+    kpis: { flexDirection: "row", gap: 10 },
+    kpi: { flex: 1, alignItems: "center", gap: 2 },
+    kpiValor: { fontSize: 18, fontWeight: "800", color: c.texto },
+    kpiEtiqueta: { fontSize: 11, color: c.textoSuave, fontWeight: "600" },
+    chevron: {
+      position: "absolute",
+      right: 12,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
+    },
+  });
+}

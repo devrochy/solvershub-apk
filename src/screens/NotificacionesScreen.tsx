@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -9,6 +9,8 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 import type { RootStackParamList } from "../navigation/types";
 import { useNotificaciones } from "../session/notificaciones-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type { NotificacionTipo } from "../types/gestor";
 
 const ICONO: Record<NotificacionTipo, keyof typeof MaterialIcons.glyphMap> = {
@@ -23,6 +25,9 @@ const ICONO: Record<NotificacionTipo, keyof typeof MaterialIcons.glyphMap> = {
 export function NotificacionesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { items, cargando, cargar, marcarVistas } = useNotificaciones();
+
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
 
   useEffect(() => {
     void cargar();
@@ -61,7 +66,7 @@ export function NotificacionesScreen() {
         }
         renderItem={({ item }) => (
           <View testID={`notif-${item.id}`} style={styles.item}>
-            <MaterialIcons name={ICONO[item.tipo]} size={22} color="#172f6c" />
+            <MaterialIcons name={ICONO[item.tipo]} size={22} color={colores.acento} />
             <View style={styles.info}>
               <Text style={styles.mensaje}>{item.mensaje}</Text>
               <Text style={styles.meta}>
@@ -84,30 +89,32 @@ export function NotificacionesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  fill: { flex: 1 },
-  lista: { padding: 16, gap: 10 },
-  vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    padding: 14,
-  },
-  info: { flex: 1, gap: 2 },
-  mensaje: { fontSize: 14, fontWeight: "600", color: "#0f172a" },
-  meta: { fontSize: 12, color: "#64748b" },
-  marcar: {
-    margin: 16,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: "#172f6c",
-    alignItems: "center",
-  },
-  marcarTexto: { color: "#ffffff", fontWeight: "700" },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: c.fondo },
+    fill: { flex: 1 },
+    lista: { padding: 16, gap: 10 },
+    vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24 },
+    item: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: c.tarjeta,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: c.borde,
+      padding: 14,
+    },
+    info: { flex: 1, gap: 2 },
+    mensaje: { fontSize: 14, fontWeight: "600", color: c.texto },
+    meta: { fontSize: 12, color: c.textoSuave },
+    marcar: {
+      margin: 16,
+      paddingVertical: 12,
+      borderRadius: 10,
+      backgroundColor: c.primario,
+      alignItems: "center",
+    },
+    marcarTexto: { color: "#ffffff", fontWeight: "700" },
+  });
+}

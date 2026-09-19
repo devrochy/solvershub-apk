@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -23,6 +23,8 @@ import { guardarEstadisticasCartera, leerEstadisticasCartera } from "../offline/
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type {
   ClienteGestorPublic,
   TrayectoDiarioApkPublic,
@@ -99,6 +101,9 @@ export function CarteraDetalleScreen({
   const [editNumCuotas, setEditNumCuotas] = useState("");
   const [editEnviando, setEditEnviando] = useState(false);
   const [editMensaje, setEditMensaje] = useState<string | null>(null);
+
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
 
   const cargar = useCallback(async () => {
     if (!carteraId) {
@@ -269,7 +274,7 @@ export function CarteraDetalleScreen({
               style={estilosHeader.accionPill}
               onPress={() => (puedeEditar ? abrirEdicion() : setAvisoEdicion(true))}
             >
-              <MaterialIcons name="edit" size={18} color="#172f6c" />
+              <MaterialIcons name="edit" size={18} color={colores.acento} />
               <Text style={estilosHeader.accionPillTexto}>Editar</Text>
             </Pressable>
           }
@@ -288,7 +293,7 @@ export function CarteraDetalleScreen({
           <Text style={styles.seccionTitulo}>Información de la cartera</Text>
           <View style={styles.kpis}>
             <View style={styles.kpi}>
-              <MaterialIcons name="people" size={22} color="#172f6c" />
+              <MaterialIcons name="people" size={22} color={colores.acento} />
               <Text style={styles.kpiValor} testID="kpi-total-clientes">
                 {clientes.length}
               </Text>
@@ -405,7 +410,7 @@ export function CarteraDetalleScreen({
         {notaMensaje ? (
           <Text style={styles.notaMensaje}>{notaMensaje}</Text>
         ) : null}
-        {notaEnviando ? <ActivityIndicator color="#172f6c" /> : null}
+        {notaEnviando ? <ActivityIndicator color={colores.acento} /> : null}
       </ModalConFooter>
 
       <ModalConFooter
@@ -441,80 +446,82 @@ export function CarteraDetalleScreen({
           onChangeText={setEditNumCuotas}
         />
         {editMensaje ? <Text style={styles.notaMensaje}>{editMensaje}</Text> : null}
-        {editEnviando ? <ActivityIndicator color="#172f6c" /> : null}
+        {editEnviando ? <ActivityIndicator color={colores.acento} /> : null}
       </ModalConFooter>
       </SafeAreaView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  sinCartera: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
-  sinCarteraTexto: { color: "#64748b", fontSize: 15, textAlign: "center" },
-  botonSinCartera: {
-    backgroundColor: "#172f6c",
-    borderRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  botonSinCarteraTexto: { color: "#ffffff", fontWeight: "600" },
-  aviso: {
-    backgroundColor: "#fef9c3",
-    borderBottomWidth: 1,
-    borderBottomColor: "#fde68a",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  avisoTexto: { color: "#92400e", fontSize: 13, fontWeight: "600" },
-  scroll: { flex: 1 },
-  scrollContenido: { padding: 16, gap: 12 },
-  seccion: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    gap: 12,
-  },
-  seccionFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  seccionTitulo: { fontSize: 14, fontWeight: "700", color: "#334155" },
-  kpis: { flexDirection: "row", gap: 10 },
-  kpi: { flex: 1, alignItems: "center", gap: 2 },
-  kpiValor: { fontSize: 22, fontWeight: "800", color: "#0f172a" },
-  kpiEtiqueta: { fontSize: 12, color: "#64748b", fontWeight: "600" },
-  estadoFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  estadoEtiqueta: { fontSize: 13, color: "#64748b", fontWeight: "600" },
-  estadoValor: { fontSize: 14, fontWeight: "700", color: "#172f6c" },
-  avisoOffline: { fontSize: 12, color: "#92400e", fontWeight: "600" },
-  pares: { flexDirection: "row", gap: 8 },
-  par: { flex: 1, alignItems: "center", gap: 1 },
-  parValor: { fontSize: 20, fontWeight: "800", color: "#0f172a" },
-  parEtiqueta: { fontSize: 12, color: "#64748b", fontWeight: "600", textAlign: "center" },
-  parAnterior: { fontSize: 11, color: "#94a3b8" },
-  parDelta: { fontSize: 12, fontWeight: "700", color: "#64748b" },
-  parDeltaSube: { color: "#dc2626" },
-  parDeltaBaja: { color: "#16a34a" },
-  botonNota: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: "#172f6c",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  botonNotaTexto: { color: "#ffffff", fontWeight: "600", fontSize: 13 },
-  vacio: { color: "#64748b", fontSize: 13 },
-  nota: {
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    padding: 10,
-    gap: 4,
-  },
-  notaTexto: { fontSize: 14, color: "#334155" },
-  notaMeta: { fontSize: 12, color: "#64748b" },
-  textarea: { minHeight: 96, textAlignVertical: "top" },
-  notaMensaje: { color: "#dc2626", fontSize: 13 },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: c.fondo },
+    sinCartera: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
+    sinCarteraTexto: { color: c.textoSuave, fontSize: 15, textAlign: "center" },
+    botonSinCartera: {
+      backgroundColor: c.primario,
+      borderRadius: 8,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+    },
+    botonSinCarteraTexto: { color: "#ffffff", fontWeight: "600" },
+    aviso: {
+      backgroundColor: "#fef9c3",
+      borderBottomWidth: 1,
+      borderBottomColor: "#fde68a",
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+    avisoTexto: { color: "#92400e", fontSize: 13, fontWeight: "600" },
+    scroll: { flex: 1 },
+    scrollContenido: { padding: 16, gap: 12 },
+    seccion: {
+      backgroundColor: c.tarjeta,
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: c.borde,
+      gap: 12,
+    },
+    seccionFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    seccionTitulo: { fontSize: 14, fontWeight: "700", color: c.texto },
+    kpis: { flexDirection: "row", gap: 10 },
+    kpi: { flex: 1, alignItems: "center", gap: 2 },
+    kpiValor: { fontSize: 22, fontWeight: "800", color: c.texto },
+    kpiEtiqueta: { fontSize: 12, color: c.textoSuave, fontWeight: "600" },
+    estadoFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    estadoEtiqueta: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
+    estadoValor: { fontSize: 14, fontWeight: "700", color: c.acento },
+    avisoOffline: { fontSize: 12, color: "#92400e", fontWeight: "600" },
+    pares: { flexDirection: "row", gap: 8 },
+    par: { flex: 1, alignItems: "center", gap: 1 },
+    parValor: { fontSize: 20, fontWeight: "800", color: c.texto },
+    parEtiqueta: { fontSize: 12, color: c.textoSuave, fontWeight: "600", textAlign: "center" },
+    parAnterior: { fontSize: 11, color: c.textoSuave },
+    parDelta: { fontSize: 12, fontWeight: "700", color: c.textoSuave },
+    parDeltaSube: { color: c.peligro },
+    parDeltaBaja: { color: "#16a34a" },
+    botonNota: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      backgroundColor: c.primario,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    botonNotaTexto: { color: "#ffffff", fontWeight: "600", fontSize: 13 },
+    vacio: { color: c.textoSuave, fontSize: 13 },
+    nota: {
+      borderWidth: 1,
+      borderColor: c.borde,
+      borderRadius: 8,
+      padding: 10,
+      gap: 4,
+    },
+    notaTexto: { fontSize: 14, color: c.texto },
+    notaMeta: { fontSize: 12, color: c.textoSuave },
+    textarea: { minHeight: 96, textAlignVertical: "top" },
+    notaMensaje: { color: c.peligro, fontSize: 13 },
+  });
+}

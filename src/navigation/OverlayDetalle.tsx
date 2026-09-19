@@ -1,8 +1,11 @@
+import { useMemo } from "react";
 import { StyleSheet } from "react-native";
 import { ClienteScreen } from "../screens/ClienteScreen";
 import { CarteraDetalleScreen } from "../screens/CarteraDetalleScreen";
 import type { PantallaActiva } from "./pantalla-activa-context";
 import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 
 export interface OverlayDetalleProps {
   pantalla?: PantallaActiva | null;
@@ -22,6 +25,8 @@ export interface OverlayDetalleProps {
  * el detalle ya no muestra su propio botón atrás.
  */
 export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   if (!pantalla) {
     return null;
   }
@@ -61,9 +66,11 @@ export function OverlayDetalle({ pantalla, onCerrar }: OverlayDetalleProps) {
   }
 }
 
-const styles = StyleSheet.create({
-  capa: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "#f8fafc",
-  },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    capa: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: c.fondo,
+    },
+  });
+}

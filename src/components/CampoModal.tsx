@@ -1,4 +1,7 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 
 export interface CampoModalProps extends TextInputProps {
   /** Etiqueta superior del campo (opcional). */
@@ -11,29 +14,33 @@ export interface CampoModalProps extends TextInputProps {
  * `ModalConFooter` para que todos los formularios internos se vean igual.
  */
 export function CampoModal({ label, style, ...props }: CampoModalProps) {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   return (
     <View style={styles.contenedor}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <TextInput
         style={[styles.input, style]}
-        placeholderTextColor="#94a3b8"
+        placeholderTextColor={colores.textoSuave}
         {...props}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { gap: 4 },
-  label: { fontSize: 13, color: "#64748b", fontWeight: "600" },
-  input: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#dbeafe",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: "#334155",
-  },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { gap: 4 },
+    label: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
+    input: {
+      backgroundColor: c.tarjeta,
+      borderWidth: 1,
+      borderColor: "#dbeafe",
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: c.texto,
+    },
+  });
+}

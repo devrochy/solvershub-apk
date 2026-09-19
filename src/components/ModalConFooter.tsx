@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -10,6 +10,8 @@ import {
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 
 export interface ModalConFooterProps {
   visible: boolean;
@@ -52,6 +54,8 @@ export function ModalConFooter({
   cancelarTestID = "modal-cancelar",
   confirmarTestID = "modal-confirmar",
 }: ModalConFooterProps) {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   const tieneFooter = Boolean(onCancelar || onConfirmar);
 
   return (
@@ -125,65 +129,67 @@ export function ModalConFooter({
   );
 }
 
-const styles = StyleSheet.create({
-  fondo: {
-    flex: 1,
-    backgroundColor: "rgba(23, 47, 108, 0.25)",
-    justifyContent: "flex-end",
-  },
-  carta: {
-    backgroundColor: "#f5f7ff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: "hidden",
-    paddingBottom: 24,
-    maxHeight: "88%",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#172f6c",
-  },
-  headerTexto: { flex: 1 },
-  botonCerrar: {
-    width: 36,
-    height: 36,
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  titulo: {
-    textAlign: "left",
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#ffffff",
-    fontFamily: "Roboto_700Bold",
-  },
-  subtitulo: {
-    color: "#d4dff0",
-    fontSize: 13,
-    marginTop: 2,
-    fontFamily: "Roboto_400Regular",
-  },
-  cuerpoScroll: { flexShrink: 1 },
-  cuerpo: { padding: 16, gap: 10 },
-  footer: { flexDirection: "row", gap: 12, paddingHorizontal: 16, marginTop: 4 },
-  boton: { flex: 1 },
-  botonCancelar: {
-    backgroundColor: "#eef2ff",
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  botonCancelarTexto: { color: "#172f6c", fontWeight: "600" },
-  botonConfirmar: {
-    backgroundColor: "#2563eb",
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  botonConfirmarTexto: { color: "#ffffff", fontWeight: "600" },
-  botonDeshabilitado: { opacity: 0.5 },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    fondo: {
+      flex: 1,
+      backgroundColor: "rgba(23, 47, 108, 0.25)",
+      justifyContent: "flex-end",
+    },
+    carta: {
+      backgroundColor: "#f5f7ff",
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      overflow: "hidden",
+      paddingBottom: 24,
+      maxHeight: "88%",
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: c.primario,
+    },
+    headerTexto: { flex: 1 },
+    botonCerrar: {
+      width: 36,
+      height: 36,
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
+    titulo: {
+      textAlign: "left",
+      fontSize: 16,
+      fontWeight: "700",
+      color: "#ffffff",
+      fontFamily: "Roboto_700Bold",
+    },
+    subtitulo: {
+      color: "#d4dff0",
+      fontSize: 13,
+      marginTop: 2,
+      fontFamily: "Roboto_400Regular",
+    },
+    cuerpoScroll: { flexShrink: 1 },
+    cuerpo: { padding: 16, gap: 10 },
+    footer: { flexDirection: "row", gap: 12, paddingHorizontal: 16, marginTop: 4 },
+    boton: { flex: 1 },
+    botonCancelar: {
+      backgroundColor: c.activoSuave,
+      borderRadius: 10,
+      paddingVertical: 12,
+      alignItems: "center",
+    },
+    botonCancelarTexto: { color: c.acento, fontWeight: "600" },
+    botonConfirmar: {
+      backgroundColor: "#2563eb",
+      borderRadius: 10,
+      paddingVertical: 12,
+      alignItems: "center",
+    },
+    botonConfirmarTexto: { color: "#ffffff", fontWeight: "600" },
+    botonDeshabilitado: { opacity: 0.5 },
+  });
+}

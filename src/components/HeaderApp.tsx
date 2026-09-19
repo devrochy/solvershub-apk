@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -8,6 +8,8 @@ import { BotonMenu } from "./BotonMenu";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
 import { useNotificaciones } from "../session/notificaciones-context";
 import { useSession } from "../session/session-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type { RootStackParamList } from "../navigation/types";
 
 export interface HeaderAppProps {
@@ -26,6 +28,8 @@ export function HeaderApp({ titulo, subtitulo, acciones }: HeaderAppProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { gestor } = useSession();
   const { noLeidas, cargar } = useNotificaciones();
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
 
   const nombre = `${gestor?.nombre ?? ""} ${gestor?.apellido ?? ""}`.trim();
 
@@ -79,21 +83,23 @@ export function HeaderApp({ titulo, subtitulo, acciones }: HeaderAppProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  izquierda: { flexDirection: "row", alignItems: "center", gap: 2 },
-  icono: { paddingVertical: 4, paddingHorizontal: 2 },
-  perfil: { alignItems: "center", justifyContent: "center" },
-  badge: {
-    position: "absolute",
-    top: 0,
-    right: -2,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 999,
-    backgroundColor: "#dc2626",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-  },
-  badgeTexto: { color: "#ffffff", fontSize: 10, fontWeight: "700" },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    izquierda: { flexDirection: "row", alignItems: "center", gap: 2 },
+    icono: { paddingVertical: 4, paddingHorizontal: 2 },
+    perfil: { alignItems: "center", justifyContent: "center" },
+    badge: {
+      position: "absolute",
+      top: 0,
+      right: -2,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 999,
+      backgroundColor: c.peligro,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 4,
+    },
+    badgeTexto: { color: "#ffffff", fontSize: 10, fontWeight: "700" },
+  });
+}

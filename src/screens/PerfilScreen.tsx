@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -19,6 +19,8 @@ import { CampoModal } from "../components/CampoModal";
 import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { useSession } from "../session/session-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 
 const ROL_LABEL: Record<string, string> = {
   gestor: "Gestor",
@@ -35,6 +37,8 @@ function Dato({
   valor: string;
   testID?: string;
 }) {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   return (
     <View style={styles.datoFila}>
       <Text style={styles.datoEtiqueta}>{etiqueta}</Text>
@@ -58,6 +62,8 @@ export function PerfilScreen() {
   const [apellido, setApellido] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
 
   const nombreCompleto =
     `${gestor?.nombre ?? ""} ${gestor?.apellido ?? ""}`.trim() || "Usuario";
@@ -105,7 +111,7 @@ export function PerfilScreen() {
             style={estilosHeader.accionPill}
             onPress={abrirEdicion}
           >
-            <MaterialIcons name="edit" size={16} color="#172f6c" />
+            <MaterialIcons name="edit" size={16} color={colores.acento} />
             <Text style={estilosHeader.accionPillTexto}>Editar</Text>
           </Pressable>
         }
@@ -176,33 +182,35 @@ export function PerfilScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  fill: { flex: 1 },
-  scroll: { padding: 16 },
-  tarjeta: {
-    backgroundColor: "#ffffff",
-    borderRadius: 14,
-    borderCurve: "continuous",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    padding: 16,
-    gap: 16,
-  },
-  avatarFila: { flexDirection: "row", alignItems: "center", gap: 14 },
-  datosBasicos: { flex: 1, gap: 2 },
-  nombre: { fontSize: 18, fontWeight: "700", color: "#0f172a" },
-  usuario: { fontSize: 14, color: "#64748b" },
-  lista: { gap: 10 },
-  datoFila: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
-    paddingTop: 10,
-  },
-  datoEtiqueta: { fontSize: 13, color: "#64748b", fontWeight: "600" },
-  datoValor: { fontSize: 14, color: "#0f172a", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 13, fontWeight: "500" },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: c.fondo },
+    fill: { flex: 1 },
+    scroll: { padding: 16 },
+    tarjeta: {
+      backgroundColor: c.tarjeta,
+      borderRadius: 14,
+      borderCurve: "continuous",
+      borderWidth: 1,
+      borderColor: c.borde,
+      padding: 16,
+      gap: 16,
+    },
+    avatarFila: { flexDirection: "row", alignItems: "center", gap: 14 },
+    datosBasicos: { flex: 1, gap: 2 },
+    nombre: { fontSize: 18, fontWeight: "700", color: c.texto },
+    usuario: { fontSize: 14, color: c.textoSuave },
+    lista: { gap: 10 },
+    datoFila: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      borderTopWidth: 1,
+      borderTopColor: c.fondo,
+      paddingTop: 10,
+    },
+    datoEtiqueta: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
+    datoValor: { fontSize: 14, color: c.texto, fontWeight: "600" },
+    error: { color: c.peligro, fontSize: 13, fontWeight: "500" },
+  });
+}

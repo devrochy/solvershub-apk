@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ModalConFooter } from "./ModalConFooter";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type {
   EvidenciaClienteSeleccionada,
   FuenteEvidencia,
@@ -55,6 +58,8 @@ export function EvidenciasModal({
   onCerrar,
   onConfirmar,
 }: EvidenciasModalProps) {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   const deshabilitado = confirmando || cargando;
 
   return (
@@ -82,7 +87,7 @@ export function EvidenciasModal({
         />
       ) : (
         <View style={styles.vacio}>
-          <MaterialIcons name={iconoVacio} size={32} color="#94a3b8" />
+          <MaterialIcons name={iconoVacio} size={32} color={colores.textoSuave} />
           <Text style={styles.vacioTexto}>{textoVacio}</Text>
         </View>
       )}
@@ -93,7 +98,7 @@ export function EvidenciasModal({
         disabled={deshabilitado}
         onPress={() => onElegir("libreria")}
       >
-        <MaterialIcons name="photo-library" size={16} color="#172f6c" />
+        <MaterialIcons name="photo-library" size={16} color={colores.acento} />
         <Text style={styles.botonTexto}>Cargar desde librería</Text>
       </Pressable>
       <Pressable
@@ -102,7 +107,7 @@ export function EvidenciasModal({
         disabled={deshabilitado}
         onPress={() => onElegir("camara")}
       >
-        <MaterialIcons name="photo-camera" size={16} color="#172f6c" />
+        <MaterialIcons name="photo-camera" size={16} color={colores.acento} />
         <Text style={styles.botonTexto}>Tomar foto con cámara</Text>
       </Pressable>
 
@@ -113,30 +118,32 @@ export function EvidenciasModal({
   );
 }
 
-const styles = StyleSheet.create({
-  preview: {
-    width: "100%",
-    height: 200,
-    borderRadius: 12,
-    resizeMode: "contain",
-    backgroundColor: "#f8fafc",
-  },
-  vacio: {
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 16,
-  },
-  vacioTexto: { color: "#64748b", fontSize: 13 },
-  boton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: "#172f6c",
-    borderRadius: 10,
-    paddingVertical: 10,
-  },
-  botonTexto: { color: "#172f6c", fontWeight: "600" },
-  errorTexto: { color: "#dc2626", fontSize: 13, marginTop: 2 },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    preview: {
+      width: "100%",
+      height: 200,
+      borderRadius: 12,
+      resizeMode: "contain",
+      backgroundColor: c.fondo,
+    },
+    vacio: {
+      alignItems: "center",
+      gap: 6,
+      paddingVertical: 16,
+    },
+    vacioTexto: { color: c.textoSuave, fontSize: 13 },
+    boton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      borderWidth: 1,
+      borderColor: c.primario,
+      borderRadius: 10,
+      paddingVertical: 10,
+    },
+    botonTexto: { color: c.acento, fontWeight: "600" },
+    errorTexto: { color: c.peligro, fontSize: 13, marginTop: 2 },
+  });
+}

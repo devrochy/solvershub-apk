@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -43,6 +43,8 @@ import type { RootStackParamList } from "../navigation/types";
 import { filtrarClientes, type FiltroClientes } from "../domain/filtro-clientes";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type { ClienteGestorPublic } from "../types/gestor";
 
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
@@ -97,6 +99,8 @@ export function ClientesScreen({
   const [fuenteAbierta, setFuenteAbierta] = useState(false);
   const [fuenteCampo, setFuenteCampo] = useState<CampoEvidenciaCliente>("foto_facial");
   const evidenciasCliente = useEvidenciasCliente();
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
 
   const esDomicilio = ubicacionCampo === "domicilio";
   const latActual = esDomicilio ? latitudDomicilio : latitud;
@@ -544,7 +548,7 @@ export function ClientesScreen({
                     disabled={evidenciasCliente.cargando}
                     onPress={() => abrirFuente("documento_frente")}
                   >
-                    <MaterialIcons name="badge" size={16} color="#172f6c" />
+                    <MaterialIcons name="badge" size={16} color={colores.acento} />
                     <Text style={styles.botonDocTexto}>
                       {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
                         ? "Frente ✓"
@@ -557,7 +561,7 @@ export function ClientesScreen({
                     disabled={evidenciasCliente.cargando}
                     onPress={() => abrirFuente("documento_reverso")}
                   >
-                    <MaterialIcons name="badge" size={16} color="#172f6c" />
+                    <MaterialIcons name="badge" size={16} color={colores.acento} />
                     <Text style={styles.botonDocTexto}>
                       {evidenciasCliente.evidencias.find((e) => e.campo === "documento_reverso")
                         ? "Reverso ✓"
@@ -568,7 +572,7 @@ export function ClientesScreen({
               </View>
             </View>
             {evidenciasCliente.cargando ? (
-              <ActivityIndicator color="#172f6c" />
+              <ActivityIndicator color={colores.acento} />
             ) : null}
 
             <CampoModal
@@ -678,7 +682,7 @@ export function ClientesScreen({
             </View>
             {ubicandoGps ? (
               <Text style={styles.gpsTexto}>
-                <ActivityIndicator size="small" color="#172f6c" /> Ubicando por GPS…
+                <ActivityIndicator size="small" color={colores.acento} /> Ubicando por GPS…
               </Text>
             ) : null}
             <MapaPin
@@ -744,7 +748,7 @@ export function ClientesScreen({
           disabled={evidenciasCliente.cargando}
           onPress={() => elegirEvidencia(fuenteCampo, "libreria")}
         >
-          <MaterialIcons name="photo-library" size={20} color="#172f6c" />
+          <MaterialIcons name="photo-library" size={20} color={colores.acento} />
           <Text style={styles.botonFuenteModalTexto}>Elegir de la galería</Text>
         </Pressable>
         <Pressable
@@ -753,10 +757,10 @@ export function ClientesScreen({
           disabled={evidenciasCliente.cargando}
           onPress={() => elegirEvidencia(fuenteCampo, "camara")}
         >
-          <MaterialIcons name="photo-camera" size={20} color="#172f6c" />
+          <MaterialIcons name="photo-camera" size={20} color={colores.acento} />
           <Text style={styles.botonFuenteModalTexto}>Tomar foto</Text>
         </Pressable>
-        {evidenciasCliente.cargando ? <ActivityIndicator color="#172f6c" /> : null}
+        {evidenciasCliente.cargando ? <ActivityIndicator color={colores.acento} /> : null}
         {evidenciasCliente.error ? (
           <Text style={styles.mensajeError}>{evidenciasCliente.error}</Text>
         ) : null}
@@ -765,115 +769,117 @@ export function ClientesScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  chipsFiltro: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  chipFiltro: {
-    backgroundColor: "#e2e8f0",
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  chipFiltroActivo: { backgroundColor: "#172f6c" },
-  chipFiltroTexto: { color: "#334155", fontSize: 13, fontFamily: "Roboto_500Medium" },
-  chipFiltroTextoActivo: { color: "#ffffff", fontSize: 13, fontFamily: "Roboto_600SemiBold" },
-  lista: { padding: 16, gap: 10 },
-  vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
-  tarjeta: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    borderCurve: "continuous",
-    overflow: "hidden",
-    boxShadow: "0 1px 3px rgba(15, 23, 42, 0.08)",
-  },
-  acento: { width: 4 },
-  tarjetaContenido: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 16,
-  },
-  tarjetaInfo: { flex: 1 },
-  clienteNombre: { fontSize: 16, fontWeight: "600", color: "#334155" },
-  clienteDetalle: { color: "#64748b", fontSize: 13, marginTop: 2 },
-  clienteTelefono: { color: "#475569", fontSize: 12, marginTop: 2 },
-  form: { gap: 8, paddingBottom: 8 },
-  label: { fontSize: 13, color: "#64748b", fontWeight: "600", marginTop: 2 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  chip: {
-    backgroundColor: "#eef2ff",
-    borderWidth: 1,
-    borderColor: "#c7d2fe",
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
-  chipTexto: { color: "#172f6c", fontSize: 13 },
-  chipTextoActivo: { color: "#ffffff", fontSize: 13 },
-  input: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#dbeafe",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: "#334155",
-  },
-  filaCoordenadas: { flexDirection: "row", gap: 8 },
-  inputCoordenada: { flex: 1 },
-  filaSuperior: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
-  avatarEditable: { alignItems: "center", gap: 4 },
-  avatarImagen: { width: 72, height: 72, borderRadius: 36 },
-  avatarEtiqueta: { fontSize: 12, color: "#172f6c", fontWeight: "600" },
-  documentoNuevo: { flex: 1, gap: 6 },
-  documentoNuevoTitulo: { fontSize: 13, color: "#475569", fontWeight: "600" },
-  documentoNuevoFilas: { flexDirection: "row", gap: 8 },
-  botonDoc: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    borderWidth: 1,
-    borderColor: "#172f6c",
-    borderRadius: 8,
-    paddingVertical: 8,
-  },
-  botonDocTexto: { color: "#172f6c", fontWeight: "600", fontSize: 13 },
-  botonFuenteModal: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#bfdbfe",
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    backgroundColor: "#eff6ff",
-  },
-  botonFuenteModalTexto: { color: "#172f6c", fontWeight: "600", fontSize: 15 },
-  filaBusqueda: { flexDirection: "row", gap: 8 },
-  inputBusqueda: { flex: 1 },
-  botonBuscar: {
-    width: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#172f6c",
-    borderRadius: 8,
-  },
-  gpsTexto: { color: "#64748b", fontSize: 12, flexDirection: "row", alignItems: "center", gap: 6 },
-  exito: { alignItems: "center", gap: 12, paddingVertical: 24 },
-  exitoTexto: { color: "#16a34a", fontSize: 16, fontWeight: "700" },
-  mensajeError: { color: "#dc2626", fontSize: 13 },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: c.fondo },
+    chipsFiltro: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+      paddingHorizontal: 16,
+      paddingTop: 12,
+    },
+    chipFiltro: {
+      backgroundColor: c.borde,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    chipFiltroActivo: { backgroundColor: c.primario },
+    chipFiltroTexto: { color: c.texto, fontSize: 13, fontFamily: "Roboto_500Medium" },
+    chipFiltroTextoActivo: { color: "#ffffff", fontSize: 13, fontFamily: "Roboto_600SemiBold" },
+    lista: { padding: 16, gap: 10 },
+    vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24 },
+    tarjeta: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      backgroundColor: c.tarjeta,
+      borderRadius: 12,
+      borderCurve: "continuous",
+      overflow: "hidden",
+      boxShadow: "0 1px 3px rgba(15, 23, 42, 0.08)",
+    },
+    acento: { width: 4 },
+    tarjetaContenido: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: 16,
+    },
+    tarjetaInfo: { flex: 1 },
+    clienteNombre: { fontSize: 16, fontWeight: "600", color: c.texto },
+    clienteDetalle: { color: c.textoSuave, fontSize: 13, marginTop: 2 },
+    clienteTelefono: { color: c.textoSuave, fontSize: 12, marginTop: 2 },
+    form: { gap: 8, paddingBottom: 8 },
+    label: { fontSize: 13, color: c.textoSuave, fontWeight: "600", marginTop: 2 },
+    chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+    chip: {
+      backgroundColor: c.activoSuave,
+      borderWidth: 1,
+      borderColor: "#c7d2fe",
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+    chipTexto: { color: c.acento, fontSize: 13 },
+    chipTextoActivo: { color: "#ffffff", fontSize: 13 },
+    input: {
+      backgroundColor: c.tarjeta,
+      borderWidth: 1,
+      borderColor: "#dbeafe",
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: c.texto,
+    },
+    filaCoordenadas: { flexDirection: "row", gap: 8 },
+    inputCoordenada: { flex: 1 },
+    filaSuperior: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
+    avatarEditable: { alignItems: "center", gap: 4 },
+    avatarImagen: { width: 72, height: 72, borderRadius: 36 },
+    avatarEtiqueta: { fontSize: 12, color: c.acento, fontWeight: "600" },
+    documentoNuevo: { flex: 1, gap: 6 },
+    documentoNuevoTitulo: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
+    documentoNuevoFilas: { flexDirection: "row", gap: 8 },
+    botonDoc: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
+      borderWidth: 1,
+      borderColor: c.primario,
+      borderRadius: 8,
+      paddingVertical: 8,
+    },
+    botonDocTexto: { color: c.acento, fontWeight: "600", fontSize: 13 },
+    botonFuenteModal: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      borderWidth: 1,
+      borderColor: "#bfdbfe",
+      borderRadius: 10,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      backgroundColor: "#eff6ff",
+    },
+    botonFuenteModalTexto: { color: c.acento, fontWeight: "600", fontSize: 15 },
+    filaBusqueda: { flexDirection: "row", gap: 8 },
+    inputBusqueda: { flex: 1 },
+    botonBuscar: {
+      width: 44,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: c.primario,
+      borderRadius: 8,
+    },
+    gpsTexto: { color: c.textoSuave, fontSize: 12, flexDirection: "row", alignItems: "center", gap: 6 },
+    exito: { alignItems: "center", gap: 12, paddingVertical: 24 },
+    exitoTexto: { color: "#16a34a", fontSize: 16, fontWeight: "700" },
+    mensajeError: { color: c.peligro, fontSize: 13 },
+  });
+}

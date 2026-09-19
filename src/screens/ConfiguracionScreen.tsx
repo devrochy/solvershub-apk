@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
@@ -9,6 +9,8 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { useOffline } from "../offline/offline-context";
 import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 import type { RootStackParamList } from "../navigation/types";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 
 function formatearUltimaSincronizacion(ts: number | null): string {
   return ts ? new Date(ts).toLocaleString("es") : "Nunca";
@@ -26,6 +28,8 @@ export function ConfiguracionScreen() {
   const [mensaje, setMensaje] = useState<{ texto: string; error: boolean } | null>(null);
   const nombreApp = Constants.expoConfig?.name ?? "Solver";
   const version = Constants.expoConfig?.version ?? "—";
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
 
   async function ejecutar(accion: () => Promise<void>, ok: string) {
     setSincronizando(true);
@@ -131,48 +135,50 @@ export function ConfiguracionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  fill: { flex: 1 },
-  scroll: { padding: 16 },
-  seccionTitulo: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#475569",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  tarjeta: {
-    backgroundColor: "#ffffff",
-    borderRadius: 14,
-    borderCurve: "continuous",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    paddingHorizontal: 16,
-  },
-  fila: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
-  },
-  etiqueta: { fontSize: 14, color: "#64748b", fontWeight: "600" },
-  valor: { fontSize: 14, color: "#0f172a", fontWeight: "700" },
-  filaBotones: { flexDirection: "row", gap: 12, paddingVertical: 14 },
-  boton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#172f6c",
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  botonDeshabilitado: { opacity: 0.5 },
-  botonTexto: { color: "#172f6c", fontWeight: "600" },
-  cargando: { marginBottom: 12 },
-  mensaje: { fontSize: 13, fontWeight: "500", marginBottom: 12 },
-  mensajeOk: { color: "#15803d" },
-  mensajeError: { color: "#b91c1c" },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: c.fondo },
+    fill: { flex: 1 },
+    scroll: { padding: 16 },
+    seccionTitulo: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: c.textoSuave,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    tarjeta: {
+      backgroundColor: c.tarjeta,
+      borderRadius: 14,
+      borderCurve: "continuous",
+      borderWidth: 1,
+      borderColor: c.borde,
+      paddingHorizontal: 16,
+    },
+    fila: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 14,
+      borderTopWidth: 1,
+      borderTopColor: c.fondo,
+    },
+    etiqueta: { fontSize: 14, color: c.textoSuave, fontWeight: "600" },
+    valor: { fontSize: 14, color: c.texto, fontWeight: "700" },
+    filaBotones: { flexDirection: "row", gap: 12, paddingVertical: 14 },
+    boton: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.primario,
+      borderRadius: 10,
+      paddingVertical: 10,
+      alignItems: "center",
+    },
+    botonDeshabilitado: { opacity: 0.5 },
+    botonTexto: { color: c.acento, fontWeight: "600" },
+    cargando: { marginBottom: 12 },
+    mensaje: { fontSize: 13, fontWeight: "500", marginBottom: 12 },
+    mensajeOk: { color: "#15803d" },
+    mensajeError: { color: c.peligro },
+  });
+}

@@ -1,7 +1,10 @@
+import { useMemo } from "react";
 import { StyleSheet } from "react-native";
 import { TrayectosLista } from "../components/TrayectosLista";
 import { useTrayectosOverlay } from "./trayectos-overlay-context";
 import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 
 /**
  * Capa del overlay de trayectos. Se monta como hermana por encima de la capa de
@@ -10,6 +13,8 @@ import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
  */
 export function TrayectosOverlayHost() {
   const { contenido, cerrar } = useTrayectosOverlay();
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   if (!contenido) {
     return null;
   }
@@ -27,9 +32,11 @@ export function TrayectosOverlayHost() {
   );
 }
 
-const styles = StyleSheet.create({
-  capa: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "#f8fafc",
-  },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    capa: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: c.fondo,
+    },
+  });
+}

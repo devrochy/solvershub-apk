@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { urlArchivo } from "../config";
+import { useTheme } from "../theme/theme-context";
 
 export interface AvatarProps {
   nombre: string;
@@ -15,6 +16,7 @@ export interface AvatarProps {
  * icono por defecto en lugar de dejar un espacio vacío.
  */
 export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
+  const { colores } = useTheme();
   const [errorFoto, setErrorFoto] = useState(false);
   const uri = urlArchivo(fotoUrl);
 
@@ -29,9 +31,17 @@ export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
     return (
       <View
         testID="avatar-icono"
-        style={[styles.circulo, { width: size, height: size, borderRadius: size / 2 }]}
+        style={[
+          styles.circulo,
+          {
+            backgroundColor: colores.activoSuave,
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+          },
+        ]}
       >
-        <MaterialIcons name="person" size={size * 0.55} color="#172f6c" />
+        <MaterialIcons name="person" size={size * 0.55} color={colores.acento} />
       </View>
     );
   }
@@ -47,7 +57,6 @@ export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
 
 const styles = StyleSheet.create({
   circulo: {
-    backgroundColor: "#dbeafe",
     alignItems: "center",
     justifyContent: "center",
   },

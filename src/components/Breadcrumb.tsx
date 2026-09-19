@@ -1,5 +1,8 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 
 export interface BreadcrumbItem {
   key: string;
@@ -9,12 +12,14 @@ export interface BreadcrumbItem {
 
 /** Ruta de navegación (breadcrumb) con segmentos enlazables. */
 export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   return (
     <View testID="breadcrumb" style={styles.barra}>
       {items.map((item, indice) => (
         <View key={item.key} style={styles.item}>
           {indice > 0 ? (
-            <MaterialIcons name="chevron-right" size={16} color="#94a3b8" />
+            <MaterialIcons name="chevron-right" size={16} color={colores.textoSuave} />
           ) : null}
           <Pressable
             testID={`breadcrumb-${item.key}`}
@@ -32,19 +37,21 @@ export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   );
 }
 
-const styles = StyleSheet.create({
-  barra: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 2,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-  },
-  item: { flexDirection: "row", alignItems: "center", gap: 2 },
-  texto: { fontSize: 12, color: "#64748b" },
-  enlace: { color: "#172f6c", fontWeight: "600", textDecorationLine: "underline" },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    barra: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 2,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: c.tarjeta,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borde,
+    },
+    item: { flexDirection: "row", alignItems: "center", gap: 2 },
+    texto: { fontSize: 12, color: c.textoSuave },
+    enlace: { color: c.acento, fontWeight: "600", textDecorationLine: "underline" },
+  });
+}
