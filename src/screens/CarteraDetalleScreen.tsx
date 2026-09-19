@@ -16,7 +16,9 @@ import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
 import { contarEnMora } from "../domain/contar-en-mora";
 import { etiquetaEstatus } from "../domain/estatus";
-import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
+import { HeaderApp } from "../components/HeaderApp";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { guardarEstadisticasCartera, leerEstadisticasCartera } from "../offline/cache";
 import type { RootStackParamList } from "../navigation/types";
@@ -233,14 +235,7 @@ export function CarteraDetalleScreen({
   if (!carteraId) {
     return (
       <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-        <HeaderPantalla>
-          <View style={estilosHeader.fila}>
-            <Text style={estilosHeader.titulo}>
-              Cartera
-            </Text>
-            <View style={estilosHeader.columnaDerecha} />
-          </View>
-        </HeaderPantalla>
+        <HeaderApp titulo="Cartera" onVolver={cerrar} />
         <View style={styles.sinCartera}>
           <Text style={styles.sinCarteraTexto}>Selecciona una cartera para ver su información.</Text>
           <Pressable testID="btn-ir-seleccion" style={styles.botonSinCartera} onPress={cerrar}>
@@ -266,18 +261,15 @@ export function CarteraDetalleScreen({
       style={styles.contenedor}
     >
       <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-        <HeaderPantalla>
-          <View style={estilosHeader.fila}>
-            <View style={estilosHeader.bloqueTitulo}>
-              <Text style={estilosHeader.titulo}>
-                {nombreCartera}
-              </Text>
-              {clientes ? (
-                <Text style={estilosHeader.subtitulo}>
-                  {clientes.length} cliente{clientes.length === 1 ? "" : "s"}
-                </Text>
-              ) : null}
-            </View>
+        <HeaderApp
+          titulo={nombreCartera}
+          subtitulo={
+            clientes
+              ? `${clientes.length} cliente${clientes.length === 1 ? "" : "s"}`
+              : undefined
+          }
+          onVolver={cerrar}
+          acciones={
             <Pressable
               testID="btn-editar-cartera"
               style={estilosHeader.accionPill}
@@ -286,8 +278,15 @@ export function CarteraDetalleScreen({
               <MaterialIcons name="edit" size={18} color="#172f6c" />
               <Text style={estilosHeader.accionPillTexto}>Editar</Text>
             </Pressable>
-          </View>
-        </HeaderPantalla>
+          }
+        />
+
+      <Breadcrumb
+        items={[
+          { key: "carteras", label: "Carteras", onPress: () => navigation.navigate("Main") },
+          { key: "cartera", label: "Cartera" },
+        ]}
+      />
 
       {avisoEdicion ? (
         <View style={styles.aviso}>

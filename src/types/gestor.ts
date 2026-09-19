@@ -216,7 +216,29 @@ export interface ClienteGestorPublic {
   fotoUrl: string | null;
   tipoDocumento: TipoDocumento | null;
   numeroDocumento: string | null;
+  /** Préstamos vigentes del cliente (para filtros de la lista). */
+  numPrestamos: number;
+  /** Días de mora (desde la cuota vencida más antigua). */
+  diasMora: number;
   createdAt: string;
+}
+
+export type NotificacionTipo =
+  | "pago"
+  | "gasto"
+  | "no_pago"
+  | "aprobacion"
+  | "liquidacion";
+
+export interface NotificacionPublic {
+  id: string;
+  tipo: NotificacionTipo;
+  mensaje: string;
+  carteraId: number;
+  carteraNombre: string;
+  clienteId: number | null;
+  monto: number | null;
+  fecha: string;
 }
 
 export type CuotaEstatus = "pendiente" | "pagada" | "atrasada";

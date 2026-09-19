@@ -162,6 +162,8 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
       trayectoDiario: jest.fn().mockResolvedValue(diaVacio),
     });
 
+    await waitFor(() => expect(getByTestId("filtro-carteras-inactivo")).toBeTruthy());
+    fireEvent.press(getByTestId("filtro-carteras-inactivo"));
     await waitFor(() => expect(getByTestId("cartera-9")).toBeTruthy());
     expect(within(getByTestId("cartera-9")).getByText("Cartera Inactiva")).toBeTruthy();
   });
@@ -244,6 +246,8 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
       trayectoDiario: jest.fn().mockResolvedValue(diaVacio),
     });
 
+    await waitFor(() => expect(getByTestId("filtro-carteras-inactivo")).toBeTruthy());
+    fireEvent.press(getByTestId("filtro-carteras-inactivo"));
     await waitFor(() => expect(getByTestId("cartera-7")).toBeTruthy());
 
     expect(getByTestId("cartera-header-7")).toHaveStyle({

@@ -20,7 +20,9 @@ import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
 import { colorDeEstado } from "../components/ColorBadge";
-import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
+import { HeaderApp } from "../components/HeaderApp";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { estilosHeader } from "../components/HeaderPantalla";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
 import {
@@ -35,13 +37,34 @@ import {
   type FuenteEvidencia,
 } from "../features/cliente/use-evidencias-cliente";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../navigation/types";
+import { filtrarClientes, type FiltroClientes } from "../domain/filtro-clientes";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import type { ClienteGestorPublic } from "../types/gestor";
 
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
 
-export function ClientesScreen() {
+export interface ClientesScreenProps {
+  filtro?: FiltroClientes;
+  onFiltroChange?(filtro: FiltroClientes): void;
+}
+
+const FILTROS: { key: FiltroClientes; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "al_dia", label: "Al día" },
+  { key: "en_mora", label: "En mora" },
+  { key: "sin_prestamos", label: "Sin préstamos" },
+];
+
+export function ClientesScreen({
+  filtro = "todos",
+  onFiltroChange,
+}: ClientesScreenProps = {}) {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { carteraActiva } = useCarteraActiva();
   const { api, logout } = useSession();
   const { abrir } = usePantallaActiva();
@@ -367,17 +390,18 @@ export function ClientesScreen() {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
+  const clientesFiltrados = filtrarClientes(clientes, filtro);
+
   const nombreCompleto = (c: ClienteGestorPublic) =>
     `${c.nombre} ${c.apellido}`.trim();
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
-      <HeaderPantalla>
-        <View style={estilosHeader.fila}>
-          <View style={estilosHeader.bloqueTitulo}>
-            <Text style={estilosHeader.titulo}>{carteraActiva.carteraNombre}</Text>
-            <Text style={estilosHeader.subtitulo}>{clientes.length} clientes</Text>
-          </View>
+      <HeaderApp
+        titulo={carteraActiva.carteraNombre}
+        subtitulo={`${clientesFiltrados.length} clientes`}
+        onVolver={() => navigation.goBack()}
+        acciones={
           <Pressable
             testID="btn-nuevo-cliente"
             style={estilosHeader.accionPill}
@@ -385,10 +409,33 @@ export function ClientesScreen() {
           >
             <Text style={estilosHeader.accionPillTexto}>+ Cliente</Text>
           </Pressable>
-        </View>
-      </HeaderPantalla>
+        }
+      />
+
+      <View style={styles.chipsFiltro}>
+        {FILTROS.map((f) => (
+          <Pressable
+            key={f.key}
+            testID={`filtro-chip-${f.key}`}
+            style={[styles.chipFiltro, filtro === f.key && styles.chipFiltroActivo]}
+            onPress={() => onFiltroChange?.(f.key)}
+          >
+            <Text
+              style={filtro === f.key ? styles.chipFiltroTextoActivo : styles.chipFiltroTexto}
+            >
+              {f.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      <Breadcrumb
+        items={[
+          { key: "carteras", label: "Carteras", onPress: () => navigation.navigate("Main") },
+          { key: "clientes", label: "Clientes" },
+        ]}
+      />
       <FlatList
-        data={clientes}
+        data={clientesFiltrados}
         keyExtractor={(c) => String(c.id)}
         contentContainerStyle={styles.lista}
         refreshControl={
@@ -721,6 +768,22 @@ export function ClientesScreen() {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  chipsFiltro: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  chipFiltro: {
+    backgroundColor: "#e2e8f0",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipFiltroActivo: { backgroundColor: "#172f6c" },
+  chipFiltroTexto: { color: "#334155", fontSize: 13, fontFamily: "Roboto_500Medium" },
+  chipFiltroTextoActivo: { color: "#ffffff", fontSize: 13, fontFamily: "Roboto_600SemiBold" },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   tarjeta: {

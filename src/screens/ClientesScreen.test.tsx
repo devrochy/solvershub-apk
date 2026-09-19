@@ -108,11 +108,11 @@ describe("ClientesScreen", () => {
   });
 
   it("muestra avatar con iniciales si el cliente no tiene foto", async () => {
-    const { getByTestId } = await renderConCarteraActiva({
+    const { getAllByTestId } = await renderConCarteraActiva({
       listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
     });
 
-    await waitFor(() => expect(getByTestId("avatar-icono")).toBeTruthy());
+    await waitFor(() => expect(getAllByTestId("avatar-icono").length).toBeGreaterThan(0));
   });
 
   it("navega al cliente al tocarlo (abre el detalle como pantalla activa)", async () => {

@@ -1,6 +1,7 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ConfiguracionScreen } from "./ConfiguracionScreen";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
+import { SessionContext, SessionValue } from "../session/session-context";
 
 jest.mock("expo-constants", () => ({
   __esModule: true,
@@ -20,10 +21,20 @@ async function renderConOffline(overrides: Partial<OfflineValue> = {}) {
     sincronizarGeneral: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   };
+  const sesion: SessionValue = {
+    gestor: { id: 1, usuario: "gestor1", nombre: "Test", apellido: "Uno", rol: "gestor" },
+    loading: false,
+    api: {} as SessionValue["api"],
+    login: jest.fn(),
+    logout: jest.fn(),
+    actualizarPerfil: jest.fn(),
+  };
   const rendered = await render(
-    <OfflineContext.Provider value={offline}>
-      <ConfiguracionScreen />
-    </OfflineContext.Provider>,
+    <SessionContext.Provider value={sesion}>
+      <OfflineContext.Provider value={offline}>
+        <ConfiguracionScreen />
+      </OfflineContext.Provider>
+    </SessionContext.Provider>,
   );
   return { ...rendered, offline };
 }

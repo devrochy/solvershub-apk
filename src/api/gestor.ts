@@ -17,6 +17,7 @@ import type {
   RegistrarVisitaInput,
   CarteraApkPublic,
   CarteraNotaPublic,
+  NotificacionPublic,
   VisitaPublic,
 } from "../types/gestor";
 import type { ApiClient } from "./client";
@@ -30,6 +31,7 @@ function jsonBody(input: unknown): string {
 
 export interface GestorApi {
   misCarteras(): Promise<CarteraApkPublic[]>;
+  notificaciones(): Promise<NotificacionPublic[]>;
   actualizarPerfil(input: {
     nombre: string;
     apellido: string;
@@ -142,6 +144,9 @@ export interface GestorApi {
 export function gestorApi(client: ApiClient): GestorApi {
   return {
     misCarteras: () => client.request<CarteraApkPublic[]>("/gestor/mis-carteras"),
+
+    notificaciones: () =>
+      client.request<NotificacionPublic[]>("/gestor/notificaciones"),
 
     actualizarCartera: (
       carteraId: number,

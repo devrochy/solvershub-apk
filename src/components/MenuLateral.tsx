@@ -1,31 +1,31 @@
 import { useEffect, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMenuLateral } from "../navigation/menu-lateral-context";
+import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { useSession } from "../session/session-context";
 import type { RootStackParamList } from "../navigation/types";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
-type PantallaMain = "Carteras" | "Perfil" | "Configuracion";
 
-const ITEMS: { screen: PantallaMain; label: string; icon: Icono }[] = [
-  { screen: "Carteras", label: "Carteras", icon: "map" },
-  { screen: "Perfil", label: "Perfil", icon: "person" },
-  { screen: "Configuracion", label: "Configuración", icon: "settings" },
+const GLOBAL: { key: string; label: string; icon: Icono; screen: keyof RootStackParamList }[] = [
+  { key: "carteras", label: "Carteras", icon: "map", screen: "Main" },
+  { key: "perfil", label: "Perfil", icon: "person", screen: "Perfil" },
+  { key: "configuracion", label: "Configuración", icon: "settings", screen: "Configuracion" },
 ];
 
 const ANCHO_PANEL = 288;
 
 /**
  * Menú lateral tipo hamburguesa: panel que se desliza desde la izquierda con
- * un backdrop que cierra al tocar. Se monta en el nivel de las tabs principales
- * y navega entre ellas vía el stack raíz (`navigate("Main", { screen })`).
+ * backdrop. Muestra los ítems contextuales registrados por la pantalla activa
+ * (secciones de la cartera, filtros) y los globales (Carteras, Perfil,
+ * Configuración, Cerrar sesión).
  */
 export function MenuLateral() {
-  const { abierto, cerrar } = useMenuLateral();
+  const { abierto, cerrar, itemsExtra } = useMenuLateral();
   const { gestor, logout } = useSession();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -47,6 +47,30 @@ export function MenuLateral() {
     inputRange: [0, 1],
     outputRange: [0, 1],
   });
+
+  function ejecutar(accion: () => void) {
+    cerrar();
+    accion();
+  }
+
+  function Item({ item }: { item: MenuItem }) {
+    return (
+      <Pressable
+        testID={`menu-item-${item.key}`}
+        style={[styles.item, item.activo && styles.itemActivo]}
+        onPress={() => ejecutar(item.onPress)}
+      >
+        <MaterialIcons
+          name={item.icon as Icono}
+          size={20}
+          color={item.activo ? "#172f6c" : "#334155"}
+        />
+        <Text style={[styles.itemTexto, item.activo && styles.itemTextoActivo]}>
+          {item.label}
+        </Text>
+      </Pressable>
+    );
+  }
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
@@ -73,36 +97,43 @@ export function MenuLateral() {
         <Text style={styles.marca}>Solver</Text>
         <Text style={styles.usuario}>{gestor ? `@${gestor.usuario}` : ""}</Text>
 
-        <View style={styles.items}>
-          {ITEMS.map((item) => (
-            <Pressable
-              key={item.screen}
-              testID={`menu-item-${item.screen}`}
-              style={styles.item}
-              onPress={() => {
-                cerrar();
-                navigation.navigate("Main", { screen: item.screen });
-              }}
-            >
-              <MaterialIcons name={item.icon} size={20} color="#172f6c" />
-              <Text style={styles.itemTexto}>{item.label}</Text>
-            </Pressable>
-          ))}
-        </View>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          {itemsExtra.length > 0 ? (
+            <>
+              <View style={styles.items}>
+                {itemsExtra.map((item) => (
+                  <Item key={item.key} item={item} />
+                ))}
+              </View>
+              <View style={styles.separador} />
+            </>
+          ) : null}
 
-        <View style={styles.separador} />
+          <View style={styles.items}>
+            {GLOBAL.map((item) => (
+              <Pressable
+                key={item.key}
+                testID={`menu-item-${item.key}`}
+                style={styles.item}
+                onPress={() => ejecutar(() => navigation.navigate(item.screen as never))}
+              >
+                <MaterialIcons name={item.icon} size={20} color="#334155" />
+                <Text style={styles.itemTexto}>{item.label}</Text>
+              </Pressable>
+            ))}
+          </View>
 
-        <Pressable
-          testID="menu-logout"
-          style={styles.item}
-          onPress={async () => {
-            cerrar();
-            await logout();
-          }}
-        >
-          <MaterialIcons name="logout" size={20} color="#dc2626" />
-          <Text style={[styles.itemTexto, styles.salir]}>Cerrar sesión</Text>
-        </Pressable>
+          <View style={styles.separador} />
+
+          <Pressable
+            testID="menu-logout"
+            style={styles.item}
+            onPress={() => ejecutar(() => void logout())}
+          >
+            <MaterialIcons name="logout" size={20} color="#dc2626" />
+            <Text style={[styles.itemTexto, styles.salir]}>Cerrar sesión</Text>
+          </Pressable>
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -125,9 +156,9 @@ const styles = StyleSheet.create({
     width: ANCHO_PANEL,
     backgroundColor: "#ffffff",
     paddingHorizontal: 16,
-    gap: 4,
     boxShadow: "4px 0 16px rgba(15, 23, 42, 0.18)",
   },
+  scroll: { paddingBottom: 24 },
   marca: {
     fontSize: 22,
     fontWeight: "700",
@@ -149,12 +180,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
   },
+  itemActivo: { backgroundColor: "#eef2ff" },
   itemTexto: {
     fontSize: 15,
     fontWeight: "600",
     color: "#0f172a",
     fontFamily: "Roboto_600SemiBold",
   },
+  itemTextoActivo: { color: "#172f6c" },
   salir: { color: "#dc2626" },
   separador: {
     height: 1,
