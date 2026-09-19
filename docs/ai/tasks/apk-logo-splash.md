@@ -53,5 +53,7 @@ Logo del login compacto y estable (ancho fijo), y branding Solver: splash + íco
   - `npm test -- --testTimeout=30000` → **59 suites / 429 tests en verde**.
   - `npx expo config --type public` → `name:'Solver'`, splash `logo-transparente.png` @250 sobre `#172f6c`, íconos adaptativos resueltos.
 - Archivos: `app.json`, `src/screens/LoginScreen.tsx`, `src/screens/SeleccionCarteraScreen.tsx`, `src/screens/ConfiguracionScreen.tsx` (+test), `src/components/MenuLateral.tsx`, `src/api/client.ts`, `assets/logo-solver.png` (nuevo), `assets/logo-transparente.png` (nuevo), `icon.png`, `android-icon-*`, `favicon.png`; eliminado `assets/logo-gestor.png`.
-- Build (EAS `preview`, APK internal): _(se completa tras el rebuild — commit previo obligatorio)_
+- Build (EAS `preview`, APK internal), commit `f862668`:
+  - Build: https://expo.dev/accounts/devrochy/projects/app-cobranza-apk/builds/715ecc93-31a6-46a2-b177-67b89430b6bf
+  - APK: https://expo.dev/artifacts/eas/0WLjxCdTjrfHtfMeacuv1gxKDQRHRpxbhb6SmnI7Vt8.apk
 - Pendientes/seguimiento: verificación visual en dispositivo; si se quiere un ícono cuadrado (símbolo) en vez del wordmark, aportar el asset.
