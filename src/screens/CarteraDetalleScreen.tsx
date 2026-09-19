@@ -238,7 +238,7 @@ export function CarteraDetalleScreen({
 
   if (!carteraId) {
     return (
-      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
         <HeaderApp titulo="Inicio" />
         <View style={styles.sinCartera}>
           <Text style={styles.sinCarteraTexto}>Selecciona una cartera para ver su información.</Text>
@@ -264,7 +264,7 @@ export function CarteraDetalleScreen({
       testID="cartera-detalle-root"
       style={styles.contenedor}
     >
-      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
         <HeaderApp
           titulo="Inicio"
           subtitulo={nombreCartera}
@@ -274,7 +274,7 @@ export function CarteraDetalleScreen({
               style={estilosHeader.accionPill}
               onPress={() => (puedeEditar ? abrirEdicion() : setAvisoEdicion(true))}
             >
-              <MaterialIcons name="edit" size={18} color={colores.acento} />
+              <MaterialIcons name="edit" size={18} color="#ffffff" />
               <Text style={estilosHeader.accionPillTexto}>Editar</Text>
             </Pressable>
           }

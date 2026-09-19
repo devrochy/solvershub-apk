@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -45,7 +45,11 @@ function MenuRow({
         ]}
         onPress={() => (tieneSub ? setExpandido((v) => !v) : onEjecutar(item.onPress))}
       >
-        <MaterialIcons name={item.icon as Icono} size={20} color={color} />
+        {item.color ? (
+          <View style={[styles.dot, { backgroundColor: item.color }]} />
+        ) : (
+          <MaterialIcons name={item.icon as Icono} size={20} color={color} />
+        )}
         <Text style={[styles.itemTexto, { color }]}>{item.label}</Text>
         {tieneSub ? (
           <MaterialIcons
@@ -135,35 +139,15 @@ export function MenuLateral() {
 
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.items}>
-            {itemsExtra.map((item) => (
-              <MenuRow key={item.key} item={item} onEjecutar={ejecutar} />
+            {itemsExtra.map((item, indice) => (
+              <Fragment key={item.key}>
+                <MenuRow item={item} onEjecutar={ejecutar} />
+                {indice === 0 ? (
+                  <View style={[styles.separador, { backgroundColor: colores.borde }]} />
+                ) : null}
+              </Fragment>
             ))}
           </View>
-
-          <View style={[styles.separador, { backgroundColor: colores.borde }]} />
-
-          <Pressable
-            testID="menu-usuario"
-            accessibilityRole="button"
-            accessibilityLabel={`Cuenta de ${nombre}`}
-            style={[styles.usuarioCard, { backgroundColor: colores.fondo }]}
-            onPress={() => setUsuarioAbierto((v) => !v)}
-          >
-            <Avatar nombre={nombre} size={36} />
-            <View style={styles.usuarioInfo}>
-              <Text style={[styles.usuarioNombre, { color: colores.texto }]} numberOfLines={1}>
-                {nombre}
-              </Text>
-              <Text style={[styles.usuarioHandle, { color: colores.textoSuave }]} numberOfLines={1}>
-                @{gestor?.usuario ?? ""}
-              </Text>
-            </View>
-            <MaterialIcons
-              name={usuarioAbierto ? "expand-more" : "chevron-right"}
-              size={22}
-              color={colores.textoSuave}
-            />
-          </Pressable>
 
           {usuarioAbierto ? (
             <View style={styles.items}>
@@ -207,6 +191,29 @@ export function MenuLateral() {
               </Pressable>
             </View>
           ) : null}
+
+          <Pressable
+            testID="menu-usuario"
+            accessibilityRole="button"
+            accessibilityLabel={`Cuenta de ${nombre}`}
+            style={[styles.usuarioCard, { backgroundColor: colores.fondo }]}
+            onPress={() => setUsuarioAbierto((v) => !v)}
+          >
+            <Avatar nombre={nombre} size={36} />
+            <View style={styles.usuarioInfo}>
+              <Text style={[styles.usuarioNombre, { color: colores.texto }]} numberOfLines={1}>
+                {nombre}
+              </Text>
+              <Text style={[styles.usuarioHandle, { color: colores.textoSuave }]} numberOfLines={1}>
+                @{gestor?.usuario ?? ""}
+              </Text>
+            </View>
+            <MaterialIcons
+              name={usuarioAbierto ? "expand-more" : "chevron-right"}
+              size={22}
+              color={colores.textoSuave}
+            />
+          </Pressable>
         </ScrollView>
       </Animated.View>
     </View>
@@ -255,6 +262,7 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto_600SemiBold",
   },
   chevron: { marginLeft: "auto" },
+  dot: { width: 10, height: 10, borderRadius: 5, marginHorizontal: 5 },
   separador: {
     height: 1,
     marginVertical: 12,

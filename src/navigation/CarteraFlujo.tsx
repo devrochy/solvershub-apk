@@ -74,10 +74,8 @@ export function CarteraFlujo({ route, navigation }: Props) {
         subItems: carteras.map((c) => ({
           key: `car-${c.id}`,
           label: c.nombre,
-          icon:
-            c.id === carteraActiva?.carteraId
-              ? "radio-button-checked"
-              : "radio-button-unchecked",
+          icon: "circle",
+          color: c.estatus === "activo" ? "#16a34a" : "#dc2626",
           activo: c.id === carteraActiva?.carteraId,
           onPress: () => {
             setCarteraActiva(aCarteraActiva(c));

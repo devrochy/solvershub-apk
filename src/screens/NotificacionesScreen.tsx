@@ -39,7 +39,7 @@ export function NotificacionesScreen() {
       onCerrar={() => navigation.goBack()}
       style={styles.fill}
     >
-      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
         titulo="Notificaciones"
         subtitulo={`${items.length} evento${items.length === 1 ? "" : "s"}`}

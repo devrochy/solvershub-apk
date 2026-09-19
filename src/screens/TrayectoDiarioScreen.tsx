@@ -411,7 +411,7 @@ export function TrayectoDiarioScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
         titulo="Cobros del día"
         subtitulo={
@@ -669,7 +669,7 @@ export function TrayectoDiarioScreen() {
         animationType="slide"
         onRequestClose={cerrarLiquidacion}
       >
-        <SafeAreaView style={styles.liquidacionContenedor} edges={["top", "left", "right"]}>
+        <SafeAreaView style={styles.liquidacionContenedor} edges={["top", "left", "right", "bottom"]}>
           <View style={styles.liquidacionHeader}>
             <Text style={styles.liquidacionTitulo}>Liquidación del día</Text>
             <Pressable testID="cerrar-liquidacion" style={styles.liquidacionCerrar} onPress={cerrarLiquidacion}>

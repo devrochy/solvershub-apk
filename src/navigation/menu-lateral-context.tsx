@@ -11,6 +11,8 @@ export interface MenuItem {
   key: string;
   label: string;
   icon: string;
+  /** Color del punto a la izquierda (si se define, en vez del icono). */
+  color?: string;
   onPress?(): void;
   activo?: boolean;
   /** Ítems anidados: si existen, el ítem se despliega en vez de ejecutarse. */

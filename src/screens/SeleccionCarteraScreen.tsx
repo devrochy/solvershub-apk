@@ -149,6 +149,7 @@ export function SeleccionCarteraScreen({
           key: `car-${c.id}`,
           label: c.nombre,
           icon: "circle",
+          color: c.estatus === "activo" ? "#16a34a" : "#dc2626",
           onPress: () => seleccionRef.current(c),
         })),
       });
@@ -168,7 +169,7 @@ export function SeleccionCarteraScreen({
   );
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
         titulo={`Hola, ${gestor?.nombre ?? "gestor"}`}
         subtitulo="Selecciona una cartera"

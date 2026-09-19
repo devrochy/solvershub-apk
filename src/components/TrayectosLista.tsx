@@ -29,7 +29,7 @@ export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
   const { colores } = useTheme();
   const styles = useMemo(() => crearEstilos(colores), [colores]);
   return (
-    <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["left", "right"]}>
+    <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderPantalla>
         <View style={estilosHeader.fila}>
           <View style={estilosHeader.bloqueTitulo}>

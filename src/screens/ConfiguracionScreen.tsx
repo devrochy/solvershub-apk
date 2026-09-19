@@ -53,7 +53,7 @@ export function ConfiguracionScreen() {
       onCerrar={() => navigation.goBack()}
       style={styles.fill}
     >
-    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
         titulo="Configuración"
         subtitulo="Información de la aplicación"

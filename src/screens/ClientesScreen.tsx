@@ -400,7 +400,7 @@ export function ClientesScreen({
     `${c.nombre} ${c.apellido}`.trim();
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
         titulo={carteraActiva.carteraNombre}
         subtitulo={`${clientesFiltrados.length} clientes`}
@@ -415,6 +415,12 @@ export function ClientesScreen({
         }
       />
 
+      <Breadcrumb
+        items={[
+          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
+          { key: "clientes", label: "Clientes" },
+        ]}
+      />
       <View style={styles.chipsFiltro}>
         {FILTROS.map((f) => (
           <Pressable
@@ -424,6 +430,7 @@ export function ClientesScreen({
             onPress={() => onFiltroChange?.(f.key)}
           >
             <Text
+              numberOfLines={1}
               style={filtro === f.key ? styles.chipFiltroTextoActivo : styles.chipFiltroTexto}
             >
               {f.label}
@@ -431,12 +438,6 @@ export function ClientesScreen({
           </Pressable>
         ))}
       </View>
-      <Breadcrumb
-        items={[
-          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
-          { key: "clientes", label: "Clientes" },
-        ]}
-      />
       <FlatList
         data={clientesFiltrados}
         keyExtractor={(c) => String(c.id)}
@@ -774,20 +775,21 @@ function crearEstilos(c: ColoresTema) {
     contenedor: { flex: 1, backgroundColor: c.fondo },
     chipsFiltro: {
       flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 6,
+      gap: 8,
       paddingHorizontal: 16,
       paddingTop: 12,
     },
     chipFiltro: {
+      flex: 1,
+      alignItems: "center",
       backgroundColor: c.borde,
       borderRadius: 999,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 8,
     },
     chipFiltroActivo: { backgroundColor: c.primario },
-    chipFiltroTexto: { color: c.texto, fontSize: 13, fontFamily: "Roboto_500Medium" },
-    chipFiltroTextoActivo: { color: "#ffffff", fontSize: 13, fontFamily: "Roboto_600SemiBold" },
+    chipFiltroTexto: { color: c.texto, fontSize: 11, fontFamily: "Roboto_500Medium" },
+    chipFiltroTextoActivo: { color: "#ffffff", fontSize: 11, fontFamily: "Roboto_600SemiBold" },
     lista: { padding: 16, gap: 10 },
     vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24 },
     tarjeta: {

@@ -101,7 +101,7 @@ export function PerfilScreen() {
       onCerrar={() => navigation.goBack()}
       style={styles.fill}
     >
-    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
         titulo="Perfil"
         subtitulo="Tus datos de usuario"
@@ -111,7 +111,7 @@ export function PerfilScreen() {
             style={estilosHeader.accionPill}
             onPress={abrirEdicion}
           >
-            <MaterialIcons name="edit" size={16} color={colores.acento} />
+            <MaterialIcons name="edit" size={16} color="#ffffff" />
             <Text style={estilosHeader.accionPillTexto}>Editar</Text>
           </Pressable>
         }

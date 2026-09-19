@@ -980,7 +980,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   return (
     <>
-      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
         <HeaderPantalla>
           <View testID="header-cliente" style={estilosHeader.fila}>
             <View style={estilosHeader.columnaIzq} />

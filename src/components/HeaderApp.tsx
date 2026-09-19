@@ -3,11 +3,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Avatar } from "./Avatar";
 import { BotonMenu } from "./BotonMenu";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
 import { useNotificaciones } from "../session/notificaciones-context";
-import { useSession } from "../session/session-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
 import type { RootStackParamList } from "../navigation/types";
@@ -15,23 +13,21 @@ import type { RootStackParamList } from "../navigation/types";
 export interface HeaderAppProps {
   titulo: string;
   subtitulo?: string;
-  /** Acciones contextuales (p. ej. "+ Cliente"), antes del avatar. */
+  /** Acciones contextuales en outline (p. ej. "+ Cliente"). */
   acciones?: ReactNode;
 }
 
 /**
- * Header estándar de la APK: hamburguesa (izquierda) + título; a la derecha el
- * avatar del usuario (abre Perfil) y la campana de notificaciones con badge.
- * No hay botón atrás: la navegación es por el menú y el swipe izquierda→derecha.
+ * Header estándar de la APK: hamburguesa (izquierda) + título; a la derecha la
+ * campana de notificaciones (con badge) y luego las acciones contextuales
+ * (outline). No hay avatar ni botón atrás: la cuenta y la navegación viven en el
+ * menú hamburguesa.
  */
 export function HeaderApp({ titulo, subtitulo, acciones }: HeaderAppProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { gestor } = useSession();
   const { noLeidas, cargar } = useNotificaciones();
   const { colores } = useTheme();
   const styles = useMemo(() => crearEstilos(colores), [colores]);
-
-  const nombre = `${gestor?.nombre ?? ""} ${gestor?.apellido ?? ""}`.trim();
 
   return (
     <HeaderPantalla>
@@ -51,16 +47,6 @@ export function HeaderApp({ titulo, subtitulo, acciones }: HeaderAppProps) {
           ) : null}
         </View>
 
-        {acciones ? <View style={estilosHeader.accionesDerecha}>{acciones}</View> : null}
-
-        <Pressable
-          testID="header-perfil"
-          style={styles.perfil}
-          onPress={() => navigation.navigate("Perfil")}
-        >
-          <Avatar nombre={nombre || "?"} size={28} />
-        </Pressable>
-
         <Pressable
           testID="header-notificaciones"
           accessibilityLabel="Notificaciones"
@@ -78,6 +64,8 @@ export function HeaderApp({ titulo, subtitulo, acciones }: HeaderAppProps) {
             </View>
           ) : null}
         </Pressable>
+
+        {acciones ? <View style={estilosHeader.accionesDerecha}>{acciones}</View> : null}
       </View>
     </HeaderPantalla>
   );
@@ -87,7 +75,6 @@ function crearEstilos(c: ColoresTema) {
   return StyleSheet.create({
     izquierda: { flexDirection: "row", alignItems: "center", gap: 2 },
     icono: { paddingVertical: 4, paddingHorizontal: 2 },
-    perfil: { alignItems: "center", justifyContent: "center" },
     badge: {
       position: "absolute",
       top: 0,
