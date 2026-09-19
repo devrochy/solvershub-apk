@@ -51,8 +51,8 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#172f6c",
-          "image": "./assets/logo-solver.png",
-          "imageWidth": 200,
+          "image": "./assets/logo-transparente.png",
+          "imageWidth": 250,
           "resizeMode": "contain"
         }
       ]

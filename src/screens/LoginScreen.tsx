@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logo: {
-    width: "28%",
+    width: 150,
     aspectRatio: 697 / 218,
     alignSelf: "center",
     marginBottom: 16,
