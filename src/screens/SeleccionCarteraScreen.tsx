@@ -16,24 +16,14 @@ import { contarEnMora } from "../domain/contar-en-mora";
 import { HeaderApp } from "../components/HeaderApp";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
-import { useCarteraActiva } from "../session/cartera-activa-context";
+import { useCarteraActiva, aCarteraActiva } from "../session/cartera-activa-context";
+import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import type { CarteraApkPublic } from "../types/gestor";
 
 interface CarteraKpi {
   totalClientes: number;
   clientesDia: number;
   enMora: number;
-}
-
-function aCarteraActiva(cartera: CarteraApkPublic) {
-  return {
-    carteraId: cartera.id,
-    carteraNombre: cartera.nombre,
-    tipoInteres: cartera.tipoInteres,
-    numCuotas: cartera.numCuotas,
-    config: cartera.config,
-    permisos: cartera.permisos,
-  };
 }
 
 /**
@@ -134,6 +124,33 @@ export function SeleccionCarteraScreen({
     setCarteraActiva(aCarteraActiva(carteras[0]));
     onSeleccionadaRef.current?.();
   }, [carteras, setCarteraActiva]);
+
+  // Menú: Inicio y, si hay más de una cartera, Carteras (desplegable).
+  const { setItemsExtra } = useMenuLateral();
+  const seleccionRef = useRef(seleccionarCartera);
+  useEffect(() => {
+    seleccionRef.current = seleccionarCartera;
+  });
+  useEffect(() => {
+    const items: MenuItem[] = [
+      { key: "seccion-inicio", label: "Inicio", icon: "home", activo: true },
+    ];
+    if (carteras && carteras.length > 1) {
+      items.push({
+        key: "carteras-lista",
+        label: "Carteras",
+        icon: "map",
+        subItems: carteras.map((c) => ({
+          key: `car-${c.id}`,
+          label: c.nombre,
+          icon: "circle",
+          onPress: () => seleccionRef.current(c),
+        })),
+      });
+    }
+    setItemsExtra(items);
+    return () => setItemsExtra([]);
+  }, [carteras, setItemsExtra]);
 
   if (!carteras) {
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;

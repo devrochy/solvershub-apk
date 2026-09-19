@@ -4,25 +4,75 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar } from "./Avatar";
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { useSession } from "../session/session-context";
 import type { RootStackParamList } from "../navigation/types";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
 
-const GLOBAL: { key: string; label: string; icon: Icono; screen: keyof RootStackParamList }[] = [
-  { key: "carteras", label: "Carteras", icon: "map", screen: "Main" },
-  { key: "perfil", label: "Perfil", icon: "person", screen: "Perfil" },
-  { key: "configuracion", label: "Configuración", icon: "settings", screen: "Configuracion" },
-];
-
 const ANCHO_PANEL = 288;
 
 /**
+ * Ítem del menú. Si tiene `subItems`, se despliega en vez de ejecutarse; los
+ * hijos se renderizan indentados debajo.
+ */
+function MenuRow({
+  item,
+  nivel = 0,
+  onEjecutar,
+}: {
+  item: MenuItem;
+  nivel?: number;
+  onEjecutar(accion?: () => void): void;
+}) {
+  const [expandido, setExpandido] = useState(false);
+  const tieneSub = (item.subItems?.length ?? 0) > 0;
+
+  return (
+    <>
+      <Pressable
+        testID={`menu-item-${item.key}`}
+        accessibilityRole="button"
+        style={[
+          styles.item,
+          { paddingLeft: 8 + nivel * 16 },
+          item.activo && styles.itemActivo,
+        ]}
+        onPress={() => (tieneSub ? setExpandido((v) => !v) : onEjecutar(item.onPress))}
+      >
+        <MaterialIcons
+          name={item.icon as Icono}
+          size={20}
+          color={item.activo ? "#172f6c" : "#334155"}
+        />
+        <Text style={[styles.itemTexto, item.activo && styles.itemTextoActivo]}>
+          {item.label}
+        </Text>
+        {tieneSub ? (
+          <MaterialIcons
+            name={expandido ? "expand-more" : "chevron-right"}
+            size={20}
+            color="#64748b"
+            style={styles.chevron}
+          />
+        ) : null}
+      </Pressable>
+
+      {tieneSub && expandido
+        ? item.subItems!.map((sub) => (
+            <MenuRow key={sub.key} item={sub} nivel={nivel + 1} onEjecutar={onEjecutar} />
+          ))
+        : null}
+    </>
+  );
+}
+
+/**
  * Menú lateral tipo hamburguesa: panel que se desliza desde la izquierda con
- * backdrop. Muestra los ítems contextuales registrados por la pantalla activa
- * (secciones de la cartera, filtros) y los globales (Carteras, Perfil,
- * Configuración, Cerrar sesión).
+ * backdrop. Arriba los ítems contextuales de la pantalla activa (con submenús
+ * desplegables) y al fondo la tarjeta de usuario (avatar + nombre) que despliega
+ * Perfil / Configuración / Cerrar sesión.
  */
 export function MenuLateral() {
   const { abierto, cerrar, itemsExtra } = useMenuLateral();
@@ -30,6 +80,7 @@ export function MenuLateral() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [progreso] = useState(() => new Animated.Value(0));
+  const [usuarioAbierto, setUsuarioAbierto] = useState(false);
 
   useEffect(() => {
     Animated.timing(progreso, {
@@ -48,29 +99,12 @@ export function MenuLateral() {
     outputRange: [0, 1],
   });
 
-  function ejecutar(accion: () => void) {
+  function ejecutar(accion?: () => void) {
     cerrar();
-    accion();
+    accion?.();
   }
 
-  function Item({ item }: { item: MenuItem }) {
-    return (
-      <Pressable
-        testID={`menu-item-${item.key}`}
-        style={[styles.item, item.activo && styles.itemActivo]}
-        onPress={() => ejecutar(item.onPress)}
-      >
-        <MaterialIcons
-          name={item.icon as Icono}
-          size={20}
-          color={item.activo ? "#172f6c" : "#334155"}
-        />
-        <Text style={[styles.itemTexto, item.activo && styles.itemTextoActivo]}>
-          {item.label}
-        </Text>
-      </Pressable>
-    );
-  }
+  const nombre = `${gestor?.nombre ?? ""} ${gestor?.apellido ?? ""}`.trim() || "Usuario";
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
@@ -95,44 +129,67 @@ export function MenuLateral() {
         ]}
       >
         <Text style={styles.marca}>Solver</Text>
-        <Text style={styles.usuario}>{gestor ? `@${gestor.usuario}` : ""}</Text>
 
         <ScrollView contentContainerStyle={styles.scroll}>
-          {itemsExtra.length > 0 ? (
-            <>
-              <View style={styles.items}>
-                {itemsExtra.map((item) => (
-                  <Item key={item.key} item={item} />
-                ))}
-              </View>
-              <View style={styles.separador} />
-            </>
-          ) : null}
-
           <View style={styles.items}>
-            {GLOBAL.map((item) => (
-              <Pressable
-                key={item.key}
-                testID={`menu-item-${item.key}`}
-                style={styles.item}
-                onPress={() => ejecutar(() => navigation.navigate(item.screen as never))}
-              >
-                <MaterialIcons name={item.icon} size={20} color="#334155" />
-                <Text style={styles.itemTexto}>{item.label}</Text>
-              </Pressable>
+            {itemsExtra.map((item) => (
+              <MenuRow key={item.key} item={item} onEjecutar={ejecutar} />
             ))}
           </View>
 
           <View style={styles.separador} />
 
           <Pressable
-            testID="menu-logout"
-            style={styles.item}
-            onPress={() => ejecutar(() => void logout())}
+            testID="menu-usuario"
+            accessibilityRole="button"
+            accessibilityLabel={`Cuenta de ${nombre}`}
+            style={styles.usuarioCard}
+            onPress={() => setUsuarioAbierto((v) => !v)}
           >
-            <MaterialIcons name="logout" size={20} color="#dc2626" />
-            <Text style={[styles.itemTexto, styles.salir]}>Cerrar sesión</Text>
+            <Avatar nombre={nombre} size={36} />
+            <View style={styles.usuarioInfo}>
+              <Text style={styles.usuarioNombre} numberOfLines={1}>
+                {nombre}
+              </Text>
+              <Text style={styles.usuarioHandle} numberOfLines={1}>
+                @{gestor?.usuario ?? ""}
+              </Text>
+            </View>
+            <MaterialIcons
+              name={usuarioAbierto ? "expand-more" : "chevron-right"}
+              size={22}
+              color="#64748b"
+            />
           </Pressable>
+
+          {usuarioAbierto ? (
+            <View style={styles.items}>
+              <Pressable
+                testID="menu-item-perfil"
+                style={[styles.item, styles.itemIndentado]}
+                onPress={() => ejecutar(() => navigation.navigate("Perfil"))}
+              >
+                <MaterialIcons name="person" size={20} color="#334155" />
+                <Text style={styles.itemTexto}>Perfil</Text>
+              </Pressable>
+              <Pressable
+                testID="menu-item-configuracion"
+                style={[styles.item, styles.itemIndentado]}
+                onPress={() => ejecutar(() => navigation.navigate("Configuracion"))}
+              >
+                <MaterialIcons name="settings" size={20} color="#334155" />
+                <Text style={styles.itemTexto}>Configuración</Text>
+              </Pressable>
+              <Pressable
+                testID="menu-logout"
+                style={[styles.item, styles.itemIndentado]}
+                onPress={() => ejecutar(() => void logout())}
+              >
+                <MaterialIcons name="logout" size={20} color="#dc2626" />
+                <Text style={[styles.itemTexto, styles.salir]}>Cerrar sesión</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </ScrollView>
       </Animated.View>
     </View>
@@ -158,18 +215,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     boxShadow: "4px 0 16px rgba(15, 23, 42, 0.18)",
   },
-  scroll: { paddingBottom: 24 },
+  scroll: { paddingBottom: 24, flexGrow: 1, justifyContent: "space-between" },
   marca: {
     fontSize: 22,
     fontWeight: "700",
     color: "#172f6c",
     fontFamily: "Roboto_700Bold",
-  },
-  usuario: {
-    fontSize: 13,
-    color: "#64748b",
     marginBottom: 16,
-    fontFamily: "Roboto_400Regular",
   },
   items: { gap: 2 },
   item: {
@@ -180,18 +232,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
   },
+  itemIndentado: { paddingLeft: 24 },
   itemActivo: { backgroundColor: "#eef2ff" },
   itemTexto: {
+    flex: 1,
     fontSize: 15,
     fontWeight: "600",
     color: "#0f172a",
     fontFamily: "Roboto_600SemiBold",
   },
   itemTextoActivo: { color: "#172f6c" },
+  chevron: { marginLeft: "auto" },
   salir: { color: "#dc2626" },
   separador: {
     height: 1,
     backgroundColor: "#e2e8f0",
     marginVertical: 12,
+  },
+  usuarioCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    backgroundColor: "#f1f5f9",
+  },
+  usuarioInfo: { flex: 1 },
+  usuarioNombre: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0f172a",
+    fontFamily: "Roboto_700Bold",
+  },
+  usuarioHandle: {
+    fontSize: 12,
+    color: "#64748b",
+    fontFamily: "Roboto_400Regular",
   },
 });

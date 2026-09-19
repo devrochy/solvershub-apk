@@ -11,8 +11,10 @@ export interface MenuItem {
   key: string;
   label: string;
   icon: string;
-  onPress(): void;
+  onPress?(): void;
   activo?: boolean;
+  /** Ítems anidados: si existen, el ítem se despliega en vez de ejecutarse. */
+  subItems?: MenuItem[];
 }
 
 export interface MenuLateralValue {
