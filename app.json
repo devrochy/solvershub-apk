@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CobraIA Gestor",
+    "name": "Solver",
     "slug": "app-cobranza-apk",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,7 @@
       "package": "com.cobraia.cobrador",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#172f6c",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -48,11 +48,19 @@
       ],
       "expo-sharing",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#172f6c",
-          "image": "./assets/logo-gestor.png",
-          "imageWidth": 200,
+          "image": "./assets/logo-transparente.png",
+          "imageWidth": 250,
           "resizeMode": "contain"
         }
       ]

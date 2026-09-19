@@ -19,7 +19,7 @@ export function ConfiguracionScreen() {
   const offline = useOffline();
   const [sincronizando, setSincronizando] = useState(false);
   const [mensaje, setMensaje] = useState<{ texto: string; error: boolean } | null>(null);
-  const nombreApp = Constants.expoConfig?.name ?? "CobraIA";
+  const nombreApp = Constants.expoConfig?.name ?? "Solver";
   const version = Constants.expoConfig?.version ?? "—";
 
   async function ejecutar(accion: () => Promise<void>, ok: string) {

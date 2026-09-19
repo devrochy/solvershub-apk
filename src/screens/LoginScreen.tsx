@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,6 +20,8 @@ import { useSession } from "../session/session-context";
 
 export function LoginScreen() {
   const { login } = useSession();
+  const { width: anchoPantalla } = useWindowDimensions();
+  const logoTamano = Math.round(anchoPantalla * 0.44);
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [rol, setRol] = useState<RolLogin>("gestor");
@@ -61,8 +64,8 @@ export function LoginScreen() {
           <View style={styles.form}>
             <Image
               testID="login-logo"
-              source={require("../../assets/logo-gestor.png")}
-              style={styles.logo}
+              source={require("../../assets/logo-transparente.png")}
+              style={[styles.logo, { width: logoTamano, height: logoTamano }]}
               resizeMode="contain"
             />
 
@@ -162,13 +165,12 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   form: {
+    width: "100%",
     gap: 12,
   },
   logo: {
-    width: "40%",
-    aspectRatio: 1,
     alignSelf: "center",
-    marginBottom: 24,
+    marginBottom: 16,
   },
   roles: { flexDirection: "row", gap: 8 },
   rol: {
