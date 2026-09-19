@@ -63,8 +63,7 @@
           "imageWidth": 250,
           "resizeMode": "contain"
         }
-      ],
-      "expo-build-properties"
+      ]
     ],
     "extra": {
       "eas": {
