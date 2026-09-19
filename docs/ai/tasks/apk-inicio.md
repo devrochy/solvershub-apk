@@ -11,11 +11,12 @@ tags: [tarea]
 
 ## Objetivo
 
-Al entrar, con **una sola** cartera activa se fija como activa y se navega directo al detalle de la cartera; con **más de una**, se muestra la lista (comportamiento actual). Se elimina el "Solver" flotante.
+Al entrar, con **una sola** cartera se fija como activa y se navega directo al detalle de la cartera, **sin montar antes la lista** (evita el doble render); con **más de una**, se muestra la lista. La sección se llama **"Inicio"** y su header dice "Inicio". Se elimina el botón atrás del detalle (navegación por menú/swipe) y el "Solver" flotante.
 
 ## Fuera de alcance
 
-- El rediseño del menú hamburguesa (Fase 2: Carteras/Clientes desplegables, tarjeta avatar+usuario, submenú, renombrar "Diario").
+- El rediseño del menú hamburguesa (Fase 2: Inicio/Carteras/Clientes/Diario, tarjeta avatar+usuario, submenú, renombrar "Trayecto diario" → "Diario").
+- El no-atrás **global** + swipe en todas las vistas (Fase 2).
 - Breadcrumb + filtros en la vista de clientes (Fase 3).
 - Modo oscuro (Fase 4).
 
@@ -26,6 +27,9 @@ Al entrar, con **una sola** cartera activa se fija como activa y se navega direc
 - [x] Bloque 2: con **varias** carteras, no auto-selecciona (la lista espera la elección del usuario).
   - Test(s): `src/screens/SeleccionCarteraScreen.test.tsx`
 - [x] Bloque 3: eliminar el "Solver" flotante (`cobraia-flotante`) y sus estilos.
+- [x] Bloque 4: con una sola cartera, **no montar la lista** (loader en el cuerpo, header visible) para evitar la doble carga; con varias, la lista.
+- [x] Bloque 5: renombrar **"Cartera" → "Inicio"** (sección del menú en `CarteraFlujo` y `titulo` del header del detalle con el nombre de la cartera como subtítulo) y **quitar el botón atrás** del detalle.
+  - Test(s): `src/screens/CarteraDetalleScreen.test.tsx`
 
 ## Decisiones tomadas durante la implementación
 
@@ -36,10 +40,13 @@ Al entrar, con **una sola** cartera activa se fija como activa y se navega direc
 ## Resultado final (llenar al completar)
 
 - Comandos ejecutados para verificar:
-  - `npx jest src/screens/SeleccionCarteraScreen.test.tsx` → **14 tests** (3 nuevos).
-  - `bash scripts/check.sh` → lint 0 errores, typecheck OK, **57 suites / 427 tests** en verde.
+  - `npx jest src/screens/SeleccionCarteraScreen.test.tsx` → **15 tests**; `src/screens/CarteraDetalleScreen.test.tsx` → 14.
+  - `bash scripts/check.sh` → lint 0 errores, typecheck OK, **57 suites / 429 tests** en verde.
 - Archivos modificados:
-  - `src/screens/SeleccionCarteraScreen.tsx` — auto-entrar con 1 cartera (efecto con guard `useRef`, callback por ref) + helper `aCarteraActiva`; eliminado el "Solver" flotante y sus estilos.
-  - `src/screens/SeleccionCarteraScreen.test.tsx` — casos de auto-select/no-auto-select y ausencia del flotante; la prueba de selección manual usa 2 carteras.
+  - `src/screens/SeleccionCarteraScreen.tsx` — auto-entrar con 1 cartera (efecto con guard `useRef`, callback por ref) + helper `aCarteraActiva`; con 1 cartera **no monta la lista** (loader); eliminado el "Solver" flotante.
+  - `src/screens/SeleccionCarteraScreen.test.tsx` — casos de auto-select/no-auto-select, no-doble-render y ausencia del flotante; pruebas de lista con 2 carteras.
+  - `src/navigation/CarteraFlujo.tsx` — label de sección **"Inicio"**.
+  - `src/screens/CarteraDetalleScreen.tsx` — header `titulo="Inicio"` (subtítulo = nombre de la cartera) y **sin botón atrás**.
+  - `src/screens/CarteraDetalleScreen.test.tsx` — test de header "Inicio" sin botón atrás.
   - `docs/ai/tasks/apk-inicio.md` — esta tarea.
-- Pendientes/seguimiento: el renombre visual a "Inicio" (título/route) se aborda con el breadcrumb (Fase 3); el menú hamburguesa (Fase 2), filtros+breadcrumb (Fase 3) y modo oscuro (Fase 4) quedan como tareas aparte.
+- Pendientes/seguimiento: Fase 2 (menú + no-atrás global + swipe), Fase 3 (breadcrumb+filtros), Fase 4 (modo oscuro).

@@ -100,7 +100,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
   beforeEach(() => jest.clearAllMocks());
 
   it("muestra el subtítulo 'Selecciona una cartera' y las tarjetas de cartera", async () => {
-    const { getByText, getByTestId } = await renderConCarteras(apiConCartera());
+    const { getByText, getByTestId } = await renderConCarteras(apiConCarteras([cartera, cartera2]));
 
     await waitFor(() => expect(getByTestId("cartera-6")).toBeTruthy());
     expect(getByText("Selecciona una cartera")).toBeTruthy();
@@ -124,9 +124,11 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
       fotoUrl: null,
       createdAt: "2026-08-01T00:00:00.000Z",
     }));
-    const { getByTestId } = await renderConCarteras(
-      apiConCartera({ clientes, trayectoDiario: diaConMora }),
-    );
+    const { getByTestId } = await renderConCarteras({
+      misCarteras: jest.fn().mockResolvedValue([cartera, cartera2]),
+      listarClientesDeCartera: jest.fn().mockResolvedValue(clientes),
+      trayectoDiario: jest.fn().mockResolvedValue(diaConMora),
+    });
 
     await waitFor(() => expect(getByTestId("kpi-clientes-6")).toBeTruthy());
     expect(getByTestId("kpi-clientes-6").props.children).toBe(5);
@@ -163,7 +165,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
   });
 
   it("el header de la tarjeta muestra el nombre de la cartera (no el texto activo)", async () => {
-    const { getByTestId, getByText, queryByText } = await renderConCarteras(apiConCartera());
+    const { getByTestId, getByText, queryByText } = await renderConCarteras(apiConCarteras([cartera, cartera2]));
 
     await waitFor(() => expect(getByTestId("cartera-6")).toBeTruthy());
     expect(getByText("Cartera Centro")).toBeTruthy();
@@ -173,7 +175,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
 
   it("pinta la tarjeta inactiva en rojo (chevron visible)", async () => {
     const carteraInactiva = { ...cartera, id: 9, nombre: "Cartera Inactiva", estatus: "bloqueado" };
-    const misCarteras = jest.fn().mockResolvedValue([carteraInactiva]);
+    const misCarteras = jest.fn().mockResolvedValue([cartera, carteraInactiva]);
     const { getByTestId } = await renderConCarteras({
       misCarteras,
       listarClientesDeCartera: jest.fn().mockResolvedValue([]),
@@ -200,7 +202,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
     const misCarteras = jest
       .fn()
       .mockRejectedValueOnce(new Error("red"))
-      .mockResolvedValueOnce([cartera]);
+      .mockResolvedValueOnce([cartera, cartera2]);
     const { getByTestId, getByText } = await renderConCarteras({
       misCarteras,
       listarClientesDeCartera: jest.fn().mockResolvedValue([]),
@@ -245,21 +247,21 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
   });
 
   it("atenúa el header de la tarjeta y muestra el punto titilante del estado", async () => {
-    const { getByTestId } = await renderConCarteras(apiConCartera());
+    const { getByTestId } = await renderConCarteras(apiConCarteras([cartera, cartera2]));
 
     await waitFor(() => expect(getByTestId("cartera-6")).toBeTruthy());
 
     expect(getByTestId("cartera-header-6")).toHaveStyle({
       backgroundColor: "#dcfce7",
     });
-    expect(getByTestId("color-badge-verde")).toBeTruthy();
+    expect(within(getByTestId("cartera-6")).getByTestId("color-badge-verde")).toBeTruthy();
     expect(getByTestId("cartera-6")).toHaveStyle({ borderColor: "#bbf7d0" });
   });
 
   it("usa el pastel rojo en el header de una cartera inactiva", async () => {
     const inactiva = { ...cartera, id: 7, nombre: "Cartera Sur", estatus: "inactivo" };
     const { getByTestId } = await renderConCarteras({
-      misCarteras: jest.fn().mockResolvedValue([inactiva]),
+      misCarteras: jest.fn().mockResolvedValue([cartera, inactiva]),
       listarClientesDeCartera: jest.fn().mockResolvedValue([]),
       trayectoDiario: jest.fn().mockResolvedValue(diaVacio),
     });
@@ -297,6 +299,13 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
     expect(onCarteraSeleccionada).not.toHaveBeenCalled();
   });
 
+  it("con una sola cartera no monta la lista (evita el doble render)", async () => {
+    const { getByTestId, queryByTestId } = await renderConCarteras(apiConCartera());
+
+    await waitFor(() => expect(getByTestId("carga-spinner")).toBeTruthy());
+    expect(queryByTestId("lista-carteras")).toBeNull();
+  });
+
   it("no muestra el texto flotante 'Solver'", async () => {
     const { getByTestId, queryByTestId } = await renderConCarteras(
       apiConCarteras([cartera, cartera2]),
@@ -312,7 +321,7 @@ describe("SeleccionCarteraScreen — reintento de sincronización", () => {
   it("muestra el aviso con botón Reintentar y reintenta el sync", async () => {
     const sincronizar = jest.fn().mockResolvedValue(undefined);
     const { getByTestId } = await renderConCarteras(
-      apiConCartera(),
+      apiConCarteras([cartera, cartera2]),
       jest.fn(),
       jest.fn(),
       { ...offline, errorSync: "No se pudo sincronizar.", sincronizar },

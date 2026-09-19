@@ -159,6 +159,10 @@ export function SeleccionCarteraScreen({
         }
       />
 
+      {carteras.length === 1 ? (
+        <CargaError cargando error={null} onReintentar={cargar} />
+      ) : (
+        <>
       <View style={styles.tabs}>
         {(["activo", "inactivo"] as const).map((est) => (
           <Pressable
@@ -274,6 +278,8 @@ export function SeleccionCarteraScreen({
           );
         }}
       />
+        </>
+      )}
     </SafeAreaView>
   );
 }
