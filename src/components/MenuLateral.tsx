@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "./Avatar";
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { useSession } from "../session/session-context";
+import { useTheme } from "../theme/theme-context";
 import type { RootStackParamList } from "../navigation/types";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
@@ -26,8 +27,11 @@ function MenuRow({
   nivel?: number;
   onEjecutar(accion?: () => void): void;
 }) {
+  const { colores, tema } = useTheme();
   const [expandido, setExpandido] = useState(false);
   const tieneSub = (item.subItems?.length ?? 0) > 0;
+  const colorActivo = tema === "claro" ? colores.primario : colores.texto;
+  const color = item.activo ? colorActivo : colores.texto;
 
   return (
     <>
@@ -37,23 +41,17 @@ function MenuRow({
         style={[
           styles.item,
           { paddingLeft: 8 + nivel * 16 },
-          item.activo && styles.itemActivo,
+          item.activo && { backgroundColor: colores.activoSuave },
         ]}
         onPress={() => (tieneSub ? setExpandido((v) => !v) : onEjecutar(item.onPress))}
       >
-        <MaterialIcons
-          name={item.icon as Icono}
-          size={20}
-          color={item.activo ? "#172f6c" : "#334155"}
-        />
-        <Text style={[styles.itemTexto, item.activo && styles.itemTextoActivo]}>
-          {item.label}
-        </Text>
+        <MaterialIcons name={item.icon as Icono} size={20} color={color} />
+        <Text style={[styles.itemTexto, { color }]}>{item.label}</Text>
         {tieneSub ? (
           <MaterialIcons
             name={expandido ? "expand-more" : "chevron-right"}
             size={20}
-            color="#64748b"
+            color={colores.textoSuave}
             style={styles.chevron}
           />
         ) : null}
@@ -72,11 +70,12 @@ function MenuRow({
  * Menú lateral tipo hamburguesa: panel que se desliza desde la izquierda con
  * backdrop. Arriba los ítems contextuales de la pantalla activa (con submenús
  * desplegables) y al fondo la tarjeta de usuario (avatar + nombre) que despliega
- * Perfil / Configuración / Cerrar sesión.
+ * Perfil / Configuración / Modo oscuro / Cerrar sesión.
  */
 export function MenuLateral() {
   const { abierto, cerrar, itemsExtra } = useMenuLateral();
   const { gestor, logout } = useSession();
+  const { colores, tema, alternarTema } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [progreso] = useState(() => new Animated.Value(0));
@@ -125,10 +124,14 @@ export function MenuLateral() {
         pointerEvents={abierto ? "auto" : "none"}
         style={[
           styles.panel,
-          { paddingTop: insets.top + 20, transform: [{ translateX }] },
+          {
+            backgroundColor: colores.tarjeta,
+            paddingTop: insets.top + 20,
+            transform: [{ translateX }],
+          },
         ]}
       >
-        <Text style={styles.marca}>Solver</Text>
+        <Text style={[styles.marca, { color: colores.texto }]}>Solver</Text>
 
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.items}>
@@ -137,28 +140,28 @@ export function MenuLateral() {
             ))}
           </View>
 
-          <View style={styles.separador} />
+          <View style={[styles.separador, { backgroundColor: colores.borde }]} />
 
           <Pressable
             testID="menu-usuario"
             accessibilityRole="button"
             accessibilityLabel={`Cuenta de ${nombre}`}
-            style={styles.usuarioCard}
+            style={[styles.usuarioCard, { backgroundColor: colores.fondo }]}
             onPress={() => setUsuarioAbierto((v) => !v)}
           >
             <Avatar nombre={nombre} size={36} />
             <View style={styles.usuarioInfo}>
-              <Text style={styles.usuarioNombre} numberOfLines={1}>
+              <Text style={[styles.usuarioNombre, { color: colores.texto }]} numberOfLines={1}>
                 {nombre}
               </Text>
-              <Text style={styles.usuarioHandle} numberOfLines={1}>
+              <Text style={[styles.usuarioHandle, { color: colores.textoSuave }]} numberOfLines={1}>
                 @{gestor?.usuario ?? ""}
               </Text>
             </View>
             <MaterialIcons
               name={usuarioAbierto ? "expand-more" : "chevron-right"}
               size={22}
-              color="#64748b"
+              color={colores.textoSuave}
             />
           </Pressable>
 
@@ -169,24 +172,38 @@ export function MenuLateral() {
                 style={[styles.item, styles.itemIndentado]}
                 onPress={() => ejecutar(() => navigation.navigate("Perfil"))}
               >
-                <MaterialIcons name="person" size={20} color="#334155" />
-                <Text style={styles.itemTexto}>Perfil</Text>
+                <MaterialIcons name="person" size={20} color={colores.texto} />
+                <Text style={[styles.itemTexto, { color: colores.texto }]}>Perfil</Text>
               </Pressable>
               <Pressable
                 testID="menu-item-configuracion"
                 style={[styles.item, styles.itemIndentado]}
                 onPress={() => ejecutar(() => navigation.navigate("Configuracion"))}
               >
-                <MaterialIcons name="settings" size={20} color="#334155" />
-                <Text style={styles.itemTexto}>Configuración</Text>
+                <MaterialIcons name="settings" size={20} color={colores.texto} />
+                <Text style={[styles.itemTexto, { color: colores.texto }]}>Configuración</Text>
+              </Pressable>
+              <Pressable
+                testID="menu-item-modo"
+                style={[styles.item, styles.itemIndentado]}
+                onPress={alternarTema}
+              >
+                <MaterialIcons
+                  name={tema === "oscuro" ? "dark-mode" : "light-mode"}
+                  size={20}
+                  color={colores.texto}
+                />
+                <Text style={[styles.itemTexto, { color: colores.texto }]}>
+                  {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
+                </Text>
               </Pressable>
               <Pressable
                 testID="menu-logout"
                 style={[styles.item, styles.itemIndentado]}
                 onPress={() => ejecutar(() => void logout())}
               >
-                <MaterialIcons name="logout" size={20} color="#dc2626" />
-                <Text style={[styles.itemTexto, styles.salir]}>Cerrar sesión</Text>
+                <MaterialIcons name="logout" size={20} color={colores.peligro} />
+                <Text style={[styles.itemTexto, { color: colores.peligro }]}>Cerrar sesión</Text>
               </Pressable>
             </View>
           ) : null}
@@ -211,7 +228,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     width: ANCHO_PANEL,
-    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     boxShadow: "4px 0 16px rgba(15, 23, 42, 0.18)",
   },
@@ -219,7 +235,6 @@ const styles = StyleSheet.create({
   marca: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#172f6c",
     fontFamily: "Roboto_700Bold",
     marginBottom: 16,
   },
@@ -233,20 +248,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   itemIndentado: { paddingLeft: 24 },
-  itemActivo: { backgroundColor: "#eef2ff" },
   itemTexto: {
     flex: 1,
     fontSize: 15,
     fontWeight: "600",
-    color: "#0f172a",
     fontFamily: "Roboto_600SemiBold",
   },
-  itemTextoActivo: { color: "#172f6c" },
   chevron: { marginLeft: "auto" },
-  salir: { color: "#dc2626" },
   separador: {
     height: 1,
-    backgroundColor: "#e2e8f0",
     marginVertical: 12,
   },
   usuarioCard: {
@@ -256,18 +266,15 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 8,
     borderRadius: 10,
-    backgroundColor: "#f1f5f9",
   },
   usuarioInfo: { flex: 1 },
   usuarioNombre: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f172a",
     fontFamily: "Roboto_700Bold",
   },
   usuarioHandle: {
     fontSize: 12,
-    color: "#64748b",
     fontFamily: "Roboto_400Regular",
   },
 });
