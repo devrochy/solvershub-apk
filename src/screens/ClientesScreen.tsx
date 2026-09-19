@@ -400,7 +400,6 @@ export function ClientesScreen({
       <HeaderApp
         titulo={carteraActiva.carteraNombre}
         subtitulo={`${clientesFiltrados.length} clientes`}
-        onVolver={() => navigation.goBack()}
         acciones={
           <Pressable
             testID="btn-nuevo-cliente"

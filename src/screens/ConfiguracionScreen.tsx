@@ -5,6 +5,7 @@ import Constants from "expo-constants";
 import { useNavigation } from "@react-navigation/native";
 import { HeaderApp } from "../components/HeaderApp";
 import { useOffline } from "../offline/offline-context";
+import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 
 function formatearUltimaSincronizacion(ts: number | null): string {
   return ts ? new Date(ts).toLocaleString("es") : "Nunca";
@@ -40,11 +41,15 @@ export function ConfiguracionScreen() {
   }
 
   return (
+    <VentanaCerrarConSwipe
+      animarSalida={false}
+      onCerrar={() => navigation.goBack()}
+      style={styles.fill}
+    >
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
       <HeaderApp
         titulo="Configuración"
         subtitulo="Información de la aplicación"
-        onVolver={() => navigation.goBack()}
       />
 
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -112,11 +117,13 @@ export function ConfiguracionScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </VentanaCerrarConSwipe>
   );
 }
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  fill: { flex: 1 },
   scroll: { padding: 16 },
   seccionTitulo: {
     fontSize: 13,

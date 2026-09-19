@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 import { Avatar } from "../components/Avatar";
 import { HeaderApp } from "../components/HeaderApp";
 import { CampoModal } from "../components/CampoModal";
@@ -86,11 +87,15 @@ export function PerfilScreen() {
   }
 
   return (
+    <VentanaCerrarConSwipe
+      animarSalida={false}
+      onCerrar={() => navigation.goBack()}
+      style={styles.fill}
+    >
     <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
       <HeaderApp
         titulo="Perfil"
         subtitulo="Tus datos de usuario"
-        onVolver={() => navigation.goBack()}
         acciones={
           <Pressable
             testID="btn-editar-perfil"
@@ -157,11 +162,13 @@ export function PerfilScreen() {
         ) : null}
       </ModalConFooter>
     </SafeAreaView>
+    </VentanaCerrarConSwipe>
   );
 }
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  fill: { flex: 1 },
   scroll: { padding: 16 },
   tarjeta: {
     backgroundColor: "#ffffff",

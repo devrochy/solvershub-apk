@@ -13,8 +13,6 @@ import type { RootStackParamList } from "../navigation/types";
 export interface HeaderAppProps {
   titulo: string;
   subtitulo?: string;
-  /** Si se define, muestra el chevron de volver a la izquierda. */
-  onVolver?: () => void;
   /** Acciones contextuales (p. ej. "+ Cliente"), antes del avatar. */
   acciones?: ReactNode;
 }
@@ -22,8 +20,9 @@ export interface HeaderAppProps {
 /**
  * Header estándar de la APK: hamburguesa (izquierda) + título; a la derecha el
  * avatar del usuario (abre Perfil) y la campana de notificaciones con badge.
+ * No hay botón atrás: la navegación es por el menú y el swipe izquierda→derecha.
  */
-export function HeaderApp({ titulo, subtitulo, onVolver, acciones }: HeaderAppProps) {
+export function HeaderApp({ titulo, subtitulo, acciones }: HeaderAppProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { gestor } = useSession();
   const { noLeidas, cargar } = useNotificaciones();
@@ -34,17 +33,6 @@ export function HeaderApp({ titulo, subtitulo, onVolver, acciones }: HeaderAppPr
     <HeaderPantalla>
       <View style={estilosHeader.fila}>
         <View style={styles.izquierda}>
-          {onVolver ? (
-            <Pressable
-              testID="btn-volver"
-              accessibilityLabel="Volver"
-              hitSlop={8}
-              style={styles.icono}
-              onPress={onVolver}
-            >
-              <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
-            </Pressable>
-          ) : null}
           <BotonMenu />
         </View>
 

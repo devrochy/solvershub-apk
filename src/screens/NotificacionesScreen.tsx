@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { HeaderApp } from "../components/HeaderApp";
+import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 import { useNotificaciones } from "../session/notificaciones-context";
 import type { NotificacionTipo } from "../types/gestor";
 
@@ -25,11 +26,15 @@ export function NotificacionesScreen() {
   }, [cargar]);
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+    <VentanaCerrarConSwipe
+      animarSalida={false}
+      onCerrar={() => navigation.goBack()}
+      style={styles.fill}
+    >
+      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
       <HeaderApp
         titulo="Notificaciones"
         subtitulo={`${items.length} evento${items.length === 1 ? "" : "s"}`}
-        onVolver={() => navigation.goBack()}
       />
 
       <FlatList
@@ -64,12 +69,14 @@ export function NotificacionesScreen() {
       >
         <Text style={styles.marcarTexto}>Marcar como vistas</Text>
       </Pressable>
-    </SafeAreaView>
+      </SafeAreaView>
+    </VentanaCerrarConSwipe>
   );
 }
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  fill: { flex: 1 },
   lista: { padding: 16, gap: 10 },
   vacio: { color: "#64748b", textAlign: "center", marginTop: 24 },
   item: {

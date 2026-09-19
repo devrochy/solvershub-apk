@@ -415,7 +415,6 @@ export function TrayectoDiarioScreen() {
             ? `${clientes.length} cliente${clientes.length === 1 ? "" : "s"}`
             : undefined
         }
-        onVolver={() => navigation.goBack()}
         acciones={
           <Pressable
             testID="nuevo-gasto"
