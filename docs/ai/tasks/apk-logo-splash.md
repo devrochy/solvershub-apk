@@ -58,6 +58,8 @@ Login con el wordmark Solver a un tamaño controlado (~30% del ancho de pantalla
   - Build: https://expo.dev/accounts/devrochy/projects/app-cobranza-apk/builds/429371b1-0284-430f-a62a-01ecb465f75a
   - APK: https://expo.dev/artifacts/eas/u_QGfhTqbFg1ReiG5Cyu2vNuf8Z2CQNig-zuoyHQCIk.apk
   - Verificado en el APK: el `AndroidManifest.xml` ahora **sí** declara `usesCleartextTraffic` (antes ausente).
+  - Verificado en dispositivo (OPPO CPH2603, misma WiFi, `wlan0 192.168.40.3`): la app **llega al backend** — al intentar login responde con `401` y la app muestra "Usuario o contraseña incorrectos" (antes: "No se pudo conectar"); sin errores de `cleartext` en `logcat`. Desde el teléfono, `GET http://192.168.40.5:3000/health` → **200**.
+  - Credenciales de prueba del seed (nombres viejos en BD): gestor `test-cobrador-1` / `test-password`; propietario `test-socio-1`.
 - Verificación en dispositivo (OPPO CPH2603), tras `adb install -r`:
   - **Login:** medido en pantalla → wordmark **323 px = 29.9%** del ancho (objetivo ~30%); formulario al 88.7%. Corrige el bug de render (antes ocupaba 100%).
   - **Launcher:** el ícono/etiqueta viejos estaban **cacheados** por ColorOS (mostraba "CobraIA" y un ícono no azul). Tras **forzar el launcher** (`am force-stop com.android.launcher`), se refrescó: etiqueta **"Solver"** e ícono azul con el wordmark (check cian verificado por píxeles).
