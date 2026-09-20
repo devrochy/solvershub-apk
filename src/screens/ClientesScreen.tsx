@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -19,7 +20,6 @@ import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
-import { colorDeEstado } from "../components/ColorBadge";
 import { HeaderApp } from "../components/HeaderApp";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { MapaPin } from "../components/MapaPin";
@@ -39,8 +39,9 @@ import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/types";
-import { filtrarClientes, type FiltroClientes } from "../domain/filtro-clientes";
+import { filtrarClientes, estadoCliente, type FiltroClientes } from "../domain/filtro-clientes";
 import { filtrarPorTexto } from "../domain/busqueda-clientes";
+import { enlaceWhatsApp } from "../features/estado-cuenta/estado-cuenta";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { useTheme } from "../theme/theme-context";
@@ -412,6 +413,16 @@ export function ClientesScreen({
   const nombreCompleto = (c: ClienteGestorPublic) =>
     `${c.nombre} ${c.apellido}`.trim();
 
+  const colorCliente = (c: ClienteGestorPublic) => COLOR_FILTRO[estadoCliente(c)];
+
+  function llamarCliente(telefono: string) {
+    void Linking.openURL(`tel:${telefono}`);
+  }
+
+  function mensajearCliente(nombre: string, telefono: string) {
+    void Linking.openURL(enlaceWhatsApp(telefono, `Hola ${nombre}`));
+  }
+
   return (
     <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
@@ -495,7 +506,7 @@ export function ClientesScreen({
         renderItem={({ item }) => (
           <Pressable
             testID={`cliente-${item.id}`}
-            style={styles.tarjeta}
+            style={[styles.tarjeta, { borderColor: colorCliente(item) }]}
             onPress={() =>
               abrir({
                 tipo: "cliente",
@@ -511,7 +522,7 @@ export function ClientesScreen({
           >
             <View
               testID={`cliente-acento-${item.id}`}
-              style={[styles.acento, { backgroundColor: colorDeEstado(item.colorRiesgo) }]}
+              style={[styles.acento, { backgroundColor: colorCliente(item) }]}
             />
             <View style={styles.tarjetaContenido}>
               <Avatar nombre={nombreCompleto(item)} fotoUrl={item.fotoUrl} />
@@ -521,6 +532,30 @@ export function ClientesScreen({
                   <Text style={styles.clienteDetalle}>{item.negocio}</Text>
                 ) : null}
                 <Text style={styles.clienteTelefono}>{item.telefonoWhatsapp}</Text>
+              </View>
+              <View style={styles.accionesCliente}>
+                <Pressable
+                  testID={`cliente-llamar-${item.id}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Llamar a ${nombreCompleto(item)}`}
+                  hitSlop={8}
+                  style={styles.accionBoton}
+                  onPress={() => llamarCliente(item.telefonoWhatsapp)}
+                >
+                  <MaterialIcons name="call" size={18} color={colores.acento} />
+                </Pressable>
+                <Pressable
+                  testID={`cliente-mensaje-${item.id}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Mensaje a ${nombreCompleto(item)}`}
+                  hitSlop={8}
+                  style={styles.accionBoton}
+                  onPress={() =>
+                    mensajearCliente(nombreCompleto(item), item.telefonoWhatsapp)
+                  }
+                >
+                  <MaterialIcons name="chat" size={18} color={colores.acento} />
+                </Pressable>
               </View>
             </View>
           </Pressable>
@@ -874,6 +909,8 @@ function crearEstilos(c: ColoresTema) {
       flexDirection: "row",
       alignItems: "stretch",
       backgroundColor: c.tarjeta,
+      borderWidth: 1,
+      borderColor: c.borde,
       borderRadius: 12,
       borderCurve: "continuous",
       overflow: "hidden",
@@ -888,6 +925,15 @@ function crearEstilos(c: ColoresTema) {
       padding: 16,
     },
     tarjetaInfo: { flex: 1 },
+    accionesCliente: { flexDirection: "row", alignItems: "center", gap: 8 },
+    accionBoton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: c.activoSuave,
+    },
     clienteNombre: { fontSize: 16, fontWeight: "600", color: c.texto },
     clienteDetalle: { color: c.textoSuave, fontSize: 13, marginTop: 2 },
     clienteTelefono: { color: c.textoSuave, fontSize: 12, marginTop: 2 },
