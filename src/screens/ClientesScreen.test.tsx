@@ -1,4 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { Linking } from "react-native";
 import { ClientesScreen } from "./ClientesScreen";
 import { ApiError } from "../api/client";
 import { SessionContext, SessionValue } from "../session/session-context";
@@ -44,6 +45,8 @@ const cliente = {
   estatus: "activo",
   colorRiesgo: "azul",
   fotoUrl: null,
+  numPrestamos: 1,
+  diasMora: 0,
   createdAt: "2026-08-01T00:00:00.000Z",
 };
 
@@ -110,13 +113,40 @@ describe("ClientesScreen", () => {
     expect(getByTestId("breadcrumb-clientes")).toBeTruthy();
   });
 
-  it("muestra la barra de acento semántica según el color de riesgo", async () => {
+  it("colorea barra y borde de la tarjeta según el estado (al día = verde)", async () => {
     const { getByTestId } = await renderConCarteraActiva({
-      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
+      listarClientesDeCartera: jest
+        .fn()
+        .mockResolvedValue([{ ...cliente, numPrestamos: 1, diasMora: 0 }]),
     });
 
-    await waitFor(() => expect(getByTestId("cliente-acento-11")).toBeTruthy());
-    expect(getByTestId("cliente-acento-11")).toHaveStyle({ backgroundColor: "#172f6c" });
+    await waitFor(() => expect(getByTestId("cliente-11")).toBeTruthy());
+    expect(getByTestId("cliente-acento-11")).toHaveStyle({ backgroundColor: "#16a34a" });
+    expect(getByTestId("cliente-11")).toHaveStyle({ borderColor: "#16a34a" });
+  });
+
+  it("colorea en mora en rojo (barra y borde)", async () => {
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest
+        .fn()
+        .mockResolvedValue([{ ...cliente, id: 21, numPrestamos: 2, diasMora: 5 }]),
+    });
+
+    await waitFor(() => expect(getByTestId("cliente-acento-21")).toBeTruthy());
+    expect(getByTestId("cliente-acento-21")).toHaveStyle({ backgroundColor: "#dc2626" });
+    expect(getByTestId("cliente-21")).toHaveStyle({ borderColor: "#dc2626" });
+  });
+
+  it("colorea sin préstamos en gris (barra y borde)", async () => {
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest
+        .fn()
+        .mockResolvedValue([{ ...cliente, id: 22, numPrestamos: 0, diasMora: 0 }]),
+    });
+
+    await waitFor(() => expect(getByTestId("cliente-acento-22")).toBeTruthy());
+    expect(getByTestId("cliente-acento-22")).toHaveStyle({ backgroundColor: "#64748b" });
+    expect(getByTestId("cliente-22")).toHaveStyle({ borderColor: "#64748b" });
   });
 
   it("muestra avatar con iniciales si el cliente no tiene foto", async () => {
@@ -125,6 +155,22 @@ describe("ClientesScreen", () => {
     });
 
     await waitFor(() => expect(getAllByTestId("avatar-icono").length).toBeGreaterThan(0));
+  });
+
+  it("la tarjeta tiene botones de llamar y mensaje", async () => {
+    const openSpy = jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("cliente-llamar-11")).toBeTruthy());
+    await fireEvent.press(getByTestId("cliente-llamar-11"));
+    expect(openSpy).toHaveBeenCalledWith("tel:+5917000111");
+
+    await fireEvent.press(getByTestId("cliente-mensaje-11"));
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("wa.me/5917000111"));
+
+    openSpy.mockRestore();
   });
 
   it("navega al cliente al tocarlo (abre el detalle como pantalla activa)", async () => {

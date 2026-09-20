@@ -1,4 +1,4 @@
-import { filtrarClientes } from "./filtro-clientes";
+import { filtrarClientes, estadoCliente } from "./filtro-clientes";
 import type { ClienteGestorPublic } from "../types/gestor";
 
 function cliente(overrides: Partial<ClienteGestorPublic>): ClienteGestorPublic {
@@ -47,5 +47,19 @@ describe("filtrarClientes", () => {
 
   it("sin_prestamos: sin préstamos vigentes", () => {
     expect(filtrarClientes(clientes, "sin_prestamos").map((c) => c.id)).toEqual([3]);
+  });
+});
+
+describe("estadoCliente", () => {
+  it("en_mora si tiene mora (aunque tenga un préstamo al día)", () => {
+    expect(estadoCliente(cliente({ numPrestamos: 2, diasMora: 5 }))).toBe("en_mora");
+  });
+
+  it("al_dia si tiene préstamo y sin mora", () => {
+    expect(estadoCliente(cliente({ numPrestamos: 1, diasMora: 0 }))).toBe("al_dia");
+  });
+
+  it("sin_prestamos si no tiene préstamos vigentes", () => {
+    expect(estadoCliente(cliente({ numPrestamos: 0, diasMora: 0 }))).toBe("sin_prestamos");
   });
 });
