@@ -92,12 +92,11 @@ export function CarteraFlujo({ route, navigation }: Props) {
       });
     }
 
-    items.push({
+    const clientesItem: MenuItem = {
       key: "seccion-clientes",
       label: "Clientes",
       icon: "people",
       activo: seccion === "Clientes",
-      subtituloSubmenu: carteraActiva?.carteraNombre,
       subItems: FILTROS.map((f) => ({
         key: `filtro-${f.key}`,
         label: f.label,
@@ -108,14 +107,22 @@ export function CarteraFlujo({ route, navigation }: Props) {
           setFiltro(f.key);
         },
       })),
-    });
+    };
 
-    items.push({
+    const diarioItem: MenuItem = {
       key: "seccion-diario",
       label: "Diario",
       icon: "route",
       activo: seccion === "TrayectoDiario",
       onPress: () => setSeccion("TrayectoDiario"),
+    };
+
+    items.push({
+      key: "cartera",
+      label: carteraActiva?.carteraNombre ?? "Cartera",
+      icon: "account-balance-wallet",
+      grupo: true,
+      subItems: [clientesItem, diarioItem],
     });
 
     setItemsExtra(items);
