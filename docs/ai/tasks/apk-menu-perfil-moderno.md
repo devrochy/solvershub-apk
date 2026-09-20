@@ -32,6 +32,14 @@ primario del tema.
   - Test(s) que lo prueban: `src/components/MenuLateral.test.tsx`
 - [x] Bloque 4: el panel se ve moderno (radios continuos, sombra, borde derecho, marca con acento) y el ítem activo usa pill con barra de acento.
   - Test(s) que lo prueban: `src/components/MenuLateral.test.tsx`
+- [x] Bloque 5: el submenú queda agrupado justo encima de la tarjeta de perfil (sin hueco entre ambos).
+  - Test(s) que lo prueban: `src/components/MenuLateral.test.tsx`
+
+## Validación en dispositivo (USB)
+
+- Dispositivo: `CPH2603` vía `adb` (app corriendo en Expo Go, Metro `:8081`).
+- Hallazgo: al abrir el submenú, quedaba despegado de la tarjeta (hueco de ~186px) porque el `contentContainerStyle` del `ScrollView` usa `justifyContent: "space-between"` y el submenú era un hijo independiente.
+- Fix: se agruparon submenú + tarjeta en `View testID="menu-usuario-zona"`; ahora la separación es solo el margen de 10dp. Verificado por bounds de accesibilidad: submenú `[41,1548][691,2047]`, tarjeta `[41,2072][691,2239]`.
 
 ## Decisiones tomadas durante la implementación
 
@@ -46,6 +54,6 @@ primario del tema.
 
 ## Resultado final (llenar al completar)
 
-- Comandos ejecutados para verificar: `bash scripts/check.sh` → lint OK, typecheck OK, **59 suites / 442 tests** (el primer intento tuvo un flaky de timeout en `CarteraDetalleScreen`, pasó al reintentar y en aislamiento).
+- Comandos ejecutados para verificar: `bash scripts/check.sh` → lint OK, typecheck OK, **59 suites / 443 tests** (el primer intento tuvo un flaky de timeout en `CarteraDetalleScreen`, pasó al reintentar y en aislamiento).
 - Archivos modificados: `src/components/MenuLateral.tsx`, `src/components/Avatar.tsx`, `src/components/MenuLateral.test.tsx`, `src/components/Avatar.test.tsx`, `jest.setup.ts` (el mock de iconos ahora reenvía `color` como estilo).
-- Pendientes/seguimiento (si algún punto quedó fuera): badge de rol en la tarjeta de perfil; inspección visual en dispositivo/Expo Go.
+- Pendientes/seguimiento (si algún punto quedó fuera): badge de rol en la tarjeta de perfil.

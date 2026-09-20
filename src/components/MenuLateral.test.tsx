@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, within } from "@testing-library/react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MenuLateral } from "./MenuLateral";
 import { BotonMenu } from "./BotonMenu";
@@ -150,6 +150,17 @@ describe("MenuLateral", () => {
       borderWidth: 1,
       borderColor: COLORES.claro.borde,
     });
+  });
+
+  it("agrupa el submenú junto a la tarjeta para que no quede hueco entre ambos", async () => {
+    const { getByTestId } = await renderMenu();
+
+    await fireEvent.press(getByTestId("btn-menu"));
+    await fireEvent.press(getByTestId("menu-usuario"));
+
+    const zona = getByTestId("menu-usuario-zona");
+    expect(within(zona).getByTestId("menu-usuario-submenu")).toBeTruthy();
+    expect(within(zona).getByTestId("menu-usuario")).toBeTruthy();
   });
 
   it("el panel usa radios continuos, borde derecho y sombra moderna", async () => {

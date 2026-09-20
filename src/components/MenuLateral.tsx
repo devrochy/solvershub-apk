@@ -171,99 +171,104 @@ export function MenuLateral() {
             ))}
           </View>
 
-          {usuarioAbierto ? (
-            <Animated.View
-              testID="menu-usuario-submenu"
-              style={[
-                styles.submenu,
-                {
-                  backgroundColor: colores.fondo,
-                  borderColor: colores.borde,
-                  opacity: animUsuario,
-                  transform: [
-                    {
-                      translateY: animUsuario.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [8, 0],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
-              <Pressable
-                testID="menu-item-perfil"
-                style={styles.submenuItem}
-                onPress={() => ejecutar(() => navigation.navigate("Perfil"))}
+          <View testID="menu-usuario-zona">
+            {usuarioAbierto ? (
+              <Animated.View
+                testID="menu-usuario-submenu"
+                style={[
+                  styles.submenu,
+                  {
+                    backgroundColor: colores.fondo,
+                    borderColor: colores.borde,
+                    opacity: animUsuario,
+                    transform: [
+                      {
+                        translateY: animUsuario.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [8, 0],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
               >
-                <MaterialIcons name="person" size={20} color={colores.texto} />
-                <Text style={[styles.itemTexto, { color: colores.texto }]}>Perfil</Text>
-              </Pressable>
-              <Pressable
-                testID="menu-item-configuracion"
-                style={styles.submenuItem}
-                onPress={() => ejecutar(() => navigation.navigate("Configuracion"))}
-              >
-                <MaterialIcons name="settings" size={20} color={colores.texto} />
-                <Text style={[styles.itemTexto, { color: colores.texto }]}>Configuración</Text>
-              </Pressable>
-              <Pressable
-                testID="menu-item-modo"
-                style={styles.submenuItem}
-                onPress={alternarTema}
-              >
-                <MaterialIcons
-                  name={tema === "oscuro" ? "dark-mode" : "light-mode"}
-                  size={20}
-                  color={colores.texto}
-                />
-                <Text style={[styles.itemTexto, { color: colores.texto }]}>
-                  {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
-                </Text>
-              </Pressable>
-              <View style={[styles.submenuSeparador, { backgroundColor: colores.borde }]} />
-              <Pressable
-                testID="menu-logout"
-                style={styles.submenuItem}
-                onPress={() => ejecutar(() => void logout())}
-              >
-                <MaterialIcons name="logout" size={20} color={colores.peligro} />
-                <Text style={[styles.itemTexto, { color: colores.peligro }]}>Cerrar sesión</Text>
-              </Pressable>
-            </Animated.View>
-          ) : null}
+                <Pressable
+                  testID="menu-item-perfil"
+                  style={styles.submenuItem}
+                  onPress={() => ejecutar(() => navigation.navigate("Perfil"))}
+                >
+                  <MaterialIcons name="person" size={20} color={colores.texto} />
+                  <Text style={[styles.itemTexto, { color: colores.texto }]}>Perfil</Text>
+                </Pressable>
+                <Pressable
+                  testID="menu-item-configuracion"
+                  style={styles.submenuItem}
+                  onPress={() => ejecutar(() => navigation.navigate("Configuracion"))}
+                >
+                  <MaterialIcons name="settings" size={20} color={colores.texto} />
+                  <Text style={[styles.itemTexto, { color: colores.texto }]}>Configuración</Text>
+                </Pressable>
+                <Pressable
+                  testID="menu-item-modo"
+                  style={styles.submenuItem}
+                  onPress={alternarTema}
+                >
+                  <MaterialIcons
+                    name={tema === "oscuro" ? "dark-mode" : "light-mode"}
+                    size={20}
+                    color={colores.texto}
+                  />
+                  <Text style={[styles.itemTexto, { color: colores.texto }]}>
+                    {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
+                  </Text>
+                </Pressable>
+                <View style={[styles.submenuSeparador, { backgroundColor: colores.borde }]} />
+                <Pressable
+                  testID="menu-logout"
+                  style={styles.submenuItem}
+                  onPress={() => ejecutar(() => void logout())}
+                >
+                  <MaterialIcons name="logout" size={20} color={colores.peligro} />
+                  <Text style={[styles.itemTexto, { color: colores.peligro }]}>Cerrar sesión</Text>
+                </Pressable>
+              </Animated.View>
+            ) : null}
 
-          <Pressable
-            testID="menu-usuario"
-            accessibilityRole="button"
-            accessibilityLabel={`Cuenta de ${nombre}`}
-            style={[styles.usuarioCard, { backgroundColor: colores.primario }]}
-            onPress={() => setUsuarioAbierto((v) => !v)}
-          >
-            <Avatar
-              nombre={nombre}
-              size={40}
-              fondo="rgba(255,255,255,0.18)"
-              colorIcono={colores.sobrePrimario}
-              bordeColor="rgba(255,255,255,0.35)"
-            />
-            <View style={styles.usuarioInfo}>
-              <Text style={[styles.usuarioNombre, { color: colores.sobrePrimario }]} numberOfLines={1}>
-                {nombre}
-              </Text>
-              <Text
-                style={[styles.usuarioHandle, { color: colores.sobrePrimario }]}
-                numberOfLines={1}
-              >
-                @{gestor?.usuario ?? ""}
-              </Text>
-            </View>
-            <MaterialIcons
-              name={usuarioAbierto ? "expand-more" : "chevron-right"}
-              size={22}
-              color={colores.sobrePrimario}
-            />
-          </Pressable>
+            <Pressable
+              testID="menu-usuario"
+              accessibilityRole="button"
+              accessibilityLabel={`Cuenta de ${nombre}`}
+              style={[styles.usuarioCard, { backgroundColor: colores.primario }]}
+              onPress={() => setUsuarioAbierto((v) => !v)}
+            >
+              <Avatar
+                nombre={nombre}
+                size={40}
+                fondo="rgba(255,255,255,0.18)"
+                colorIcono={colores.sobrePrimario}
+                bordeColor="rgba(255,255,255,0.35)"
+              />
+              <View style={styles.usuarioInfo}>
+                <Text
+                  style={[styles.usuarioNombre, { color: colores.sobrePrimario }]}
+                  numberOfLines={1}
+                >
+                  {nombre}
+                </Text>
+                <Text
+                  style={[styles.usuarioHandle, { color: colores.sobrePrimario }]}
+                  numberOfLines={1}
+                >
+                  @{gestor?.usuario ?? ""}
+                </Text>
+              </View>
+              <MaterialIcons
+                name={usuarioAbierto ? "expand-more" : "chevron-right"}
+                size={22}
+                color={colores.sobrePrimario}
+              />
+            </Pressable>
+          </View>
         </ScrollView>
       </Animated.View>
     </View>
