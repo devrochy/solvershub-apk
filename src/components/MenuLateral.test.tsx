@@ -89,6 +89,28 @@ describe("MenuLateral", () => {
     expect(getByTestId("menu-lateral")).toHaveProp("pointerEvents", "none");
   });
 
+  it("muestra un encabezado no interactivo con el nombre cuando el submenú tiene subtituloSubmenu", async () => {
+    const items: MenuItem[] = [
+      {
+        key: "clientes",
+        label: "Clientes",
+        icon: "people",
+        subtituloSubmenu: "test-Ruta Centro",
+        subItems: [{ key: "filtro-todos", label: "Todos", icon: "list" }],
+      },
+    ];
+    const { getByTestId, queryByTestId, getByText } = await renderMenu(items);
+
+    await fireEvent.press(getByTestId("btn-menu"));
+    expect(queryByTestId("menu-submenu-encabezado")).toBeNull();
+
+    await fireEvent.press(getByTestId("menu-item-clientes"));
+
+    const encabezado = getByTestId("menu-submenu-encabezado");
+    expect(encabezado.type).toBe("View");
+    expect(getByText("test-Ruta Centro")).toBeTruthy();
+  });
+
   it("muestra la tarjeta de usuario y navega a Perfil desde su submenú", async () => {
     const { getByTestId, getByText } = await renderMenu();
 

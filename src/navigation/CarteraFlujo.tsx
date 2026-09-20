@@ -56,17 +56,24 @@ export function CarteraFlujo({ route, navigation }: Props) {
   }, [api]);
 
   useEffect(() => {
+    const hayVariasCarteras = carteras.length > 1;
     const items: MenuItem[] = [
       {
         key: "seccion-inicio",
         label: "Inicio",
         icon: "home",
-        activo: seccion === "Cartera",
-        onPress: () => setSeccion("Cartera"),
+        activo: !hayVariasCarteras && seccion === "Cartera",
+        onPress: () => {
+          if (hayVariasCarteras) {
+            navigation.navigate("Main");
+          } else {
+            setSeccion("Cartera");
+          }
+        },
       },
     ];
 
-    if (carteras.length > 1) {
+    if (hayVariasCarteras) {
       items.push({
         key: "carteras-lista",
         label: "Carteras",
@@ -90,6 +97,7 @@ export function CarteraFlujo({ route, navigation }: Props) {
       label: "Clientes",
       icon: "people",
       activo: seccion === "Clientes",
+      subtituloSubmenu: carteraActiva?.carteraNombre,
       subItems: FILTROS.map((f) => ({
         key: `filtro-${f.key}`,
         label: f.label,
@@ -112,7 +120,7 @@ export function CarteraFlujo({ route, navigation }: Props) {
 
     setItemsExtra(items);
     return () => setItemsExtra([]);
-  }, [seccion, filtro, carteras, carteraActiva, setCarteraActiva, setItemsExtra]);
+  }, [seccion, filtro, carteras, carteraActiva, setCarteraActiva, setItemsExtra, navigation]);
 
   const volver = useCallback(() => navigation.navigate("Main"), [navigation]);
 

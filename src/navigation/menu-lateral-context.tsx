@@ -17,6 +17,8 @@ export interface MenuItem {
   activo?: boolean;
   /** Ítems anidados: si existen, el ítem se despliega en vez de ejecutarse. */
   subItems?: MenuItem[];
+  /** Encabezado no interactivo que se muestra encima de `subItems` al expandir. */
+  subtituloSubmenu?: string;
 }
 
 export interface MenuLateralValue {
