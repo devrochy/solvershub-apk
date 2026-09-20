@@ -67,11 +67,28 @@ function MenuRow({
         ) : null}
       </Pressable>
 
-      {tieneSub && expandido
-        ? item.subItems!.map((sub) => (
+      {tieneSub && expandido ? (
+        <View>
+          {item.subtituloSubmenu ? (
+            <View
+              testID="menu-submenu-encabezado"
+              style={[styles.submenuEncabezado, { paddingLeft: 8 + (nivel + 1) * 16 }]}
+            >
+              <MaterialIcons
+                name="account-balance-wallet"
+                size={14}
+                color={colores.textoSuave}
+              />
+              <Text style={[styles.submenuEncabezadoTexto, { color: colores.textoSuave }]}>
+                {item.subtituloSubmenu}
+              </Text>
+            </View>
+          ) : null}
+          {item.subItems!.map((sub) => (
             <MenuRow key={sub.key} item={sub} nivel={nivel + 1} onEjecutar={onEjecutar} />
-          ))
-        : null}
+          ))}
+        </View>
+      ) : null}
     </>
   );
 }
@@ -353,6 +370,20 @@ const styles = StyleSheet.create({
   },
   chevron: { marginLeft: "auto" },
   dot: { width: 10, height: 10, borderRadius: 5, marginHorizontal: 5 },
+  submenuEncabezado: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingTop: 4,
+    paddingBottom: 6,
+    paddingRight: 8,
+  },
+  submenuEncabezadoTexto: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "700",
+    fontFamily: "Roboto_600SemiBold",
+  },
   itemAccent: {
     position: "absolute",
     left: 0,

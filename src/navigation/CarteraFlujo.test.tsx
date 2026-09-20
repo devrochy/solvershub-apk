@@ -59,6 +59,11 @@ function Probe() {
         <Pressable key={item.key} testID={`probe-${item.key}`} onPress={item.onPress}>
           <Text>{item.label}</Text>
         </Pressable>,
+        item.subtituloSubmenu ? (
+          <Text key={`${item.key}-subtitulo`} testID={`probe-${item.key}-subtitulo`}>
+            {item.subtituloSubmenu}
+          </Text>
+        ) : null,
         ...(item.subItems ?? []).map((sub) => (
           <Pressable key={sub.key} testID={`probe-${sub.key}`} onPress={sub.onPress}>
             <Text>{sub.label}</Text>
@@ -69,7 +74,13 @@ function Probe() {
   );
 }
 
-function renderFlujo(carteras = [carteraA, carteraB]) {
+let navigate: jest.Mock = jest.fn();
+
+function renderFlujo(
+  carteras = [carteraA, carteraB],
+  carteraActiva: { carteraId: number; carteraNombre: string } | null = null,
+) {
+  navigate = jest.fn();
   const session: SessionValue = {
     gestor: { id: 20, usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
     loading: false,
@@ -82,11 +93,13 @@ function renderFlujo(carteras = [carteraA, carteraB]) {
   };
   return render(
     <SessionContext.Provider value={session}>
-      <CarteraActivaContext.Provider value={{ carteraActiva: null, setCarteraActiva: jest.fn() }}>
+      <CarteraActivaContext.Provider
+        value={{ carteraActiva: carteraActiva as never, setCarteraActiva: jest.fn() }}
+      >
         <MenuLateralProvider>
           <CarteraFlujo
             route={{ key: "c", name: "Cartera", params: undefined } as never}
-            navigation={{ navigate: jest.fn() } as never}
+            navigation={{ navigate } as never}
           />
           <Probe />
         </MenuLateralProvider>
@@ -127,5 +140,34 @@ describe("CarteraFlujo", () => {
 
     await waitFor(() => expect(getByTestId("probe-seccion-inicio")).toBeTruthy());
     expect(queryByTestId("probe-carteras-lista")).toBeNull();
+  });
+
+  it("el ítem Clientes lleva el nombre de la cartera activa como subtítulo", async () => {
+    const { findByTestId } = await renderFlujo([carteraA, carteraB], {
+      carteraId: 6,
+      carteraNombre: "Cartera Centro",
+    });
+
+    const subtitulo = await findByTestId("probe-seccion-clientes-subtitulo");
+    expect(subtitulo.props.children).toBe("Cartera Centro");
+  });
+
+  it("con más de una cartera, Inicio navega a la lista (Main)", async () => {
+    const { getByTestId } = await renderFlujo();
+
+    await waitFor(() => expect(getByTestId("probe-seccion-inicio")).toBeTruthy());
+    await fireEvent.press(getByTestId("probe-seccion-inicio"));
+
+    expect(navigate).toHaveBeenCalledWith("Main");
+  });
+
+  it("con una sola cartera, Inicio muestra la información de esa cartera", async () => {
+    const { getByTestId } = await renderFlujo([carteraA]);
+
+    await waitFor(() => expect(getByTestId("probe-seccion-inicio")).toBeTruthy());
+    await fireEvent.press(getByTestId("probe-seccion-inicio"));
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(getByTestId("seccion-cartera")).toBeTruthy();
   });
 });
