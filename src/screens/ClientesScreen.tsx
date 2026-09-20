@@ -11,7 +11,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
@@ -22,7 +22,6 @@ import { CampoModal } from "../components/CampoModal";
 import { colorDeEstado } from "../components/ColorBadge";
 import { HeaderApp } from "../components/HeaderApp";
 import { Breadcrumb } from "../components/Breadcrumb";
-import { estilosHeader } from "../components/HeaderPantalla";
 import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
 import {
@@ -41,6 +40,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/types";
 import { filtrarClientes, type FiltroClientes } from "../domain/filtro-clientes";
+import { filtrarPorTexto } from "../domain/busqueda-clientes";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { useTheme } from "../theme/theme-context";
@@ -61,6 +61,14 @@ const FILTROS: { key: FiltroClientes; label: string }[] = [
   { key: "sin_prestamos", label: "Sin préstamos" },
 ];
 
+/** Color semántico de cada filtro (activo = sólido; inactivo = borde/texto). */
+const COLOR_FILTRO: Record<FiltroClientes, string> = {
+  todos: "#172f6c",
+  al_dia: "#16a34a",
+  en_mora: "#dc2626",
+  sin_prestamos: "#64748b",
+};
+
 export function ClientesScreen({
   filtro = "todos",
   onFiltroChange,
@@ -70,9 +78,11 @@ export function ClientesScreen({
   const { carteraActiva } = useCarteraActiva();
   const { api, logout } = useSession();
   const { abrir } = usePantallaActiva();
+  const insets = useSafeAreaInsets();
   const [clientes, setClientes] = useState<ClienteGestorPublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
   const [nuevoAbierto, setNuevoAbierto] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -394,7 +404,10 @@ export function ClientesScreen({
     return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
   }
 
-  const clientesFiltrados = filtrarClientes(clientes, filtro);
+  const clientesFiltrados = filtrarPorTexto(
+    filtrarClientes(clientes, filtro),
+    busqueda,
+  );
 
   const nombreCompleto = (c: ClienteGestorPublic) =>
     `${c.nombre} ${c.apellido}`.trim();
@@ -404,15 +417,6 @@ export function ClientesScreen({
       <HeaderApp
         titulo={carteraActiva.carteraNombre}
         subtitulo={`${clientesFiltrados.length} clientes`}
-        acciones={
-          <Pressable
-            testID="btn-nuevo-cliente"
-            style={estilosHeader.accionPill}
-            onPress={abrirNuevoCliente}
-          >
-            <Text style={estilosHeader.accionPillTexto}>+ Cliente</Text>
-          </Pressable>
-        }
       />
 
       <Breadcrumb
@@ -421,17 +425,50 @@ export function ClientesScreen({
           { key: "clientes", label: "Clientes" },
         ]}
       />
+
+      <View style={styles.busqueda}>
+        <MaterialIcons name="search" size={18} color={colores.textoSuave} />
+        <TextInput
+          testID="busqueda-clientes"
+          style={styles.busquedaInput}
+          placeholder="Buscar cliente"
+          placeholderTextColor={colores.textoSuave}
+          value={busqueda}
+          onChangeText={setBusqueda}
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+        {busqueda ? (
+          <Pressable
+            testID="busqueda-limpiar"
+            accessibilityLabel="Limpiar búsqueda"
+            hitSlop={8}
+            onPress={() => setBusqueda("")}
+          >
+            <MaterialIcons name="close" size={18} color={colores.textoSuave} />
+          </Pressable>
+        ) : null}
+      </View>
+
       <View style={styles.chipsFiltro}>
         {FILTROS.map((f) => (
           <Pressable
             key={f.key}
             testID={`filtro-chip-${f.key}`}
-            style={[styles.chipFiltro, filtro === f.key && styles.chipFiltroActivo]}
+            style={[
+              styles.chipFiltro,
+              { borderColor: COLOR_FILTRO[f.key] },
+              filtro === f.key && { backgroundColor: COLOR_FILTRO[f.key] },
+            ]}
             onPress={() => onFiltroChange?.(f.key)}
           >
             <Text
               numberOfLines={1}
-              style={filtro === f.key ? styles.chipFiltroTextoActivo : styles.chipFiltroTexto}
+              style={
+                filtro === f.key
+                  ? styles.chipFiltroTextoActivo
+                  : [styles.chipFiltroTexto, { color: COLOR_FILTRO[f.key] }]
+              }
             >
               {f.label}
             </Text>
@@ -489,6 +526,19 @@ export function ClientesScreen({
           </Pressable>
         )}
       />
+
+      <Pressable
+        testID="btn-nuevo-cliente"
+        accessibilityRole="button"
+        accessibilityLabel="Nuevo cliente"
+        style={[
+          styles.fab,
+          { backgroundColor: colores.primario, bottom: insets.bottom + 16 },
+        ]}
+        onPress={abrirNuevoCliente}
+      >
+        <MaterialIcons name="add" size={30} color="#ffffff" />
+      </Pressable>
 
       <ModalConFooter
         visible={nuevoAbierto}
@@ -773,6 +823,24 @@ export function ClientesScreen({
 function crearEstilos(c: ColoresTema) {
   return StyleSheet.create({
     contenedor: { flex: 1, backgroundColor: c.fondo },
+    busqueda: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginHorizontal: 16,
+      marginTop: 12,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: c.borde,
+      backgroundColor: c.tarjeta,
+    },
+    busquedaInput: {
+      flex: 1,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: c.texto,
+    },
     chipsFiltro: {
       flexDirection: "row",
       gap: 8,
@@ -782,15 +850,25 @@ function crearEstilos(c: ColoresTema) {
     chipFiltro: {
       flex: 1,
       alignItems: "center",
-      backgroundColor: c.borde,
+      backgroundColor: "transparent",
+      borderWidth: 1,
       borderRadius: 999,
       paddingHorizontal: 8,
       paddingVertical: 8,
     },
-    chipFiltroActivo: { backgroundColor: c.primario },
-    chipFiltroTexto: { color: c.texto, fontSize: 11, fontFamily: "Roboto_500Medium" },
+    chipFiltroTexto: { fontSize: 11, fontFamily: "Roboto_500Medium" },
     chipFiltroTextoActivo: { color: "#ffffff", fontSize: 11, fontFamily: "Roboto_600SemiBold" },
     lista: { padding: 16, gap: 10 },
+    fab: {
+      position: "absolute",
+      right: 20,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: "center",
+      justifyContent: "center",
+      boxShadow: "0 4px 10px rgba(15, 23, 42, 0.25)",
+    },
     vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24 },
     tarjeta: {
       flexDirection: "row",
