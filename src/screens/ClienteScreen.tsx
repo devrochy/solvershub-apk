@@ -65,6 +65,8 @@ import { useOffline } from "../offline/offline-context";
 import { guardarCliente, leerCliente } from "../offline/cache";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type {
   ClienteTarjetaPublic,
   CuotaPublic,
@@ -133,6 +135,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const { api, logout } = useSession();
   const offline = useOffline();
   const { carteraActiva } = useCarteraActiva();
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
 
   const [tarjeta, setTarjeta] = useState<ClienteTarjetaPublic | null>(null);
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
@@ -976,7 +980,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   return (
     <>
-      <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+      <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
         <HeaderPantalla>
           <View testID="header-cliente" style={estilosHeader.fila}>
             <View style={estilosHeader.columnaIzq} />
@@ -1161,7 +1165,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 style={styles.editarUbicacion}
                 onPress={abrirEditarUbicacion}
               >
-                <MaterialIcons name="edit-location" size={16} color="#172f6c" />
+                <MaterialIcons name="edit-location" size={16} color={colores.acento} />
                 <Text style={styles.editarUbicacionTexto}>Editar ubicación</Text>
               </Pressable>
             </View>
@@ -1195,7 +1199,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {/* Notificación de próximo cobro */}
         {proximoCobro.total > 0 ? (
           <View testID="notif-proximo-cobro" style={styles.notificacion}>
-            <MaterialIcons name="notifications-active" size={20} color="#172f6c" />
+            <MaterialIcons name="notifications-active" size={20} color={colores.acento} />
             <View style={styles.notificacionContenido}>
               <Text style={styles.notificacionTitulo}>Próximo cobro</Text>
               <Text style={styles.notificacionDetalle}>
@@ -1998,8 +2002,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+  contenedor: { flex: 1, backgroundColor: c.fondo },
   scroll: { padding: 16, gap: 12 },
   tarjetaHeader: {
     flexDirection: "row",
@@ -2018,7 +2023,7 @@ const styles = StyleSheet.create({
   filaCedula: { flexDirection: "row", gap: 16, alignItems: "flex-start" },
   datosCedula: { flex: 1, gap: 6 },
   datoCedulaLineal: { fontSize: 14, color: "#1e293b", flexWrap: "wrap" },
-  datoCedulaEtiqueta: { fontWeight: "700", color: "#475569" },
+  datoCedulaEtiqueta: { fontWeight: "700", color: c.textoSuave },
   datoCedulaValor: { fontWeight: "600", color: "#1e293b" },
   documentosFila: { flexDirection: "row", gap: 14, marginTop: 16 },
   miniaturaIconoMarco: {
@@ -2034,13 +2039,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#dcfce7",
   },
   miniaturaIconoPendiente: {
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
     borderStyle: "dashed",
-    backgroundColor: "#f8fafc",
+    backgroundColor: c.fondo,
   },
-  mensajeModal: { color: "#dc2626", fontSize: 13, fontWeight: "500", marginTop: 8 },
+  mensajeModal: { color: c.peligro, fontSize: 13, fontWeight: "500", marginTop: 8 },
   tarjeta: {
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderRadius: 16,
     borderCurve: "continuous",
     padding: 16,
@@ -2059,7 +2064,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  documentoTitulo: { fontSize: 12, fontWeight: "700", color: "#475569" },
+  documentoTitulo: { fontSize: 12, fontWeight: "700", color: c.textoSuave },
   documentoMiniaturas: { flexDirection: "row", gap: 10, marginTop: 6 },
   miniatura: { alignItems: "center", gap: 4, flex: 1 },
   miniaturaImagen: {
@@ -2067,20 +2072,20 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
   },
   miniaturaPlaceholder: {
     width: 72,
     height: 48,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
     borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: c.fondo,
   },
-  miniaturaEtiqueta: { fontSize: 10, color: "#64748b", fontWeight: "600" },
+  miniaturaEtiqueta: { fontSize: 10, color: c.textoSuave, fontWeight: "600" },
   badgeDoc: {
     flexDirection: "row",
     alignItems: "center",
@@ -2093,11 +2098,11 @@ const styles = StyleSheet.create({
   badgePendiente: { backgroundColor: "#fef3c7" },
   badgeVerificadoTexto: { color: "#16a34a", fontSize: 10, fontWeight: "700" },
   badgePendienteTexto: { color: "#b45309", fontSize: 10, fontWeight: "700" },
-  detalle: { color: "#475569", fontSize: 14 },
+  detalle: { color: c.textoSuave, fontSize: 14 },
   footerTarjeta: {
     marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
+    borderTopColor: c.fondo,
     paddingTop: 10,
     flexDirection: "row",
     gap: 8,
@@ -2126,7 +2131,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  editarUbicacionTexto: { color: "#172f6c", fontWeight: "600", fontSize: 13 },
+  editarUbicacionTexto: { color: c.acento, fontWeight: "600", fontSize: 13 },
   seccionMapa: { gap: 8 },
   navegacion: { flexDirection: "row", gap: 10 },
   botonNavegar: {
@@ -2157,10 +2162,10 @@ const styles = StyleSheet.create({
   notificacionDetalle: { fontSize: 12, color: "#3b82f6", marginTop: 2 },
   seccion: {
     marginTop: 12,
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
     padding: 14,
     gap: 8,
   },
@@ -2174,19 +2179,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
   },
-  botonNuevoTexto: { color: "#172f6c", fontSize: 14, fontWeight: "600" },
-  seccionTitulo: { fontSize: 15, fontWeight: "700", color: "#334155" },
-  sinPrestamos: { color: "#64748b", fontSize: 13, marginTop: 10 },
+  botonNuevoTexto: { color: c.acento, fontSize: 14, fontWeight: "600" },
+  seccionTitulo: { fontSize: 15, fontWeight: "700", color: c.texto },
+  sinPrestamos: { color: c.textoSuave, fontSize: 13, marginTop: 10 },
   requiereConexion: { color: "#b45309", fontSize: 12, marginTop: 6 },
   prestamoItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 8,
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginTop: 8,
@@ -2198,15 +2203,15 @@ const styles = StyleSheet.create({
   },
   prestamoInfo: { flex: 1, marginRight: 8 },
   prestamoValor: { fontSize: 14, fontWeight: "700", color: "#1e293b" },
-  prestamoDetalle: { color: "#64748b", fontSize: 12, marginTop: 2 },
-  prestamoEstatus: { color: "#475569", fontSize: 12, marginTop: 2, fontWeight: "600" },
+  prestamoDetalle: { color: c.textoSuave, fontSize: 12, marginTop: 2 },
+  prestamoEstatus: { color: c.textoSuave, fontSize: 12, marginTop: 2, fontWeight: "600" },
   canvasScreenshot: {
     backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 12,
   },
   detallePrestamo: {
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderRadius: 16,
     borderCurve: "continuous",
     padding: 16,
@@ -2224,13 +2229,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#ecfdf5",
   },
-  detalleLinea: { color: "#475569", fontSize: 13 },
+  detalleLinea: { color: c.textoSuave, fontSize: 13 },
   detalleCarga: { marginVertical: 16 },
-  detalleError: { color: "#dc2626", fontSize: 13 },
+  detalleError: { color: c.peligro, fontSize: 13 },
   leyenda: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   leyendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   leyendaColor: { width: 12, height: 12, borderRadius: 999 },
-  leyendaTexto: { color: "#475569", fontSize: 11 },
+  leyendaTexto: { color: c.textoSuave, fontSize: 11 },
   canvas: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   cuadro: {
     width: "22%",
@@ -2240,11 +2245,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
   },
-  cuadroNumero: { fontSize: 16, fontWeight: "700", color: "#334155" },
-  cuadroValor: { fontSize: 11, color: "#475569", fontWeight: "600" },
-  cuadroFecha: { fontSize: 11, color: "#64748b" },
+  cuadroNumero: { fontSize: 16, fontWeight: "700", color: c.texto },
+  cuadroValor: { fontSize: 11, color: c.textoSuave, fontWeight: "600" },
+  cuadroFecha: { fontSize: 11, color: c.textoSuave },
   cuadroAbono: { fontSize: 11, color: "#16a34a", fontWeight: "600" },
-  cuadroSaldo: { fontSize: 11, color: "#172f6c", fontWeight: "600" },
+  cuadroSaldo: { fontSize: 11, color: c.acento, fontWeight: "600" },
   cuadroEtiqueta: {
     borderWidth: 1,
     borderRadius: 999,
@@ -2278,16 +2283,16 @@ const styles = StyleSheet.create({
   botonNoPago: { backgroundColor: "#d97706" },
   botonAccionTexto: { color: "#ffffff", fontWeight: "600" },
   deshabilitado: { opacity: 0.5 },
-  label: { fontSize: 13, color: "#64748b", marginTop: 2 },
+  label: { fontSize: 13, color: c.textoSuave, marginTop: 2 },
   input: {
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderWidth: 1,
     borderColor: "#dbeafe",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: "#334155",
+    color: c.texto,
   },
   filaCoordenadas: { flexDirection: "row", gap: 8 },
   inputCoordenada: { flex: 1 },
@@ -2297,13 +2302,13 @@ const styles = StyleSheet.create({
     width: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#172f6c",
+    backgroundColor: c.primario,
     borderRadius: 8,
   },
-  notaUbicacion: { color: "#64748b", fontSize: 12, marginTop: 4 },
+  notaUbicacion: { color: c.textoSuave, fontSize: 12, marginTop: 4 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   chip: {
-    backgroundColor: "#eef2ff",
+    backgroundColor: c.activoSuave,
     borderWidth: 1,
     borderColor: "#c7d2fe",
     borderRadius: 999,
@@ -2311,38 +2316,38 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
-  chipTexto: { color: "#172f6c", fontSize: 13 },
+  chipTexto: { color: c.acento, fontSize: 13 },
   chipTextoActivo: { color: "#ffffff", fontSize: 13 },
-  promesaNota: { color: "#64748b", fontSize: 13 },
+  promesaNota: { color: c.textoSuave, fontSize: 13 },
   mensaje: { color: "#16a34a", fontSize: 14, marginTop: 2 },
-  errorTexto: { color: "#dc2626", fontSize: 13, marginTop: 2 },
+  errorTexto: { color: c.peligro, fontSize: 13, marginTop: 2 },
   cuotaResumen: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: c.fondo,
     borderRadius: 10,
     padding: 10,
     gap: 2,
   },
-  cuotaLinea: { color: "#334155", fontSize: 14, fontWeight: "600" },
-  cuotaFecha: { color: "#64748b", fontSize: 12 },
-  cuotaSubtitulo: { fontSize: 13, fontWeight: "700", color: "#475569", marginTop: 4 },
-  cuotaVacio: { color: "#94a3b8", fontSize: 13 },
+  cuotaLinea: { color: c.texto, fontSize: 14, fontWeight: "600" },
+  cuotaFecha: { color: c.textoSuave, fontSize: 12 },
+  cuotaSubtitulo: { fontSize: 13, fontWeight: "700", color: c.textoSuave, marginTop: 4 },
+  cuotaVacio: { color: c.textoSuave, fontSize: 13 },
   pagoItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  pagoTexto: { color: "#334155", fontSize: 13, fontWeight: "600" },
-  pagoFecha: { color: "#64748b", fontSize: 12 },
+  pagoTexto: { color: c.texto, fontSize: 13, fontWeight: "600" },
+  pagoFecha: { color: c.textoSuave, fontSize: 12 },
   cuotaScroll: { flexGrow: 1 },
   filaItemBorrable: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -2369,15 +2374,15 @@ const styles = StyleSheet.create({
   botonCancelarLinea: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: c.textoSuave,
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: "center",
   },
-  botonCancelarLineaTexto: { color: "#475569", fontWeight: "600" },
+  botonCancelarLineaTexto: { color: c.textoSuave, fontWeight: "600" },
   botonConfirmarLinea: {
     flex: 1,
-    backgroundColor: "#172f6c",
+    backgroundColor: c.primario,
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: "center",
@@ -2402,7 +2407,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 11,
   },
-  cuotaAccionNoPago: { backgroundColor: "#dc2626" },
+  cuotaAccionNoPago: { backgroundColor: c.peligro },
   cuotaAccionActiva: { opacity: 0.85 },
   cuotaAccionTexto: { color: "#ffffff", fontWeight: "700" },
 });
+}

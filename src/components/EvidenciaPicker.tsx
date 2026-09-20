@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -6,6 +7,8 @@ import {
   Text,
   View,
 } from "react-native";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type { EvidenciaSeleccionada } from "../features/gastos/use-evidencias";
 
 export interface EvidenciaPickerProps {
@@ -27,6 +30,8 @@ export function EvidenciaPicker({
   onQuitar,
   max,
 }: EvidenciaPickerProps) {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   const lleno = evidencias.length >= max;
 
   return (
@@ -83,33 +88,35 @@ export function EvidenciaPicker({
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { gap: 8 },
-  filaBotones: { flexDirection: "row", gap: 8, alignItems: "center" },
-  boton: {
-    borderWidth: 1,
-    borderColor: "#172f6c",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  botonDeshabilitado: { opacity: 0.4 },
-  botonTexto: { color: "#172f6c", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 13 },
-  miniaturas: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  miniaturaContenedor: { position: "relative" },
-  miniatura: { width: 64, height: 64, borderRadius: 8 },
-  quitar: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: "#dc2626",
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quitarTexto: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
-  contador: { color: "#64748b", fontSize: 12 },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { gap: 8 },
+    filaBotones: { flexDirection: "row", gap: 8, alignItems: "center" },
+    boton: {
+      borderWidth: 1,
+      borderColor: c.primario,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+    },
+    botonDeshabilitado: { opacity: 0.4 },
+    botonTexto: { color: c.acento, fontWeight: "600" },
+    error: { color: c.peligro, fontSize: 13 },
+    miniaturas: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    miniaturaContenedor: { position: "relative" },
+    miniatura: { width: 64, height: 64, borderRadius: 8 },
+    quitar: {
+      position: "absolute",
+      top: -6,
+      right: -6,
+      backgroundColor: c.peligro,
+      borderRadius: 10,
+      width: 20,
+      height: 20,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    quitarTexto: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
+    contador: { color: c.textoSuave, fontSize: 12 },
+  });
+}

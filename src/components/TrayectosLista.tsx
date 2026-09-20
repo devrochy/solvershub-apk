@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "../types/gestor";
 import { enlaceGoogleMapsCartera } from "../features/navegacion/navegacion";
 
@@ -23,8 +26,10 @@ function nombreDeParada(
  * overlay en TrayectoDiarioScreen, que gestiona el cierre con swipe y el back físico.
  */
 export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   return (
-    <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["left", "right"]}>
+    <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderPantalla>
         <View style={estilosHeader.fila}>
           <View style={estilosHeader.bloqueTitulo}>
@@ -78,32 +83,34 @@ export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
-  scroll: { padding: 16, gap: 12 },
-  trayecto: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    padding: 16,
-    gap: 8,
-  },
-  trayectoFila: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  trayectoTitulo: { fontSize: 15, fontWeight: "700", color: "#334155" },
-  paradasContador: { color: "#64748b", fontSize: 13 },
-  paradas: { gap: 4 },
-  paradaNombre: { color: "#334155", fontSize: 14, flex: 1 },
-  botonNavegar: {
-    backgroundColor: "#0e7490",
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  botonNavegarTexto: { color: "#ffffff", fontWeight: "600" },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: c.fondo },
+    scroll: { padding: 16, gap: 12 },
+    trayecto: {
+      backgroundColor: c.tarjeta,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: c.borde,
+      padding: 16,
+      gap: 8,
+    },
+    trayectoFila: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    trayectoTitulo: { fontSize: 15, fontWeight: "700", color: c.texto },
+    paradasContador: { color: c.textoSuave, fontSize: 13 },
+    paradas: { gap: 4 },
+    paradaNombre: { color: c.texto, fontSize: 14, flex: 1 },
+    botonNavegar: {
+      backgroundColor: "#0e7490",
+      borderRadius: 8,
+      paddingVertical: 10,
+      alignItems: "center",
+      marginTop: 4,
+    },
+    botonNavegarTexto: { color: "#ffffff", fontWeight: "600" },
+  });
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
@@ -10,6 +10,8 @@ import {
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type { EstadoCuentaPrestamoPublic } from "../types/gestor";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Prestamo">;
@@ -41,6 +43,8 @@ export function PrestamoScreen({ route }: Props) {
   const { carteraId, prestamoId, clienteNombre, telefonoWhatsapp, valor, numCuotas } =
     route.params;
   const { api, logout } = useSession();
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   const [estado, setEstado] = useState<EstadoCuentaPrestamoPublic | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -144,53 +148,55 @@ export function PrestamoScreen({ route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: "#f8fafc" },
-  contenido: { padding: 16, gap: 14 },
-  tarjetaResumen: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  clienteNombre: { fontSize: 18, fontWeight: "700", color: "#334155" },
-  clienteDetalle: { color: "#64748b", fontSize: 13, marginTop: 4 },
-  filaResumen: { flexDirection: "row", justifyContent: "space-between", marginTop: 12 },
-  resumenValor: { fontSize: 14, fontWeight: "600", color: "#475569" },
-  resumenSaldo: { fontSize: 14, fontWeight: "700", color: "#172f6c" },
-  leyenda: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  leyendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  leyendaColor: { width: 12, height: 12, borderRadius: 999 },
-  leyendaTexto: { color: "#475569", fontSize: 12 },
-  canvas: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  cuadro: {
-    width: "22%",
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 8,
-    alignItems: "center",
-    gap: 2,
-  },
-  cuadroNumero: { fontSize: 16, fontWeight: "700", color: "#334155" },
-  cuadroValor: { fontSize: 11, color: "#475569", fontWeight: "600" },
-  cuadroFecha: { fontSize: 9, color: "#64748b" },
-  cuadroAbono: { fontSize: 9, color: "#16a34a", fontWeight: "600" },
-  cuadroSaldo: { fontSize: 9, color: "#172f6c", fontWeight: "600" },
-  cuadroEtiqueta: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    marginTop: 2,
-  },
-  cuadroEtiquetaTexto: { fontSize: 9, fontWeight: "600" },
-  botonWhatsApp: {
-    backgroundColor: "#16a34a",
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: "center",
-  },
-  botonWhatsAppTexto: { color: "#ffffff", fontSize: 15, fontWeight: "600" },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    scroll: { flex: 1, backgroundColor: c.fondo },
+    contenido: { padding: 16, gap: 14 },
+    tarjetaResumen: {
+      backgroundColor: c.tarjeta,
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: c.borde,
+    },
+    clienteNombre: { fontSize: 18, fontWeight: "700", color: c.texto },
+    clienteDetalle: { color: c.textoSuave, fontSize: 13, marginTop: 4 },
+    filaResumen: { flexDirection: "row", justifyContent: "space-between", marginTop: 12 },
+    resumenValor: { fontSize: 14, fontWeight: "600", color: c.textoSuave },
+    resumenSaldo: { fontSize: 14, fontWeight: "700", color: c.acento },
+    leyenda: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+    leyendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+    leyendaColor: { width: 12, height: 12, borderRadius: 999 },
+    leyendaTexto: { color: c.textoSuave, fontSize: 12 },
+    canvas: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    cuadro: {
+      width: "22%",
+      borderRadius: 8,
+      borderWidth: 1,
+      padding: 8,
+      alignItems: "center",
+      gap: 2,
+    },
+    cuadroNumero: { fontSize: 16, fontWeight: "700", color: c.texto },
+    cuadroValor: { fontSize: 11, color: c.textoSuave, fontWeight: "600" },
+    cuadroFecha: { fontSize: 9, color: c.textoSuave },
+    cuadroAbono: { fontSize: 9, color: "#16a34a", fontWeight: "600" },
+    cuadroSaldo: { fontSize: 9, color: c.acento, fontWeight: "600" },
+    cuadroEtiqueta: {
+      borderWidth: 1,
+      borderRadius: 999,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      marginTop: 2,
+    },
+    cuadroEtiquetaTexto: { fontSize: 9, fontWeight: "600" },
+    botonWhatsApp: {
+      backgroundColor: "#16a34a",
+      borderRadius: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      alignItems: "center",
+    },
+    botonWhatsAppTexto: { color: "#ffffff", fontSize: 15, fontWeight: "600" },
+  });
+}

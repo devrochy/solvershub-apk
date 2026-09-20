@@ -98,6 +98,16 @@ describe("ClientesScreen", () => {
     expect(getByText("Tienda Central")).toBeTruthy();
   });
 
+  it("muestra el breadcrumb Inicio / Clientes", async () => {
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("breadcrumb")).toBeTruthy());
+    expect(getByTestId("breadcrumb-inicio")).toBeTruthy();
+    expect(getByTestId("breadcrumb-clientes")).toBeTruthy();
+  });
+
   it("muestra la barra de acento semántica según el color de riesgo", async () => {
     const { getByTestId } = await renderConCarteraActiva({
       listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),

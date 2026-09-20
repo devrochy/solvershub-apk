@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -9,6 +9,8 @@ import {
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import {
   PAISES_TELEFONO,
   PAIS_DEFECTO_TELEFONO,
@@ -40,6 +42,8 @@ export function CampoTelefono({
   const [paisSeleccionado, setPaisSeleccionado] = useState<PaisTelefono | null>(
     null,
   );
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   // Fuente de verdad: el país explícitamente elegido; si no se ha elegido uno,
   // se infiere del número (y ante prefijos compartidos +1 se resuelve al país
   // con el prefijo más largo que coincida, o al primero del catálogo).
@@ -67,7 +71,7 @@ export function CampoTelefono({
       >
         <Text style={styles.bandera}>{pais.bandera}</Text>
         <Text style={styles.prefijo}>{pais.prefijo}</Text>
-        <MaterialIcons name="arrow-drop-down" size={20} color="#64748b" />
+        <MaterialIcons name="arrow-drop-down" size={20} color={colores.textoSuave} />
       </Pressable>
       <TextInput
         testID={`${testID}-numero`}
@@ -112,60 +116,62 @@ export function CampoTelefono({
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flexDirection: "row", alignItems: "center", gap: 8 },
-  botonPais: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-  bandera: { fontSize: 18 },
-  prefijo: { fontSize: 15, fontWeight: "600", color: "#334155" },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-  },
-  fondo: {
-    flex: 1,
-    backgroundColor: "rgba(23, 47, 108, 0.25)",
-    justifyContent: "flex-end",
-  },
-  carta: {
-    backgroundColor: "#f5f7ff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: "hidden",
-    maxHeight: "70%",
-    paddingBottom: 24,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: "#172f6c",
-  },
-  headerTitulo: { fontSize: 16, fontWeight: "700", color: "#ffffff" },
-  filaPais: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
-  },
-  nombrePais: { flex: 1, fontSize: 15, color: "#334155" },
-  prefijoFila: { fontSize: 15, color: "#64748b", fontWeight: "600" },
-});
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+    contenedor: { flexDirection: "row", alignItems: "center", gap: 8 },
+    botonPais: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      borderWidth: 1,
+      borderColor: c.textoSuave,
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+    },
+    bandera: { fontSize: 18 },
+    prefijo: { fontSize: 15, fontWeight: "600", color: c.texto },
+    input: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.textoSuave,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+    },
+    fondo: {
+      flex: 1,
+      backgroundColor: "rgba(23, 47, 108, 0.25)",
+      justifyContent: "flex-end",
+    },
+    carta: {
+      backgroundColor: "#f5f7ff",
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      overflow: "hidden",
+      maxHeight: "70%",
+      paddingBottom: 24,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      backgroundColor: c.primario,
+    },
+    headerTitulo: { fontSize: 16, fontWeight: "700", color: "#ffffff" },
+    filaPais: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: c.fondo,
+    },
+    nombrePais: { flex: 1, fontSize: 15, color: c.texto },
+    prefijoFila: { fontSize: 15, color: c.textoSuave, fontWeight: "600" },
+  });
+}

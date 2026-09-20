@@ -1,35 +1,96 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar } from "./Avatar";
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { useSession } from "../session/session-context";
+import { useTheme } from "../theme/theme-context";
 import type { RootStackParamList } from "../navigation/types";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
 
-const GLOBAL: { key: string; label: string; icon: Icono; screen: keyof RootStackParamList }[] = [
-  { key: "carteras", label: "Carteras", icon: "map", screen: "Main" },
-  { key: "perfil", label: "Perfil", icon: "person", screen: "Perfil" },
-  { key: "configuracion", label: "Configuración", icon: "settings", screen: "Configuracion" },
-];
-
 const ANCHO_PANEL = 288;
 
 /**
+ * Ítem del menú. Si tiene `subItems`, se despliega en vez de ejecutarse; los
+ * hijos se renderizan indentados debajo.
+ */
+function MenuRow({
+  item,
+  nivel = 0,
+  onEjecutar,
+}: {
+  item: MenuItem;
+  nivel?: number;
+  onEjecutar(accion?: () => void): void;
+}) {
+  const { colores, tema } = useTheme();
+  const [expandido, setExpandido] = useState(false);
+  const tieneSub = (item.subItems?.length ?? 0) > 0;
+  const colorActivo = tema === "claro" ? colores.primario : colores.texto;
+  const color = item.activo ? colorActivo : colores.texto;
+
+  return (
+    <>
+      <Pressable
+        testID={`menu-item-${item.key}`}
+        accessibilityRole="button"
+        style={[
+          styles.item,
+          { paddingLeft: 8 + nivel * 16 },
+          item.activo && { backgroundColor: colores.activoSuave },
+        ]}
+        onPress={() => (tieneSub ? setExpandido((v) => !v) : onEjecutar(item.onPress))}
+      >
+        {item.activo ? (
+          <View
+            testID={`menu-item-accent-${item.key}`}
+            style={[styles.itemAccent, { backgroundColor: colorActivo }]}
+          />
+        ) : null}
+        {item.color ? (
+          <View style={[styles.dot, { backgroundColor: item.color }]} />
+        ) : (
+          <MaterialIcons name={item.icon as Icono} size={20} color={color} />
+        )}
+        <Text style={[styles.itemTexto, { color }]}>{item.label}</Text>
+        {tieneSub ? (
+          <MaterialIcons
+            name={expandido ? "expand-more" : "chevron-right"}
+            size={20}
+            color={colores.textoSuave}
+            style={styles.chevron}
+          />
+        ) : null}
+      </Pressable>
+
+      {tieneSub && expandido
+        ? item.subItems!.map((sub) => (
+            <MenuRow key={sub.key} item={sub} nivel={nivel + 1} onEjecutar={onEjecutar} />
+          ))
+        : null}
+    </>
+  );
+}
+
+/**
  * Menú lateral tipo hamburguesa: panel que se desliza desde la izquierda con
- * backdrop. Muestra los ítems contextuales registrados por la pantalla activa
- * (secciones de la cartera, filtros) y los globales (Carteras, Perfil,
- * Configuración, Cerrar sesión).
+ * backdrop. Arriba los ítems contextuales de la pantalla activa (con submenús
+ * desplegables) y al fondo la tarjeta de usuario (avatar + nombre) que despliega
+ * Perfil / Configuración / Modo oscuro / Cerrar sesión.
  */
 export function MenuLateral() {
   const { abierto, cerrar, itemsExtra } = useMenuLateral();
   const { gestor, logout } = useSession();
+  const { colores, tema, alternarTema } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [progreso] = useState(() => new Animated.Value(0));
+  const [usuarioAbierto, setUsuarioAbierto] = useState(false);
+  const [animUsuario] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.timing(progreso, {
@@ -38,6 +99,14 @@ export function MenuLateral() {
       useNativeDriver: true,
     }).start();
   }, [abierto, progreso]);
+
+  useEffect(() => {
+    Animated.timing(animUsuario, {
+      toValue: usuarioAbierto ? 1 : 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start();
+  }, [usuarioAbierto, animUsuario]);
 
   const translateX = progreso.interpolate({
     inputRange: [0, 1],
@@ -48,29 +117,12 @@ export function MenuLateral() {
     outputRange: [0, 1],
   });
 
-  function ejecutar(accion: () => void) {
+  function ejecutar(accion?: () => void) {
     cerrar();
-    accion();
+    accion?.();
   }
 
-  function Item({ item }: { item: MenuItem }) {
-    return (
-      <Pressable
-        testID={`menu-item-${item.key}`}
-        style={[styles.item, item.activo && styles.itemActivo]}
-        onPress={() => ejecutar(item.onPress)}
-      >
-        <MaterialIcons
-          name={item.icon as Icono}
-          size={20}
-          color={item.activo ? "#172f6c" : "#334155"}
-        />
-        <Text style={[styles.itemTexto, item.activo && styles.itemTextoActivo]}>
-          {item.label}
-        </Text>
-      </Pressable>
-    );
-  }
+  const nombre = `${gestor?.nombre ?? ""} ${gestor?.apellido ?? ""}`.trim() || "Usuario";
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
@@ -91,48 +143,132 @@ export function MenuLateral() {
         pointerEvents={abierto ? "auto" : "none"}
         style={[
           styles.panel,
-          { paddingTop: insets.top + 20, transform: [{ translateX }] },
+          {
+            backgroundColor: colores.tarjeta,
+            borderColor: colores.borde,
+            paddingTop: insets.top + 20,
+            paddingBottom: insets.bottom,
+            transform: [{ translateX }],
+          },
         ]}
       >
-        <Text style={styles.marca}>Solver</Text>
-        <Text style={styles.usuario}>{gestor ? `@${gestor.usuario}` : ""}</Text>
+        <View style={styles.marcaFila}>
+          <View style={[styles.marcaLogo, { backgroundColor: colores.primario }]}>
+            <MaterialIcons name="route" size={18} color={colores.sobrePrimario} />
+          </View>
+          <Text style={[styles.marca, { color: colores.texto }]}>Solver</Text>
+        </View>
 
         <ScrollView contentContainerStyle={styles.scroll}>
-          {itemsExtra.length > 0 ? (
-            <>
-              <View style={styles.items}>
-                {itemsExtra.map((item) => (
-                  <Item key={item.key} item={item} />
-                ))}
-              </View>
-              <View style={styles.separador} />
-            </>
-          ) : null}
-
           <View style={styles.items}>
-            {GLOBAL.map((item) => (
-              <Pressable
-                key={item.key}
-                testID={`menu-item-${item.key}`}
-                style={styles.item}
-                onPress={() => ejecutar(() => navigation.navigate(item.screen as never))}
-              >
-                <MaterialIcons name={item.icon} size={20} color="#334155" />
-                <Text style={styles.itemTexto}>{item.label}</Text>
-              </Pressable>
+            {itemsExtra.map((item, indice) => (
+              <Fragment key={item.key}>
+                <MenuRow item={item} onEjecutar={ejecutar} />
+                {indice === 0 ? (
+                  <View style={[styles.separador, { backgroundColor: colores.borde }]} />
+                ) : null}
+              </Fragment>
             ))}
           </View>
 
-          <View style={styles.separador} />
+          <View testID="menu-usuario-zona">
+            {usuarioAbierto ? (
+              <Animated.View
+                testID="menu-usuario-submenu"
+                style={[
+                  styles.submenu,
+                  {
+                    backgroundColor: colores.fondo,
+                    borderColor: colores.borde,
+                    opacity: animUsuario,
+                    transform: [
+                      {
+                        translateY: animUsuario.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [8, 0],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Pressable
+                  testID="menu-item-perfil"
+                  style={styles.submenuItem}
+                  onPress={() => ejecutar(() => navigation.navigate("Perfil"))}
+                >
+                  <MaterialIcons name="person" size={20} color={colores.texto} />
+                  <Text style={[styles.itemTexto, { color: colores.texto }]}>Perfil</Text>
+                </Pressable>
+                <Pressable
+                  testID="menu-item-configuracion"
+                  style={styles.submenuItem}
+                  onPress={() => ejecutar(() => navigation.navigate("Configuracion"))}
+                >
+                  <MaterialIcons name="settings" size={20} color={colores.texto} />
+                  <Text style={[styles.itemTexto, { color: colores.texto }]}>Configuración</Text>
+                </Pressable>
+                <Pressable
+                  testID="menu-item-modo"
+                  style={styles.submenuItem}
+                  onPress={alternarTema}
+                >
+                  <MaterialIcons
+                    name={tema === "oscuro" ? "dark-mode" : "light-mode"}
+                    size={20}
+                    color={colores.texto}
+                  />
+                  <Text style={[styles.itemTexto, { color: colores.texto }]}>
+                    {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
+                  </Text>
+                </Pressable>
+                <View style={[styles.submenuSeparador, { backgroundColor: colores.borde }]} />
+                <Pressable
+                  testID="menu-logout"
+                  style={styles.submenuItem}
+                  onPress={() => ejecutar(() => void logout())}
+                >
+                  <MaterialIcons name="logout" size={20} color={colores.peligro} />
+                  <Text style={[styles.itemTexto, { color: colores.peligro }]}>Cerrar sesión</Text>
+                </Pressable>
+              </Animated.View>
+            ) : null}
 
-          <Pressable
-            testID="menu-logout"
-            style={styles.item}
-            onPress={() => ejecutar(() => void logout())}
-          >
-            <MaterialIcons name="logout" size={20} color="#dc2626" />
-            <Text style={[styles.itemTexto, styles.salir]}>Cerrar sesión</Text>
-          </Pressable>
+            <Pressable
+              testID="menu-usuario"
+              accessibilityRole="button"
+              accessibilityLabel={`Cuenta de ${nombre}`}
+              style={[styles.usuarioCard, { backgroundColor: colores.primario }]}
+              onPress={() => setUsuarioAbierto((v) => !v)}
+            >
+              <Avatar
+                nombre={nombre}
+                size={40}
+                fondo="rgba(255,255,255,0.18)"
+                colorIcono={colores.sobrePrimario}
+                bordeColor="rgba(255,255,255,0.35)"
+              />
+              <View style={styles.usuarioInfo}>
+                <Text
+                  style={[styles.usuarioNombre, { color: colores.sobrePrimario }]}
+                  numberOfLines={1}
+                >
+                  {nombre}
+                </Text>
+                <Text
+                  style={[styles.usuarioHandle, { color: colores.sobrePrimario }]}
+                  numberOfLines={1}
+                >
+                  @{gestor?.usuario ?? ""}
+                </Text>
+              </View>
+              <MaterialIcons
+                name={usuarioAbierto ? "expand-more" : "chevron-right"}
+                size={22}
+                color={colores.sobrePrimario}
+              />
+            </Pressable>
+          </View>
         </ScrollView>
       </Animated.View>
     </View>
@@ -154,22 +290,27 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     width: ANCHO_PANEL,
-    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
-    boxShadow: "4px 0 16px rgba(15, 23, 42, 0.18)",
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    borderRightWidth: 1,
+    borderCurve: "continuous",
+    boxShadow: "8px 0 24px rgba(15, 23, 42, 0.22)",
   },
-  scroll: { paddingBottom: 24 },
+  scroll: { paddingBottom: 24, flexGrow: 1, justifyContent: "space-between" },
+  marcaFila: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16 },
+  marcaLogo: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    borderCurve: "continuous",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   marca: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#172f6c",
     fontFamily: "Roboto_700Bold",
-  },
-  usuario: {
-    fontSize: 13,
-    color: "#64748b",
-    marginBottom: 16,
-    fontFamily: "Roboto_400Regular",
   },
   items: { gap: 2 },
   item: {
@@ -178,20 +319,71 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     paddingHorizontal: 8,
-    borderRadius: 8,
+    borderRadius: 12,
+    borderCurve: "continuous",
+    overflow: "hidden",
   },
-  itemActivo: { backgroundColor: "#eef2ff" },
+  submenu: {
+    borderWidth: 1,
+    borderRadius: 14,
+    borderCurve: "continuous",
+    padding: 6,
+    marginBottom: 10,
+    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.10)",
+  },
+  submenuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderCurve: "continuous",
+  },
+  submenuSeparador: {
+    height: 1,
+    marginVertical: 4,
+    marginHorizontal: 10,
+  },
   itemTexto: {
+    flex: 1,
     fontSize: 15,
     fontWeight: "600",
-    color: "#0f172a",
     fontFamily: "Roboto_600SemiBold",
   },
-  itemTextoActivo: { color: "#172f6c" },
-  salir: { color: "#dc2626" },
+  chevron: { marginLeft: "auto" },
+  dot: { width: 10, height: 10, borderRadius: 5, marginHorizontal: 5 },
+  itemAccent: {
+    position: "absolute",
+    left: 0,
+    top: 8,
+    bottom: 8,
+    width: 3,
+    borderRadius: 2,
+  },
   separador: {
     height: 1,
-    backgroundColor: "#e2e8f0",
     marginVertical: 12,
+  },
+  usuarioCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderCurve: "continuous",
+    boxShadow: "0 6px 16px rgba(15, 23, 42, 0.18)",
+  },
+  usuarioInfo: { flex: 1 },
+  usuarioNombre: {
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: "Roboto_700Bold",
+  },
+  usuarioHandle: {
+    fontSize: 12,
+    fontFamily: "Roboto_400Regular",
+    opacity: 0.75,
   },
 });

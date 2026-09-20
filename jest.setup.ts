@@ -13,8 +13,12 @@ jest.mock("@react-native-community/netinfo", () => ({
 jest.mock("@expo/vector-icons", () => {
   const React = require("react");
   const { Text } = require("react-native");
-  const Icono = (props: { name: string }) =>
-    React.createElement(Text, { testID: `icono-${props.name}` }, props.name);
+  const Icono = (props: { name: string; color?: string }) =>
+    React.createElement(
+      Text,
+      { testID: `icono-${props.name}`, style: { color: props.color } },
+      props.name,
+    );
   return { MaterialIcons: Icono };
 });
 

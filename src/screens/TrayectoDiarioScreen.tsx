@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -39,12 +39,16 @@ import { guardarCliente, guardarTrayectoDiario, leerTrayectoDiario } from "../of
 import { clientesAprecargar } from "../offline/precarga";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 import type { ClienteTrayectoDiarioPublic, LiquidacionPublic, TrayectoPublic } from "../types/gestor";
 
 /** TTL de la precarga offline de clientes (evita re-precargar cada 30s). */
 const PRECARGA_TTL_MS = 5 * 60 * 1000;
 
 export function TrayectoDiarioScreen() {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { carteraActiva } = useCarteraActiva();
@@ -407,7 +411,7 @@ export function TrayectoDiarioScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.contenedor} edges={["left", "right"]}>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
         titulo="Cobros del día"
         subtitulo={
@@ -415,7 +419,6 @@ export function TrayectoDiarioScreen() {
             ? `${clientes.length} cliente${clientes.length === 1 ? "" : "s"}`
             : undefined
         }
-        onVolver={() => navigation.goBack()}
         acciones={
           <Pressable
             testID="nuevo-gasto"
@@ -431,8 +434,8 @@ export function TrayectoDiarioScreen() {
       />
       <Breadcrumb
         items={[
-          { key: "carteras", label: "Carteras", onPress: () => navigation.navigate("Main") },
-          { key: "trayecto", label: "Trayecto diario" },
+          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
+          { key: "diario", label: "Diario" },
         ]}
       />
       <FlatList
@@ -666,7 +669,7 @@ export function TrayectoDiarioScreen() {
         animationType="slide"
         onRequestClose={cerrarLiquidacion}
       >
-        <SafeAreaView style={styles.liquidacionContenedor} edges={["top", "left", "right"]}>
+        <SafeAreaView style={styles.liquidacionContenedor} edges={["top", "left", "right", "bottom"]}>
           <View style={styles.liquidacionHeader}>
             <Text style={styles.liquidacionTitulo}>Liquidación del día</Text>
             <Pressable testID="cerrar-liquidacion" style={styles.liquidacionCerrar} onPress={cerrarLiquidacion}>
@@ -822,14 +825,15 @@ export function TrayectoDiarioScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: "#f8fafc" },
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
+  contenedor: { flex: 1, backgroundColor: c.fondo },
   lista: { padding: 16, gap: 12 },
-  vacio: { color: "#64748b", textAlign: "center", marginTop: 24, fontSize: 14 },
+  vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24, fontSize: 14 },
   acciones: { marginBottom: 8, gap: 10 },
   avisoOffline: { color: "#d97706", fontWeight: "600", fontSize: 13 },
   botonPrimario: {
-    backgroundColor: "#172f6c",
+    backgroundColor: c.primario,
     borderRadius: 12,
     borderCurve: "continuous",
     paddingVertical: 13,
@@ -838,7 +842,7 @@ const styles = StyleSheet.create({
   },
   botonPrimarioTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   botonSecundario: {
-    backgroundColor: "#dc2626",
+    backgroundColor: c.peligro,
     borderRadius: 12,
     borderCurve: "continuous",
     paddingVertical: 13,
@@ -855,7 +859,7 @@ const styles = StyleSheet.create({
   },
   botonTrayectosTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   botonLiquidacion: {
-    backgroundColor: "#172f6c",
+    backgroundColor: c.primario,
     borderRadius: 12,
     borderCurve: "continuous",
     paddingVertical: 13,
@@ -864,14 +868,14 @@ const styles = StyleSheet.create({
   },
   botonLiquidacionBloqueado: { opacity: 0.4 },
   botonLiquidacionTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
-  liquidacionContenedor: { flex: 1, backgroundColor: "#f8fafc" },
+  liquidacionContenedor: { flex: 1, backgroundColor: c.fondo },
   liquidacionHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#172f6c",
+    backgroundColor: c.primario,
   },
   liquidacionTitulo: { fontSize: 16, fontWeight: "700", color: "#ffffff" },
   liquidacionCerrar: {
@@ -887,26 +891,26 @@ const styles = StyleSheet.create({
   liquidacionScroll: { padding: 16, gap: 10 },
   liquidacionAviso: { color: "#b45309", fontSize: 13, fontWeight: "600" },
   liquidacionResumen: {
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderRadius: 10,
     padding: 12,
     gap: 3,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
   },
-  liquidacionLinea: { color: "#334155", fontSize: 13, fontWeight: "500" },
-  liquidacionSubtitulo: { fontSize: 13, fontWeight: "700", color: "#475569", marginTop: 4 },
-  liquidacionVacio: { color: "#94a3b8", fontSize: 13 },
+  liquidacionLinea: { color: c.texto, fontSize: 13, fontWeight: "500" },
+  liquidacionSubtitulo: { fontSize: 13, fontWeight: "700", color: c.textoSuave, marginTop: 4 },
+  liquidacionVacio: { color: c.textoSuave, fontSize: 13 },
   liquidacionItem: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: c.borde,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
   },
-  liquidacionItemTexto: { color: "#334155", fontSize: 13 },
-  liquidacionMensaje: { color: "#dc2626", fontSize: 13, fontWeight: "500" },
+  liquidacionItemTexto: { color: c.texto, fontSize: 13 },
+  liquidacionMensaje: { color: c.peligro, fontSize: 13, fontWeight: "500" },
   liquidacionMensajeOk: { color: "#16a34a", fontSize: 13, fontWeight: "500" },
   botonSecundarioTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   trayectoriaActiva: {
@@ -921,10 +925,10 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#dc2626",
+    backgroundColor: c.peligro,
   },
   trayectoriaTexto: { color: "#7f1d1d", fontWeight: "600", flex: 1 },
-  mensajeTrayectoria: { color: "#475569", fontSize: 13 },
+  mensajeTrayectoria: { color: c.textoSuave, fontSize: 13 },
   gating: {
     backgroundColor: "#fef9c3",
     borderWidth: 1,
@@ -940,7 +944,7 @@ const styles = StyleSheet.create({
   tarjeta: {
     flexDirection: "row",
     alignItems: "stretch",
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderRadius: 14,
     borderCurve: "continuous",
     overflow: "hidden",
@@ -948,7 +952,7 @@ const styles = StyleSheet.create({
   },
   acento: { width: 4 },
   tarjetaInfo: { flex: 1, padding: 14, gap: 6 },
-  clienteNombre: { fontSize: 16, fontWeight: "700", color: "#0f172a" },
+  clienteNombre: { fontSize: 16, fontWeight: "700", color: c.texto },
   chip: {
     alignSelf: "flex-start",
     borderRadius: 999,
@@ -957,7 +961,7 @@ const styles = StyleSheet.create({
   },
   chipMora: { backgroundColor: "#fee2e2" },
   chipMoraTexto: {
-    color: "#b91c1c",
+    color: c.peligro,
     fontSize: 12,
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
@@ -974,5 +978,6 @@ const styles = StyleSheet.create({
   llegar: { marginTop: 2, alignSelf: "flex-start", paddingVertical: 2 },
   llegarTexto: { color: "#0e7490", fontWeight: "700", fontSize: 13 },
   gastoMensaje: { color: "#16a34a", fontSize: 13 },
-  gastoMensajeError: { color: "#dc2626" },
+  gastoMensajeError: { color: c.peligro },
 });
+}

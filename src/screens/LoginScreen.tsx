@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -17,8 +17,12 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { apiErrorStatus } from "../api/client";
 import type { RolLogin } from "../api/auth";
 import { useSession } from "../session/session-context";
+import { useTheme } from "../theme/theme-context";
+import type { ColoresTema } from "../theme/theme";
 
 export function LoginScreen() {
+  const { colores } = useTheme();
+  const styles = useMemo(() => crearEstilos(colores), [colores]);
   const { login } = useSession();
   const { width: anchoPantalla } = useWindowDimensions();
   const logoTamano = Math.round(anchoPantalla * 0.44);
@@ -123,7 +127,7 @@ export function LoginScreen() {
                 <MaterialIcons
                   name={mostrarPassword ? "visibility-off" : "visibility"}
                   size={22}
-                  color="#64748b"
+                  color={colores.textoSuave}
                 />
               </Pressable>
             </View>
@@ -141,7 +145,7 @@ export function LoginScreen() {
               onPress={handleSubmit}
             >
               {submitting ? (
-                <ActivityIndicator color="#172f6c" />
+                <ActivityIndicator color={colores.acento} />
               ) : (
                 <Text style={styles.botonTexto}>Entrar</Text>
               )}
@@ -153,10 +157,11 @@ export function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function crearEstilos(c: ColoresTema) {
+  return StyleSheet.create({
   contenedor: {
     flex: 1,
-    backgroundColor: "#172f6c",
+    backgroundColor: c.primario,
   },
   flex: { flex: 1 },
   scroll: {
@@ -181,23 +186,23 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: "center",
   },
-  rolActivo: { backgroundColor: "#ffffff", borderColor: "#ffffff" },
+  rolActivo: { backgroundColor: c.tarjeta, borderColor: c.tarjeta },
   rolTexto: { color: "#ffffff", fontWeight: "600" },
-  rolTextoActivo: { color: "#172f6c", fontWeight: "600" },
+  rolTextoActivo: { color: c.texto, fontWeight: "600" },
   input: {
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderWidth: 1,
     borderColor: "#dbeafe",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,
-    color: "#334155",
+    color: c.texto,
   },
   passwordWrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: c.tarjeta,
     borderWidth: 1,
     borderColor: "#dbeafe",
     borderRadius: 8,
@@ -208,7 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,
-    color: "#334155",
+    color: c.texto,
   },
   error: {
     color: "#fecaca",
@@ -224,8 +229,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(247, 244, 236, 0.45)",
   },
   botonTexto: {
-    color: "#172f6c",
+    color: c.acento,
     fontSize: 16,
     fontWeight: "700",
   },
 });
+}

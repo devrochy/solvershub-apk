@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../theme/theme-context";
 
 /**
  * Banda superior azul (primary) de las pantallas autenticadas. Se extiende
@@ -10,8 +11,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
  */
 export function HeaderPantalla({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
+  const { colores } = useTheme();
   return (
-    <View testID="banda-header" style={[styles.banda, { paddingTop: insets.top }]}>
+    <View
+      testID="banda-header"
+      style={[
+        styles.banda,
+        { backgroundColor: colores.primario, paddingTop: insets.top },
+      ]}
+    >
       {children}
     </View>
   );
@@ -75,22 +83,22 @@ export const estilosHeader = StyleSheet.create({
   accionPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
-    backgroundColor: "#ffffff",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.7)",
+    backgroundColor: "transparent",
     borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   accionPillTexto: {
-    color: "#172f6c",
+    color: "#ffffff",
     fontWeight: "700",
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Roboto_700Bold",
   },
 });
 
 const styles = StyleSheet.create({
-  banda: {
-    backgroundColor: "#172f6c",
-  },
+  banda: {},
 });
