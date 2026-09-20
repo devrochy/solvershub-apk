@@ -89,26 +89,34 @@ describe("MenuLateral", () => {
     expect(getByTestId("menu-lateral")).toHaveProp("pointerEvents", "none");
   });
 
-  it("muestra un encabezado no interactivo con el nombre cuando el submenú tiene subtituloSubmenu", async () => {
+  it("renderiza un grupo como tarjeta con título no interactivo y sus hijos", async () => {
     const items: MenuItem[] = [
       {
-        key: "clientes",
-        label: "Clientes",
-        icon: "people",
-        subtituloSubmenu: "test-Ruta Centro",
-        subItems: [{ key: "filtro-todos", label: "Todos", icon: "list" }],
+        key: "cartera",
+        label: "test-Ruta Centro",
+        icon: "account-balance-wallet",
+        grupo: true,
+        subItems: [
+          {
+            key: "seccion-clientes",
+            label: "Clientes",
+            icon: "people",
+            subItems: [{ key: "filtro-todos", label: "Todos", icon: "list" }],
+          },
+          { key: "seccion-diario", label: "Diario", icon: "route", onPress: jest.fn() },
+        ],
       },
     ];
-    const { getByTestId, queryByTestId, getByText } = await renderMenu(items);
+    const { getByTestId, getByText, queryByTestId } = await renderMenu(items);
 
     await fireEvent.press(getByTestId("btn-menu"));
-    expect(queryByTestId("menu-submenu-encabezado")).toBeNull();
 
-    await fireEvent.press(getByTestId("menu-item-clientes"));
-
-    const encabezado = getByTestId("menu-submenu-encabezado");
-    expect(encabezado.type).toBe("View");
+    const grupo = getByTestId("menu-grupo-cartera");
+    expect(grupo.type).toBe("View");
     expect(getByText("test-Ruta Centro")).toBeTruthy();
+    expect(within(grupo).getByTestId("menu-item-seccion-clientes")).toBeTruthy();
+    expect(within(grupo).getByTestId("menu-item-seccion-diario")).toBeTruthy();
+    expect(queryByTestId("menu-item-cartera")).toBeNull();
   });
 
   it("muestra la tarjeta de usuario y navega a Perfil desde su submenú", async () => {

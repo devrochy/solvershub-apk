@@ -1,7 +1,7 @@
-import { Pressable, Text } from "react-native";
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { Pressable, Text, View } from "react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { CarteraFlujo } from "./CarteraFlujo";
-import { MenuLateralProvider, useMenuLateral } from "./menu-lateral-context";
+import { MenuLateralProvider, useMenuLateral, type MenuItem } from "./menu-lateral-context";
 import { CarteraActivaContext } from "../session/cartera-activa-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 
@@ -51,25 +51,36 @@ jest.mock("../screens/ClientesScreen", () => {
   };
 });
 
+function ProbeItem({ item }: { item: MenuItem }) {
+  if (item.grupo) {
+    return (
+      <View testID={`probe-grupo-${item.key}`}>
+        <Text>{item.label}</Text>
+        {(item.subItems ?? []).map((sub) => (
+          <ProbeItem key={sub.key} item={sub} />
+        ))}
+      </View>
+    );
+  }
+  return (
+    <>
+      <Pressable testID={`probe-${item.key}`} onPress={item.onPress}>
+        <Text>{item.label}</Text>
+      </Pressable>
+      {(item.subItems ?? []).map((sub) => (
+        <ProbeItem key={sub.key} item={sub} />
+      ))}
+    </>
+  );
+}
+
 function Probe() {
   const { itemsExtra } = useMenuLateral();
   return (
     <>
-      {itemsExtra.flatMap((item) => [
-        <Pressable key={item.key} testID={`probe-${item.key}`} onPress={item.onPress}>
-          <Text>{item.label}</Text>
-        </Pressable>,
-        item.subtituloSubmenu ? (
-          <Text key={`${item.key}-subtitulo`} testID={`probe-${item.key}-subtitulo`}>
-            {item.subtituloSubmenu}
-          </Text>
-        ) : null,
-        ...(item.subItems ?? []).map((sub) => (
-          <Pressable key={sub.key} testID={`probe-${sub.key}`} onPress={sub.onPress}>
-            <Text>{sub.label}</Text>
-          </Pressable>
-        )),
-      ])}
+      {itemsExtra.map((item) => (
+        <ProbeItem key={item.key} item={item} />
+      ))}
     </>
   );
 }
@@ -142,14 +153,16 @@ describe("CarteraFlujo", () => {
     expect(queryByTestId("probe-carteras-lista")).toBeNull();
   });
 
-  it("el ítem Clientes lleva el nombre de la cartera activa como subtítulo", async () => {
+  it("agrupa Clientes y Diario bajo el nombre de la cartera activa", async () => {
     const { findByTestId } = await renderFlujo([carteraA, carteraB], {
       carteraId: 6,
       carteraNombre: "Cartera Centro",
     });
 
-    const subtitulo = await findByTestId("probe-seccion-clientes-subtitulo");
-    expect(subtitulo.props.children).toBe("Cartera Centro");
+    const grupo = await findByTestId("probe-grupo-cartera");
+    expect(within(grupo).getByText("Cartera Centro")).toBeTruthy();
+    expect(within(grupo).getByTestId("probe-seccion-clientes")).toBeTruthy();
+    expect(within(grupo).getByTestId("probe-seccion-diario")).toBeTruthy();
   });
 
   it("con más de una cartera, Inicio navega a la lista (Main)", async () => {
@@ -167,7 +180,7 @@ describe("CarteraFlujo", () => {
     await waitFor(() => expect(getByTestId("probe-seccion-inicio")).toBeTruthy());
     await fireEvent.press(getByTestId("probe-seccion-inicio"));
 
-    expect(navigate).not.toHaveBeenCalled();
     expect(getByTestId("seccion-cartera")).toBeTruthy();
+    expect(navigate).toHaveBeenCalledWith("Cartera");
   });
 });

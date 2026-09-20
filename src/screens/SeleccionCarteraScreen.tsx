@@ -14,6 +14,9 @@ import { CargaError } from "../components/CargaError";
 import { ColorBadge, bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";
 import { contarEnMora } from "../domain/contar-en-mora";
 import { HeaderApp } from "../components/HeaderApp";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva, aCarteraActiva } from "../session/cartera-activa-context";
@@ -44,6 +47,7 @@ export function SeleccionCarteraScreen({
 }: SeleccionCarteraScreenProps = {}) {
   const { api, gestor, logout } = useSession();
   const { setCarteraActiva } = useCarteraActiva();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const offline = useOffline();
   const [carteras, setCarteras] = useState<CarteraApkPublic[] | null>(null);
   const [kpis, setKpis] = useState<Record<number, CarteraKpi>>({});
@@ -133,12 +137,20 @@ export function SeleccionCarteraScreen({
   // Menú: Inicio y, si hay más de una cartera, Carteras (desplegable).
   const { setItemsExtra } = useMenuLateral();
   const seleccionRef = useRef(seleccionarCartera);
+  const navigationRef = useRef(navigation);
   useEffect(() => {
     seleccionRef.current = seleccionarCartera;
+    navigationRef.current = navigation;
   });
   useEffect(() => {
     const items: MenuItem[] = [
-      { key: "seccion-inicio", label: "Inicio", icon: "home", activo: true },
+      {
+        key: "seccion-inicio",
+        label: "Inicio",
+        icon: "home",
+        activo: true,
+        onPress: () => navigationRef.current.navigate("Main"),
+      },
     ];
     if (carteras && carteras.length > 1) {
       items.push({

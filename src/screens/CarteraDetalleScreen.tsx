@@ -105,6 +105,20 @@ export function CarteraDetalleScreen({
   const { colores } = useTheme();
   const styles = useMemo(() => crearEstilos(colores), [colores]);
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- el título editado debe reflejar la cartera activa al cambiarla
+    setNombreCartera(carteraNombre);
+  }, [carteraNombre]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- limpia el detalle al cambiar de cartera (no mostrar la anterior)
+    setClientes(null);
+    setDia(null);
+    setNotas(null);
+    setEstatus(null);
+    setEstadisticas(null);
+  }, [carteraId]);
+
   const cargar = useCallback(async () => {
     if (!carteraId) {
       return;
