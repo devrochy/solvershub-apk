@@ -33,6 +33,25 @@ function MenuRow({
   const colorActivo = tema === "claro" ? colores.primario : colores.texto;
   const color = item.activo ? colorActivo : colores.texto;
 
+  if (item.grupo) {
+    return (
+      <View
+        testID={`menu-grupo-${item.key}`}
+        style={[styles.grupo, { backgroundColor: colores.fondo, borderColor: colores.borde }]}
+      >
+        <View style={styles.grupoTitulo}>
+          <MaterialIcons name={item.icon as Icono} size={16} color={colores.acento} />
+          <Text style={[styles.grupoTituloTexto, { color: colores.texto }]} numberOfLines={1}>
+            {item.label}
+          </Text>
+        </View>
+        {item.subItems!.map((sub) => (
+          <MenuRow key={sub.key} item={sub} nivel={nivel + 1} onEjecutar={onEjecutar} />
+        ))}
+      </View>
+    );
+  }
+
   return (
     <>
       <Pressable
@@ -67,28 +86,11 @@ function MenuRow({
         ) : null}
       </Pressable>
 
-      {tieneSub && expandido ? (
-        <View>
-          {item.subtituloSubmenu ? (
-            <View
-              testID="menu-submenu-encabezado"
-              style={[styles.submenuEncabezado, { paddingLeft: 8 + (nivel + 1) * 16 }]}
-            >
-              <MaterialIcons
-                name="account-balance-wallet"
-                size={14}
-                color={colores.textoSuave}
-              />
-              <Text style={[styles.submenuEncabezadoTexto, { color: colores.textoSuave }]}>
-                {item.subtituloSubmenu}
-              </Text>
-            </View>
-          ) : null}
-          {item.subItems!.map((sub) => (
+      {tieneSub && expandido
+        ? item.subItems!.map((sub) => (
             <MenuRow key={sub.key} item={sub} nivel={nivel + 1} onEjecutar={onEjecutar} />
-          ))}
-        </View>
-      ) : null}
+          ))
+        : null}
     </>
   );
 }
@@ -370,19 +372,26 @@ const styles = StyleSheet.create({
   },
   chevron: { marginLeft: "auto" },
   dot: { width: 10, height: 10, borderRadius: 5, marginHorizontal: 5 },
-  submenuEncabezado: {
+  grupo: {
+    borderWidth: 1,
+    borderRadius: 14,
+    borderCurve: "continuous",
+    padding: 6,
+    marginVertical: 4,
+    boxShadow: "0 1px 3px rgba(15, 23, 42, 0.06)",
+  },
+  grupoTitulo: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingTop: 4,
-    paddingBottom: 6,
-    paddingRight: 8,
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
   },
-  submenuEncabezadoTexto: {
+  grupoTituloTexto: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "700",
-    fontFamily: "Roboto_600SemiBold",
+    fontFamily: "Roboto_700Bold",
   },
   itemAccent: {
     position: "absolute",
