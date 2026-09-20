@@ -151,6 +151,40 @@ async function renderDetalle(
   );
 }
 
+function arbolDetalle(
+  carteraId: number,
+  carteraNombre: string,
+  api: Partial<SessionValue["api"]> = apiBase(),
+) {
+  const valor: SessionValue = {
+    gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
+    loading: false,
+    api: api as SessionValue["api"],
+    login: jest.fn(),
+    logout: jest.fn(),
+    actualizarPerfil: jest.fn(),
+  };
+  return (
+    <SessionContext.Provider value={valor}>
+      <CarteraActivaContext.Provider
+        value={{
+          carteraActiva: {
+            carteraId,
+            carteraNombre,
+            tipoInteres: 20,
+            numCuotas: 8,
+            config: {} as never,
+            permisos: [],
+          },
+          setCarteraActiva: jest.fn(),
+        }}
+      >
+        <CarteraDetalleScreen carteraId={carteraId} carteraNombre={carteraNombre} />
+      </CarteraActivaContext.Provider>
+    </SessionContext.Provider>
+  );
+}
+
 describe("CarteraDetalleScreen", () => {
   it("muestra el nombre, los KPIs y el estado de la cartera", async () => {
     const { getByTestId, getByText } = await renderDetalle();
@@ -168,6 +202,40 @@ describe("CarteraDetalleScreen", () => {
     await waitFor(() => expect(getByText("Inicio")).toBeTruthy());
     expect(getByText("Cartera Centro")).toBeTruthy();
     expect(queryByTestId("btn-volver")).toBeNull();
+  });
+
+  it("refresca el título del header al cambiar de cartera", async () => {
+    const api = apiBase();
+    const { getByText, queryByText, rerender } = await render(
+      arbolDetalle(6, "Cartera Centro", api),
+    );
+
+    await waitFor(() => expect(getByText("Cartera Centro")).toBeTruthy());
+
+    rerender(arbolDetalle(7, "Cartera Sur", api));
+
+    await waitFor(() => expect(getByText("Cartera Sur")).toBeTruthy());
+    expect(queryByText("Cartera Centro")).toBeNull();
+  });
+
+  it("al cambiar de cartera limpia los datos y muestra carga (no los de la anterior)", async () => {
+    const api = apiBase() as unknown as SessionValue["api"];
+    api.listarClientesDeCartera = jest.fn((id: number) =>
+      id === 6
+        ? Promise.resolve(clientes)
+        : new Promise(() => {
+            /* nunca resuelve: simula la carga de la nueva cartera */
+          }),
+    ) as unknown as SessionValue["api"]["listarClientesDeCartera"];
+
+    const { getByText, getByTestId, rerender } = await render(
+      arbolDetalle(6, "Cartera Centro", api),
+    );
+    await waitFor(() => expect(getByText("Cartera Centro")).toBeTruthy());
+
+    rerender(arbolDetalle(7, "Cartera Sur", api));
+
+    await waitFor(() => expect(getByTestId("carga-spinner")).toBeTruthy());
   });
 
   it("lista las notas con su texto", async () => {

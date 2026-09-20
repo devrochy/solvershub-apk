@@ -68,6 +68,7 @@ export function CarteraFlujo({ route, navigation }: Props) {
             navigation.navigate("Main");
           } else {
             setSeccion("Cartera");
+            navigation.navigate("Cartera");
           }
         },
       },

@@ -24,7 +24,7 @@ const ICONO: Record<NotificacionTipo, keyof typeof MaterialIcons.glyphMap> = {
 /** Feed de notificaciones: pagos, gastos, no-pagos, aprobaciones y liquidaciones. */
 export function NotificacionesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { items, cargando, cargar, marcarVistas } = useNotificaciones();
+  const { items, cargando, cargar, marcarVistas, descartar } = useNotificaciones();
 
   const { colores } = useTheme();
   const styles = useMemo(() => crearEstilos(colores), [colores]);
@@ -73,6 +73,16 @@ export function NotificacionesScreen() {
                 {item.carteraNombre} · {new Date(item.fecha).toLocaleString("es-BO")}
               </Text>
             </View>
+            <Pressable
+              testID={`notif-cerrar-${item.id}`}
+              accessibilityRole="button"
+              accessibilityLabel="Descartar notificación"
+              hitSlop={8}
+              style={styles.cerrar}
+              onPress={() => void descartar(item.id)}
+            >
+              <MaterialIcons name="close" size={18} color={colores.textoSuave} />
+            </Pressable>
           </View>
         )}
       />
@@ -108,6 +118,7 @@ function crearEstilos(c: ColoresTema) {
     info: { flex: 1, gap: 2 },
     mensaje: { fontSize: 14, fontWeight: "600", color: c.texto },
     meta: { fontSize: 12, color: c.textoSuave },
+    cerrar: { padding: 4 },
     marcar: {
       margin: 16,
       paddingVertical: 12,

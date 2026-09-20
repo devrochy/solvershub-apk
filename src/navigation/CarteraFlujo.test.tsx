@@ -180,7 +180,7 @@ describe("CarteraFlujo", () => {
     await waitFor(() => expect(getByTestId("probe-seccion-inicio")).toBeTruthy());
     await fireEvent.press(getByTestId("probe-seccion-inicio"));
 
-    expect(navigate).not.toHaveBeenCalled();
     expect(getByTestId("seccion-cartera")).toBeTruthy();
+    expect(navigate).toHaveBeenCalledWith("Cartera");
   });
 });

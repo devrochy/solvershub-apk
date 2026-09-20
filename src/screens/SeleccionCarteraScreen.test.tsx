@@ -1,8 +1,28 @@
 import { act, fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import { Pressable, Text } from "react-native";
 import { SeleccionCarteraScreen } from "./SeleccionCarteraScreen";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { CarteraActivaContext } from "../session/cartera-activa-context";
+import { MenuLateralProvider, useMenuLateral } from "../navigation/menu-lateral-context";
+
+const mockNavigate = jest.fn();
+jest.mock("@react-navigation/native", () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
+}));
+
+function Probe() {
+  const { itemsExtra } = useMenuLateral();
+  return (
+    <>
+      {itemsExtra.map((item) => (
+        <Pressable key={item.key} testID={`probe-${item.key}`} onPress={item.onPress}>
+          <Text>{item.label}</Text>
+        </Pressable>
+      ))}
+    </>
+  );
+}
 
 const cartera = {
   id: 6,
@@ -98,6 +118,36 @@ async function renderConCarteras(
 
 describe("SeleccionCarteraScreen — selección de cartera", () => {
   beforeEach(() => jest.clearAllMocks());
+
+  it("el ítem Inicio del menú navega a Main (funciona con otra pantalla encima)", async () => {
+    const valor: SessionValue = {
+      gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
+      loading: false,
+      api: apiConCarteras([cartera, cartera2]) as unknown as SessionValue["api"],
+      login: jest.fn(),
+      logout: jest.fn(),
+      actualizarPerfil: jest.fn(),
+    };
+    const { getByTestId } = await render(
+      <OfflineContext.Provider value={offline}>
+        <SessionContext.Provider value={valor}>
+          <CarteraActivaContext.Provider
+            value={{ carteraActiva: null, setCarteraActiva: jest.fn() }}
+          >
+            <MenuLateralProvider>
+              <SeleccionCarteraScreen onCarteraSeleccionada={jest.fn()} />
+              <Probe />
+            </MenuLateralProvider>
+          </CarteraActivaContext.Provider>
+        </SessionContext.Provider>
+      </OfflineContext.Provider>,
+    );
+
+    await waitFor(() => expect(getByTestId("probe-seccion-inicio")).toBeTruthy());
+    await fireEvent.press(getByTestId("probe-seccion-inicio"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("Main");
+  });
 
   it("muestra el subtítulo 'Selecciona una cartera' y las tarjetas de cartera", async () => {
     const { getByText, getByTestId } = await renderConCarteras(apiConCarteras([cartera, cartera2]));
