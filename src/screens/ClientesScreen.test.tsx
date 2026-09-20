@@ -7,6 +7,7 @@ import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import { OverlaysActivos } from "../navigation/OverlaysActivos";
 import { TrayectosOverlayProvider } from "../navigation/trayectos-overlay-context";
+import type { FiltroClientes } from "../domain/filtro-clientes";
 
 jest.mock("../screens/ClienteScreen", () => {
   const React = require("react");
@@ -61,6 +62,7 @@ async function renderConCarteraActiva(
     numCuotas: 8,
     config: {} as never,
   },
+  filtro: FiltroClientes = "todos",
 ) {
   const valor: SessionValue = {
     gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
@@ -78,7 +80,7 @@ async function renderConCarteraActiva(
             <CarteraActivaContext.Provider
               value={{ carteraActiva, setCarteraActiva: jest.fn() }}
             >
-              <ClientesScreen />
+              <ClientesScreen filtro={filtro} onFiltroChange={jest.fn()} />
               <OverlaysActivos />
             </CarteraActivaContext.Provider>
           </SessionContext.Provider>
@@ -159,6 +161,16 @@ describe("ClientesScreen", () => {
     await fireEvent.press(getByTestId("reintentar"));
 
     await waitFor(() => expect(getByText("Juan Perez")).toBeTruthy());
+  });
+
+  it("no muestra '+ Cliente' en el header: el alta es un FAB", async () => {
+    const { getByTestId, queryByText, getByLabelText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("btn-nuevo-cliente")).toBeTruthy());
+    expect(queryByText("+ Cliente")).toBeNull();
+    expect(getByLabelText("Nuevo cliente")).toBeTruthy();
   });
 
   it("'+ Cliente' abre el modal de nuevo cliente con el formulario", async () => {
@@ -312,6 +324,49 @@ describe("ClientesScreen", () => {
         expect.any(Array),
       ),
     );
+  });
+
+  it("el campo de búsqueda filtra la lista por texto", async () => {
+    const { getByTestId, getByText, queryByText } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([
+        { ...cliente, id: 11, nombre: "Juan", apellido: "Perez" },
+        { ...cliente, id: 12, nombre: "Ana", apellido: "Ríos" },
+      ]),
+    });
+
+    await waitFor(() => expect(getByText("Juan Perez")).toBeTruthy());
+    expect(getByText("Ana Ríos")).toBeTruthy();
+
+    await fireEvent.changeText(getByTestId("busqueda-clientes"), "ana");
+
+    await waitFor(() => expect(getByText("Ana Ríos")).toBeTruthy());
+    expect(queryByText("Juan Perez")).toBeNull();
+  });
+
+  it("colorea 'En mora' en rojo", async () => {
+    const { getByTestId } = await renderConCarteraActiva(
+      { listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]) },
+      undefined,
+      "en_mora",
+    );
+
+    await waitFor(() => expect(getByTestId("filtro-chip-en_mora")).toBeTruthy());
+    expect(getByTestId("filtro-chip-en_mora")).toHaveStyle({
+      backgroundColor: "#dc2626",
+    });
+  });
+
+  it("colorea 'Al día' en verde", async () => {
+    const { getByTestId } = await renderConCarteraActiva(
+      { listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]) },
+      undefined,
+      "al_dia",
+    );
+
+    await waitFor(() => expect(getByTestId("filtro-chip-al_dia")).toBeTruthy());
+    expect(getByTestId("filtro-chip-al_dia")).toHaveStyle({
+      backgroundColor: "#16a34a",
+    });
   });
 
   it("el botón '+ Cliente' solo se muestra con cartera activa", async () => {
