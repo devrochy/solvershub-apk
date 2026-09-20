@@ -8,17 +8,32 @@ export interface AvatarProps {
   nombre: string;
   fotoUrl?: string | null;
   size?: number;
+  /** Fondo del círculo cuando no hay foto (default: `activoSuave`). */
+  fondo?: string;
+  /** Color del icono `person` del fallback (default: `acento`). */
+  colorIcono?: string;
+  /** Anillo alrededor del avatar, tanto en fallback como en foto. */
+  bordeColor?: string;
 }
 
 /**
  * Avatar de cliente: muestra la foto si existe (fotoUrl) o un círculo con el
  * icono `person`. Si la foto falla al cargar (URL rota o cache viejo), cae al
- * icono por defecto en lugar de dejar un espacio vacío.
+ * icono por defecto en lugar de dejar un espacio vacío. Los colores opcionales
+ * permiten integrarlo sobre fondos de color (p. ej. la tarjeta azul del menú).
  */
-export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
+export function Avatar({
+  nombre,
+  fotoUrl,
+  size = 44,
+  fondo,
+  colorIcono,
+  bordeColor,
+}: AvatarProps) {
   const { colores } = useTheme();
   const [errorFoto, setErrorFoto] = useState(false);
   const uri = urlArchivo(fotoUrl);
+  const anillo = bordeColor ? { borderWidth: 2, borderColor: bordeColor } : null;
 
   // Si cambia la URL de la foto (p. ej. el cliente se actualizó), se reinicia
   // el estado de error para intentar cargar la imagen nueva.
@@ -34,14 +49,15 @@ export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
         style={[
           styles.circulo,
           {
-            backgroundColor: colores.activoSuave,
+            backgroundColor: fondo ?? colores.activoSuave,
             width: size,
             height: size,
             borderRadius: size / 2,
           },
+          anillo,
         ]}
       >
-        <MaterialIcons name="person" size={size * 0.55} color={colores.acento} />
+        <MaterialIcons name="person" size={size * 0.55} color={colorIcono ?? colores.acento} />
       </View>
     );
   }
@@ -50,7 +66,7 @@ export function Avatar({ nombre, fotoUrl, size = 44 }: AvatarProps) {
       testID="avatar-foto"
       source={{ uri }}
       onError={() => setErrorFoto(true)}
-      style={{ width: size, height: size, borderRadius: size / 2 }}
+      style={[{ width: size, height: size, borderRadius: size / 2 }, anillo]}
     />
   );
 }

@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { fireEvent, render } from "@testing-library/react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MenuLateral } from "./MenuLateral";
 import { BotonMenu } from "./BotonMenu";
 import { MenuLateralProvider, useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { SessionContext, SessionValue } from "../session/session-context";
+import { COLORES } from "../theme/theme";
 
 const mockNavigate = jest.fn();
 jest.mock("@react-navigation/native", () => ({
@@ -42,6 +44,15 @@ async function renderMenu(items: MenuItem[] = [], logout: jest.Mock = jest.fn())
 
 describe("MenuLateral", () => {
   beforeEach(() => jest.clearAllMocks());
+
+  afterEach(() => {
+    (useSafeAreaInsets as unknown as jest.Mock).mockReturnValue({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    });
+  });
 
   it("el botón hamburguesa abre el menú y el backdrop lo cierra", async () => {
     const { getByTestId } = await renderMenu();
@@ -100,5 +111,71 @@ describe("MenuLateral", () => {
     await fireEvent.press(getByTestId("menu-logout"));
 
     expect(logout).toHaveBeenCalled();
+  });
+
+  it("la tarjeta de usuario usa el color primario del tema", async () => {
+    const { getByTestId } = await renderMenu();
+
+    await fireEvent.press(getByTestId("btn-menu"));
+
+    expect(getByTestId("menu-usuario")).toHaveStyle({
+      backgroundColor: COLORES.claro.primario,
+    });
+  });
+
+  it("respeta el safe-area inferior para no quedar bajo los botones del celular", async () => {
+    (useSafeAreaInsets as unknown as jest.Mock).mockReturnValue({
+      top: 0,
+      right: 0,
+      bottom: 24,
+      left: 0,
+    });
+    const { getByTestId } = await renderMenu();
+
+    await fireEvent.press(getByTestId("btn-menu"));
+
+    expect(getByTestId("menu-lateral")).toHaveStyle({ paddingBottom: 24 });
+  });
+
+  it("muestra el submenú de usuario como tarjeta con fondo y borde", async () => {
+    const { getByTestId, queryByTestId } = await renderMenu();
+
+    await fireEvent.press(getByTestId("btn-menu"));
+    expect(queryByTestId("menu-usuario-submenu")).toBeNull();
+
+    await fireEvent.press(getByTestId("menu-usuario"));
+
+    expect(getByTestId("menu-usuario-submenu")).toHaveStyle({
+      backgroundColor: COLORES.claro.fondo,
+      borderWidth: 1,
+      borderColor: COLORES.claro.borde,
+    });
+  });
+
+  it("el panel usa radios continuos, borde derecho y sombra moderna", async () => {
+    const { getByTestId } = await renderMenu();
+
+    await fireEvent.press(getByTestId("btn-menu"));
+
+    expect(getByTestId("menu-lateral")).toHaveStyle({
+      borderTopRightRadius: 20,
+      borderBottomRightRadius: 20,
+      borderRightWidth: 1,
+      borderColor: COLORES.claro.borde,
+      boxShadow: "8px 0 24px rgba(15, 23, 42, 0.22)",
+    });
+  });
+
+  it("marca el ítem activo con una barra de acento", async () => {
+    const items: MenuItem[] = [
+      { key: "inicio", label: "Inicio", icon: "home", activo: true },
+      { key: "clientes", label: "Clientes", icon: "people" },
+    ];
+    const { getByTestId, queryByTestId } = await renderMenu(items);
+
+    await fireEvent.press(getByTestId("btn-menu"));
+
+    expect(getByTestId("menu-item-accent-inicio")).toBeTruthy();
+    expect(queryByTestId("menu-item-accent-clientes")).toBeNull();
   });
 });

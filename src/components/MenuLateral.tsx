@@ -45,6 +45,12 @@ function MenuRow({
         ]}
         onPress={() => (tieneSub ? setExpandido((v) => !v) : onEjecutar(item.onPress))}
       >
+        {item.activo ? (
+          <View
+            testID={`menu-item-accent-${item.key}`}
+            style={[styles.itemAccent, { backgroundColor: colorActivo }]}
+          />
+        ) : null}
         {item.color ? (
           <View style={[styles.dot, { backgroundColor: item.color }]} />
         ) : (
@@ -84,6 +90,7 @@ export function MenuLateral() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [progreso] = useState(() => new Animated.Value(0));
   const [usuarioAbierto, setUsuarioAbierto] = useState(false);
+  const [animUsuario] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.timing(progreso, {
@@ -92,6 +99,14 @@ export function MenuLateral() {
       useNativeDriver: true,
     }).start();
   }, [abierto, progreso]);
+
+  useEffect(() => {
+    Animated.timing(animUsuario, {
+      toValue: usuarioAbierto ? 1 : 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start();
+  }, [usuarioAbierto, animUsuario]);
 
   const translateX = progreso.interpolate({
     inputRange: [0, 1],
@@ -130,12 +145,19 @@ export function MenuLateral() {
           styles.panel,
           {
             backgroundColor: colores.tarjeta,
+            borderColor: colores.borde,
             paddingTop: insets.top + 20,
+            paddingBottom: insets.bottom,
             transform: [{ translateX }],
           },
         ]}
       >
-        <Text style={[styles.marca, { color: colores.texto }]}>Solver</Text>
+        <View style={styles.marcaFila}>
+          <View style={[styles.marcaLogo, { backgroundColor: colores.primario }]}>
+            <MaterialIcons name="route" size={18} color={colores.sobrePrimario} />
+          </View>
+          <Text style={[styles.marca, { color: colores.texto }]}>Solver</Text>
+        </View>
 
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.items}>
@@ -150,10 +172,28 @@ export function MenuLateral() {
           </View>
 
           {usuarioAbierto ? (
-            <View style={styles.items}>
+            <Animated.View
+              testID="menu-usuario-submenu"
+              style={[
+                styles.submenu,
+                {
+                  backgroundColor: colores.fondo,
+                  borderColor: colores.borde,
+                  opacity: animUsuario,
+                  transform: [
+                    {
+                      translateY: animUsuario.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [8, 0],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
               <Pressable
                 testID="menu-item-perfil"
-                style={[styles.item, styles.itemIndentado]}
+                style={styles.submenuItem}
                 onPress={() => ejecutar(() => navigation.navigate("Perfil"))}
               >
                 <MaterialIcons name="person" size={20} color={colores.texto} />
@@ -161,7 +201,7 @@ export function MenuLateral() {
               </Pressable>
               <Pressable
                 testID="menu-item-configuracion"
-                style={[styles.item, styles.itemIndentado]}
+                style={styles.submenuItem}
                 onPress={() => ejecutar(() => navigation.navigate("Configuracion"))}
               >
                 <MaterialIcons name="settings" size={20} color={colores.texto} />
@@ -169,7 +209,7 @@ export function MenuLateral() {
               </Pressable>
               <Pressable
                 testID="menu-item-modo"
-                style={[styles.item, styles.itemIndentado]}
+                style={styles.submenuItem}
                 onPress={alternarTema}
               >
                 <MaterialIcons
@@ -181,37 +221,47 @@ export function MenuLateral() {
                   {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
                 </Text>
               </Pressable>
+              <View style={[styles.submenuSeparador, { backgroundColor: colores.borde }]} />
               <Pressable
                 testID="menu-logout"
-                style={[styles.item, styles.itemIndentado]}
+                style={styles.submenuItem}
                 onPress={() => ejecutar(() => void logout())}
               >
                 <MaterialIcons name="logout" size={20} color={colores.peligro} />
                 <Text style={[styles.itemTexto, { color: colores.peligro }]}>Cerrar sesión</Text>
               </Pressable>
-            </View>
+            </Animated.View>
           ) : null}
 
           <Pressable
             testID="menu-usuario"
             accessibilityRole="button"
             accessibilityLabel={`Cuenta de ${nombre}`}
-            style={[styles.usuarioCard, { backgroundColor: colores.fondo }]}
+            style={[styles.usuarioCard, { backgroundColor: colores.primario }]}
             onPress={() => setUsuarioAbierto((v) => !v)}
           >
-            <Avatar nombre={nombre} size={36} />
+            <Avatar
+              nombre={nombre}
+              size={40}
+              fondo="rgba(255,255,255,0.18)"
+              colorIcono={colores.sobrePrimario}
+              bordeColor="rgba(255,255,255,0.35)"
+            />
             <View style={styles.usuarioInfo}>
-              <Text style={[styles.usuarioNombre, { color: colores.texto }]} numberOfLines={1}>
+              <Text style={[styles.usuarioNombre, { color: colores.sobrePrimario }]} numberOfLines={1}>
                 {nombre}
               </Text>
-              <Text style={[styles.usuarioHandle, { color: colores.textoSuave }]} numberOfLines={1}>
+              <Text
+                style={[styles.usuarioHandle, { color: colores.sobrePrimario }]}
+                numberOfLines={1}
+              >
                 @{gestor?.usuario ?? ""}
               </Text>
             </View>
             <MaterialIcons
               name={usuarioAbierto ? "expand-more" : "chevron-right"}
               size={22}
-              color={colores.textoSuave}
+              color={colores.sobrePrimario}
             />
           </Pressable>
         </ScrollView>
@@ -236,14 +286,26 @@ const styles = StyleSheet.create({
     left: 0,
     width: ANCHO_PANEL,
     paddingHorizontal: 16,
-    boxShadow: "4px 0 16px rgba(15, 23, 42, 0.18)",
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    borderRightWidth: 1,
+    borderCurve: "continuous",
+    boxShadow: "8px 0 24px rgba(15, 23, 42, 0.22)",
   },
   scroll: { paddingBottom: 24, flexGrow: 1, justifyContent: "space-between" },
+  marcaFila: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16 },
+  marcaLogo: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    borderCurve: "continuous",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   marca: {
     fontSize: 22,
     fontWeight: "700",
     fontFamily: "Roboto_700Bold",
-    marginBottom: 16,
   },
   items: { gap: 2 },
   item: {
@@ -252,9 +314,32 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     paddingHorizontal: 8,
-    borderRadius: 8,
+    borderRadius: 12,
+    borderCurve: "continuous",
+    overflow: "hidden",
   },
-  itemIndentado: { paddingLeft: 24 },
+  submenu: {
+    borderWidth: 1,
+    borderRadius: 14,
+    borderCurve: "continuous",
+    padding: 6,
+    marginBottom: 10,
+    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.10)",
+  },
+  submenuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderCurve: "continuous",
+  },
+  submenuSeparador: {
+    height: 1,
+    marginVertical: 4,
+    marginHorizontal: 10,
+  },
   itemTexto: {
     flex: 1,
     fontSize: 15,
@@ -263,6 +348,14 @@ const styles = StyleSheet.create({
   },
   chevron: { marginLeft: "auto" },
   dot: { width: 10, height: 10, borderRadius: 5, marginHorizontal: 5 },
+  itemAccent: {
+    position: "absolute",
+    left: 0,
+    top: 8,
+    bottom: 8,
+    width: 3,
+    borderRadius: 2,
+  },
   separador: {
     height: 1,
     marginVertical: 12,
@@ -271,9 +364,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderCurve: "continuous",
+    boxShadow: "0 6px 16px rgba(15, 23, 42, 0.18)",
   },
   usuarioInfo: { flex: 1 },
   usuarioNombre: {
@@ -284,5 +379,6 @@ const styles = StyleSheet.create({
   usuarioHandle: {
     fontSize: 12,
     fontFamily: "Roboto_400Regular",
+    opacity: 0.75,
   },
 });
