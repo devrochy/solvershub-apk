@@ -378,3 +378,4 @@ function crearEstilos(c: ColoresTema) {
     },
   });
 }
+
