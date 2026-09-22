@@ -117,12 +117,7 @@ export function PerfilScreen() {
         }
       />
 
-      <Breadcrumb
-        items={[
-          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
-          { key: "perfil", label: "Perfil" },
-        ]}
-      />
+      <Breadcrumb seccion="Perfil" />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.tarjeta}>
