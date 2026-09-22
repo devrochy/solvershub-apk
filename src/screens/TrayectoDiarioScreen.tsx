@@ -11,9 +11,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/types";
 import { File, Paths } from "expo-file-system";
 import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
@@ -49,8 +46,6 @@ const PRECARGA_TTL_MS = 5 * 60 * 1000;
 export function TrayectoDiarioScreen() {
   const { colores } = useTheme();
   const styles = useMemo(() => crearEstilos(colores), [colores]);
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { carteraActiva } = useCarteraActiva();
   const carteraId = carteraActiva?.carteraId ?? 0;
   const { abrir: abrirPantallaActiva } = usePantallaActiva();
@@ -432,12 +427,7 @@ export function TrayectoDiarioScreen() {
           </Pressable>
         }
       />
-      <Breadcrumb
-        items={[
-          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
-          { key: "diario", label: "Diario" },
-        ]}
-      />
+      <Breadcrumb seccion="Diario" />
       <FlatList
         data={clientes}
         keyExtractor={(cliente) => String(cliente.clienteId)}

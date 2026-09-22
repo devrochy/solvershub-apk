@@ -36,9 +36,6 @@ import {
   type FuenteEvidencia,
 } from "../features/cliente/use-evidencias-cliente";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/types";
 import { filtrarClientes, estadoCliente, type FiltroClientes } from "../domain/filtro-clientes";
 import { filtrarPorTexto } from "../domain/busqueda-clientes";
 import { enlaceWhatsApp } from "../features/estado-cuenta/estado-cuenta";
@@ -74,8 +71,6 @@ export function ClientesScreen({
   filtro = "todos",
   onFiltroChange,
 }: ClientesScreenProps = {}) {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { carteraActiva } = useCarteraActiva();
   const { api, logout } = useSession();
   const { abrir } = usePantallaActiva();
@@ -430,12 +425,7 @@ export function ClientesScreen({
         subtitulo={`${clientesFiltrados.length} clientes`}
       />
 
-      <Breadcrumb
-        items={[
-          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
-          { key: "clientes", label: "Clientes" },
-        ]}
-      />
+      <Breadcrumb seccion="Clientes" />
 
       <View style={styles.busqueda}>
         <MaterialIcons name="search" size={18} color={colores.textoSuave} />

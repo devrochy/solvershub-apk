@@ -45,12 +45,7 @@ export function NotificacionesScreen() {
         subtitulo={`${items.length} evento${items.length === 1 ? "" : "s"}`}
       />
 
-      <Breadcrumb
-        items={[
-          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
-          { key: "notificaciones", label: "Notificaciones" },
-        ]}
-      />
+      <Breadcrumb seccion="Notificaciones" />
 
       <FlatList
         testID="lista-notificaciones"

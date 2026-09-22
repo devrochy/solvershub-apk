@@ -59,12 +59,7 @@ export function ConfiguracionScreen() {
         subtitulo="Información de la aplicación"
       />
 
-      <Breadcrumb
-        items={[
-          { key: "inicio", label: "Inicio", onPress: () => navigation.navigate("Main") },
-          { key: "configuracion", label: "Configuración" },
-        ]}
-      />
+      <Breadcrumb seccion="Configuración" />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.tarjeta}>
