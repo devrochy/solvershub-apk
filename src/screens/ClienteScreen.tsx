@@ -18,7 +18,7 @@ import { shareAsync } from "expo-sharing";
 import * as Location from "expo-location";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { Avatar } from "../components/Avatar";
-import { HeaderPantalla, estilosHeader } from "../components/HeaderPantalla";
+import { HeaderApp } from "../components/HeaderApp";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { BannerMensaje } from "../components/BannerMensaje";
@@ -981,13 +981,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   return (
     <>
       <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
-        <HeaderPantalla>
-          <View testID="header-cliente" style={estilosHeader.fila}>
-            <View style={estilosHeader.columnaIzq} />
-            <Text style={estilosHeader.titulo}>Información del cliente</Text>
-            <View style={estilosHeader.columnaDerecha} />
-          </View>
-        </HeaderPantalla>
+        <HeaderApp titulo="Información del cliente" />
         <ScrollView contentContainerStyle={styles.scroll}>
         {mensaje && modal === "ninguno" ? (
           <BannerMensaje texto={mensaje} tipo={mensajeEsExito ? "exito" : "error"} />

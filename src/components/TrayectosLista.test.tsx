@@ -63,16 +63,15 @@ describe("TrayectosLista", () => {
     expect(Linking.openURL).toHaveBeenCalledWith("https://maps.test/cartera");
   });
 
-  it("muestra el header sin columnas vacías (la fila contiene solo el bloque de título)", async () => {
-    const { getByText } = await render(
+  it("usa el header estándar (HeaderApp) con el título y el resumen", async () => {
+    const { getByText, getByTestId } = await render(
       <TrayectosLista clientes={clientes} trayectos={trayectos} />,
     );
 
-    const titulo = getByText("Trayectos del día");
-    const fila = titulo.parent?.parent;
-
+    expect(getByText("Trayectos del día")).toBeTruthy();
     expect(getByText("2 trayectos · 5 km · 20 min")).toBeTruthy();
-    expect(fila?.children.length).toBe(1);
+    expect(getByTestId("btn-menu")).toBeTruthy();
+    expect(getByTestId("header-notificaciones")).toBeTruthy();
   });
 
   it("no muestra paradas sin nombre conocido", async () => {
