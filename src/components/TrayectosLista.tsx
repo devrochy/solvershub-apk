@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
+import { HeaderApp } from "./HeaderApp";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
 import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "../types/gestor";
@@ -30,18 +30,12 @@ export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
   const styles = useMemo(() => crearEstilos(colores), [colores]);
   return (
     <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["left", "right", "bottom"]}>
-      <HeaderPantalla>
-        <View style={estilosHeader.fila}>
-          <View style={estilosHeader.bloqueTitulo}>
-            <Text style={estilosHeader.titulo}>Trayectos del día</Text>
-            <Text style={estilosHeader.subtitulo}>
-              {trayectos.ordenClientes.length} trayecto
-              {trayectos.ordenClientes.length === 1 ? "" : "s"} ·{" "}
-              {trayectos.distanciaEstimadaKm} km · {trayectos.tiempoEstimadoMin} min
-            </Text>
-          </View>
-        </View>
-      </HeaderPantalla>
+      <HeaderApp
+        titulo="Trayectos del día"
+        subtitulo={`${trayectos.ordenClientes.length} trayecto${
+          trayectos.ordenClientes.length === 1 ? "" : "s"
+        } · ${trayectos.distanciaEstimadaKm} km · ${trayectos.tiempoEstimadoMin} min`}
+      />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {trayectos.ordenClientes.map((trayecto, indice) => {

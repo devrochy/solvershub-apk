@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "../api/client";
 import { CargaError } from "../components/CargaError";
+import { HeaderApp } from "../components/HeaderApp";
 import {
   enlaceWhatsApp,
   textoReportePrestamo,
@@ -73,83 +75,87 @@ export function PrestamoScreen({ route }: Props) {
   const cuotas = clasificarCuotas(estado.cuotas);
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.contenido}>
-      <View style={styles.tarjetaResumen}>
-        <Text style={styles.clienteNombre}>{clienteNombre}</Text>
-        <Text style={styles.clienteDetalle}>
-          Préstamo: {valor} {estado.moneda} · {numCuotas} cuotas ·{" "}
-          {estado.tipoInteres}% interés
-        </Text>
-        <View style={styles.filaResumen}>
-          <Text style={styles.resumenValor}>Abonos totales: {estado.totalAbonos} {estado.moneda}</Text>
-          <Text style={styles.resumenSaldo}>Saldo: {estado.saldoPendiente} {estado.moneda}</Text>
-        </View>
-      </View>
-
-      <View style={styles.leyenda}>
-        {LEYENDA.map((l) => (
-          <View key={l.tipo} style={styles.leyendaItem}>
-            <View style={[styles.leyendaColor, { backgroundColor: COLORES[l.tipo].borde }]} />
-            <Text style={styles.leyendaTexto}>{l.texto}</Text>
+    <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
+      <HeaderApp titulo="Estado de cuenta" subtitulo={`Préstamo #${prestamoId}`} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.contenido}>
+        <View style={styles.tarjetaResumen}>
+          <Text style={styles.clienteNombre}>{clienteNombre}</Text>
+          <Text style={styles.clienteDetalle}>
+            Préstamo: {valor} {estado.moneda} · {numCuotas} cuotas ·{" "}
+            {estado.tipoInteres}% interés
+          </Text>
+          <View style={styles.filaResumen}>
+            <Text style={styles.resumenValor}>Abonos totales: {estado.totalAbonos} {estado.moneda}</Text>
+            <Text style={styles.resumenSaldo}>Saldo: {estado.saldoPendiente} {estado.moneda}</Text>
           </View>
-        ))}
-      </View>
+        </View>
 
-      <View style={styles.canvas}>
-        {cuotas.map((cuota) => {
-          const color = COLORES[cuota.tipo];
-          return (
-            <Pressable
-              key={cuota.cuotaId}
-              testID={`cuota-${cuota.numeroCuota}`}
-              style={[styles.cuadro, { backgroundColor: color.fondo, borderColor: color.borde }]}
-            >
-              <Text style={styles.cuadroNumero}>{cuota.numeroCuota}</Text>
-              <Text style={styles.cuadroValor}>
-                {cuota.valorEsperado} {estado.moneda}
-              </Text>
-              <Text style={styles.cuadroFecha}>{cuota.fechaVencimiento}</Text>
-              {cuota.saldoPendiente > 0 && cuota.saldoPendiente < cuota.valorEsperado ? (
-                <Text style={styles.cuadroSaldo}>Falta: {cuota.saldoPendiente} {estado.moneda}</Text>
-              ) : null}
-              {cuota.abonosAcumulados > 0 ? (
-                <Text style={styles.cuadroAbono}>Abonado: {cuota.abonosAcumulados} {estado.moneda}</Text>
-              ) : null}
-              <View style={[styles.cuadroEtiqueta, { borderColor: color.borde }]}>
-                <Text style={[styles.cuadroEtiquetaTexto, { color: color.borde }]}>
-                  {ETIQUETA[cuota.tipo]}
+        <View style={styles.leyenda}>
+          {LEYENDA.map((l) => (
+            <View key={l.tipo} style={styles.leyendaItem}>
+              <View style={[styles.leyendaColor, { backgroundColor: COLORES[l.tipo].borde }]} />
+              <Text style={styles.leyendaTexto}>{l.texto}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.canvas}>
+          {cuotas.map((cuota) => {
+            const color = COLORES[cuota.tipo];
+            return (
+              <Pressable
+                key={cuota.cuotaId}
+                testID={`cuota-${cuota.numeroCuota}`}
+                style={[styles.cuadro, { backgroundColor: color.fondo, borderColor: color.borde }]}
+              >
+                <Text style={styles.cuadroNumero}>{cuota.numeroCuota}</Text>
+                <Text style={styles.cuadroValor}>
+                  {cuota.valorEsperado} {estado.moneda}
                 </Text>
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
+                <Text style={styles.cuadroFecha}>{cuota.fechaVencimiento}</Text>
+                {cuota.saldoPendiente > 0 && cuota.saldoPendiente < cuota.valorEsperado ? (
+                  <Text style={styles.cuadroSaldo}>Falta: {cuota.saldoPendiente} {estado.moneda}</Text>
+                ) : null}
+                {cuota.abonosAcumulados > 0 ? (
+                  <Text style={styles.cuadroAbono}>Abonado: {cuota.abonosAcumulados} {estado.moneda}</Text>
+                ) : null}
+                <View style={[styles.cuadroEtiqueta, { borderColor: color.borde }]}>
+                  <Text style={[styles.cuadroEtiquetaTexto, { color: color.borde }]}>
+                    {ETIQUETA[cuota.tipo]}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
 
-      <Pressable
-        testID="btn-whatsapp-canvas"
-        style={styles.botonWhatsApp}
-        onPress={() => {
-          const texto = [
-            `Estado de cuenta de ${estado.nombreCliente}`,
-            `Préstamo ${estado.prestamoId} — ${estado.valor} ${estado.moneda}, ${estado.numCuotas} cuotas`,
-            ...estado.cuotas.map(
-              (c) =>
-                `Cuota ${c.numeroCuota} (${c.fechaVencimiento}): ${c.valorEsperado} ${estado.moneda} - ${c.estatus} - saldo ${c.saldoPendiente}`,
-            ),
-            `Abonos totales: ${estado.totalAbonos} ${estado.moneda}`,
-            `Saldo pendiente: ${estado.saldoPendiente} ${estado.moneda}`,
-          ].join("\n");
-          void Linking.openURL(enlaceWhatsApp(telefonoWhatsapp, texto));
-        }}
-      >
-        <Text style={styles.botonWhatsAppTexto}>Enviar por WhatsApp</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable
+          testID="btn-whatsapp-canvas"
+          style={styles.botonWhatsApp}
+          onPress={() => {
+            const texto = [
+              `Estado de cuenta de ${estado.nombreCliente}`,
+              `Préstamo ${estado.prestamoId} — ${estado.valor} ${estado.moneda}, ${estado.numCuotas} cuotas`,
+              ...estado.cuotas.map(
+                (c) =>
+                  `Cuota ${c.numeroCuota} (${c.fechaVencimiento}): ${c.valorEsperado} ${estado.moneda} - ${c.estatus} - saldo ${c.saldoPendiente}`,
+              ),
+              `Abonos totales: ${estado.totalAbonos} ${estado.moneda}`,
+              `Saldo pendiente: ${estado.saldoPendiente} ${estado.moneda}`,
+            ].join("\n");
+            void Linking.openURL(enlaceWhatsApp(telefonoWhatsapp, texto));
+          }}
+        >
+          <Text style={styles.botonWhatsAppTexto}>Enviar por WhatsApp</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 function crearEstilos(c: ColoresTema) {
   return StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: c.fondo },
     scroll: { flex: 1, backgroundColor: c.fondo },
     contenido: { padding: 16, gap: 14 },
     tarjetaResumen: {
