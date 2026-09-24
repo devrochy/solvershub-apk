@@ -1,4 +1,5 @@
 import { apiLogin } from "./auth";
+import { TENANT } from "../config";
 
 describe("apiLogin", () => {
   beforeEach(() => {
@@ -17,7 +18,7 @@ describe("apiLogin", () => {
       "http://localhost:3000/auth/gestor/login",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ usuario: "c1", password: "pass" }),
+        body: JSON.stringify({ tenant: TENANT, usuario: "c1", password: "pass" }),
       }),
     );
   });
@@ -33,7 +34,7 @@ describe("apiLogin", () => {
     expect(global.fetch).toHaveBeenCalledWith(
       "http://localhost:3000/auth/propietario/login",
       expect.objectContaining({
-        body: JSON.stringify({ usuario: "s1", password: "pass" }),
+        body: JSON.stringify({ tenant: TENANT, usuario: "s1", password: "pass" }),
       }),
     );
   });

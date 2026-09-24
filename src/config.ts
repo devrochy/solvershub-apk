@@ -3,6 +3,12 @@ const DEFAULT_API_URL = "http://localhost:3000";
 export const API_URL =
   process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? DEFAULT_API_URL;
 
+/**
+ * Slug del tenant de agent-core (multi-tenant). El login no traía identificador
+ * de tenant; el pack lo exige (ADR-0065). En el backend NestJS anterior no aplica.
+ */
+export const TENANT = process.env.EXPO_PUBLIC_TENANT ?? "";
+
 export const DEVICE_API_KEY = process.env.EXPO_PUBLIC_DEVICE_KEY ?? "";
 
 export function authUrl(path: string): string {

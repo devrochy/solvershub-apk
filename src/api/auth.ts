@@ -1,4 +1,4 @@
-import { authUrl } from "../config";
+import { authUrl, TENANT } from "../config";
 import { ApiError } from "./client";
 import type { LoginResult } from "../types/auth";
 
@@ -6,6 +6,7 @@ export type RolLogin = "gestor" | "propietario";
 
 /**
  * Login del gestor o propietario (endpoints sin autenticación).
+ * `tenant` identifica al tenant de agent-core (ADR-0065).
  */
 export async function apiLogin(
   usuario: string,
@@ -16,7 +17,7 @@ export async function apiLogin(
   const res = await fetch(authUrl(path), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ usuario, password }),
+    body: JSON.stringify({ tenant: TENANT, usuario, password }),
   });
 
   if (!res.ok) {
