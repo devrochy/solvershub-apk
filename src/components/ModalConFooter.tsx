@@ -74,6 +74,8 @@ export function ModalConFooter({
             </View>
             <Pressable
               testID={cerrarTestID}
+              accessibilityRole="button"
+              accessibilityLabel="Cerrar"
               style={styles.botonCerrar}
               hitSlop={10}
               onPress={onCerrar}
@@ -154,8 +156,8 @@ function crearEstilos(c: ColoresTema) {
     },
     headerTexto: { flex: 1 },
     botonCerrar: {
-      width: 36,
-      height: 36,
+      width: 44,
+      height: 44,
       alignItems: "flex-end",
       justifyContent: "center",
     },

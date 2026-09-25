@@ -68,6 +68,9 @@ export interface CarteraApkPublic {
 export interface ClienteTrayectoDiarioPublic {
   clienteId: string;
   nombre: string;
+  /** Coordenadas del negocio (para "cliente cercano"). */
+  latitud?: number | null;
+  longitud?: number | null;
   enTrayecto: boolean;
   color: ColorListaDelDia;
   visitaRegistrada: boolean;
@@ -330,6 +333,13 @@ export interface LiquidacionPublic {
   createdAt: string;
   pagos: ItemLiquidacionDetalle[];
   abonos: ItemLiquidacionDetalle[];
+  /** KPIs del día (REQ-APK-003). */
+  pagaron: number;
+  faltan: number;
+  totalDia: number;
+  sinCuentas: number;
+  horaPrimera: string | null;
+  horaUltima: string | null;
 }
 
 export interface CuotaEstado {

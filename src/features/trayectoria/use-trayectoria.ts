@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
 import * as Location from "expo-location";
 import {
   guardarTrayectoriaActiva,
@@ -26,6 +27,9 @@ export function useTrayectoria(): UseTrayectoriaResult {
   const puntosRef = useRef<PuntoGeo[]>([]);
   const suscripcionRef = useRef<Location.LocationSubscription | null>(null);
   const montadoRef = useRef(true);
+  const activaRef = useRef(false);
+  // REQ-APK-013: el permiso se pide una sola vez por sesión.
+  const permisoRef = useRef<boolean | null>(null);
 
   async function persistir(activaActual: boolean) {
     // Persiste la trayectoria para no perderla si la app se cierra a mitad de cartera.
@@ -36,8 +40,11 @@ export function useTrayectoria(): UseTrayectoriaResult {
     if (suscripcionRef.current) {
       return;
     }
-    const permiso = await Location.requestForegroundPermissionsAsync();
-    if (!permiso.granted) {
+    if (permisoRef.current === null) {
+      const permiso = await Location.requestForegroundPermissionsAsync();
+      permisoRef.current = permiso.granted;
+    }
+    if (!permisoRef.current) {
       setError("Se necesita permiso de ubicación.");
       return;
     }
@@ -57,11 +64,17 @@ export function useTrayectoria(): UseTrayectoriaResult {
         },
       );
       suscripcionRef.current = suscripcion;
+      activaRef.current = true;
       setActiva(true);
       await persistir(true);
     } catch {
       setError("No se pudo acceder a tu ubicación.");
     }
+  }
+
+  function pausar() {
+    suscripcionRef.current?.remove();
+    suscripcionRef.current = null;
   }
 
   async function iniciar() {
@@ -74,8 +87,8 @@ export function useTrayectoria(): UseTrayectoriaResult {
   }
 
   function detener(): PuntoGeo[] {
-    suscripcionRef.current?.remove();
-    suscripcionRef.current = null;
+    pausar();
+    activaRef.current = false;
     setActiva(false);
     void limpiarTrayectoriaActiva();
     return puntosRef.current;
@@ -102,6 +115,21 @@ export function useTrayectoria(): UseTrayectoriaResult {
       suscripcionRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar
+  }, []);
+
+  // REQ-APK-013: pausa la captura en background y la reanuda al volver.
+  useEffect(() => {
+    const suscripcion = AppState.addEventListener("change", (estado) => {
+      if (estado === "active") {
+        if (activaRef.current) {
+          void suscribir();
+        }
+      } else {
+        pausar();
+      }
+    });
+    return () => suscripcion.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- una sola vez
   }, []);
 
   return { activa, puntos, error, iniciar, detener };

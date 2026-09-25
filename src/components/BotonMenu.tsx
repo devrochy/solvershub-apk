@@ -21,5 +21,5 @@ export function BotonMenu() {
 }
 
 const styles = StyleSheet.create({
-  boton: { paddingVertical: 4, paddingRight: 4 },
+  boton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
 });
