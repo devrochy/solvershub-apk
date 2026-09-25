@@ -35,6 +35,7 @@ import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useTrayectosOverlay } from "../navigation/trayectos-overlay-context";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarTrayectoDiario, leerTrayectoDiario } from "../offline/cache";
+import { guardarBorrador, leerBorrador, limpiarBorrador } from "../offline/borrador";
 import { clientesAprecargar } from "../offline/precarga";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
@@ -200,6 +201,32 @@ export function TrayectoDiarioScreen() {
     precargadosRef.current = new Map();
   }, [carteraId]);
 
+  // REQ-APK-014: recupera un gasto capturado si un 401 tumbó la sesión.
+  const borradorGastoRef = useRef(false);
+  useEffect(() => {
+    if (borradorGastoRef.current || !carteraId) {
+      return;
+    }
+    borradorGastoRef.current = true;
+    void (async () => {
+      const borrador = await leerBorrador<{ descripcion: string; valor: string }>(
+        `gasto:${carteraId}`,
+      );
+      if (!borrador) {
+        return;
+      }
+      setGastoDescripcion(borrador.descripcion);
+      setGastoValor(borrador.valor);
+      setGastoAbierto(true);
+      setGastoMensaje({
+        texto: "Recuperamos el gasto que estabas capturando.",
+        esError: false,
+      });
+      await limpiarBorrador(`gasto:${carteraId}`);
+    })().catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar la cartera
+  }, [carteraId]);
+
   async function registrarGasto() {
     const valor = Number(gastoValor);
     if (!gastoDescripcion.trim() || !Number.isFinite(valor) || valor <= 0) {
@@ -218,7 +245,13 @@ export function TrayectoDiarioScreen() {
       setGastoAbierto(false);
       setGastoMensaje({ texto: "Gasto registrado.", esError: false });
     } catch (err) {
-      if (esErrorDeRed(err)) {
+      if (apiErrorStatus(err) === 401) {
+        await guardarBorrador(`gasto:${carteraId}`, {
+          descripcion: gastoDescripcion,
+          valor: gastoValor,
+        });
+        await logout();
+      } else if (esErrorDeRed(err)) {
         const guardado = await offline.encolar("gasto", {
           ...input,
           carteraId,
