@@ -11,6 +11,8 @@ async function renderConSesion(login: jest.Mock) {
     login: login as SessionValue["login"],
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return render(
     <SessionContext.Provider value={valor}>

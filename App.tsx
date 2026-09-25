@@ -18,6 +18,7 @@ import { PantallaActivaProvider } from "./src/navigation/pantalla-activa-context
 import { TrayectosOverlayProvider } from "./src/navigation/trayectos-overlay-context";
 import { OfflineProvider } from "./src/offline/offline-context";
 import { LoginScreen } from "./src/screens/LoginScreen";
+import { VincularDispositivoScreen } from "./src/screens/VincularDispositivoScreen";
 import { SeleccionCarteraScreen } from "./src/screens/SeleccionCarteraScreen";
 import { PerfilScreen } from "./src/screens/PerfilScreen";
 import { ConfiguracionScreen } from "./src/screens/ConfiguracionScreen";
@@ -30,7 +31,7 @@ import { ThemeProvider } from "./src/theme/theme-context";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
-  const { gestor, loading } = useSession();
+  const { gestor, loading, requiereVinculacion } = useSession();
 
   if (loading) {
     return (
@@ -45,7 +46,12 @@ function RootNavigator() {
       <MenuLateralProvider>
         <TrayectosOverlayProvider>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {gestor ? (
+            {gestor && requiereVinculacion ? (
+              <Stack.Screen
+                name="VincularDispositivo"
+                component={VincularDispositivoScreen}
+              />
+            ) : gestor ? (
               <>
                 <Stack.Screen name="Main">
                   {(props) => (

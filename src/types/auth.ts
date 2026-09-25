@@ -1,6 +1,11 @@
 export interface LoginResult {
   accessToken: string;
   refreshToken: string;
+  /** Autovinculación de dispositivo (HU-39/43). */
+  telefono?: string;
+  dispositivoVinculado?: boolean;
+  estadoDispositivo?: "none" | "pendiente" | "activo" | "bloqueado";
+  requiereVinculacion?: boolean;
   gestor?: {
     id: string;
     usuario: string;
