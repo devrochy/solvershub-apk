@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { File, Paths } from "expo-file-system";
+import * as Location from "expo-location";
 import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
@@ -22,6 +23,7 @@ import { HeaderApp } from "../components/HeaderApp";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
+import { clienteMasCercano } from "../features/cliente/cliente-cercano";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import {
   abrirNavegacion,
@@ -58,6 +60,7 @@ export function TrayectoDiarioScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
   const [offlineCache, setOfflineCache] = useState(false);
+  const [mensajeCercano, setMensajeCercano] = useState<string | null>(null);
 
   const [gastoAbierto, setGastoAbierto] = useState(false);
   const [gastoDescripcion, setGastoDescripcion] = useState("");
@@ -267,6 +270,42 @@ export function TrayectoDiarioScreen() {
       }
     } finally {
       setGenerandoTrayecto(false);
+    }
+  }
+
+  async function irAlClienteCercano() {
+    setMensajeCercano(null);
+    if (!clientes || clientes.length === 0) {
+      setMensajeCercano("No hay clientes para hoy.");
+      return;
+    }
+    try {
+      const permiso = await Location.requestForegroundPermissionsAsync();
+      if (!permiso.granted) {
+        setMensajeCercano("Se necesita permiso de ubicación.");
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const cercano = clienteMasCercano(clientes, {
+        latitud: pos.coords.latitude,
+        longitud: pos.coords.longitude,
+      });
+      if (!cercano) {
+        setMensajeCercano("No hay clientes con ubicación.");
+        return;
+      }
+      abrirPantallaActiva({
+        tipo: "cliente",
+        carteraId,
+        clienteId: cercano.clienteId,
+        nombre: cercano.nombre ?? "Cliente",
+        ...(typeof cercano.latitud === "number" && typeof cercano.longitud === "number"
+          ? { latitud: cercano.latitud, longitud: cercano.longitud }
+          : {}),
+        prestamoAutoSeleccionado: true,
+      });
+    } catch {
+      setMensajeCercano("No se pudo obtener tu ubicación.");
     }
   }
 
@@ -530,6 +569,18 @@ export function TrayectoDiarioScreen() {
                 <Text style={styles.botonTrayectosTexto}>Ver trayectos</Text>
               </Pressable>
             ) : null}
+            <Pressable
+              testID="btn-cliente-cercano"
+              style={styles.botonTrayectos}
+              onPress={() => void irAlClienteCercano()}
+            >
+              <Text style={styles.botonTrayectosTexto}>Cliente cercano</Text>
+            </Pressable>
+            {mensajeCercano ? (
+              <Text testID="cliente-cercano-mensaje" style={styles.mensajeTrayectoria}>
+                {mensajeCercano}
+              </Text>
+            ) : null}
             {liquidacionVisible ? (
               <Pressable
                 testID="btn-liquidacion"
@@ -732,6 +783,19 @@ export function TrayectoDiarioScreen() {
                     <Text style={styles.liquidacionLinea}>
                       Comisión: {liquidacion.comisionPorcentaje}% = {liquidacion.comisionValor}
                     </Text>
+                    <Text testID="liquidacion-conteos" style={styles.liquidacionLinea}>
+                      Pagaron: {liquidacion.pagaron} · Faltan: {liquidacion.faltan} de{" "}
+                      {liquidacion.totalDia}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Clientes sin cuentas: {liquidacion.sinCuentas}
+                    </Text>
+                    {liquidacion.horaPrimera ? (
+                      <Text style={styles.liquidacionLinea}>
+                        Primera cuota: {liquidacion.horaPrimera} · Última:{" "}
+                        {liquidacion.horaUltima ?? "—"}
+                      </Text>
+                    ) : null}
                     {liquidacion.comentario ? (
                       <Text style={styles.liquidacionLinea}>
                         Comentario: {liquidacion.comentario}

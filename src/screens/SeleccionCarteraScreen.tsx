@@ -62,7 +62,9 @@ export function SeleccionCarteraScreen({
   const cargar = useCallback(async () => {
     setError(null);
     try {
-      const misCarteras = await api.misCarteras();
+      const misCarteras = (await api.misCarteras()).filter(
+        (cartera) => !cartera.config.ocultarCartera,
+      );
       const resultados = await Promise.all(
         misCarteras.map(async (cartera) => {
           const [clientes, trayectoDiario] = await Promise.allSettled([

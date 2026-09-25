@@ -63,6 +63,7 @@ import {
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, leerCliente } from "../offline/cache";
+import { guardarBorrador, leerBorrador, limpiarBorrador } from "../offline/borrador";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { useTheme } from "../theme/theme-context";
@@ -393,6 +394,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         await cargar();
       } catch (err) {
         if (apiErrorStatus(err) === 401) {
+          await guardarBorrador(`cobro:${carteraId}:${clienteId}`, {
+            accionCuota: "pago",
+            valor,
+            metodoPago,
+            tipoPago,
+          });
           await logout();
         } else if (esErrorDeRed(err)) {
           const encolado = await offline.encolarSiNoExiste(
@@ -456,6 +463,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         await recargarEstadoPrestamo();
       } catch (err) {
         if (apiErrorStatus(err) === 401) {
+          await guardarBorrador(`no_pago:${carteraId}:${clienteId}`, {
+            accionCuota: "no_pago",
+            motivoNoPago,
+            fechaPrometida,
+            valorPrometido,
+          });
           await logout();
         } else if (esErrorDeRed(err)) {
           const encolado = await offline.encolarSiNoExiste(
@@ -581,6 +594,45 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       setBorrando(false);
     }
   }
+
+  // REQ-APK-014: recupera un cobro/visita capturado si un 401 tumbó la sesión.
+  const borradorRevisadoRef = useRef(false);
+  useEffect(() => {
+    if (borradorRevisadoRef.current) {
+      return;
+    }
+    borradorRevisadoRef.current = true;
+    void (async () => {
+      const cobro = await leerBorrador<{
+        accionCuota: "pago";
+        valor: string;
+        metodoPago: typeof metodoPago;
+        tipoPago: "cuota" | "abono";
+      }>(`cobro:${carteraId}:${clienteId}`);
+      const noPago = await leerBorrador<{
+        accionCuota: "no_pago";
+        motivoNoPago: typeof motivoNoPago;
+        fechaPrometida: string;
+        valorPrometido: string;
+      }>(`no_pago:${carteraId}:${clienteId}`);
+      if (cobro) {
+        setAccionCuota("pago");
+        setValor(cobro.valor);
+        setMetodoPago(cobro.metodoPago);
+        setTipoPago(cobro.tipoPago);
+        await limpiarBorrador(`cobro:${carteraId}:${clienteId}`);
+        mensajeExito("Recuperamos el cobro que estabas capturando.");
+      } else if (noPago) {
+        setAccionCuota("no_pago");
+        setMotivoNoPago(noPago.motivoNoPago);
+        setFechaPrometida(noPago.fechaPrometida);
+        setValorPrometido(noPago.valorPrometido);
+        await limpiarBorrador(`no_pago:${carteraId}:${clienteId}`);
+        mensajeExito("Recuperamos la visita que estabas capturando.");
+      }
+    })().catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar
+  }, []);
 
   function abrirEditar() {
     mensajeError(null);
@@ -719,6 +771,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         mensajeError("El número de documento no es válido para el tipo seleccionado.");
         return;
       }
+    }
+    if (
+      carteraActiva?.config.registroDocumentoCliente &&
+      !edicion.tipoDocumento &&
+      !edicion.numeroDocumento
+    ) {
+      mensajeError("Esta cartera exige documento de identidad. Complétalo para guardar.");
+      return;
     }
     // Consistencia con el alta: si se toca el teléfono, debe ser válido.
     const telefonoTocado =
