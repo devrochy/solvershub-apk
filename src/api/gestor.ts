@@ -8,6 +8,7 @@ import type {
   EstadoCuentaPrestamoPublic,
   EstadisticasCarteraPublic,
   GastoPublic,
+  LinkPagoCobro,
   LiquidacionPublic,
   PerfilPublic,
   PrestamoPublic,
@@ -123,6 +124,7 @@ export interface GestorApi {
   ): Promise<LiquidacionPublic>;
   listarLiquidaciones(carteraId: string): Promise<LiquidacionPublic[]>;
   exportarLiquidacionPdf(carteraId: string, liquidacionId: string): Promise<Uint8Array>;
+  crearLinkPago(carteraId: string, cuotaId: string): Promise<LinkPagoCobro>;
   registrarApertura(
     carteraId: string,
     input: { latitud?: number; longitud?: number },
@@ -402,6 +404,12 @@ export function gestorApi(client: ApiClient): GestorApi {
     exportarLiquidacionPdf: (carteraId: string, liquidacionId: string) =>
       client.requestBytes(
         `/gestor/carteras/${carteraId}/liquidaciones/${liquidacionId}/export-pdf`,
+      ),
+
+    crearLinkPago: (carteraId: string, cuotaId: string) =>
+      client.request<LinkPagoCobro>(
+        `/gestor/carteras/${carteraId}/cuotas/${cuotaId}/link-pago`,
+        { method: "POST" },
       ),
 
     registrarApertura: (

@@ -61,8 +61,27 @@ export interface CarteraApkPublic {
   estatus: string;
   tipoInteres: number;
   numCuotas: number;
+  /** Cobro con QR/link habilitado por el propietario (ADR-0067). */
+  pagoQrActivo?: boolean;
   config: CarteraConfigPublic;
   permisos: GestorPermisoEstado[];
+}
+
+/** Resultado de crear el link/QR de cobro de una cuota (ADR-0067). */
+export interface LinkPagoCobro {
+  modo: "online" | "informativo";
+  monto: number;
+  referencia?: string;
+  url?: string | null;
+  /** QR como data URI PNG (o null si no se pudo generar). */
+  qrPng: string | null;
+  metodos?: string[];
+  titular?: string;
+  banco?: string;
+  tipoCuenta?: string;
+  numeroCuenta?: string;
+  alias?: string;
+  nota?: string;
 }
 
 export interface ClienteTrayectoDiarioPublic {
