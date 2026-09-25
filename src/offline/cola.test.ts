@@ -43,11 +43,11 @@ describe("cola offline", () => {
   });
 
   it("encola un evento con eventoIdCliente generado", async () => {
-    const evento = await encolar("visita", { clienteId: 2 });
+    const evento = await encolar("visita", { clienteId: "2" });
 
     expect(evento.eventoIdCliente).toBe("11111111-2222-4333-8444-000000000001");
     expect(evento.tipoEvento).toBe("visita");
-    expect(evento.payload).toEqual({ clienteId: 2 });
+    expect(evento.payload).toEqual({ clienteId: "2" });
     await expect(contarCola()).resolves.toBe(1);
   });
 
@@ -77,7 +77,7 @@ describe("cola offline", () => {
   });
 
   it("existePendiente detecta un evento pendiente con la misma dedupeKey", async () => {
-    await encolar("visita", { cuotaId: 3359 }, "pago-3359");
+    await encolar("visita", { cuotaId: "3359" }, "pago-3359");
 
     await expect(existePendiente("visita", "pago-3359")).resolves.toBe(true);
     await expect(existePendiente("visita", "pago-3360")).resolves.toBe(false);

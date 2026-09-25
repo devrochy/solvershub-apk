@@ -5,9 +5,9 @@ import {
 import type { ClienteTarjetaPublic, PrestamoPublic } from "../../types/gestor";
 
 const prestamo: PrestamoPublic = {
-  id: 1,
-  carteraId: 6,
-  clienteId: 2,
+  id: "1",
+  carteraId: "6",
+  clienteId: "2",
   valor: 1000,
   numCuotas: 2,
   tipoInteres: 20,
@@ -16,14 +16,14 @@ const prestamo: PrestamoPublic = {
   estatus: "vigente",
   cuotas: [
     {
-      id: 10,
+      id: "10",
       numeroCuota: 1,
       valorEsperado: 600,
       fechaVencimiento: "2026-08-08",
       estatus: "pagada",
     },
     {
-      id: 11,
+      id: "11",
       numeroCuota: 2,
       valorEsperado: 600,
       fechaVencimiento: "2026-08-15",
@@ -33,8 +33,8 @@ const prestamo: PrestamoPublic = {
 };
 
 const tarjeta: ClienteTarjetaPublic = {
-  clienteId: 2,
-  carteraId: 6,
+  clienteId: "2",
+  carteraId: "6",
   nombre: "Juan",
   negocio: null,
   telefonoWhatsapp: "+59170000000",

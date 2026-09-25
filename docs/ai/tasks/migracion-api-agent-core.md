@@ -9,7 +9,7 @@ tags: [tarea, migracion]
   **agent-core** (`pack_cobranza`), no en el backend NestJS `app-cobranza`.
 - **ADR:** `agent-core/docs/adr/0065-api-de-campo-del-gestor.md`.
 - **Plan del pack:** `agent-core/packages/pack-cobranza/docs/api-gestor.md`.
-- **Estado:** pendiente — plan aprobado; sin código hasta ejecutar por fases.
+- **Estado:** F0–F5 completas (2026-09-24). Falta F6 (backlog REQ-APK + autovinculación).
 - **Decisión:** el **pack implementa el contrato exacto de la APK** (mismas rutas, camelCase,
   IDs como string). Paridad total de lecturas y escrituras. La APK cambia lo mínimo.
 
@@ -63,3 +63,21 @@ Que la APK funcione contra `agent-core` (pack-cobranza) cambiando **solo**: base
 - `/auth/propietario/login` (el propietario es el tenant; decisión pendiente).
 - `password`+`motivo` en bajas: se mantiene y se audita en el pack.
 - PDF de liquidación (v1: HTML imprimible).
+
+## Resultado (F0–F5, 2026-09-24)
+
+- **F1 (APK)**: login envía `{tenant, usuario, password}` (`EXPO_PUBLIC_TENANT`).
+- **F5 (APK)**:
+  - **IDs `number → string`** en `types/*`, `api/gestor.ts`, `session/*`, `navigation/types.ts`,
+    `offline/*`, `components/*` y `screens/*` (incl. fixtures de tests).
+  - **Offline**: `sincronizarCola` usa **Bearer** del gestor (sin `x-device-key`);
+    se eliminó `EXPO_PUBLIC_DEVICE_KEY`/`DEVICE_API_KEY`; `offline-context` toma el
+    token de `sessionGateway`.
+  - **Eventos offline**: `gasto` y `trayectoria` incluyen `carteraId`.
+  - `session/jwt.ts`: `AccessTokenPayload` alineado al token del pack
+    (`admin_id`, `gestor_id?`, `rol`, `typ`).
+- **Pack**: `TrayectoPublic.ordenClientes` se devuelve **anidado** (`ParadaGeo[][]`,
+  ADR-0065) para que la APK lo itere como espera.
+- **Verificación**: `npm run check` (lint + typecheck + **461 tests**) en verde.
+
+Pendiente **F6**: `REQ-APK-001..011` + autovinculación de dispositivo (HU-39/43).

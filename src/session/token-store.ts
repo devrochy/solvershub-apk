@@ -9,7 +9,7 @@ const PROFILE_KEY = "cobranza_gestor_profile";
 export type RolUsuario = "gestor" | "propietario";
 
 export interface UsuarioPerfil {
-  id: number;
+  id: string;
   usuario: string;
   nombre: string;
   apellido: string;

@@ -9,7 +9,7 @@ describe("apiLogin", () => {
   it("llama al login de gestor por defecto", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({ accessToken: "a", refreshToken: "r", gestor: { id: 1 } }),
+      json: async () => ({ accessToken: "a", refreshToken: "r", gestor: { id: "1" } }),
     });
 
     await apiLogin("c1", "pass");
@@ -26,7 +26,7 @@ describe("apiLogin", () => {
   it("llama al login de propietario cuando el rol es propietario", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({ accessToken: "a", refreshToken: "r", propietario: { id: 2 } }),
+      json: async () => ({ accessToken: "a", refreshToken: "r", propietario: { id: "2" } }),
     });
 
     await apiLogin("s1", "pass", "propietario");

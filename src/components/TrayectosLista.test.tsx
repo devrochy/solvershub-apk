@@ -14,21 +14,21 @@ jest.mock("../features/navegacion/navegacion", () => {
 import { enlaceGoogleMapsCartera } from "../features/navegacion/navegacion";
 
 const clientes: ClienteTrayectoDiarioPublic[] = [
-  { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
-  { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
-  { clienteId: 3, nombre: "Luis", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+  { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+  { clienteId: "2", nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+  { clienteId: "3", nombre: "Luis", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
 ];
 
 const trayectos: TrayectoPublic = {
-  id: 1,
-  carteraId: 6,
+  id: "1",
+  carteraId: "6",
   fecha: "2026-09-02",
   ordenClientes: [
     [
-      { clienteId: 1, latitud: -17.78, longitud: -63.18 },
-      { clienteId: 2, latitud: -17.79, longitud: -63.19 },
+      { clienteId: "1", latitud: -17.78, longitud: -63.18 },
+      { clienteId: "2", latitud: -17.79, longitud: -63.19 },
     ],
-    [{ clienteId: 3, latitud: -17.8, longitud: -63.2 }],
+    [{ clienteId: "3", latitud: -17.8, longitud: -63.2 }],
   ],
   waypoints: [],
   distanciaEstimadaKm: 5,
@@ -77,7 +77,7 @@ describe("TrayectosLista", () => {
   it("no muestra paradas sin nombre conocido", async () => {
     const trayectoConDesconocido: TrayectoPublic = {
       ...trayectos,
-      ordenClientes: [[{ clienteId: 99, latitud: 0, longitud: 0 }]],
+      ordenClientes: [[{ clienteId: "99", latitud: 0, longitud: 0 }]],
     };
     const { getByText } = await render(
       <TrayectosLista

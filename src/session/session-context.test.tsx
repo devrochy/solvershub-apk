@@ -11,7 +11,7 @@ jest.mock("../api/gestor", () => ({
 
 jest.mock("./token-store", () => ({
   readProfile: jest.fn(async () => ({
-    id: 7,
+    id: "7",
     usuario: "cob1",
     nombre: "Viejo",
     apellido: "Anterior",
@@ -51,7 +51,7 @@ describe("SessionProvider.actualizarPerfil", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockActualizarPerfil.mockResolvedValue({
-      id: 7,
+      id: "7",
       usuario: "cob1",
       nombre: "Nuevo",
       apellido: "Pérez",

@@ -75,9 +75,9 @@ const offlineValor: OfflineValue = {
 };
 
 const prestamo = {
-  id: 1,
-  carteraId: 6,
-  clienteId: 2,
+  id: "1",
+  carteraId: "6",
+  clienteId: "2",
   valor: 1000,
   numCuotas: 4,
   tipoInteres: 20,
@@ -86,7 +86,7 @@ const prestamo = {
   estatus: "vigente" as const,
   cuotas: [
     {
-      id: 10,
+      id: "10",
       numeroCuota: 1,
       valorEsperado: 300,
       fechaVencimiento: "2026-08-08",
@@ -96,8 +96,8 @@ const prestamo = {
 };
 
 const tarjeta = {
-  clienteId: 2,
-  carteraId: 6,
+  clienteId: "2",
+  carteraId: "6",
   nombre: "Juan",
   negocio: null,
   telefonoWhatsapp: "+59170000000",
@@ -152,7 +152,7 @@ async function renderConApi(
   config: Record<string, unknown> = {},
 ) {
   const valor: SessionValue = {
-    gestor: { id: 20, usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
+    gestor: { id: "20", usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
     loading: false,
     api: {
       tarjeta: jest.fn().mockResolvedValue(tarjeta),
@@ -172,12 +172,12 @@ async function renderConApi(
         <CarteraActivaContext.Provider
           value={{
             carteraActiva: {
-              carteraId: 6,
+              carteraId: "6",
               carteraNombre: "Cartera Centro",
               tipoInteres: 20,
               numCuotas: 8,
               config: {
-                carteraId: 6,
+                carteraId: "6",
                 cupoDefault: 1500,
                 cuotasMinimasPrestamo: 1,
                 eliminarPagosApk: true,
@@ -193,7 +193,7 @@ async function renderConApi(
             route={{
               key: "cliente",
               name: "Cliente",
-              params: { carteraId: 6, clienteId: 2, nombre: "Juan", ...params },
+              params: { carteraId: "6", clienteId: "2", nombre: "Juan", ...params },
             }}
           />
         </CarteraActivaContext.Provider>
@@ -217,7 +217,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
   }
 
   const detalleCuotaFixture = (estatus = "pendiente") => ({
-    cuotaId: 10,
+    cuotaId: "10",
     numeroCuota: 1,
     valorEsperado: 300,
     fechaVencimiento: "2026-08-08",
@@ -251,7 +251,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
   });
 
   it("registra un abono parcial con tipoPago abono sin cuotaId", async () => {
-    const registrarVisitaPago = jest.fn().mockResolvedValue({ id: 1 });
+    const registrarVisitaPago = jest.fn().mockResolvedValue({ id: "1" });
     const { getByTestId } = await renderConApi(
       {
         registrarVisitaPago,
@@ -270,9 +270,9 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     await fireEvent.press(getByTestId("guardar-pago-cuota"));
 
     await waitFor(() =>
-      expect(registrarVisitaPago).toHaveBeenCalledWith(6, {
-        prestamoId: 1,
-        clienteId: 2,
+      expect(registrarVisitaPago).toHaveBeenCalledWith("6", {
+        prestamoId: "1",
+        clienteId: "2",
         resultado: "pago",
         tipoPago: "abono",
         cuotaId: undefined,
@@ -332,7 +332,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
   });
 
   it("registra una visita no-pago con promesa de pago (compromiso_de_pago)", async () => {
-    const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: 1 });
+    const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: "1" });
     const { getByTestId, getByText } = await renderConApi(
       {
         registrarVisitaNoPago,
@@ -353,9 +353,9 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     await fireEvent.press(getByTestId("guardar-no-pago"));
 
     await waitFor(() =>
-      expect(registrarVisitaNoPago).toHaveBeenCalledWith(6, {
-        prestamoId: 1,
-        clienteId: 2,
+      expect(registrarVisitaNoPago).toHaveBeenCalledWith("6", {
+        prestamoId: "1",
+        clienteId: "2",
         resultado: "no_pago",
         motivoNoPago: "compromiso_de_pago",
         fechaPrometida: manana,
@@ -365,7 +365,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
   });
 
   it("exige fecha prometida para compromiso de pago", async () => {
-    const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: 1 });
+    const registrarVisitaNoPago = jest.fn().mockResolvedValue({ id: "1" });
     const { getByTestId, getByText } = await renderConApi(
       {
         registrarVisitaNoPago,
@@ -415,11 +415,11 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
       expect(encolarSiNoExiste).toHaveBeenCalledWith(
         "visita",
         {
-          prestamoId: 1,
-          clienteId: 2,
+          prestamoId: "1",
+          clienteId: "2",
           resultado: "pago",
           tipoPago: "cuota",
-          cuotaId: 10,
+          cuotaId: "10",
           valor: 300,
           metodoPago: "efectivo",
         },
@@ -534,19 +534,19 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
   });
 
   it("borra un pago no liquidado (password + motivo) desde la modal de cuota", async () => {
-    const eliminarPago = jest.fn().mockResolvedValue({ id: 50 });
+    const eliminarPago = jest.fn().mockResolvedValue({ id: "50" });
     const { getByTestId } = await renderConApi(
       {
         eliminarPago,
         detalleCuota: jest.fn().mockResolvedValue({
-          cuotaId: 10,
+          cuotaId: "10",
           numeroCuota: 1,
           valorEsperado: 300,
           fechaVencimiento: "2026-08-08",
           estatus: "pendiente",
           abonosAcumulados: 0,
           saldoPendiente: 300,
-          pagos: [{ id: 50, valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
+          pagos: [{ id: "50", valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
           abonos: [],
           ultimaVisita: null,
         }),
@@ -566,7 +566,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     await fireEvent.press(getByTestId("borrar-confirmar"));
 
     await waitFor(() =>
-      expect(eliminarPago).toHaveBeenCalledWith(6, 50, {
+      expect(eliminarPago).toHaveBeenCalledWith("6","50", {
         password: "secreto",
         motivo: "registro erróneo",
       }),
@@ -577,14 +577,14 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     const { getByTestId, queryByTestId } = await renderConApi(
       {
         detalleCuota: jest.fn().mockResolvedValue({
-          cuotaId: 10,
+          cuotaId: "10",
           numeroCuota: 1,
           valorEsperado: 300,
           fechaVencimiento: "2026-08-08",
           estatus: "pendiente",
           abonosAcumulados: 0,
           saldoPendiente: 300,
-          pagos: [{ id: 60, valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: true }],
+          pagos: [{ id: "60", valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: true }],
           abonos: [],
           ultimaVisita: null,
         }),
@@ -601,12 +601,12 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
   });
 
   it("borra un abono no liquidado desde la modal de cuota", async () => {
-    const eliminarAbono = jest.fn().mockResolvedValue({ id: 70 });
+    const eliminarAbono = jest.fn().mockResolvedValue({ id: "70" });
     const { getByTestId } = await renderConApi(
       {
         eliminarAbono,
         detalleCuota: jest.fn().mockResolvedValue({
-          cuotaId: 10,
+          cuotaId: "10",
           numeroCuota: 1,
           valorEsperado: 300,
           fechaVencimiento: "2026-08-08",
@@ -614,7 +614,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
           abonosAcumulados: 40,
           saldoPendiente: 260,
           pagos: [],
-          abonos: [{ id: 70, valor: 40, fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
+          abonos: [{ id: "70", valor: 40, fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
           ultimaVisita: null,
         }),
       },
@@ -632,7 +632,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     await fireEvent.press(getByTestId("borrar-confirmar"));
 
     await waitFor(() =>
-      expect(eliminarAbono).toHaveBeenCalledWith(6, 70, {
+      expect(eliminarAbono).toHaveBeenCalledWith("6","70", {
         password: "secreto",
         motivo: "error",
       }),
@@ -647,14 +647,14 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
       {
         eliminarPago,
         detalleCuota: jest.fn().mockResolvedValue({
-          cuotaId: 10,
+          cuotaId: "10",
           numeroCuota: 1,
           valorEsperado: 300,
           fechaVencimiento: "2026-08-08",
           estatus: "pendiente",
           abonosAcumulados: 0,
           saldoPendiente: 300,
-          pagos: [{ id: 80, valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
+          pagos: [{ id: "80", valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
           abonos: [],
           ultimaVisita: null,
         }),
@@ -684,7 +684,7 @@ describe("ClienteScreen — cache offline", () => {
     await renderConApi({});
 
     await waitFor(() =>
-      expect(cache.guardarCliente).toHaveBeenCalledWith(6, 2, {
+      expect(cache.guardarCliente).toHaveBeenCalledWith("6","2", {
         tarjeta,
         prestamos: [prestamo],
       }),
@@ -720,7 +720,7 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
     await waitFor(() =>
       expect(encolarSiNoExiste).toHaveBeenCalledWith(
         "cambio_cliente",
-        { clienteId: 2, input: { nombre: "Juan Carlos" } },
+        { clienteId: "2", input: { nombre: "Juan Carlos" } },
         "cambio_cliente-2",
       ),
     );
@@ -748,7 +748,7 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
     await waitFor(() =>
       expect(encolarSiNoExiste).toHaveBeenCalledWith(
         "cambio_cliente",
-        { clienteId: 2, input: { nombre: "Juan Carlos" } },
+        { clienteId: "2", input: { nombre: "Juan Carlos" } },
         "cambio_cliente-2",
       ),
     );
@@ -837,7 +837,7 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
     await waitFor(() =>
       expect(encolarSiNoExiste).toHaveBeenCalledWith(
         "cambio_cliente",
-        { clienteId: 2, input: { nombre: "Otro" } },
+        { clienteId: "2", input: { nombre: "Otro" } },
         "cambio_cliente-2",
       ),
     );
@@ -1049,7 +1049,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
   });
 
   it("el avatar abre un modal, previsualiza la imagen elegida y sube al tocar Guardar", async () => {
-    const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: 2 });
+    const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: "2" });
     const { getByTestId } = await renderConApi({ agregarEvidenciasCliente });
 
     await waitFor(() => expect(getByTestId("btn-avatar")).toBeTruthy());
@@ -1065,9 +1065,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     await fireEvent.press(getByTestId("avatar-guardar"));
 
     await waitFor(() =>
-      expect(agregarEvidenciasCliente).toHaveBeenCalledWith(
-        6,
-        2,
+      expect(agregarEvidenciasCliente).toHaveBeenCalledWith("6","2",
         [expect.objectContaining({ campo: "foto_facial" })],
       ),
     );
@@ -1141,7 +1139,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
   });
 
   it("desde el modal de reverso previsualiza y sube documento_reverso al tocar Guardar", async () => {
-    const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: 2 });
+    const agregarEvidenciasCliente = jest.fn().mockResolvedValue({ clienteId: "2" });
     const { getByTestId, getByText } = await renderConApi({ agregarEvidenciasCliente });
 
     await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
@@ -1155,9 +1153,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     await fireEvent.press(getByTestId("documento-guardar"));
 
     await waitFor(() =>
-      expect(agregarEvidenciasCliente).toHaveBeenCalledWith(
-        6,
-        2,
+      expect(agregarEvidenciasCliente).toHaveBeenCalledWith("6","2",
         [expect.objectContaining({ campo: "documento_reverso" })],
       ),
     );
@@ -1222,7 +1218,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
 describe("ClienteScreen — registrar préstamo (modal)", () => {
   it("abre el modal desde + Nuevo y llama crearPrestamo con los campos", async () => {
-    const crearPrestamo = jest.fn().mockResolvedValue({ id: 5 });
+    const crearPrestamo = jest.fn().mockResolvedValue({ id: "5" });
     const { getByTestId } = await renderConApi({ crearPrestamo });
 
     await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
@@ -1235,8 +1231,8 @@ describe("ClienteScreen — registrar préstamo (modal)", () => {
     await fireEvent.press(getByTestId("guardar-prestamo"));
 
     await waitFor(() =>
-      expect(crearPrestamo).toHaveBeenCalledWith(6, {
-        clienteId: 2,
+      expect(crearPrestamo).toHaveBeenCalledWith("6", {
+        clienteId: "2",
         valor: 800,
         numCuotas: 4,
         diasEntreCuotas: 7,
@@ -1259,7 +1255,7 @@ describe("ClienteScreen — registrar préstamo (modal)", () => {
   });
 
   it("autocompleta interés, cuotas y valor desde la cartera activa", async () => {
-    const crearPrestamo = jest.fn().mockResolvedValue({ id: 5 });
+    const crearPrestamo = jest.fn().mockResolvedValue({ id: "5" });
     const { getByTestId } = await renderConApi({ crearPrestamo });
 
     await waitFor(() => expect(getByTestId("btn-nuevo-prestamo")).toBeTruthy());
@@ -1273,8 +1269,8 @@ describe("ClienteScreen — registrar préstamo (modal)", () => {
     await fireEvent.press(getByTestId("guardar-prestamo"));
 
     await waitFor(() =>
-      expect(crearPrestamo).toHaveBeenCalledWith(6, {
-        clienteId: 2,
+      expect(crearPrestamo).toHaveBeenCalledWith("6", {
+        clienteId: "2",
         valor: 1500,
         numCuotas: 8,
         diasEntreCuotas: 7,
@@ -1288,7 +1284,7 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
   it("seleccionar un préstamo expande su detalle y oculta los demás; tocar de nuevo colapsa", async () => {
     const prestamo2: PrestamoPublic = {
       ...prestamo,
-      id: 2,
+      id: "2",
       estatus: "cancelado",
       cuotas: [],
     };
@@ -1313,7 +1309,7 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
   it("cambiar de préstamo seleccionado oculta el detalle del anterior", async () => {
     const prestamo2: PrestamoPublic = {
       ...prestamo,
-      id: 2,
+      id: "2",
       estatus: "liquidado",
       cuotas: [],
     };
@@ -1333,14 +1329,14 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
 
   it("el modal de detalle de cuota llama detalleCuota con los ids correctos", async () => {
     const detalleCuota = jest.fn().mockResolvedValue({
-      cuotaId: 10,
+      cuotaId: "10",
       numeroCuota: 1,
       valorEsperado: 300,
       fechaVencimiento: "2026-08-08",
       estatus: "pendiente",
       abonosAcumulados: 0,
       saldoPendiente: 300,
-      pagos: [{ id: 1, valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
+      pagos: [{ id: "1", valor: 300, metodoPago: "efectivo", fechaHora: "2026-08-08T12:00:00Z", liquidado: false }],
       abonos: [],
       ultimaVisita: null,
     });
@@ -1354,7 +1350,7 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
     await fireEvent.press(getByTestId("cuota-1"));
 
     await waitFor(() =>
-      expect(detalleCuota).toHaveBeenCalledWith(6, 1, 10),
+      expect(detalleCuota).toHaveBeenCalledWith("6","1","10"),
     );
     expect(getByTestId("cuota-dialog")).toBeTruthy();
   });
@@ -1376,7 +1372,7 @@ describe("ClienteScreen — acordeón de préstamos y detalle", () => {
     const { getByTestId, queryByTestId } = await renderConApi(
       {
         detalleCuota: jest.fn().mockResolvedValue({
-          cuotaId: 10,
+          cuotaId: "10",
           numeroCuota: 1,
           valorEsperado: 300,
           fechaVencimiento: "2026-08-08",
@@ -1406,7 +1402,7 @@ describe("ClienteScreen — lista de préstamos con color", () => {
   it("lista todos los préstamos del cliente con su color de estado", async () => {
     const prestamoCancelado: PrestamoPublic = {
       ...prestamo,
-      id: 2,
+      id: "2",
       estatus: "cancelado",
       cuotas: [],
     };
@@ -1452,7 +1448,7 @@ describe("ClienteScreen — header y editar ubicación", () => {
   });
 
   it("guardar ubicación envía lat/lng del negocio al mover el pin (PATCH actualizarCliente)", async () => {
-    const actualizarCliente = jest.fn().mockResolvedValue({ id: 2 });
+    const actualizarCliente = jest.fn().mockResolvedValue({ id: "2" });
     const { getByTestId } = await renderConApi(
       { actualizarCliente },
       offlineValor,
@@ -1471,16 +1467,14 @@ describe("ClienteScreen — header y editar ubicación", () => {
     await fireEvent.press(getByTestId("guardar-ubicacion"));
 
     await waitFor(() =>
-      expect(actualizarCliente).toHaveBeenCalledWith(
-        6,
-        2,
+      expect(actualizarCliente).toHaveBeenCalledWith("6","2",
         { latitud: -17.79, longitud: -63.19 },
       ),
     );
   });
 
   it("guardar ubicación envía lat/lng del domicilio al cambiar de chip", async () => {
-    const actualizarCliente = jest.fn().mockResolvedValue({ id: 2 });
+    const actualizarCliente = jest.fn().mockResolvedValue({ id: "2" });
     const { getByTestId } = await renderConApi(
       { actualizarCliente },
       offlineValor,
@@ -1501,9 +1495,7 @@ describe("ClienteScreen — header y editar ubicación", () => {
     await fireEvent.press(getByTestId("guardar-ubicacion"));
 
     await waitFor(() =>
-      expect(actualizarCliente).toHaveBeenCalledWith(
-        6,
-        2,
+      expect(actualizarCliente).toHaveBeenCalledWith("6","2",
         { latitudDomicilio: -17.8, longitudDomicilio: -63.2 },
       ),
     );

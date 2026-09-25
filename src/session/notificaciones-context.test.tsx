@@ -9,9 +9,9 @@ const notis: NotificacionPublic[] = [
     id: "pago-1",
     tipo: "pago",
     mensaje: "Pago registrado",
-    carteraId: 1,
+    carteraId: "1",
     carteraNombre: "Cartera Centro",
-    clienteId: 1,
+    clienteId: "1",
     monto: 100,
     fecha: "2026-09-01T00:00:00.000Z",
   },
@@ -19,7 +19,7 @@ const notis: NotificacionPublic[] = [
     id: "gasto-2",
     tipo: "gasto",
     mensaje: "Gasto registrado",
-    carteraId: 1,
+    carteraId: "1",
     carteraNombre: "Cartera Centro",
     clienteId: null,
     monto: 50,
@@ -42,7 +42,7 @@ function Probe() {
 
 function renderCtx() {
   const session: SessionValue = {
-    gestor: { id: 20, usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
+    gestor: { id: "20", usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
     loading: false,
     api: {
       notificaciones: jest.fn().mockResolvedValue(notis),

@@ -9,7 +9,6 @@ export const API_URL =
  */
 export const TENANT = process.env.EXPO_PUBLIC_TENANT ?? "";
 
-export const DEVICE_API_KEY = process.env.EXPO_PUBLIC_DEVICE_KEY ?? "";
 
 export function authUrl(path: string): string {
   return `${API_URL}${path}`;

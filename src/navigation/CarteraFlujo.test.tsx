@@ -6,7 +6,7 @@ import { CarteraActivaContext } from "../session/cartera-activa-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 
 const carteraA = {
-  id: 6,
+  id: "6",
   nombre: "Cartera Centro",
   estatus: "activo",
   tipoInteres: 20,
@@ -14,7 +14,7 @@ const carteraA = {
   config: {} as never,
   permisos: [],
 };
-const carteraB = { ...carteraA, id: 7, nombre: "Cartera Sur" };
+const carteraB = { ...carteraA, id: "7", nombre: "Cartera Sur" };
 
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
@@ -89,11 +89,11 @@ let navigate: jest.Mock = jest.fn();
 
 function renderFlujo(
   carteras = [carteraA, carteraB],
-  carteraActiva: { carteraId: number; carteraNombre: string } | null = null,
+  carteraActiva: { carteraId: string; carteraNombre: string } | null = null,
 ) {
   navigate = jest.fn();
   const session: SessionValue = {
-    gestor: { id: 20, usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
+    gestor: { id: "20", usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
     loading: false,
     api: {
       misCarteras: jest.fn().mockResolvedValue(carteras),
@@ -155,7 +155,7 @@ describe("CarteraFlujo", () => {
 
   it("agrupa Clientes y Diario bajo el nombre de la cartera activa", async () => {
     const { findByTestId } = await renderFlujo([carteraA, carteraB], {
-      carteraId: 6,
+      carteraId: "6",
       carteraNombre: "Cartera Centro",
     });
 

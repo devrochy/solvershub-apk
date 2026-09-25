@@ -7,7 +7,7 @@ import type {
 } from "../types/gestor";
 
 export interface CarteraActiva {
-  carteraId: number;
+  carteraId: string;
   carteraNombre: string;
   tipoInteres: number;
   numCuotas: number;

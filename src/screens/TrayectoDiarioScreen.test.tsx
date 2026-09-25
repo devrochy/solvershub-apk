@@ -33,10 +33,10 @@ jest.mock("../components/TrayectosLista", () => {
       clientes,
       trayectos,
     }: {
-      clientes: Array<{ clienteId: number; nombre: string }>;
+      clientes: Array<{ clienteId: string; nombre: string }>;
       trayectos: {
         ordenClientes: Array<
-          Array<{ clienteId: number; latitud?: number; longitud?: number }>
+          Array<{ clienteId: string; latitud?: number; longitud?: number }>
         >;
       };
     }) =>
@@ -122,11 +122,11 @@ async function renderConApi(
   permisos?: GestorPermisoEstado[],
 ) {
   const valor: SessionValue = {
-    gestor: { id: 20, usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
+    gestor: { id: "20", usuario: "gestor1", nombre: "C", apellido: "L", rol: "gestor" },
     loading: false,
     api: {
       trayectoDiario: jest.fn().mockResolvedValue({ clientes: [], trayectos: null }),
-      registrarApertura: jest.fn().mockResolvedValue({ id: 1, carteraId: 6 }),
+      registrarApertura: jest.fn().mockResolvedValue({ id: "1", carteraId: "6" }),
       ...api,
     } as SessionValue["api"],
     login: jest.fn(),
@@ -141,7 +141,7 @@ async function renderConApi(
             <CarteraActivaContext.Provider
               value={{
                 carteraActiva: {
-                  carteraId: 6,
+                  carteraId: "6",
                   carteraNombre: "Cartera",
                   tipoInteres: 20,
                   numCuotas: 8,
@@ -176,6 +176,7 @@ describe("TrayectoDiarioScreen — gasto offline", () => {
 
     await waitFor(() =>
       expect(encolar).toHaveBeenCalledWith("gasto", {
+        carteraId: "6",
         descripcion: "Combustible",
         valor: 50,
         evidencias: [],
@@ -212,6 +213,7 @@ describe("TrayectoDiarioScreen — gasto offline", () => {
 
     await waitFor(() =>
       expect(encolar).toHaveBeenCalledWith("gasto", {
+        carteraId: "6",
         descripcion: "Combustible",
         valor: 50,
         evidencias: [{ nombre: "a.jpg", mimetype: "image/jpeg", base64: "AAAA" }],
@@ -260,7 +262,7 @@ describe("TrayectoDiarioScreen — gasto offline", () => {
 
 describe("TrayectoDiarioScreen — cache del día", () => {
   const trayectoDiario = {
-    clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
+    clientes: [{ clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
     trayectos: null,
   };
 
@@ -269,7 +271,7 @@ describe("TrayectoDiarioScreen — cache del día", () => {
     await renderConApi({ trayectoDiario: jest.fn().mockResolvedValue(trayectoDiario) });
 
     await waitFor(() =>
-      expect(cache.guardarTrayectoDiario).toHaveBeenCalledWith(6, trayectoDiario),
+      expect(cache.guardarTrayectoDiario).toHaveBeenCalledWith("6", trayectoDiario),
     );
   });
 
@@ -297,25 +299,25 @@ describe("TrayectoDiarioScreen — cache del día", () => {
   it("precachea tarjeta y préstamos de cada cliente del día", async () => {
     (cache.guardarTrayectoDiario as jest.Mock).mockResolvedValue(undefined);
     const clientes = [
-      { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
-      { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+      { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+      { clienteId: "2", nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
     ];
     const api = {
       trayectoDiario: jest.fn().mockResolvedValue({ clientes, trayectos: null }),
-      tarjeta: jest.fn().mockResolvedValue({ clienteId: 1 }),
+      tarjeta: jest.fn().mockResolvedValue({ clienteId: "1" }),
       listarPrestamosDeCliente: jest.fn().mockResolvedValue([]),
     };
     await renderConApi(api);
 
     await waitFor(() =>
-      expect(cache.guardarCliente).toHaveBeenCalledWith(6, 1, {
-        tarjeta: { clienteId: 1 },
+      expect(cache.guardarCliente).toHaveBeenCalledWith("6","1", {
+        tarjeta: { clienteId: "1" },
         prestamos: [],
       }),
     );
     await waitFor(() =>
-      expect(cache.guardarCliente).toHaveBeenCalledWith(6, 2, {
-        tarjeta: { clienteId: 1 },
+      expect(cache.guardarCliente).toHaveBeenCalledWith("6","2", {
+        tarjeta: { clienteId: "1" },
         prestamos: [],
       }),
     );
@@ -330,9 +332,9 @@ describe("TrayectoDiarioScreen — navegación externa", () => {
     });
     const trayectoDiario = {
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
-      trayectos: { id: 1, carteraId: 6, fecha: "2026-09-02", ordenClientes: [], waypoints: [], distanciaEstimadaKm: 1, tiempoEstimadoMin: 1, tipo: "planificada" },
+      trayectos: { id: "1", carteraId: "6", fecha: "2026-09-02", ordenClientes: [], waypoints: [], distanciaEstimadaKm: 1, tiempoEstimadoMin: 1, tipo: "planificada" },
     };
     const { getByTestId } = await renderConApi({
       trayectoDiario: jest.fn().mockResolvedValue(trayectoDiario),
@@ -347,7 +349,7 @@ describe("TrayectoDiarioScreen — navegación externa", () => {
     (coordenadaDeCliente as jest.Mock).mockReturnValue(null);
     const trayectoDiario = {
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: null,
     };
@@ -369,7 +371,7 @@ describe("TrayectoDiarioScreen — re-fetch periódico (día en vivo)", () => {
 
   it("recarga la lista del día automáticamente al pasar el intervalo", async () => {
     const trayectoDiario = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
+      clientes: [{ clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
     const { getByText } = await renderConApi({ trayectoDiario });
@@ -386,11 +388,11 @@ describe("TrayectoDiarioScreen — re-fetch periódico (día en vivo)", () => {
 
 describe("TrayectoDiarioScreen — apertura de cartera", () => {
   it("registra la apertura de la cartera al montar la pantalla", async () => {
-    const registrarApertura = jest.fn().mockResolvedValue({ id: 1, carteraId: 6 });
+    const registrarApertura = jest.fn().mockResolvedValue({ id: "1", carteraId: "6" });
     await renderConApi({ registrarApertura });
 
     await waitFor(() =>
-      expect(registrarApertura).toHaveBeenCalledWith(6, expect.anything()),
+      expect(registrarApertura).toHaveBeenCalledWith("6", expect.anything()),
     );
   });
 });
@@ -420,6 +422,7 @@ describe("TrayectoDiarioScreen — trayectoria offline", () => {
 
     await waitFor(() =>
       expect(encolar).toHaveBeenCalledWith("trayectoria", {
+        carteraId: "6",
         puntos: [
           { latitud: -17.78, longitud: -63.18 },
           { latitud: -17.79, longitud: -63.19 },
@@ -433,7 +436,7 @@ describe("TrayectoDiarioScreen — trayectoria offline", () => {
 describe("TrayectoDiarioScreen — gating de la lista del día", () => {
   it("bloquea la lista y permite generar el trayecto si no existe", async () => {
     const trayectoDiario = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
+      clientes: [{ clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
     const generarTrayecto = jest.fn().mockResolvedValue([]);
@@ -443,7 +446,7 @@ describe("TrayectoDiarioScreen — gating de la lista del día", () => {
     expect(getByTestId("cliente-1").props.accessibilityState.disabled).toBe(true);
 
     await fireEvent.press(getByTestId("generar-trayecto"));
-    await waitFor(() => expect(generarTrayecto).toHaveBeenCalledWith(6));
+    await waitFor(() => expect(generarTrayecto).toHaveBeenCalledWith("6"));
   });
 });
 
@@ -451,17 +454,17 @@ describe("TrayectoDiarioScreen — ver trayectos generados", () => {
   it("abre la lista de trayectos desde el botón y muestra las paradas en orden", async () => {
     const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
-        { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        { clienteId: "2", nombre: "Ana", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
-        id: 1,
-        carteraId: 6,
+        id: "1",
+        carteraId: "6",
         fecha: "2026-09-02",
         ordenClientes: [
           [
-            { clienteId: 1, latitud: -17.78, longitud: -63.18 },
-            { clienteId: 2, latitud: -17.79, longitud: -63.19 },
+            { clienteId: "1", latitud: -17.78, longitud: -63.18 },
+            { clienteId: "2", latitud: -17.79, longitud: -63.19 },
           ],
         ],
         waypoints: [],
@@ -483,13 +486,13 @@ describe("TrayectoDiarioScreen — ver trayectos generados", () => {
   it("la capa de trayectos se cierra con gesto swipe (handlers del responder)", async () => {
     const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
-        id: 1,
-        carteraId: 6,
+        id: "1",
+        carteraId: "6",
         fecha: "2026-09-02",
-        ordenClientes: [[{ clienteId: 1, latitud: -17.78, longitud: -63.18 }]],
+        ordenClientes: [[{ clienteId: "1", latitud: -17.78, longitud: -63.18 }]],
         waypoints: [],
         distanciaEstimadaKm: 1,
         tiempoEstimadoMin: 5,
@@ -515,13 +518,13 @@ describe("TrayectoDiarioScreen — ver trayectos generados", () => {
   it("el back físico de Android NO lo gestiona TrayectoDiarioScreen (lo hace InicioGestor)", async () => {
     const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
-        id: 1,
-        carteraId: 6,
+        id: "1",
+        carteraId: "6",
         fecha: "2026-09-02",
-        ordenClientes: [[{ clienteId: 1, latitud: -17.78, longitud: -63.18 }]],
+        ordenClientes: [[{ clienteId: "1", latitud: -17.78, longitud: -63.18 }]],
         waypoints: [],
         distanciaEstimadaKm: 1,
         tiempoEstimadoMin: 5,
@@ -543,7 +546,7 @@ describe("TrayectoDiarioScreen — ver trayectos generados", () => {
 
   it("no muestra el botón de trayectos si no hay trayecto generado", async () => {
     const trayectoDiario = jest.fn().mockResolvedValue({
-      clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
+      clientes: [{ clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }],
       trayectos: null,
     });
     const { queryByTestId } = await renderConApi({ trayectoDiario });
@@ -566,8 +569,8 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     const { getByTestId, getByText, queryByTestId } = await renderConApi({
       trayectoDiario: jest.fn().mockResolvedValue({
         clientes: [
-          { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 5, compromisoValor: null },
-          { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: 300 },
+          { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 5, compromisoValor: null },
+          { clienteId: "2", nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: 300 },
         ],
         trayectos: null,
       }),
@@ -584,8 +587,8 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     const { getByTestId } = await renderConApi({
       trayectoDiario: jest.fn().mockResolvedValue({
         clientes: [
-          { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
-          { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+          { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "rojo", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+          { clienteId: "2", nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
         ],
         trayectos: null,
       }),
@@ -597,7 +600,7 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
   });
 
   it("'+ Gastos' abre el modal y registrarGasto guarda el gasto", async () => {
-    const registrarGasto = jest.fn().mockResolvedValue({ id: 9 });
+    const registrarGasto = jest.fn().mockResolvedValue({ id: "9" });
     const { getByTestId, getByText } = await renderConApi({ registrarGasto });
 
     await waitFor(() => expect(getByTestId("nuevo-gasto")).toBeTruthy());
@@ -610,8 +613,7 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     await fireEvent.press(getByTestId("gasto-guardar"));
 
     await waitFor(() =>
-      expect(registrarGasto).toHaveBeenCalledWith(
-        6,
+      expect(registrarGasto).toHaveBeenCalledWith("6",
         { descripcion: "Combustible", valor: 50 },
         [],
       ),
@@ -643,14 +645,14 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     });
     const trayectoDiario = jest.fn().mockResolvedValue({
       clientes: [
-        { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
+        { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null },
       ],
       trayectos: {
-        id: 1,
-        carteraId: 6,
+        id: "1",
+        carteraId: "6",
         fecha: "2026-09-02",
         ordenClientes: [
-          [{ clienteId: 1, latitud: -17.78, longitud: -63.18 }],
+          [{ clienteId: "1", latitud: -17.78, longitud: -63.18 }],
         ],
         waypoints: [],
         distanciaEstimadaKm: 1,
@@ -664,11 +666,11 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     });
 
     const valor: SessionValue = {
-      gestor: { id: 20, usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" },
+      gestor: { id: "20", usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" },
       loading: false,
       api: {
         trayectoDiario,
-        registrarApertura: jest.fn().mockResolvedValue({ id: 1, carteraId: 6 }),
+        registrarApertura: jest.fn().mockResolvedValue({ id: "1", carteraId: "6" }),
       } as unknown as SessionValue["api"],
       login: jest.fn(),
       logout: jest.fn(),
@@ -682,7 +684,7 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
               <CarteraActivaContext.Provider
                 value={{
                   carteraActiva: {
-                    carteraId: 6,
+                    carteraId: "6",
                     carteraNombre: "Cartera",
                     tipoInteres: 20,
                     numCuotas: 8,
@@ -706,8 +708,8 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     await waitFor(() => expect(getByTestId("mock-cliente")).toBeTruthy());
     expect((ClienteScreen as jest.Mock).mock.calls[0][0]).toEqual(
       expect.objectContaining({
-        carteraId: 6,
-        clienteId: 1,
+        carteraId: "6",
+        clienteId: "1",
         prestamoAutoSeleccionado: true,
       }),
     );
@@ -719,7 +721,7 @@ describe("TrayectoDiarioScreen — sin cartera activa", () => {
     const trayectoDiario = jest.fn();
     const registrarApertura = jest.fn();
     const valor: SessionValue = {
-      gestor: { id: 20, usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" },
+      gestor: { id: "20", usuario: "c1", nombre: "C", apellido: "L", rol: "gestor" },
       loading: false,
       api: { trayectoDiario, registrarApertura } as unknown as SessionValue["api"],
       login: jest.fn(),
@@ -749,8 +751,8 @@ describe("TrayectoDiarioScreen — sin cartera activa", () => {
 
 describe("TrayectoDiarioScreen — liquidación del día", () => {
   const clientesConVisita = [
-    { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: true, diasMora: 0, compromisoValor: null },
-    { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: true, diasMora: 0, compromisoValor: null },
+    { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: true, diasMora: 0, compromisoValor: null },
+    { clienteId: "2", nombre: "Ana", enTrayecto: false, color: "verde", visitaRegistrada: true, diasMora: 0, compromisoValor: null },
   ];
 
   const hoyLocal = () => {
@@ -759,8 +761,8 @@ describe("TrayectoDiarioScreen — liquidación del día", () => {
   };
 
   const liquidacionFixture = {
-    id: 5,
-    carteraId: 6,
+    id: "5",
+    carteraId: "6",
     fecha: hoyLocal(),
     periodo: "diario",
     cajaAnterior: 1000,
@@ -776,8 +778,8 @@ describe("TrayectoDiarioScreen — liquidación del día", () => {
     comisionValor: 60,
     comentario: null,
     createdAt: "2026-09-04T20:00:00Z",
-    pagos: [{ id: 1, clienteId: 1, clienteNombre: "Juan", valor: 300, metodoPago: "efectivo", fechaHora: `${hoyLocal()}T14:00:00Z`, liquidado: true }],
-    abonos: [{ id: 2, clienteId: 2, clienteNombre: "Ana", valor: 100, metodoPago: "efectivo", fechaHora: `${hoyLocal()}T15:00:00Z`, liquidado: true }],
+    pagos: [{ id: "1", clienteId: "1", clienteNombre: "Juan", valor: 300, metodoPago: "efectivo", fechaHora: `${hoyLocal()}T14:00:00Z`, liquidado: true }],
+    abonos: [{ id: "2", clienteId: "2", clienteNombre: "Ana", valor: 100, metodoPago: "efectivo", fechaHora: `${hoyLocal()}T15:00:00Z`, liquidado: true }],
   };
 
   it("habilita el botón solo cuando todos los clientes del día tienen visita", async () => {
@@ -838,7 +840,7 @@ describe("TrayectoDiarioScreen — liquidación del día", () => {
     await waitFor(() => expect(getByTestId("generar-liquidacion")).toBeTruthy());
     await fireEvent.press(getByTestId("generar-liquidacion"));
 
-    await waitFor(() => expect(generarLiquidacion).toHaveBeenCalledWith(6, {}));
+    await waitFor(() => expect(generarLiquidacion).toHaveBeenCalledWith("6", {}));
     expect(getByText("Pagos del día")).toBeTruthy();
     expect(getAllByText(/Juan/).length).toBeGreaterThan(0);
     expect(getByText("Abonos del día")).toBeTruthy();

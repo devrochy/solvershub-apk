@@ -8,7 +8,7 @@ export type TipoTrayecto = "planificada" | "real";
 export type VisitaResultado = "pago" | "no_pago";
 
 export interface PerfilPublic {
-  id: number;
+  id: string;
   usuario: string;
   nombre: string;
   apellido: string;
@@ -20,7 +20,7 @@ export interface GestorPermisoEstado {
 }
 
 export interface CarteraConfigPublic {
-  carteraId: number;
+  carteraId: string;
   cuotasMinimasPrestamo: number;
   cuotasAtrasoUmbral: number;
   manejoCupoActivo: boolean;
@@ -56,7 +56,7 @@ export interface CarteraConfigPublic {
 }
 
 export interface CarteraApkPublic {
-  id: number;
+  id: string;
   nombre: string;
   estatus: string;
   tipoInteres: number;
@@ -66,7 +66,7 @@ export interface CarteraApkPublic {
 }
 
 export interface ClienteTrayectoDiarioPublic {
-  clienteId: number;
+  clienteId: string;
   nombre: string;
   enTrayecto: boolean;
   color: ColorListaDelDia;
@@ -76,7 +76,7 @@ export interface ClienteTrayectoDiarioPublic {
 }
 
 export interface ParadaGeo {
-  clienteId: number;
+  clienteId: string;
   latitud?: number;
   longitud?: number;
 }
@@ -84,8 +84,8 @@ export interface ParadaGeo {
 export type Trayecto = ParadaGeo[];
 
 export interface TrayectoPublic {
-  id: number;
-  carteraId: number;
+  id: string;
+  carteraId: string;
   fecha: string;
   ordenClientes: Trayecto[];
   waypoints: { latitud: number; longitud: number }[];
@@ -100,10 +100,10 @@ export interface TrayectoDiarioApkPublic {
 }
 
 export interface VisitaPublic {
-  id: number;
-  carteraId: number;
-  clienteId: number;
-  prestamoPrincipalId: number;
+  id: string;
+  carteraId: string;
+  clienteId: string;
+  prestamoPrincipalId: string;
   fecha: string;
   resultado: VisitaResultado;
   motivoNoPago: string | null;
@@ -112,8 +112,8 @@ export interface VisitaPublic {
 }
 
 export interface GastoEvidenciaPublic {
-  id: number;
-  gastoId: number;
+  id: string;
+  gastoId: string;
   nombreOriginal: string;
   mimetype: string;
   tamaño: number;
@@ -121,8 +121,8 @@ export interface GastoEvidenciaPublic {
 }
 
 export interface GastoPublic {
-  id: number;
-  carteraId: number;
+  id: string;
+  carteraId: string;
   descripcion: string;
   valor: number;
   aprobado: boolean;
@@ -133,8 +133,8 @@ export interface GastoPublic {
 }
 
 export interface ClienteTarjetaPublic {
-  clienteId: number;
-  carteraId: number;
+  clienteId: string;
+  carteraId: string;
   nombre: string;
   negocio: string | null;
   telefonoWhatsapp: string;
@@ -156,11 +156,11 @@ export interface ClienteTarjetaPublic {
 }
 
 export interface CarteraNotaPublic {
-  id: number;
-  carteraId: number;
+  id: string;
+  carteraId: string;
   nota: string;
   creadoPorRol: string;
-  creadoPorId: number;
+  creadoPorId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -177,7 +177,7 @@ export interface EstadisticasConteosPublic {
 }
 
 export interface EstadisticasCarteraPublic {
-  carteraId: number;
+  carteraId: string;
   fecha: string;
   actual: EstadisticasConteosPublic;
   anterior: EstadisticasConteosPublic | null;
@@ -200,8 +200,8 @@ export interface CrearClienteInput {
 }
 
 export interface ClienteGestorPublic {
-  id: number;
-  carteraId: number;
+  id: string;
+  carteraId: string;
   nombre: string;
   apellido: string;
   negocio: string | null;
@@ -234,9 +234,9 @@ export interface NotificacionPublic {
   id: string;
   tipo: NotificacionTipo;
   mensaje: string;
-  carteraId: number;
+  carteraId: string;
   carteraNombre: string;
-  clienteId: number | null;
+  clienteId: string | null;
   monto: number | null;
   fecha: string;
 }
@@ -245,7 +245,7 @@ export type CuotaEstatus = "pendiente" | "pagada" | "atrasada";
 export type PrestamoEstatus = "vigente" | "liquidado" | "cancelado";
 
 export interface CuotaPublic {
-  id: number;
+  id: string;
   numeroCuota: number;
   valorEsperado: number;
   fechaVencimiento: string;
@@ -253,9 +253,9 @@ export interface CuotaPublic {
 }
 
 export interface PrestamoPublic {
-  id: number;
-  carteraId: number;
-  clienteId: number;
+  id: string;
+  carteraId: string;
+  clienteId: string;
   valor: number;
   numCuotas: number;
   tipoInteres: number;
@@ -266,7 +266,7 @@ export interface PrestamoPublic {
 }
 
 export interface PagoCuotaPublic {
-  id: number;
+  id: string;
   valor: number;
   metodoPago: string;
   fechaHora: string;
@@ -275,7 +275,7 @@ export interface PagoCuotaPublic {
 }
 
 export interface AbonoCuotaPublic {
-  id: number;
+  id: string;
   valor: number;
   fechaHora: string;
   liquidado: boolean;
@@ -288,7 +288,7 @@ export interface UltimaVisitaCuotaPublic {
 }
 
 export interface DetalleCuotaPublic {
-  cuotaId: number;
+  cuotaId: string;
   numeroCuota: number;
   valorEsperado: number;
   fechaVencimiento: string;
@@ -301,8 +301,8 @@ export interface DetalleCuotaPublic {
 }
 
 export interface ItemLiquidacionDetalle {
-  id: number;
-  clienteId: number;
+  id: string;
+  clienteId: string;
   clienteNombre: string;
   valor: number;
   metodoPago: string;
@@ -311,8 +311,8 @@ export interface ItemLiquidacionDetalle {
 }
 
 export interface LiquidacionPublic {
-  id: number;
-  carteraId: number;
+  id: string;
+  carteraId: string;
   fecha: string;
   periodo: string;
   cajaAnterior: number;
@@ -333,7 +333,7 @@ export interface LiquidacionPublic {
 }
 
 export interface CuotaEstado {
-  cuotaId: number;
+  cuotaId: string;
   numeroCuota: number;
   valorEsperado: number;
   fechaVencimiento: string;
@@ -343,9 +343,9 @@ export interface CuotaEstado {
 }
 
 export interface EstadoCuentaPrestamoPublic {
-  prestamoId: number;
-  carteraId: number;
-  clienteId: number;
+  prestamoId: string;
+  carteraId: string;
+  clienteId: string;
   nombreCliente: string;
   valor: number;
   numCuotas: number;
@@ -359,11 +359,11 @@ export interface EstadoCuentaPrestamoPublic {
 }
 
 export interface RegistrarVisitaInput {
-  prestamoId: number;
-  clienteId: number;
+  prestamoId: string;
+  clienteId: string;
   resultado: VisitaResultado;
   tipoPago?: "cuota" | "abono";
-  cuotaId?: number;
+  cuotaId?: string;
   valor?: number;
   metodoPago?: string;
   motivoNoPago?: string;
@@ -377,7 +377,7 @@ export interface RegistrarGastoInput {
 }
 
 export interface RegistrarPrestamoInput {
-  clienteId: number;
+  clienteId: string;
   valor: number;
   numCuotas: number;
   tipoInteres?: number;

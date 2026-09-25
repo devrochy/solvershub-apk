@@ -9,7 +9,7 @@ import {
 } from "react";
 import NetInfo from "@react-native-community/netinfo";
 import { sincronizarCola } from "../api/offline-sync";
-import { DEVICE_API_KEY } from "../config";
+import { sessionGateway } from "../session/token-store";
 import {
   contarCola,
   encolar as encolarCola,
@@ -115,7 +115,11 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     try {
       const eventos = await listarCola();
       if (eventos.length > 0) {
-        const confirmados = await sincronizarCola(eventos, DEVICE_API_KEY);
+        const tokens = await sessionGateway.getTokens();
+        if (!tokens) {
+          throw new Error("Sesión expirada");
+        }
+        const confirmados = await sincronizarCola(eventos, tokens.accessToken);
         for (const id of confirmados) {
           await removerDeCola(id);
         }
@@ -128,7 +132,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       // Device key inválida/ausente, 401 del backend o error de red: la cola
       // se queda pendiente y se expone el error para que la UI avise.
       setErrorSync(
-        "No se pudo sincronizar. Verifica la conexión y la clave del dispositivo.",
+        "No se pudo sincronizar. Verifica la conexión e inicia sesión de nuevo.",
       );
       throw new Error("Fallo de sincronización");
     }

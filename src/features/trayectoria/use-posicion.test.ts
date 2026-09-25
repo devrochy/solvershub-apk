@@ -12,7 +12,7 @@ const locMock = Location as jest.Mocked<typeof Location>;
 
 function apiMock() {
   return {
-    registrarPosicion: jest.fn().mockResolvedValue({ carteraId: 6 }),
+    registrarPosicion: jest.fn().mockResolvedValue({ carteraId: "6" }),
   };
 }
 
@@ -35,13 +35,13 @@ afterEach(() => {
 
 it("envía la posición inicial cuando la trayectoria está activa", async () => {
   const api = apiMock();
-await renderHook(() => usePosicion(api as never, 6, true, 0));
+await renderHook(() => usePosicion(api as never, "6", true, 0));
 
   await act(async () => {
     await Promise.resolve();
   });
 
-  expect(api.registrarPosicion).toHaveBeenCalledWith(6, {
+  expect(api.registrarPosicion).toHaveBeenCalledWith("6", {
     latitud: 5.07,
     longitud: -75.52,
   });
@@ -49,7 +49,7 @@ await renderHook(() => usePosicion(api as never, 6, true, 0));
 
 it("re-envía la posición en el intervalo periódico", async () => {
   const api = apiMock();
-await renderHook(() => usePosicion(api as never, 6, true, 0));
+await renderHook(() => usePosicion(api as never, "6", true, 0));
 
   await act(async () => {
     await Promise.resolve();
@@ -66,7 +66,7 @@ await renderHook(() => usePosicion(api as never, 6, true, 0));
 
 it("no envía posiciones si la trayectoria no está activa", async () => {
   const api = apiMock();
-await renderHook(() => usePosicion(api as never, 6, false, 0));
+await renderHook(() => usePosicion(api as never, "6", false, 0));
 
   await act(async () => {
     jest.advanceTimersByTime(30000);

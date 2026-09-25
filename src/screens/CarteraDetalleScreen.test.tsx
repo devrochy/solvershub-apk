@@ -16,7 +16,7 @@ jest.mock("../offline/cache", () => ({
 import * as cache from "../offline/cache";
 
 const estadisticas = {
-  carteraId: 6,
+  carteraId: "6",
   fecha: "2026-09-17",
   actual: {
     totalClientes: 5,
@@ -53,16 +53,16 @@ const estadisticas = {
 
 const trayectoDiario = {
   clientes: [
-    { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
-    { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo" as const },
-    { clienteId: 3, nombre: "Luis", enTrayecto: false, color: "rojo" as const },
+    { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde" as const },
+    { clienteId: "2", nombre: "Ana", enTrayecto: false, color: "rojo" as const },
+    { clienteId: "3", nombre: "Luis", enTrayecto: false, color: "rojo" as const },
   ],
   trayectos: null,
 };
 
 const clientes = Array.from({ length: 5 }, (_, i) => ({
   id: i + 1,
-  carteraId: 6,
+  carteraId: "6",
   nombre: `Cliente ${i + 1}`,
   apellido: "",
   negocio: null,
@@ -80,11 +80,11 @@ const clientes = Array.from({ length: 5 }, (_, i) => ({
 
 const notas = [
   {
-    id: 1,
-    carteraId: 6,
+    id: "1",
+    carteraId: "6",
     nota: "Cliente del barrio central pide más plazo.",
     creadoPorRol: "gestor",
-    creadoPorId: 20,
+    creadoPorId: "20",
     createdAt: "2026-09-02T10:00:00.000Z",
     updatedAt: "2026-09-02T10:00:00.000Z",
   },
@@ -94,19 +94,19 @@ function apiBase() {
   return {
     misCarteras: jest.fn().mockResolvedValue([
       {
-        id: 6,
+        id: "6",
         nombre: "Cartera Centro",
         estatus: "activo",
         tipoInteres: 20,
         numCuotas: 8,
-        config: { carteraId: 6 },
+        config: { carteraId: "6" },
         permisos: [],
       },
     ]),
     listarClientesDeCartera: jest.fn().mockResolvedValue(clientes),
     trayectoDiario: jest.fn().mockResolvedValue(trayectoDiario),
     listarNotas: jest.fn().mockResolvedValue(notas),
-    crearNota: jest.fn().mockResolvedValue({ id: 2, nota: "Nueva" }),
+    crearNota: jest.fn().mockResolvedValue({ id: "2", nota: "Nueva" }),
     estadisticasCartera: jest.fn().mockResolvedValue(estadisticas),
   };
 }
@@ -118,7 +118,7 @@ async function renderDetalle(
 ) {
   const valor: SessionValue = {
     gestor: {
-      id: 20,
+      id: "20",
       usuario: "gestor1",
       nombre: "Carlos",
       apellido: "López",
@@ -135,7 +135,7 @@ async function renderDetalle(
       <CarteraActivaContext.Provider
         value={{
           carteraActiva: {
-            carteraId: 6,
+            carteraId: "6",
             carteraNombre: "Cartera Centro",
             tipoInteres: 20,
             numCuotas: 8,
@@ -145,19 +145,19 @@ async function renderDetalle(
           setCarteraActiva: jest.fn(),
         }}
       >
-        <CarteraDetalleScreen carteraId={6} carteraNombre="Cartera Centro" onCerrar={onCerrar} />
+        <CarteraDetalleScreen carteraId={"6"} carteraNombre="Cartera Centro" onCerrar={onCerrar} />
       </CarteraActivaContext.Provider>
     </SessionContext.Provider>,
   );
 }
 
 function arbolDetalle(
-  carteraId: number,
+  carteraId: string,
   carteraNombre: string,
   api: Partial<SessionValue["api"]> = apiBase(),
 ) {
   const valor: SessionValue = {
-    gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
+    gestor: { id: "20", usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
     loading: false,
     api: api as SessionValue["api"],
     login: jest.fn(),
@@ -207,12 +207,12 @@ describe("CarteraDetalleScreen", () => {
   it("refresca el título del header al cambiar de cartera", async () => {
     const api = apiBase();
     const { getByText, queryByText, rerender } = await render(
-      arbolDetalle(6, "Cartera Centro", api),
+      arbolDetalle("6", "Cartera Centro", api),
     );
 
     await waitFor(() => expect(getByText("Cartera Centro")).toBeTruthy());
 
-    rerender(arbolDetalle(7, "Cartera Sur", api));
+    rerender(arbolDetalle("7", "Cartera Sur", api));
 
     await waitFor(() => expect(getByText("Cartera Sur")).toBeTruthy());
     expect(queryByText("Cartera Centro")).toBeNull();
@@ -220,8 +220,8 @@ describe("CarteraDetalleScreen", () => {
 
   it("al cambiar de cartera limpia los datos y muestra carga (no los de la anterior)", async () => {
     const api = apiBase() as unknown as SessionValue["api"];
-    api.listarClientesDeCartera = jest.fn((id: number) =>
-      id === 6
+    api.listarClientesDeCartera = jest.fn((id: string) =>
+      id === "6"
         ? Promise.resolve(clientes)
         : new Promise(() => {
             /* nunca resuelve: simula la carga de la nueva cartera */
@@ -229,11 +229,11 @@ describe("CarteraDetalleScreen", () => {
     ) as unknown as SessionValue["api"]["listarClientesDeCartera"];
 
     const { getByText, getByTestId, rerender } = await render(
-      arbolDetalle(6, "Cartera Centro", api),
+      arbolDetalle("6", "Cartera Centro", api),
     );
     await waitFor(() => expect(getByText("Cartera Centro")).toBeTruthy());
 
-    rerender(arbolDetalle(7, "Cartera Sur", api));
+    rerender(arbolDetalle("7", "Cartera Sur", api));
 
     await waitFor(() => expect(getByTestId("carga-spinner")).toBeTruthy());
   });
@@ -251,11 +251,11 @@ describe("CarteraDetalleScreen", () => {
 
   it("'+ Nota' abre el modal y guardar llama a crearNota y refresca la lista", async () => {
     const crearNota = jest.fn().mockResolvedValue({
-      id: 2,
-      carteraId: 6,
+      id: "2",
+      carteraId: "6",
       nota: "Nueva nota",
       creadoPorRol: "gestor",
-      creadoPorId: 20,
+      creadoPorId: "20",
       createdAt: "2026-09-02T11:00:00.000Z",
       updatedAt: "2026-09-02T11:00:00.000Z",
     });
@@ -265,11 +265,11 @@ describe("CarteraDetalleScreen", () => {
       .mockResolvedValueOnce([
         ...notas,
         {
-          id: 2,
-          carteraId: 6,
+          id: "2",
+          carteraId: "6",
           nota: "Nueva nota",
           creadoPorRol: "gestor",
-          creadoPorId: 20,
+          creadoPorId: "20",
           createdAt: "2026-09-02T11:00:00.000Z",
           updatedAt: "2026-09-02T11:00:00.000Z",
         },
@@ -286,7 +286,7 @@ describe("CarteraDetalleScreen", () => {
     await fireEvent.changeText(getByTestId("nota-textarea"), "Nueva nota");
     await fireEvent.press(getByTestId("nota-guardar"));
 
-    await waitFor(() => expect(crearNota).toHaveBeenCalledWith(6, "Nueva nota"));
+    await waitFor(() => expect(crearNota).toHaveBeenCalledWith("6", "Nueva nota"));
     await waitFor(() => expect(getByText("Nueva nota")).toBeTruthy());
   });
 
@@ -302,10 +302,10 @@ describe("CarteraDetalleScreen", () => {
   });
 
   it("con permiso actualizar_cartera, Editar abre el modal y guarda nombre/interés/cuotas", async () => {
-    const actualizarCartera = jest.fn().mockResolvedValue({ id: 6, nombre: "Cartera Nueva" });
+    const actualizarCartera = jest.fn().mockResolvedValue({ id: "6", nombre: "Cartera Nueva" });
     const actualizarConfiguracionCartera = jest
       .fn()
-      .mockResolvedValue({ id: 6, tipoInteres: 15, numCuotas: 6 });
+      .mockResolvedValue({ id: "6", tipoInteres: 15, numCuotas: 6 });
     const { getByTestId } = await renderDetalle(
       { ...apiBase(), actualizarCartera, actualizarConfiguracionCartera },
       jest.fn(),
@@ -319,8 +319,8 @@ describe("CarteraDetalleScreen", () => {
     await fireEvent.changeText(getByTestId("editar-cartera-numCuotas"), "6");
     await fireEvent.press(getByTestId("cartera-editar-guardar"));
 
-    await waitFor(() => expect(actualizarCartera).toHaveBeenCalledWith(6, { nombre: "Cartera Nueva" }));
-    expect(actualizarConfiguracionCartera).toHaveBeenCalledWith(6, { tipoInteres: 15, numCuotas: 6 });
+    await waitFor(() => expect(actualizarCartera).toHaveBeenCalledWith("6", { nombre: "Cartera Nueva" }));
+    expect(actualizarConfiguracionCartera).toHaveBeenCalledWith("6", { tipoInteres: 15, numCuotas: 6 });
   });
 
   it("NO muestra botón back (la navegación atrás es por gesto swipe)", async () => {
@@ -332,7 +332,7 @@ describe("CarteraDetalleScreen", () => {
   });
 
   it("NO muestra 'No se pudo guardar la nota' si la nota se creó pero el re-fetch falla", async () => {
-    const crearNota = jest.fn().mockResolvedValue({ id: 2 });
+    const crearNota = jest.fn().mockResolvedValue({ id: "2" });
     const listarNotas = jest
       .fn()
       .mockResolvedValueOnce(notas)
@@ -348,14 +348,14 @@ describe("CarteraDetalleScreen", () => {
     await fireEvent.changeText(getByTestId("nota-textarea"), "Nueva nota");
     await fireEvent.press(getByTestId("nota-guardar"));
 
-    await waitFor(() => expect(crearNota).toHaveBeenCalledWith(6, "Nueva nota"));
+    await waitFor(() => expect(crearNota).toHaveBeenCalledWith("6", "Nueva nota"));
     expect(queryByText("No se pudo guardar la nota.")).toBeNull();
   });
 
   it("muestra el estado 'sin cartera' y el botón para seleccionar cuando no hay cartera activa", async () => {
     const valor: SessionValue = {
       gestor: {
-        id: 20,
+        id: "20",
         usuario: "gestor1",
         nombre: "Carlos",
         apellido: "López",
@@ -395,7 +395,7 @@ describe("CarteraDetalleScreen — estadísticas", () => {
     expect(getByTestId("estadistica-delta-clientesAtrasados").props.children).toBe("-1");
     expect(getByTestId("estadistica-delta-sinVisitaHoy").props.children).toBe("+2");
     expect(getByText("ayer 3")).toBeTruthy();
-    expect(cache.guardarEstadisticasCartera).toHaveBeenCalledWith(6, estadisticas);
+    expect(cache.guardarEstadisticasCartera).toHaveBeenCalledWith("6", estadisticas);
   });
 
   it("usa el cache con aviso cuando no hay conexión", async () => {

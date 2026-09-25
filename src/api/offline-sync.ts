@@ -2,8 +2,6 @@ import { ApiError } from "./client";
 import { authUrl } from "../config";
 import type { EventoOffline } from "../offline/cola";
 
-export const DEVICE_API_KEY_HEADER = "x-device-key";
-
 interface AckEventoSync {
   eventoIdCliente: string;
   estado: "sincronizado" | "duplicado" | "error";
@@ -11,13 +9,13 @@ interface AckEventoSync {
 }
 
 /**
- * Envía la cola offline a `POST /sync-offline/eventos` autenticado por API key
- * de dispositivo. Devuelve los `eventoIdCliente` confirmados (sincronizado o
- * duplicado) para poder removerlos de la cola local.
+ * Envía la cola offline a `POST /sync-offline/eventos` autenticado con el
+ * **access token del gestor** (Bearer). Devuelve los `eventoIdCliente`
+ * confirmados (sincronizado o duplicado) para poder removerlos de la cola local.
  */
 export async function sincronizarCola(
   eventos: EventoOffline[],
-  apiKey: string,
+  accessToken: string,
 ): Promise<string[]> {
   if (eventos.length === 0) {
     return [];
@@ -26,7 +24,7 @@ export async function sincronizarCola(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      [DEVICE_API_KEY_HEADER]: apiKey,
+      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
       eventos: eventos.map(({ eventoIdCliente, tipoEvento, payload }) => ({

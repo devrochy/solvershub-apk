@@ -64,14 +64,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const result = await apiLogin(usuario, password, rol);
       const perfilSesion: UsuarioPerfil = rol === "propietario"
         ? {
-            id: result.propietario?.id ?? 0,
+            id: result.propietario?.id ?? "",
             usuario: result.propietario?.usuario ?? usuario,
             nombre: result.propietario?.nombre ?? "",
             apellido: result.propietario?.apellido ?? "",
             rol,
           }
         : {
-            id: result.gestor?.id ?? 0,
+            id: result.gestor?.id ?? "",
             usuario: result.gestor?.usuario ?? usuario,
             nombre: result.gestor?.nombre ?? "",
             apellido: result.gestor?.apellido ?? "",

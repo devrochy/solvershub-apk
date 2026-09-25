@@ -2,7 +2,7 @@ import { clasificarCuotas, CuotaCanvas } from "./canvas-cuotas";
 
 function cuota(overrides: Partial<CuotaCanvas>): CuotaCanvas {
   return {
-    cuotaId: 1,
+    cuotaId: "1",
     numeroCuota: 1,
     valorEsperado: 100,
     fechaVencimiento: "2026-09-10",

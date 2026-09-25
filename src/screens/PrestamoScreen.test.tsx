@@ -17,9 +17,9 @@ const offline: OfflineValue = {
 };
 
 const estadoCuenta = {
-  prestamoId: 200,
-  carteraId: 6,
-  clienteId: 11,
+  prestamoId: "200",
+  carteraId: "6",
+  clienteId: "11",
   nombreCliente: "Juan Perez",
   valor: 1000,
   numCuotas: 8,
@@ -27,10 +27,10 @@ const estadoCuenta = {
   estatus: "vigente",
   moneda: "Bs",
   cuotas: [
-    { cuotaId: 1, numeroCuota: 1, valorEsperado: 150, fechaVencimiento: "2026-08-01", estatus: "pagada", abonosAcumulados: 0, saldoPendiente: 0 },
-    { cuotaId: 2, numeroCuota: 2, valorEsperado: 150, fechaVencimiento: "2026-08-08", estatus: "atrasada", abonosAcumulados: 40, saldoPendiente: 110 },
-    { cuotaId: 3, numeroCuota: 3, valorEsperado: 150, fechaVencimiento: "2026-08-15", estatus: "atrasada", abonosAcumulados: 0, saldoPendiente: 150 },
-    { cuotaId: 4, numeroCuota: 4, valorEsperado: 150, fechaVencimiento: "2026-08-22", estatus: "pendiente", abonosAcumulados: 0, saldoPendiente: 150 },
+    { cuotaId: "1", numeroCuota: 1, valorEsperado: 150, fechaVencimiento: "2026-08-01", estatus: "pagada", abonosAcumulados: 0, saldoPendiente: 0 },
+    { cuotaId: "2", numeroCuota: 2, valorEsperado: 150, fechaVencimiento: "2026-08-08", estatus: "atrasada", abonosAcumulados: 40, saldoPendiente: 110 },
+    { cuotaId: "3", numeroCuota: 3, valorEsperado: 150, fechaVencimiento: "2026-08-15", estatus: "atrasada", abonosAcumulados: 0, saldoPendiente: 150 },
+    { cuotaId: "4", numeroCuota: 4, valorEsperado: 150, fechaVencimiento: "2026-08-22", estatus: "pendiente", abonosAcumulados: 0, saldoPendiente: 150 },
   ],
   totalAbonos: 40,
   saldoPendiente: 410,
@@ -40,8 +40,8 @@ const estadoCuenta = {
 async function renderConEstado(
   api: Partial<SessionValue["api"]>,
   route: Partial<{
-    carteraId: number;
-    prestamoId: number;
+    carteraId: string;
+    prestamoId: string;
     clienteNombre: string;
     telefonoWhatsapp: string;
     valor: number;
@@ -49,7 +49,7 @@ async function renderConEstado(
   }> = {},
 ) {
   const valor: SessionValue = {
-    gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
+    gestor: { id: "20", usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
     loading: false,
     api: api as SessionValue["api"],
     login: jest.fn(),
@@ -65,8 +65,8 @@ async function renderConEstado(
             key: "prestamo",
             name: "Prestamo",
             params: {
-              carteraId: 6,
-              prestamoId: 200,
+              carteraId: "6",
+              prestamoId: "200",
               clienteNombre: "Juan Perez",
               telefonoWhatsapp: "+59170000000",
               valor: 1000,

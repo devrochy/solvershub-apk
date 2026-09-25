@@ -25,12 +25,12 @@ function Probe() {
 }
 
 const cartera = {
-  id: 6,
+  id: "6",
   nombre: "Cartera Centro",
   estatus: "activo",
   tipoInteres: 20,
   numCuotas: 8,
-  config: { carteraId: 6, periodoLiquidacion: "diario", cupoDefault: 1500 },
+  config: { carteraId: "6", periodoLiquidacion: "diario", cupoDefault: 1500 },
   permisos: [
     { permiso: "ver_cartera", habilitado: true },
     { permiso: "registrar_pago", habilitado: true },
@@ -40,9 +40,9 @@ const cartera = {
 const diaVacio = { clientes: [], trayectos: null };
 const diaConMora = {
   clientes: [
-    { clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde" as const },
-    { clienteId: 2, nombre: "Ana", enTrayecto: false, color: "rojo" as const },
-    { clienteId: 3, nombre: "Luis", enTrayecto: false, color: "rojo" as const },
+    { clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde" as const },
+    { clienteId: "2", nombre: "Ana", enTrayecto: false, color: "rojo" as const },
+    { clienteId: "3", nombre: "Luis", enTrayecto: false, color: "rojo" as const },
   ],
   trayectos: null,
 };
@@ -68,12 +68,12 @@ function apiConCartera(kpis: { clientes: unknown[]; trayectoDiario: unknown } = 
 }
 
 const cartera2 = {
-  id: 7,
+  id: "7",
   nombre: "Cartera Manizales",
   estatus: "activo",
   tipoInteres: 25,
   numCuotas: 10,
-  config: { carteraId: 7, periodoLiquidacion: "semanal", cupoDefault: 2000 },
+  config: { carteraId: "7", periodoLiquidacion: "semanal", cupoDefault: 2000 },
   permisos: [{ permiso: "ver_cartera", habilitado: true }],
 };
 
@@ -93,7 +93,7 @@ async function renderConCarteras(
 ) {
   const valor: SessionValue = {
     gestor: {
-      id: 20,
+      id: "20",
       usuario: "gestor1",
       nombre: "Carlos",
       apellido: "López",
@@ -121,7 +121,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
 
   it("el ítem Inicio del menú navega a Main (funciona con otra pantalla encima)", async () => {
     const valor: SessionValue = {
-      gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
+      gestor: { id: "20", usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
       loading: false,
       api: apiConCarteras([cartera, cartera2]) as unknown as SessionValue["api"],
       login: jest.fn(),
@@ -159,7 +159,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
   it("muestra los KPIs de la cartera: total clientes, del día, en mora", async () => {
     const clientes = Array.from({ length: 5 }, (_, i) => ({
       id: i + 1,
-      carteraId: 6,
+      carteraId: "6",
       nombre: `C${i}`,
       apellido: "",
       negocio: null,
@@ -200,11 +200,11 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
 
     await waitFor(() =>
       expect(setCarteraActiva).toHaveBeenCalledWith({
-        carteraId: 6,
+        carteraId: "6",
         carteraNombre: "Cartera Centro",
         tipoInteres: 20,
         numCuotas: 8,
-        config: { carteraId: 6, periodoLiquidacion: "diario", cupoDefault: 1500 },
+        config: { carteraId: "6", periodoLiquidacion: "diario", cupoDefault: 1500 },
         permisos: [
           { permiso: "ver_cartera", habilitado: true },
           { permiso: "registrar_pago", habilitado: true },
@@ -224,7 +224,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
   });
 
   it("pinta la tarjeta inactiva en rojo (chevron visible)", async () => {
-    const carteraInactiva = { ...cartera, id: 9, nombre: "Cartera Inactiva", estatus: "bloqueado" };
+    const carteraInactiva = { ...cartera, id: "9", nombre: "Cartera Inactiva", estatus: "bloqueado" };
     const misCarteras = jest.fn().mockResolvedValue([cartera, carteraInactiva]);
     const { getByTestId } = await renderConCarteras({
       misCarteras,
@@ -269,7 +269,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
     const offlineConPendientes: OfflineValue = { ...offline, sinSubir: 2 };
     const valor: SessionValue = {
       gestor: {
-        id: 20,
+        id: "20",
         usuario: "gestor1",
         nombre: "Carlos",
         apellido: "López",
@@ -309,7 +309,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
   });
 
   it("usa el pastel rojo en el header de una cartera inactiva", async () => {
-    const inactiva = { ...cartera, id: 7, nombre: "Cartera Sur", estatus: "inactivo" };
+    const inactiva = { ...cartera, id: "7", nombre: "Cartera Sur", estatus: "inactivo" };
     const { getByTestId } = await renderConCarteras({
       misCarteras: jest.fn().mockResolvedValue([cartera, inactiva]),
       listarClientesDeCartera: jest.fn().mockResolvedValue([]),
@@ -333,7 +333,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
 
     await waitFor(() => expect(onCarteraSeleccionada).toHaveBeenCalledTimes(1));
     expect(setCarteraActiva).toHaveBeenCalledWith(
-      expect.objectContaining({ carteraId: 6, carteraNombre: "Cartera Centro" }),
+      expect.objectContaining({ carteraId: "6", carteraNombre: "Cartera Centro" }),
     );
   });
 
