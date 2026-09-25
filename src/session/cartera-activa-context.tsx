@@ -1,4 +1,5 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { ReactNode } from "react";
 import type {
   GestorPermisoEstado,
@@ -35,11 +36,39 @@ export function aCarteraActiva(cartera: CarteraApkPublic): CarteraActiva {
 
 export const CarteraActivaContext = createContext<CarteraActivaContextValue | null>(null);
 
+const CLAVE_ACTIVA = "cobranza_cartera_activa";
+
 export function CarteraActivaProvider({ children }: { children: ReactNode }) {
-  const [carteraActiva, setCarteraActiva] = useState<CarteraActiva | null>(null);
+  const [carteraActiva, setCarteraActivaState] = useState<CarteraActiva | null>(null);
+
+  // REQ-APK-021: conserva la cartera activa al reiniciar la app.
+  useEffect(() => {
+    void AsyncStorage.getItem(CLAVE_ACTIVA)
+      .then((raw) => {
+        if (!raw) {
+          return;
+        }
+        try {
+          setCarteraActivaState(JSON.parse(raw) as CarteraActiva);
+        } catch {
+          // Dato corrupto: se ignora.
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const setCarteraActiva = useCallback((cartera: CarteraActiva | null) => {
+    setCarteraActivaState(cartera);
+    if (cartera) {
+      void AsyncStorage.setItem(CLAVE_ACTIVA, JSON.stringify(cartera));
+    } else {
+      void AsyncStorage.removeItem(CLAVE_ACTIVA);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({ carteraActiva, setCarteraActiva }),
-    [carteraActiva],
+    [carteraActiva, setCarteraActiva],
   );
   return (
     <CarteraActivaContext.Provider value={value}>
