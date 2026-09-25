@@ -3,7 +3,7 @@ estado: pendiente
 tags: [requerimientos]
 ---
 
-# Requerimientos — APK cobrador (`app-cobranza-apk`)
+# Requerimientos — APK cobrador (`solvershub-apk`)
 
 - **Origen:** `app-cobranza-admin/docs/ai/tasks/benchmark-validacion-cobraia.md` (H-20..H-30, H-46/H-47) y `docs/ai/tasks/apk-foco-cobrador.md`.
 - **Estado:** pendiente (requerimientos definidos).

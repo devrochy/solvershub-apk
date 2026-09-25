@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Solver",
-    "slug": "app-cobranza-apk",
+    "name": "SolversHub",
+    "slug": "solvershub-apk",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "cobranzacobrador",
+    "scheme": "solvershub",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cobraia.cobrador"
+      "bundleIdentifier": "com.solvershub.apk"
     },
     "android": {
-      "package": "com.cobraia.cobrador",
+      "package": "com.solvershub.apk",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#172f6c",
