@@ -35,7 +35,7 @@
   "mcp": {
     "serena": {
       "type": "local",
-      "command": ["/Users/roaguilar/.local/bin/serena", "start-mcp-server", "--context", "ide", "--project", "/Users/roaguilar/Projects/app-cobranza-apk"],
+      "command": ["/Users/roaguilar/.local/bin/serena", "start-mcp-server", "--context", "ide", "--project", "/Users/roaguilar/Projects/solvershub-apk"],
       "enabled": true,
       "environment": {}
     }
