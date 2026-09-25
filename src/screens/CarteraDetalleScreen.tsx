@@ -34,7 +34,7 @@ import type {
 } from "../types/gestor";
 
 export interface CarteraDetalleScreenProps {
-  carteraId?: number;
+  carteraId?: string;
   carteraNombre?: string;
   onCerrar?(): void;
 }
@@ -77,7 +77,7 @@ export function CarteraDetalleScreen({
   const { api, logout } = useSession();
   const { carteraActiva, setCarteraActiva } = useCarteraActiva();
 
-  const carteraId = carteraIdProp ?? carteraActiva?.carteraId ?? 0;
+  const carteraId = carteraIdProp ?? carteraActiva?.carteraId ?? "";
   const carteraNombre = carteraNombreProp ?? carteraActiva?.carteraNombre ?? "";
   const cerrar = onCerrar ?? (() => navigation.navigate("Main"));
 

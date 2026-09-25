@@ -3,7 +3,7 @@ import type { ClienteTrayectoDiarioPublic } from "../types/gestor";
 
 function cliente(color: ClienteTrayectoDiarioPublic["color"]): ClienteTrayectoDiarioPublic {
   return {
-    clienteId: 1,
+    clienteId: "1",
     nombre: "test-cliente",
     enTrayecto: false,
     color,

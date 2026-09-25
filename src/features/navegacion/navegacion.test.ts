@@ -9,14 +9,14 @@ import {
 import type { TrayectoPublic } from "../../types/gestor";
 
 const trayectos: TrayectoPublic = {
-  id: 1,
-  carteraId: 6,
+  id: "1",
+  carteraId: "6",
   fecha: "2026-09-02",
   ordenClientes: [
-    [{ clienteId: 1, latitud: -17.78, longitud: -63.18 }],
+    [{ clienteId: "1", latitud: -17.78, longitud: -63.18 }],
     [
-      { clienteId: 2, latitud: -17.79, longitud: -63.19 },
-      { clienteId: 3 },
+      { clienteId: "2", latitud: -17.79, longitud: -63.19 },
+      { clienteId: "3" },
     ],
   ],
   waypoints: [
@@ -30,18 +30,18 @@ const trayectos: TrayectoPublic = {
 
 describe("navegacion", () => {
   it("coordenadaDeCliente encuentra la parada del cliente en el trayecto", () => {
-    expect(coordenadaDeCliente(trayectos, 2)).toEqual({
+    expect(coordenadaDeCliente(trayectos, "2")).toEqual({
       latitud: -17.79,
       longitud: -63.19,
     });
   });
 
   it("coordenadaDeCliente devuelve null si el cliente no tiene coords", () => {
-    expect(coordenadaDeCliente(trayectos, 3)).toBeNull();
+    expect(coordenadaDeCliente(trayectos, "3")).toBeNull();
   });
 
   it("coordenadaDeCliente devuelve null si no hay trayectos", () => {
-    expect(coordenadaDeCliente(null, 1)).toBeNull();
+    expect(coordenadaDeCliente(null, "1")).toBeNull();
   });
 
   it("enlaceGoogleMaps genera la URL de dirección", () => {

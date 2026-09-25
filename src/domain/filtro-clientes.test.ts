@@ -3,8 +3,8 @@ import type { ClienteGestorPublic } from "../types/gestor";
 
 function cliente(overrides: Partial<ClienteGestorPublic>): ClienteGestorPublic {
   return {
-    id: 1,
-    carteraId: 1,
+    id: "1",
+    carteraId: "1",
     nombre: "Test",
     apellido: "Uno",
     negocio: null,
@@ -28,9 +28,9 @@ function cliente(overrides: Partial<ClienteGestorPublic>): ClienteGestorPublic {
 
 describe("filtrarClientes", () => {
   const clientes = [
-    cliente({ id: 1, numPrestamos: 1, diasMora: 0 }),
-    cliente({ id: 2, numPrestamos: 2, diasMora: 10 }),
-    cliente({ id: 3, numPrestamos: 0, diasMora: 0 }),
+    cliente({ id: "1", numPrestamos: 1, diasMora: 0 }),
+    cliente({ id: "2", numPrestamos: 2, diasMora: 10 }),
+    cliente({ id: "3", numPrestamos: 0, diasMora: 0 }),
   ];
 
   it("sin filtro devuelve todos", () => {
@@ -38,15 +38,15 @@ describe("filtrarClientes", () => {
   });
 
   it("al_dia: con préstamo y sin mora", () => {
-    expect(filtrarClientes(clientes, "al_dia").map((c) => c.id)).toEqual([1]);
+    expect(filtrarClientes(clientes, "al_dia").map((c) => c.id)).toEqual(["1"]);
   });
 
   it("en_mora: con mora", () => {
-    expect(filtrarClientes(clientes, "en_mora").map((c) => c.id)).toEqual([2]);
+    expect(filtrarClientes(clientes, "en_mora").map((c) => c.id)).toEqual(["2"]);
   });
 
   it("sin_prestamos: sin préstamos vigentes", () => {
-    expect(filtrarClientes(clientes, "sin_prestamos").map((c) => c.id)).toEqual([3]);
+    expect(filtrarClientes(clientes, "sin_prestamos").map((c) => c.id)).toEqual(["3"]);
   });
 });
 

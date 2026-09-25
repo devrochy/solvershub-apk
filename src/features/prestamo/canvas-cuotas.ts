@@ -8,7 +8,7 @@ export type TipoCuotaCanvas =
   | "abonada";
 
 export interface CuotaCanvas {
-  cuotaId: number;
+  cuotaId: string;
   numeroCuota: number;
   valorEsperado: number;
   fechaVencimiento: string;

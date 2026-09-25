@@ -39,14 +39,14 @@ export function edicionDesdeTarjeta(
  * (`AplicarEventosOfflineService`): `{clienteId, input}`.
  */
 export function cambioClientePayload(
-  clienteId: number,
+  clienteId: string,
   input: CambioClienteInput,
-): { clienteId: number; input: CambioClienteInput } {
+): { clienteId: string; input: CambioClienteInput } {
   return { clienteId, input };
 }
 
 /** Clave de deduplicación local: no acumular ediciones del mismo cliente. */
-export function dedupeKeyCambioCliente(clienteId: number): string {
+export function dedupeKeyCambioCliente(clienteId: string): string {
   return `cambio_cliente-${clienteId}`;
 }
 

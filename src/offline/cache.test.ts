@@ -28,9 +28,9 @@ import {
   leerEstadisticasCartera,
 } from "./cache";
 
-const trayectoDiario: TrayectoDiarioApkPublic = { clientes: [{ clienteId: 1, nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }], trayectos: null };
+const trayectoDiario: TrayectoDiarioApkPublic = { clientes: [{ clienteId: "1", nombre: "Juan", enTrayecto: false, color: "verde", visitaRegistrada: false, diasMora: 0, compromisoValor: null }], trayectos: null };
 
-const tarjeta: ClienteTarjetaPublic = { clienteId: 1, carteraId: 6, nombre: "Juan", negocio: null, telefonoWhatsapp: "+59170000000", color: "azul", fotoUrl: null, tipoDocumento: "ci", numeroDocumento: "1234567", tipoPago: null, saldoPendiente: 300, diasMora: 0 };
+const tarjeta: ClienteTarjetaPublic = { clienteId: "1", carteraId: "6", nombre: "Juan", negocio: null, telefonoWhatsapp: "+59170000000", color: "azul", fotoUrl: null, tipoDocumento: "ci", numeroDocumento: "1234567", tipoPago: null, saldoPendiente: 300, diasMora: 0 };
 
 describe("cache offline", () => {
   beforeEach(async () => {
@@ -38,29 +38,29 @@ describe("cache offline", () => {
   });
 
   it("guarda y lee el snapshot del día por cartera", async () => {
-    await guardarTrayectoDiario(6, trayectoDiario);
+    await guardarTrayectoDiario("6", trayectoDiario);
 
-    await expect(leerTrayectoDiario(6)).resolves.toEqual(trayectoDiario);
+    await expect(leerTrayectoDiario("6")).resolves.toEqual(trayectoDiario);
   });
 
   it("leerTrayectoDiario devuelve null si no hay cache para la cartera", async () => {
-    await expect(leerTrayectoDiario(99)).resolves.toBeNull();
+    await expect(leerTrayectoDiario("99")).resolves.toBeNull();
   });
 
   it("guarda y lee tarjeta + prestamos del cliente", async () => {
-    const prestamos: PrestamoPublic[] = [{ id: 1, carteraId: 6, clienteId: 1, valor: 1000, numCuotas: 1, tipoInteres: 20, diasEntreCuotas: 7, fechaOtorgado: "2026-09-01", estatus: "vigente", cuotas: [{ id: 10, numeroCuota: 1, valorEsperado: 300, fechaVencimiento: "2026-09-01", estatus: "pendiente" }] }];
-    await guardarCliente(6, 1, { tarjeta, prestamos });
+    const prestamos: PrestamoPublic[] = [{ id: "1", carteraId: "6", clienteId: "1", valor: 1000, numCuotas: 1, tipoInteres: 20, diasEntreCuotas: 7, fechaOtorgado: "2026-09-01", estatus: "vigente", cuotas: [{ id: "10", numeroCuota: 1, valorEsperado: 300, fechaVencimiento: "2026-09-01", estatus: "pendiente" }] }];
+    await guardarCliente("6", "1", { tarjeta, prestamos });
 
-    await expect(leerCliente(6, 1)).resolves.toEqual({ tarjeta, prestamos });
+    await expect(leerCliente("6", "1")).resolves.toEqual({ tarjeta, prestamos });
   });
 
   it("leerCliente devuelve null si no hay cache", async () => {
-    await expect(leerCliente(6, 99)).resolves.toBeNull();
+    await expect(leerCliente("6", "99")).resolves.toBeNull();
   });
 
   it("guarda y lee las estadísticas de la cartera", async () => {
     const estadisticas: EstadisticasCarteraPublic = {
-      carteraId: 6,
+      carteraId: "6",
       fecha: "2026-09-17",
       actual: {
         totalClientes: 5,
@@ -86,12 +86,12 @@ describe("cache offline", () => {
       actualizadoEn: "2026-09-17T23:55:00.000Z",
     };
 
-    await guardarEstadisticasCartera(6, estadisticas);
+    await guardarEstadisticasCartera("6", estadisticas);
 
-    await expect(leerEstadisticasCartera(6)).resolves.toEqual(estadisticas);
+    await expect(leerEstadisticasCartera("6")).resolves.toEqual(estadisticas);
   });
 
   it("leerEstadisticasCartera devuelve null si no hay cache", async () => {
-    await expect(leerEstadisticasCartera(99)).resolves.toBeNull();
+    await expect(leerEstadisticasCartera("99")).resolves.toBeNull();
   });
 });

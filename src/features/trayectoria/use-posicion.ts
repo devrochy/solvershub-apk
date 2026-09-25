@@ -11,7 +11,7 @@ const INTERVALO_MS = 30000;
  */
 export function usePosicion(
   api: GestorApi,
-  carteraId: number,
+  carteraId: string,
   activa: boolean,
   detenerEnviada: number,
 ): void {

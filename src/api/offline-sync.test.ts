@@ -10,7 +10,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 const evento = {
   eventoIdCliente: "11111111-2222-4333-8444-000000000001",
   tipoEvento: "visita",
-  payload: { clienteId: 2 },
+  payload: { clienteId: "2" },
   creadoEn: "2026-09-01T00:00:00.000Z",
   dedupeKey: "pago-1-2-10",
 };
@@ -23,7 +23,7 @@ describe("sincronizarCola", () => {
     global.fetch = fetchMock as unknown as typeof fetch;
   });
 
-  it("envía el lote con la api key y devuelve los confirmados", async () => {
+  it("envía el lote con el Bearer del gestor y devuelve los confirmados", async () => {
     fetchMock.mockResolvedValue(
       jsonResponse([
         { eventoIdCliente: evento.eventoIdCliente, estado: "sincronizado" },
@@ -35,7 +35,7 @@ describe("sincronizarCola", () => {
       ]),
     );
 
-    const confirmados = await sincronizarCola([evento], "dev.key");
+    const confirmados = await sincronizarCola([evento], "access.token");
 
     expect(confirmados).toEqual([evento.eventoIdCliente]);
     expect(fetchMock).toHaveBeenCalledWith(
@@ -44,14 +44,14 @@ describe("sincronizarCola", () => {
         method: "POST",
         headers: expect.objectContaining({
           "Content-Type": "application/json",
-          "x-device-key": "dev.key",
+          Authorization: "Bearer access.token",
         }),
         body: JSON.stringify({
           eventos: [
             {
               eventoIdCliente: evento.eventoIdCliente,
               tipoEvento: "visita",
-              payload: { clienteId: 2 },
+              payload: { clienteId: "2" },
             },
           ],
         }),
@@ -62,7 +62,7 @@ describe("sincronizarCola", () => {
         {
           eventoIdCliente: evento.eventoIdCliente,
           tipoEvento: "visita",
-          payload: { clienteId: 2 },
+          payload: { clienteId: "2" },
         },
       ],
     });
@@ -73,7 +73,7 @@ describe("sincronizarCola", () => {
       jsonResponse([{ eventoIdCliente: evento.eventoIdCliente, estado: "duplicado" }]),
     );
 
-    const confirmados = await sincronizarCola([evento], "dev.key");
+    const confirmados = await sincronizarCola([evento], "access.token");
 
     expect(confirmados).toEqual([evento.eventoIdCliente]);
   });
@@ -81,13 +81,13 @@ describe("sincronizarCola", () => {
   it("lanza ApiError si el servidor responde error", async () => {
     fetchMock.mockResolvedValue(new Response("No autorizado", { status: 401 }));
 
-    await expect(sincronizarCola([evento], "dev.key")).rejects.toMatchObject({
+    await expect(sincronizarCola([evento], "access.token")).rejects.toMatchObject({
       status: 401,
     });
   });
 
   it("no hace nada si la cola está vacía", async () => {
-    await expect(sincronizarCola([], "dev.key")).resolves.toEqual([]);
+    await expect(sincronizarCola([], "access.token")).resolves.toEqual([]);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

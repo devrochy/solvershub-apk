@@ -38,8 +38,8 @@ describe("OverlayDetalle", () => {
   it("renderiza el detalle de cliente cuando la pantalla activa es cliente", async () => {
     const pantalla: PantallaActiva = {
       tipo: "cliente",
-      carteraId: 6,
-      clienteId: 12,
+      carteraId: "6",
+      clienteId: "12",
       nombre: "Juan",
     };
     const { getByTestId } = await render(
@@ -51,8 +51,8 @@ describe("OverlayDetalle", () => {
   it("le pasa las props de la pantalla al ClienteScreen", async () => {
     const pantalla: PantallaActiva = {
       tipo: "cliente",
-      carteraId: 6,
-      clienteId: 12,
+      carteraId: "6",
+      clienteId: "12",
       nombre: "Juan",
       latitud: -17.78,
       longitud: -63.18,
@@ -64,8 +64,8 @@ describe("OverlayDetalle", () => {
     const props = (ClienteScreen as jest.Mock).mock.calls[0][0];
     expect(props).toEqual(
       expect.objectContaining({
-        carteraId: 6,
-        clienteId: 12,
+        carteraId: "6",
+        clienteId: "12",
         latitud: -17.78,
         longitud: -63.18,
         latitudDomicilio: -17.79,
@@ -80,8 +80,8 @@ describe("OverlayDetalle", () => {
   it("envuelve el detalle con el gesto de cerrar (handlers del responder)", async () => {
     const pantalla: PantallaActiva = {
       tipo: "cliente",
-      carteraId: 6,
-      clienteId: 12,
+      carteraId: "6",
+      clienteId: "12",
       nombre: "Juan",
     };
     const { getByTestId } = await render(
@@ -101,7 +101,7 @@ describe("OverlayDetalle", () => {
   it("renderiza el detalle de cartera cuando la pantalla activa es cartera", async () => {
     const pantalla: PantallaActiva = {
       tipo: "cartera",
-      carteraId: 6,
+      carteraId: "6",
       carteraNombre: "Cartera Centro",
     };
     const { getByTestId } = await render(
@@ -110,7 +110,7 @@ describe("OverlayDetalle", () => {
     expect(getByTestId("mock-cartera")).toBeTruthy();
     expect((CarteraDetalleScreen as jest.Mock).mock.calls[0][0]).toEqual(
       expect.objectContaining({
-        carteraId: 6,
+        carteraId: "6",
         carteraNombre: "Cartera Centro",
         onCerrar: expect.any(Function),
       }),
@@ -120,8 +120,8 @@ describe("OverlayDetalle", () => {
   it("no renderiza nada para una pantalla de préstamo sin vista propia", async () => {
     const pantalla: PantallaActiva = {
       tipo: "prestamo",
-      carteraId: 6,
-      prestamoId: 9,
+      carteraId: "6",
+      prestamoId: "9",
       clienteNombre: "Juan",
       telefonoWhatsapp: "+5917000111",
       valor: 500,

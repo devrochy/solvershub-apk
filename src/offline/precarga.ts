@@ -3,9 +3,9 @@
  * TTL. Evita repetir la precarga de todos los clientes del día en cada
  * re-fetch periódico (cada 30s), que generaba ~2N requests.
  */
-export function clientesAprecargar<T extends { clienteId: number }>(
+export function clientesAprecargar<T extends { clienteId: string }>(
   clientes: T[],
-  precargados: Map<number, number>,
+  precargados: Map<string, number>,
   ahora: number,
   ttlMs: number,
 ): T[] {

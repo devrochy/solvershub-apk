@@ -6,7 +6,7 @@ function renderPerfil() {
   const actualizarPerfil = jest.fn(async () => {});
   const value: SessionValue = {
     gestor: {
-      id: 7,
+      id: "7",
       usuario: "cob1",
       nombre: "Carlos",
       apellido: "Ruiz",

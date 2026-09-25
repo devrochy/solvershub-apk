@@ -31,8 +31,8 @@ const offline: OfflineValue = {
 };
 
 const cliente = {
-  id: 11,
-  carteraId: 6,
+  id: "11",
+  carteraId: "6",
   nombre: "Juan",
   apellido: "Perez",
   negocio: "Tienda Central",
@@ -53,13 +53,13 @@ const cliente = {
 async function renderConCarteraActiva(
   api: Partial<SessionValue["api"]>,
   carteraActiva: {
-    carteraId: number;
+    carteraId: string;
     carteraNombre: string;
     tipoInteres: number;
     numCuotas: number;
     config: never;
   } | null = {
-    carteraId: 6,
+    carteraId: "6",
     carteraNombre: "Cartera Centro",
     tipoInteres: 20,
     numCuotas: 8,
@@ -68,7 +68,7 @@ async function renderConCarteraActiva(
   filtro: FiltroClientes = "todos",
 ) {
   const valor: SessionValue = {
-    gestor: { id: 20, usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
+    gestor: { id: "20", usuario: "gestor1", nombre: "Carlos", apellido: "López", rol: "gestor" },
     loading: false,
     api: api as SessionValue["api"],
     login: jest.fn(),
@@ -237,11 +237,11 @@ describe("ClientesScreen", () => {
   });
 
   it("guardar crea el cliente vía crearCliente y refresca la lista", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const listarClientesDeCartera = jest
       .fn()
       .mockResolvedValueOnce([cliente])
-      .mockResolvedValueOnce([cliente, { ...cliente, id: 50, nombre: "Ana", apellido: "Ríos" }]);
+      .mockResolvedValueOnce([cliente, { ...cliente, id: "50", nombre: "Ana", apellido: "Ríos" }]);
     const { getByTestId, getByText } = await renderConCarteraActiva({
       listarClientesDeCartera,
       crearCliente,
@@ -262,8 +262,7 @@ describe("ClientesScreen", () => {
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     await waitFor(() =>
-      expect(crearCliente).toHaveBeenCalledWith(
-        6,
+      expect(crearCliente).toHaveBeenCalledWith("6",
         {
           nombre: "Ana",
           apellido: "Ríos",
@@ -282,7 +281,7 @@ describe("ClientesScreen", () => {
   });
 
   it("bloquea el alta si el documento no es válido para el tipo", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const { getByTestId, getByText } = await renderConCarteraActiva({
       listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
@@ -304,7 +303,7 @@ describe("ClientesScreen", () => {
   });
 
   it("permite elegir el tipo de documento y lo envía al crear", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const { getByTestId } = await renderConCarteraActiva({
       listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
@@ -321,8 +320,7 @@ describe("ClientesScreen", () => {
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     await waitFor(() =>
-      expect(crearCliente).toHaveBeenCalledWith(
-        6,
+      expect(crearCliente).toHaveBeenCalledWith("6",
         expect.objectContaining({
           tipoDocumento: "nit",
           numeroDocumento: "1234567890",
@@ -333,7 +331,7 @@ describe("ClientesScreen", () => {
   });
 
   it("permite registrar el domicilio (opcional) junto con la ubicación del negocio", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const { getByTestId } = await renderConCarteraActiva({
       listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
@@ -359,8 +357,7 @@ describe("ClientesScreen", () => {
     await fireEvent.press(getByTestId("cliente-guardar"));
 
     await waitFor(() =>
-      expect(crearCliente).toHaveBeenCalledWith(
-        6,
+      expect(crearCliente).toHaveBeenCalledWith("6",
         expect.objectContaining({
           latitud: -17.79,
           longitud: -63.19,
@@ -375,8 +372,8 @@ describe("ClientesScreen", () => {
   it("el campo de búsqueda filtra la lista por texto", async () => {
     const { getByTestId, getByText, queryByText } = await renderConCarteraActiva({
       listarClientesDeCartera: jest.fn().mockResolvedValue([
-        { ...cliente, id: 11, nombre: "Juan", apellido: "Perez" },
-        { ...cliente, id: 12, nombre: "Ana", apellido: "Ríos" },
+        { ...cliente, id: "11", nombre: "Juan", apellido: "Perez" },
+        { ...cliente, id: "12", nombre: "Ana", apellido: "Ríos" },
       ]),
     });
 
@@ -425,7 +422,7 @@ describe("ClientesScreen", () => {
   });
 
   it("NO envía coordenadas 0,0 si el usuario deja vacío el campo latitud/longitud", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const { getByTestId, getByText } = await renderConCarteraActiva({
       listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
@@ -448,7 +445,7 @@ describe("ClientesScreen", () => {
   });
 
   it("NO envía un tope de deuda NaN ni negativo", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const { getByTestId, getByText } = await renderConCarteraActiva({
       listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
       crearCliente,
@@ -470,14 +467,14 @@ describe("ClientesScreen", () => {
   });
 
   it("pre-llena el tope máximo con el cupoDefault de la cartera activa", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const { getByTestId } = await renderConCarteraActiva(
       {
         listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
         crearCliente,
       },
       {
-        carteraId: 6,
+        carteraId: "6",
         carteraNombre: "Cartera Centro",
         tipoInteres: 20,
         numCuotas: 8,
@@ -506,11 +503,11 @@ describe("ClientesScreen", () => {
   });
 
   it("muestra el check verde de éxito tras crear el cliente", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const listarClientesDeCartera = jest
       .fn()
       .mockResolvedValueOnce([cliente])
-      .mockResolvedValueOnce([cliente, { ...cliente, id: 50 }]);
+      .mockResolvedValueOnce([cliente, { ...cliente, id: "50" }]);
     const { getByTestId } = await renderConCarteraActiva({
       listarClientesDeCartera,
       crearCliente,
@@ -580,14 +577,14 @@ describe("ClientesScreen", () => {
   });
 
   it("avisa que la cartera exige foto y documento antes de crear si faltan", async () => {
-    const crearCliente = jest.fn().mockResolvedValue({ id: 50 });
+    const crearCliente = jest.fn().mockResolvedValue({ id: "50" });
     const { getByTestId, getByText } = await renderConCarteraActiva(
       {
         listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
         crearCliente,
       },
       {
-        carteraId: 6,
+        carteraId: "6",
         carteraNombre: "Cartera Centro",
         tipoInteres: 20,
         numCuotas: 8,

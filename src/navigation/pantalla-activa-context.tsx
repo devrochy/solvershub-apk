@@ -1,9 +1,9 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
 export type PantallaActiva =
-  | { tipo: "cliente"; carteraId: number; clienteId: number; nombre: string; latitud?: number; longitud?: number; latitudDomicilio?: number; longitudDomicilio?: number; prestamoAutoSeleccionado?: boolean }
-  | { tipo: "prestamo"; carteraId: number; prestamoId: number; clienteNombre: string; telefonoWhatsapp: string; valor: number; numCuotas: number }
-  | { tipo: "cartera"; carteraId: number; carteraNombre: string };
+  | { tipo: "cliente"; carteraId: string; clienteId: string; nombre: string; latitud?: number; longitud?: number; latitudDomicilio?: number; longitudDomicilio?: number; prestamoAutoSeleccionado?: boolean }
+  | { tipo: "prestamo"; carteraId: string; prestamoId: string; clienteNombre: string; telefonoWhatsapp: string; valor: number; numCuotas: number }
+  | { tipo: "cartera"; carteraId: string; carteraNombre: string };
 
 export interface PantallaActivaValue {
   pantalla: PantallaActiva | null;

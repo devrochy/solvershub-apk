@@ -6,8 +6,8 @@ export type RootStackParamList = {
   Configuracion: undefined;
   Notificaciones: undefined;
   Cliente: {
-    carteraId: number;
-    clienteId: number;
+    carteraId: string;
+    clienteId: string;
     nombre: string;
     latitud?: number;
     longitud?: number;
@@ -16,8 +16,8 @@ export type RootStackParamList = {
     prestamoAutoSeleccionado?: boolean;
   };
   Prestamo: {
-    carteraId: number;
-    prestamoId: number;
+    carteraId: string;
+    prestamoId: string;
     clienteNombre: string;
     telefonoWhatsapp: string;
     valor: number;

@@ -31,38 +31,38 @@ async function escribir(clave: string, valor: unknown): Promise<void> {
   await AsyncStorage.setItem(clave, JSON.stringify(valor));
 }
 
-export async function guardarTrayectoDiario(carteraId: number, trayectoDiario: TrayectoDiarioApkPublic): Promise<void> {
+export async function guardarTrayectoDiario(carteraId: string, trayectoDiario: TrayectoDiarioApkPublic): Promise<void> {
   await escribir(`${PREFIJO_TRAYECTO_DIARIO}_${carteraId}`, trayectoDiario);
 }
 
-export async function leerTrayectoDiario(carteraId: number): Promise<TrayectoDiarioApkPublic | null> {
+export async function leerTrayectoDiario(carteraId: string): Promise<TrayectoDiarioApkPublic | null> {
   return leer<TrayectoDiarioApkPublic>(`${PREFIJO_TRAYECTO_DIARIO}_${carteraId}`);
 }
 
 export async function guardarCliente(
-  carteraId: number,
-  clienteId: number,
+  carteraId: string,
+  clienteId: string,
   cache: ClienteCache,
 ): Promise<void> {
   await escribir(`${PREFIJO_CLIENTE}_${carteraId}_${clienteId}`, cache);
 }
 
 export async function leerCliente(
-  carteraId: number,
-  clienteId: number,
+  carteraId: string,
+  clienteId: string,
 ): Promise<ClienteCache | null> {
   return leer<ClienteCache>(`${PREFIJO_CLIENTE}_${carteraId}_${clienteId}`);
 }
 
 export async function guardarEstadisticasCartera(
-  carteraId: number,
+  carteraId: string,
   estadisticas: EstadisticasCarteraPublic,
 ): Promise<void> {
   await escribir(`${PREFIJO_ESTADISTICAS}_${carteraId}`, estadisticas);
 }
 
 export async function leerEstadisticasCartera(
-  carteraId: number,
+  carteraId: string,
 ): Promise<EstadisticasCarteraPublic | null> {
   return leer<EstadisticasCarteraPublic>(`${PREFIJO_ESTADISTICAS}_${carteraId}`);
 }

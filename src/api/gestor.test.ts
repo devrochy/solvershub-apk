@@ -23,7 +23,7 @@ describe("gestorApi", () => {
 
   it("actualizarPerfil hace PATCH /perfil con nombre y apellido", async () => {
     request.mockResolvedValue({
-      id: 7,
+      id: "7",
       usuario: "cob1",
       nombre: "Nuevo",
       apellido: "Pérez",
@@ -42,24 +42,24 @@ describe("gestorApi", () => {
   it("trayectoDiario llama a GET /gestor/carteras/:id/trayecto-diario", async () => {
     request.mockResolvedValue({ clientes: [], trayectos: null });
 
-    await api.trayectoDiario(6);
+    await api.trayectoDiario("6");
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/trayecto-diario");
   });
 
   it("estadisticasCartera llama a GET /gestor/carteras/:id/estadisticas", async () => {
-    request.mockResolvedValue({ carteraId: 6, actual: {} });
+    request.mockResolvedValue({ carteraId: "6", actual: {} });
 
-    await api.estadisticasCartera(6);
+    await api.estadisticasCartera("6");
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/estadisticas");
   });
 
   it("registrarVisitaPago hace POST con el input", async () => {
-    request.mockResolvedValue({ id: 1 });
+    request.mockResolvedValue({ id: "1" });
 
-    const input = { prestamoId: 1, clienteId: 2, resultado: "pago" as const };
-    await api.registrarVisitaPago(6, input);
+    const input = { prestamoId: "1", clienteId: "2", resultado: "pago" as const };
+    await api.registrarVisitaPago("6", input);
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/visitas/pago", {
       method: "POST",
@@ -69,15 +69,15 @@ describe("gestorApi", () => {
   });
 
   it("registrarVisitaNoPago hace POST al endpoint no-pago", async () => {
-    request.mockResolvedValue({ id: 1 });
+    request.mockResolvedValue({ id: "1" });
 
     const input = {
-      prestamoId: 1,
-      clienteId: 2,
+      prestamoId: "1",
+      clienteId: "2",
       resultado: "no_pago" as const,
       motivoNoPago: "no_tiene_dinero",
     };
-    await api.registrarVisitaNoPago(6, input);
+    await api.registrarVisitaNoPago("6", input);
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/visitas/no-pago", {
       method: "POST",
@@ -87,10 +87,9 @@ describe("gestorApi", () => {
   });
 
   it("registrarGasto construye multipart con descripcion, valor y evidencias", async () => {
-    request.mockResolvedValue({ id: 1 });
+    request.mockResolvedValue({ id: "1" });
 
-    await api.registrarGasto(
-      6,
+    await api.registrarGasto("6",
       { descripcion: "Combustible", valor: 50 },
       [{ uri: "file:///tmp/x.jpg", name: "x.jpg", type: "image/jpeg" }],
     );
@@ -111,7 +110,7 @@ describe("gestorApi", () => {
   });
 
   it("registrarTrayectoriaReal hace POST con los puntos", async () => {
-    request.mockResolvedValue({ id: 1, tipo: "real" });
+    request.mockResolvedValue({ id: "1", tipo: "real" });
 
     const input = {
       puntos: [
@@ -119,7 +118,7 @@ describe("gestorApi", () => {
         { latitud: -17.79, longitud: -63.19 },
       ],
     };
-    await api.registrarTrayectoriaReal(6, input);
+    await api.registrarTrayectoriaReal("6", input);
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/trayectoria-real", {
       method: "POST",
@@ -129,9 +128,9 @@ describe("gestorApi", () => {
   });
 
   it("tarjeta llama a GET del estado de cuenta", async () => {
-    request.mockResolvedValue({ clienteId: 2 });
+    request.mockResolvedValue({ clienteId: "2" });
 
-    await api.tarjeta(6, 2);
+    await api.tarjeta("6","2");
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/clientes/2/tarjeta");
   });
@@ -139,21 +138,21 @@ describe("gestorApi", () => {
   it("listarPrestamosDeCliente llama a GET de préstamos del cliente", async () => {
     request.mockResolvedValue([]);
 
-    await api.listarPrestamosDeCliente(6, 2);
+    await api.listarPrestamosDeCliente("6","2");
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/clientes/2/prestamos");
   });
 
   it("detalleCuota llama a GET del detalle de la cuota", async () => {
     request.mockResolvedValue({
-      cuotaId: 10,
+      cuotaId: "10",
       pagos: [],
       abonosAcumulados: 0,
       saldoPendiente: 300,
       ultimaVisita: null,
     });
 
-    await api.detalleCuota(6, 1, 10);
+    await api.detalleCuota("6","1","10");
 
     expect(request).toHaveBeenCalledWith(
       "/gestor/carteras/6/prestamos/1/cuotas/10/detalle",
@@ -161,10 +160,10 @@ describe("gestorApi", () => {
   });
 
   it("crearPrestamo hace POST con el input", async () => {
-    request.mockResolvedValue({ id: 1 });
+    request.mockResolvedValue({ id: "1" });
 
-    await api.crearPrestamo(6, {
-      clienteId: 2,
+    await api.crearPrestamo("6", {
+      clienteId: "2",
       valor: 800,
       numCuotas: 4,
       diasEntreCuotas: 7,
@@ -174,7 +173,7 @@ describe("gestorApi", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        clienteId: 2,
+        clienteId: "2",
         valor: 800,
         numCuotas: 4,
         diasEntreCuotas: 7,
@@ -183,9 +182,9 @@ describe("gestorApi", () => {
   });
 
   it("editarCuota hace PATCH con valor, password y motivo", async () => {
-    request.mockResolvedValue({ id: 10 });
+    request.mockResolvedValue({ id: "10" });
 
-    await api.editarCuota(6, 10, {
+    await api.editarCuota("6","10", {
       valorEsperado: 500,
       password: "secreto",
       motivo: "corrección",
@@ -203,9 +202,9 @@ describe("gestorApi", () => {
   });
 
   it("eliminarCuota hace DELETE con password y motivo", async () => {
-    request.mockResolvedValue({ id: 10 });
+    request.mockResolvedValue({ id: "10" });
 
-    await api.eliminarCuota(6, 10, { password: "secreto", motivo: "error" });
+    await api.eliminarCuota("6","10", { password: "secreto", motivo: "error" });
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/cuotas/10", {
       method: "DELETE",
@@ -215,9 +214,9 @@ describe("gestorApi", () => {
   });
 
   it("eliminarAbono hace DELETE con password y motivo", async () => {
-    request.mockResolvedValue({ id: 30 });
+    request.mockResolvedValue({ id: "30" });
 
-    await api.eliminarAbono(6, 30, { password: "secreto", motivo: "error" });
+    await api.eliminarAbono("6","30", { password: "secreto", motivo: "error" });
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/abonos/30", {
       method: "DELETE",
@@ -227,9 +226,9 @@ describe("gestorApi", () => {
   });
 
   it("registrarApertura hace POST con las coordenadas", async () => {
-    request.mockResolvedValue({ id: 1, carteraId: 6 });
+    request.mockResolvedValue({ id: "1", carteraId: "6" });
 
-    await api.registrarApertura(6, { latitud: -17.78, longitud: -63.18 });
+    await api.registrarApertura("6", { latitud: -17.78, longitud: -63.18 });
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/apertura", {
       method: "POST",
@@ -239,17 +238,17 @@ describe("gestorApi", () => {
   });
 
   it("listarNotas llama a GET de notas de la cartera", async () => {
-    request.mockResolvedValue([{ id: 1, nota: "Nota" }]);
+    request.mockResolvedValue([{ id: "1", nota: "Nota" }]);
 
-    await api.listarNotas(6);
+    await api.listarNotas("6");
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/notas");
   });
 
   it("crearNota hace POST con el texto de la nota", async () => {
-    request.mockResolvedValue({ id: 1, nota: "Comprar combustible" });
+    request.mockResolvedValue({ id: "1", nota: "Comprar combustible" });
 
-    await api.crearNota(6, "Comprar combustible");
+    await api.crearNota("6", "Comprar combustible");
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/notas", {
       method: "POST",
@@ -259,9 +258,9 @@ describe("gestorApi", () => {
   });
 
   it("generarLiquidacion hace POST al endpoint de liquidaciones", async () => {
-    request.mockResolvedValue({ id: 5 });
+    request.mockResolvedValue({ id: "5" });
 
-    await api.generarLiquidacion(6, { comentario: "cierre" });
+    await api.generarLiquidacion("6", { comentario: "cierre" });
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/liquidaciones", {
       method: "POST",
@@ -273,7 +272,7 @@ describe("gestorApi", () => {
   it("listarLiquidaciones llama a GET de liquidaciones de la cartera", async () => {
     request.mockResolvedValue([]);
 
-    await api.listarLiquidaciones(6);
+    await api.listarLiquidaciones("6");
 
     expect(request).toHaveBeenCalledWith("/gestor/carteras/6/liquidaciones");
   });
@@ -281,7 +280,7 @@ describe("gestorApi", () => {
   it("exportarLiquidacionPdf usa requestBytes en el endpoint export-pdf", async () => {
     requestBytes.mockResolvedValue(new Uint8Array([37, 80, 68, 70]));
 
-    const bytes = await api.exportarLiquidacionPdf(6, 5);
+    const bytes = await api.exportarLiquidacionPdf("6","5");
 
     expect(requestBytes).toHaveBeenCalledWith(
       "/gestor/carteras/6/liquidaciones/5/export-pdf",
@@ -290,10 +289,9 @@ describe("gestorApi", () => {
   });
 
   it("crearCliente hace POST multipart con los datos y evidencias", async () => {
-    request.mockResolvedValue({ id: 50 });
+    request.mockResolvedValue({ id: "50" });
 
-    await api.crearCliente(
-      6,
+    await api.crearCliente("6",
       {
         nombre: "Ana",
         apellido: "Ríos",
@@ -332,9 +330,9 @@ describe("gestorApi", () => {
   });
 
   it("actualizarCliente hace PATCH al cliente con lat/lng", async () => {
-    request.mockResolvedValue({ id: 2 });
+    request.mockResolvedValue({ id: "2" });
 
-    await api.actualizarCliente(6, 2, {
+    await api.actualizarCliente("6","2", {
       latitud: -17.79,
       longitud: -63.19,
     });
@@ -347,9 +345,9 @@ describe("gestorApi", () => {
   });
 
   it("actualizarCliente acepta lat/lng de domicilio", async () => {
-    request.mockResolvedValue({ id: 2 });
+    request.mockResolvedValue({ id: "2" });
 
-    await api.actualizarCliente(6, 2, {
+    await api.actualizarCliente("6","2", {
       latitudDomicilio: -17.8,
       longitudDomicilio: -63.2,
     });

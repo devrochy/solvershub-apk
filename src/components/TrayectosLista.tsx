@@ -14,7 +14,7 @@ export interface TrayectosListaProps {
 
 function nombreDeParada(
   clientes: ClienteTrayectoDiarioPublic[],
-  clienteId: number,
+  clienteId: string,
 ): string {
   return clientes.find((c) => c.clienteId === clienteId)?.nombre ?? `Cliente ${clienteId}`;
 }

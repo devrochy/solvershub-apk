@@ -13,7 +13,7 @@ export interface Coordenada {
  */
 export function coordenadaDeCliente(
   trayectos: TrayectoPublic | null,
-  clienteId: number,
+  clienteId: string,
 ): Coordenada | null {
   if (!trayectos) {
     return null;

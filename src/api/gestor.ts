@@ -36,12 +36,12 @@ export interface GestorApi {
     nombre: string;
     apellido: string;
   }): Promise<PerfilPublic>;
-  trayectoDiario(carteraId: number): Promise<TrayectoDiarioApkPublic>;
-  estadisticasCartera(carteraId: number): Promise<EstadisticasCarteraPublic>;
-  generarTrayecto(carteraId: number): Promise<unknown>;
+  trayectoDiario(carteraId: string): Promise<TrayectoDiarioApkPublic>;
+  estadisticasCartera(carteraId: string): Promise<EstadisticasCarteraPublic>;
+  generarTrayecto(carteraId: string): Promise<unknown>;
   actualizarCliente(
-    carteraId: number,
-    clienteId: number,
+    carteraId: string,
+    clienteId: string,
     input: {
       latitud?: number;
       longitud?: number;
@@ -50,95 +50,95 @@ export interface GestorApi {
     },
   ): Promise<ClienteGestorPublic>;
   registrarVisitaPago(
-    carteraId: number,
+    carteraId: string,
     input: RegistrarVisitaInput,
   ): Promise<VisitaPublic>;
   registrarVisitaNoPago(
-    carteraId: number,
+    carteraId: string,
     input: RegistrarVisitaInput,
   ): Promise<VisitaPublic>;
   registrarGasto(
-    carteraId: number,
+    carteraId: string,
     input: RegistrarGastoInput,
     evidencias: { uri: string; name: string; type: string }[],
   ): Promise<GastoPublic>;
   registrarTrayectoriaReal(
-    carteraId: number,
+    carteraId: string,
     input: RegistrarTrayectoriaRealInput,
-  ): Promise<{ id: number; tipo: "real" }>;
-  tarjeta(carteraId: number, clienteId: number): Promise<ClienteTarjetaPublic>;
+  ): Promise<{ id: string; tipo: "real" }>;
+  tarjeta(carteraId: string, clienteId: string): Promise<ClienteTarjetaPublic>;
   agregarEvidenciasCliente(
-    carteraId: number,
-    clienteId: number,
+    carteraId: string,
+    clienteId: string,
     evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
-  ): Promise<{ clienteId: number }>;
-  listarClientesDeCartera(carteraId: number): Promise<ClienteGestorPublic[]>;
+  ): Promise<{ clienteId: string }>;
+  listarClientesDeCartera(carteraId: string): Promise<ClienteGestorPublic[]>;
   crearCliente(
-    carteraId: number,
+    carteraId: string,
     input: CrearClienteInput,
     evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
   ): Promise<ClienteGestorPublic>;
-  listarNotas(carteraId: number): Promise<CarteraNotaPublic[]>;
-  crearNota(carteraId: number, nota: string): Promise<CarteraNotaPublic>;
+  listarNotas(carteraId: string): Promise<CarteraNotaPublic[]>;
+  crearNota(carteraId: string, nota: string): Promise<CarteraNotaPublic>;
   obtenerEstadoCuentaPrestamo(
-    carteraId: number,
-    prestamoId: number,
+    carteraId: string,
+    prestamoId: string,
   ): Promise<EstadoCuentaPrestamoPublic>;
   detalleCuota(
-    carteraId: number,
-    prestamoId: number,
-    cuotaId: number,
+    carteraId: string,
+    prestamoId: string,
+    cuotaId: string,
   ): Promise<DetalleCuotaPublic>;
   listarPrestamosDeCliente(
-    carteraId: number,
-    clienteId: number,
+    carteraId: string,
+    clienteId: string,
   ): Promise<PrestamoPublic[]>;
   crearPrestamo(
-    carteraId: number,
+    carteraId: string,
     input: RegistrarPrestamoInput,
   ): Promise<PrestamoPublic>;
   editarCuota(
-    carteraId: number,
-    cuotaId: number,
+    carteraId: string,
+    cuotaId: string,
     input: { valorEsperado?: number; password: string; motivo: string },
   ): Promise<CuotaPublic>;
   eliminarCuota(
-    carteraId: number,
-    cuotaId: number,
+    carteraId: string,
+    cuotaId: string,
     input: { password: string; motivo: string },
-  ): Promise<{ id: number }>;
+  ): Promise<{ id: string }>;
   eliminarAbono(
-    carteraId: number,
-    abonoId: number,
+    carteraId: string,
+    abonoId: string,
     input: { password: string; motivo: string },
-  ): Promise<{ id: number }>;
+  ): Promise<{ id: string }>;
   eliminarPago(
-    carteraId: number,
-    pagoId: number,
+    carteraId: string,
+    pagoId: string,
     input: { password: string; motivo: string },
-  ): Promise<{ id: number }>;
+  ): Promise<{ id: string }>;
   generarLiquidacion(
-    carteraId: number,
+    carteraId: string,
     input: { comentario?: string | null },
   ): Promise<LiquidacionPublic>;
-  listarLiquidaciones(carteraId: number): Promise<LiquidacionPublic[]>;
-  exportarLiquidacionPdf(carteraId: number, liquidacionId: number): Promise<Uint8Array>;
+  listarLiquidaciones(carteraId: string): Promise<LiquidacionPublic[]>;
+  exportarLiquidacionPdf(carteraId: string, liquidacionId: string): Promise<Uint8Array>;
   registrarApertura(
-    carteraId: number,
+    carteraId: string,
     input: { latitud?: number; longitud?: number },
-  ): Promise<{ id: number; carteraId: number }>;
+  ): Promise<{ id: string; carteraId: string }>;
   registrarPosicion(
-    carteraId: number,
+    carteraId: string,
     input: { latitud: number; longitud: number },
-  ): Promise<{ carteraId: number; latitud: number; longitud: number }>;
+  ): Promise<{ carteraId: string; latitud: number; longitud: number }>;
   actualizarCartera(
-    carteraId: number,
+    carteraId: string,
     input: { nombre: string; descripcion?: string | null },
-  ): Promise<{ id: number; nombre: string }>;
+  ): Promise<{ id: string; nombre: string }>;
   actualizarConfiguracionCartera(
-    carteraId: number,
+    carteraId: string,
     input: { tipoInteres?: number; numCuotas?: number },
-  ): Promise<{ id: number; tipoInteres: number; numCuotas: number }>;
+  ): Promise<{ id: string; tipoInteres: number; numCuotas: number }>;
 }
 
 export function gestorApi(client: ApiClient): GestorApi {
@@ -149,20 +149,20 @@ export function gestorApi(client: ApiClient): GestorApi {
       client.request<NotificacionPublic[]>("/gestor/notificaciones"),
 
     actualizarCartera: (
-      carteraId: number,
+      carteraId: string,
       input: { nombre: string; descripcion?: string | null },
     ) =>
-      client.request<{ id: number; nombre: string }>(`/gestor/carteras/${carteraId}`, {
+      client.request<{ id: string; nombre: string }>(`/gestor/carteras/${carteraId}`, {
         method: "PATCH",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
     actualizarConfiguracionCartera: (
-      carteraId: number,
+      carteraId: string,
       input: { tipoInteres?: number; numCuotas?: number },
     ) =>
-      client.request<{ id: number; tipoInteres: number; numCuotas: number }>(
+      client.request<{ id: string; tipoInteres: number; numCuotas: number }>(
         `/gestor/carteras/${carteraId}/configuracion`,
         {
           method: "PATCH",
@@ -179,8 +179,8 @@ export function gestorApi(client: ApiClient): GestorApi {
       }),
 
     actualizarCliente: (
-      carteraId: number,
-      clienteId: number,
+      carteraId: string,
+      clienteId: string,
       input: {
         latitud?: number;
         longitud?: number;
@@ -197,25 +197,25 @@ export function gestorApi(client: ApiClient): GestorApi {
         },
       ),
 
-    trayectoDiario: (carteraId: number) =>
+    trayectoDiario: (carteraId: string) =>
       client.request<TrayectoDiarioApkPublic>(`/gestor/carteras/${carteraId}/trayecto-diario`),
 
-    estadisticasCartera: (carteraId: number) =>
+    estadisticasCartera: (carteraId: string) =>
       client.request<EstadisticasCarteraPublic>(`/gestor/carteras/${carteraId}/estadisticas`),
 
-    generarTrayecto: (carteraId: number) =>
+    generarTrayecto: (carteraId: string) =>
       client.request<unknown>(`/gestor/carteras/${carteraId}/trayecto`, {
         method: "POST",
       }),
 
-    registrarVisitaPago: (carteraId: number, input: RegistrarVisitaInput) =>
+    registrarVisitaPago: (carteraId: string, input: RegistrarVisitaInput) =>
       client.request<VisitaPublic>(`/gestor/carteras/${carteraId}/visitas/pago`, {
         method: "POST",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
-    registrarVisitaNoPago: (carteraId: number, input: RegistrarVisitaInput) =>
+    registrarVisitaNoPago: (carteraId: string, input: RegistrarVisitaInput) =>
       client.request<VisitaPublic>(`/gestor/carteras/${carteraId}/visitas/no-pago`, {
         method: "POST",
         headers: JSON_HEADERS,
@@ -223,7 +223,7 @@ export function gestorApi(client: ApiClient): GestorApi {
       }),
 
     registrarGasto: async (
-      carteraId: number,
+      carteraId: string,
       input: RegistrarGastoInput,
       evidencias: { uri: string; name: string; type: string }[],
     ) => {
@@ -239,10 +239,10 @@ export function gestorApi(client: ApiClient): GestorApi {
     },
 
     registrarTrayectoriaReal: (
-      carteraId: number,
+      carteraId: string,
       input: RegistrarTrayectoriaRealInput,
     ) =>
-      client.request<{ id: number; tipo: "real" }>(
+      client.request<{ id: string; tipo: "real" }>(
         `/gestor/carteras/${carteraId}/trayectoria-real`,
         {
           method: "POST",
@@ -251,18 +251,18 @@ export function gestorApi(client: ApiClient): GestorApi {
         },
       ),
 
-    tarjeta: (carteraId: number, clienteId: number) =>
+    tarjeta: (carteraId: string, clienteId: string) =>
       client.request<ClienteTarjetaPublic>(
         `/gestor/carteras/${carteraId}/clientes/${clienteId}/tarjeta`,
       ),
 
     agregarEvidenciasCliente: async (
-      carteraId: number,
-      clienteId: number,
+      carteraId: string,
+      clienteId: string,
       evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
     ) => {
       const { body, boundary } = await construirMultipart({}, evidencias);
-      return client.request<{ clienteId: number }>(
+      return client.request<{ clienteId: string }>(
         `/gestor/carteras/${carteraId}/clientes/${clienteId}/evidencias`,
         {
           method: "POST",
@@ -272,11 +272,11 @@ export function gestorApi(client: ApiClient): GestorApi {
       );
     },
 
-    listarClientesDeCartera: (carteraId: number) =>
+    listarClientesDeCartera: (carteraId: string) =>
       client.request<ClienteGestorPublic[]>(`/gestor/carteras/${carteraId}/clientes`),
 
     crearCliente: async (
-      carteraId: number,
+      carteraId: string,
       input: CrearClienteInput,
       evidencias: { campo: "foto_facial" | "documento_frente" | "documento_reverso"; uri: string; name: string; type: string }[],
     ) => {
@@ -313,32 +313,32 @@ export function gestorApi(client: ApiClient): GestorApi {
       );
     },
 
-    listarNotas: (carteraId: number) =>
+    listarNotas: (carteraId: string) =>
       client.request<CarteraNotaPublic[]>(`/gestor/carteras/${carteraId}/notas`),
 
-    crearNota: (carteraId: number, nota: string) =>
+    crearNota: (carteraId: string, nota: string) =>
       client.request<CarteraNotaPublic>(`/gestor/carteras/${carteraId}/notas`, {
         method: "POST",
         headers: JSON_HEADERS,
         body: jsonBody({ nota }),
       }),
 
-    obtenerEstadoCuentaPrestamo: (carteraId: number, prestamoId: number) =>
+    obtenerEstadoCuentaPrestamo: (carteraId: string, prestamoId: string) =>
       client.request<EstadoCuentaPrestamoPublic>(
         `/gestor/carteras/${carteraId}/prestamos/${prestamoId}/estado-cuenta`,
       ),
 
-    listarPrestamosDeCliente: (carteraId: number, clienteId: number) =>
+    listarPrestamosDeCliente: (carteraId: string, clienteId: string) =>
       client.request<PrestamoPublic[]>(
         `/gestor/carteras/${carteraId}/clientes/${clienteId}/prestamos`,
       ),
 
-    detalleCuota: (carteraId: number, prestamoId: number, cuotaId: number) =>
+    detalleCuota: (carteraId: string, prestamoId: string, cuotaId: string) =>
       client.request<DetalleCuotaPublic>(
         `/gestor/carteras/${carteraId}/prestamos/${prestamoId}/cuotas/${cuotaId}/detalle`,
       ),
 
-    crearPrestamo: (carteraId: number, input: RegistrarPrestamoInput) =>
+    crearPrestamo: (carteraId: string, input: RegistrarPrestamoInput) =>
       client.request<PrestamoPublic>(`/gestor/carteras/${carteraId}/prestamos`, {
         method: "POST",
         headers: JSON_HEADERS,
@@ -346,8 +346,8 @@ export function gestorApi(client: ApiClient): GestorApi {
       }),
 
     editarCuota: (
-      carteraId: number,
-      cuotaId: number,
+      carteraId: string,
+      cuotaId: string,
       input: { valorEsperado?: number; password: string; motivo: string },
     ) =>
       client.request<CuotaPublic>(`/gestor/carteras/${carteraId}/cuotas/${cuotaId}`, {
@@ -357,58 +357,58 @@ export function gestorApi(client: ApiClient): GestorApi {
       }),
 
     eliminarCuota: (
-      carteraId: number,
-      cuotaId: number,
+      carteraId: string,
+      cuotaId: string,
       input: { password: string; motivo: string },
     ) =>
-      client.request<{ id: number }>(`/gestor/carteras/${carteraId}/cuotas/${cuotaId}`, {
+      client.request<{ id: string }>(`/gestor/carteras/${carteraId}/cuotas/${cuotaId}`, {
         method: "DELETE",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
     eliminarAbono: (
-      carteraId: number,
-      abonoId: number,
+      carteraId: string,
+      abonoId: string,
       input: { password: string; motivo: string },
     ) =>
-      client.request<{ id: number }>(`/gestor/carteras/${carteraId}/abonos/${abonoId}`, {
+      client.request<{ id: string }>(`/gestor/carteras/${carteraId}/abonos/${abonoId}`, {
         method: "DELETE",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
     eliminarPago: (
-      carteraId: number,
-      pagoId: number,
+      carteraId: string,
+      pagoId: string,
       input: { password: string; motivo: string },
     ) =>
-      client.request<{ id: number }>(`/gestor/carteras/${carteraId}/pagos/${pagoId}`, {
+      client.request<{ id: string }>(`/gestor/carteras/${carteraId}/pagos/${pagoId}`, {
         method: "DELETE",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
-    generarLiquidacion: (carteraId: number, input: { comentario?: string | null }) =>
+    generarLiquidacion: (carteraId: string, input: { comentario?: string | null }) =>
       client.request<LiquidacionPublic>(`/gestor/carteras/${carteraId}/liquidaciones`, {
         method: "POST",
         headers: JSON_HEADERS,
         body: jsonBody(input),
       }),
 
-    listarLiquidaciones: (carteraId: number) =>
+    listarLiquidaciones: (carteraId: string) =>
       client.request<LiquidacionPublic[]>(`/gestor/carteras/${carteraId}/liquidaciones`),
 
-    exportarLiquidacionPdf: (carteraId: number, liquidacionId: number) =>
+    exportarLiquidacionPdf: (carteraId: string, liquidacionId: string) =>
       client.requestBytes(
         `/gestor/carteras/${carteraId}/liquidaciones/${liquidacionId}/export-pdf`,
       ),
 
     registrarApertura: (
-      carteraId: number,
+      carteraId: string,
       input: { latitud?: number; longitud?: number },
     ) =>
-      client.request<{ id: number; carteraId: number }>(
+      client.request<{ id: string; carteraId: string }>(
         `/gestor/carteras/${carteraId}/apertura`,
         {
           method: "POST",
@@ -418,10 +418,10 @@ export function gestorApi(client: ApiClient): GestorApi {
       ),
 
     registrarPosicion: (
-      carteraId: number,
+      carteraId: string,
       input: { latitud: number; longitud: number },
     ) =>
-      client.request<{ carteraId: number; latitud: number; longitud: number }>(
+      client.request<{ carteraId: string; latitud: number; longitud: number }>(
         `/gestor/carteras/${carteraId}/posicion`,
         {
           method: "POST",

@@ -47,12 +47,12 @@ export function TrayectoDiarioScreen() {
   const { colores } = useTheme();
   const styles = useMemo(() => crearEstilos(colores), [colores]);
   const { carteraActiva } = useCarteraActiva();
-  const carteraId = carteraActiva?.carteraId ?? 0;
+  const carteraId = carteraActiva?.carteraId ?? "";
   const { abrir: abrirPantallaActiva } = usePantallaActiva();
   const { api, logout } = useSession();
   const offline = useOffline();
   // Cliente → timestamp de su última precarga (throttle con TTL por sesión).
-  const precargadosRef = useRef<Map<number, number>>(new Map());
+  const precargadosRef = useRef<Map<string, number>>(new Map());
   const [clientes, setClientes] = useState<ClienteTrayectoDiarioPublic[] | null>(null);
   const [trayectos, setTrayectos] = useState<TrayectoPublic | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -216,7 +216,7 @@ export function TrayectoDiarioScreen() {
       setGastoMensaje({ texto: "Gasto registrado.", esError: false });
     } catch (err) {
       if (esErrorDeRed(err)) {
-        await offline.encolar("gasto", { ...input, evidencias: evidenciasOffline });
+        await offline.encolar("gasto", { ...input, carteraId, evidencias: evidenciasOffline });
         setGastoDescripcion("");
         setGastoValor("");
         setGastoAbierto(false);
@@ -275,7 +275,7 @@ export function TrayectoDiarioScreen() {
       setTrayectoriaMensaje("Trayectoria enviada.");
     } catch (err) {
       if (esErrorDeRed(err)) {
-        await offline.encolar("trayectoria", { puntos });
+        await offline.encolar("trayectoria", { carteraId, puntos });
         setTrayectoriaMensaje("Guardado sin conexión (se sincronizará).");
       } else {
         setTrayectoriaMensaje("No se pudo enviar la trayectoria.");

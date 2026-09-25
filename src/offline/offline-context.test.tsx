@@ -20,6 +20,14 @@ jest.mock("../api/offline-sync", () => ({
   sincronizarCola: jest.fn().mockResolvedValue([]),
 }));
 
+jest.mock("../session/token-store", () => ({
+  sessionGateway: {
+    getTokens: jest.fn().mockResolvedValue({ accessToken: "t", refreshToken: "r" }),
+    saveTokens: jest.fn(),
+    clear: jest.fn(),
+  },
+}));
+
 import { act, render, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 import * as cola from "./cola";
@@ -74,11 +82,11 @@ describe("OfflineProvider", () => {
 
     (cola.contarCola as jest.Mock).mockResolvedValue(3);
     await act(async () => {
-      await ref.current!.encolar("visita", { clienteId: 2 });
+      await ref.current!.encolar("visita", { clienteId: "2" });
     });
 
     await waitFor(() => expect(getByTestId("estado")).toHaveTextContent(/^online\|3/));
-    expect(cola.encolar).toHaveBeenCalledWith("visita", { clienteId: 2 });
+    expect(cola.encolar).toHaveBeenCalledWith("visita", { clienteId: "2" });
   });
 
   it("sincroniza la cola al conectarse y remueve los confirmados", async () => {
@@ -102,15 +110,15 @@ describe("OfflineProvider", () => {
     (cola.existePendiente as jest.Mock).mockResolvedValue(false);
     await act(async () => {
       await expect(
-        ref.current!.encolarSiNoExiste("visita", { cuotaId: 3359 }, "pago-3359"),
+        ref.current!.encolarSiNoExiste("visita", { cuotaId: "3359" }, "pago-3359"),
       ).resolves.toBe(true);
     });
-    expect(cola.encolar).toHaveBeenCalledWith("visita", { cuotaId: 3359 }, "pago-3359");
+    expect(cola.encolar).toHaveBeenCalledWith("visita", { cuotaId: "3359" }, "pago-3359");
 
     (cola.existePendiente as jest.Mock).mockResolvedValue(true);
     await act(async () => {
       await expect(
-        ref.current!.encolarSiNoExiste("visita", { cuotaId: 3359 }, "pago-3359"),
+        ref.current!.encolarSiNoExiste("visita", { cuotaId: "3359" }, "pago-3359"),
       ).resolves.toBe(false);
     });
     expect(cola.encolar).toHaveBeenCalledTimes(1);

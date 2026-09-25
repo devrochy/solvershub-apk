@@ -2,13 +2,13 @@ export interface LoginResult {
   accessToken: string;
   refreshToken: string;
   gestor?: {
-    id: number;
+    id: string;
     usuario: string;
     nombre: string;
     apellido: string;
   };
   propietario?: {
-    id: number;
+    id: string;
     usuario: string;
     nombre: string;
     apellido: string;

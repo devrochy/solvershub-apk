@@ -7,8 +7,8 @@ import {
 } from "./cambio-cliente";
 
 const tarjeta: ClienteTarjetaPublic = {
-  clienteId: 7,
-  carteraId: 6,
+  clienteId: "7",
+  carteraId: "6",
   nombre: "Juan",
   negocio: "Tienda",
   telefonoWhatsapp: "+59170000001",
@@ -68,15 +68,15 @@ describe("cambio-cliente (payload del evento offline)", () => {
 
   it("cambioClientePayload arma {clienteId, input}", () => {
     const input = { nombre: "Juan Carlos" };
-    expect(cambioClientePayload(7, input)).toEqual({
-      clienteId: 7,
+    expect(cambioClientePayload("7", input)).toEqual({
+      clienteId: "7",
       input,
     });
   });
 
   it("dedupeKeyCambioCliente es estable por cliente", () => {
-    expect(dedupeKeyCambioCliente(7)).toBe("cambio_cliente-7");
-    expect(dedupeKeyCambioCliente(7)).toBe(dedupeKeyCambioCliente(7));
+    expect(dedupeKeyCambioCliente("7")).toBe("cambio_cliente-7");
+    expect(dedupeKeyCambioCliente("7")).toBe(dedupeKeyCambioCliente("7"));
   });
 
   it("camposCambiados devuelve solo lo que difiere del original", () => {

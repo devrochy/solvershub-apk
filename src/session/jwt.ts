@@ -2,10 +2,11 @@ import { decodeJwt } from "jose";
 import type { TokenPair } from "../types/auth";
 
 export interface AccessTokenPayload {
-  sub: number;
-  rol: "gestor";
-  tipo: "access";
-  usuario?: string;
+  /** Identidad del pack (ADR-0066): `admins.id` + perfil opcional del gestor. */
+  admin_id: string;
+  gestor_id?: string;
+  rol: "gestor" | "propietario";
+  typ: "access" | "refresh";
   exp?: number;
 }
 

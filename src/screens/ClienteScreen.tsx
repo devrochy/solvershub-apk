@@ -78,8 +78,8 @@ import type {
 type Props = NativeStackScreenProps<RootStackParamList, "Cliente">;
 
 export interface ClienteScreenDirectProps {
-  carteraId: number;
-  clienteId: number;
+  carteraId: string;
+  clienteId: string;
   nombre: string;
   latitud?: number;
   longitud?: number;
@@ -147,7 +147,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const [modalDocumento, setModalDocumento] = useState<"frente" | "reverso">("frente");
 
   // Acordeón de préstamos.
-  const [prestamoSeleccionadoId, setPrestamoSeleccionadoId] = useState<number | null>(null);
+  const [prestamoSeleccionadoId, setPrestamoSeleccionadoId] = useState<string | null>(null);
   const [estadoPrestamo, setEstadoPrestamo] = useState<EstadoCuentaPrestamoPublic | null>(null);
   const [estadoPrestamoCargando, setEstadoPrestamoCargando] = useState(false);
 
@@ -159,7 +159,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   // Borrar pago/abono desde la modal de cuota.
   const [borrarTarget, setBorrarTarget] = useState<{
     tipo: "pago" | "abono";
-    id: number;
+    id: string;
     valor: number;
   } | null>(null);
   const [borrarPassword, setBorrarPassword] = useState("");
@@ -341,7 +341,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     return { total, cuentasPendientes };
   }, [prestamos]);
 
-  function onPrestamoPress(id: number) {
+  function onPrestamoPress(id: string) {
     if (prestamoSeleccionadoId === id) {
       setPrestamoSeleccionadoId(null);
       return;
@@ -510,7 +510,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setModal("ninguno");
   }
 
-  function iniciarBorrarPago(pago: { id: number; valor: number }) {
+  function iniciarBorrarPago(pago: { id: string; valor: number }) {
     setAccionCuota("ninguno");
     mensajeError(null);
     setBorrarTarget({ tipo: "pago", id: pago.id, valor: pago.valor });
@@ -519,7 +519,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setBorrarMensaje(null);
   }
 
-  function iniciarBorrarAbono(abono: { id: number; valor: number }) {
+  function iniciarBorrarAbono(abono: { id: string; valor: number }) {
     setAccionCuota("ninguno");
     mensajeError(null);
     setBorrarTarget({ tipo: "abono", id: abono.id, valor: abono.valor });
@@ -836,7 +836,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     }
   }
 
-  async function abrirDetalleCuota(cuotaId: number) {
+  async function abrirDetalleCuota(cuotaId: string) {
     if (!prestamoSeleccionado) {
       return;
     }

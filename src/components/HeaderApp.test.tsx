@@ -9,7 +9,7 @@ jest.mock("@react-navigation/native", () => ({
 
 function renderHeader() {
   const valor: SessionValue = {
-    gestor: { id: 1, usuario: "gestor1", nombre: "Test", apellido: "Uno", rol: "gestor" },
+    gestor: { id: "1", usuario: "gestor1", nombre: "Test", apellido: "Uno", rol: "gestor" },
     loading: false,
     api: {} as SessionValue["api"],
     login: jest.fn(),

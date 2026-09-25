@@ -50,7 +50,7 @@ export function SeleccionCarteraScreen({
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const offline = useOffline();
   const [carteras, setCarteras] = useState<CarteraApkPublic[] | null>(null);
-  const [kpis, setKpis] = useState<Record<number, CarteraKpi>>({});
+  const [kpis, setKpis] = useState<Record<string, CarteraKpi>>({});
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
   const [filtroEstatus, setFiltroEstatus] = useState<"activo" | "inactivo">("activo");
