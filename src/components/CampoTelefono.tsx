@@ -87,7 +87,13 @@ export function CampoTelefono({
           <View style={styles.carta}>
             <View style={styles.header}>
               <Text style={styles.headerTitulo}>Selecciona el país</Text>
-              <Pressable testID={`${testID}-cerrar-lista`} onPress={() => setListaAbierta(false)}>
+              <Pressable
+                testID={`${testID}-cerrar-lista`}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar"
+                hitSlop={10}
+                onPress={() => setListaAbierta(false)}
+              >
                 <MaterialIcons name="close" size={22} color="#ffffff" />
               </Pressable>
             </View>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { ofrecerAbrirAjustes } from "../permisos/permisos";
 import { reducirImagen } from "../evidencias/reducir-imagen";
 
 export interface EvidenciaSeleccionada {
@@ -72,6 +73,7 @@ export function useEvidencias(): UseEvidenciasResult {
     }
     const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permiso.granted) {
+      ofrecerAbrirAjustes(permiso, "Se necesita permiso para acceder a tus fotos.");
       setError("Se necesita permiso para acceder a tus fotos.");
       return;
     }
@@ -103,6 +105,7 @@ export function useEvidencias(): UseEvidenciasResult {
     }
     const permiso = await ImagePicker.requestCameraPermissionsAsync();
     if (!permiso.granted) {
+      ofrecerAbrirAjustes(permiso, "Se necesita permiso para usar la cámara.");
       setError("Se necesita permiso para usar la cámara.");
       return;
     }
