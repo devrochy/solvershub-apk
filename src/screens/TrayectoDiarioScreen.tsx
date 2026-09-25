@@ -216,14 +216,22 @@ export function TrayectoDiarioScreen() {
       setGastoMensaje({ texto: "Gasto registrado.", esError: false });
     } catch (err) {
       if (esErrorDeRed(err)) {
-        await offline.encolar("gasto", { ...input, carteraId, evidencias: evidenciasOffline });
+        const guardado = await offline.encolar("gasto", {
+          ...input,
+          carteraId,
+          evidencias: evidenciasOffline,
+        });
         setGastoDescripcion("");
         setGastoValor("");
         setGastoAbierto(false);
-        setGastoMensaje({
-          texto: "Guardado sin conexión (se sincronizará).",
-          esError: false,
-        });
+        setGastoMensaje(
+          guardado === false
+            ? {
+                texto: "La cola offline está llena. Sincroniza antes de registrar más.",
+                esError: true,
+              }
+            : { texto: "Guardado sin conexión (se sincronizará).", esError: false },
+        );
       } else if (apiErrorStatus(err) === 413) {
         setGastoMensaje({
           texto: "Las evidencias son demasiado grandes. Intenta con menos fotos.",
@@ -275,8 +283,12 @@ export function TrayectoDiarioScreen() {
       setTrayectoriaMensaje("Trayectoria enviada.");
     } catch (err) {
       if (esErrorDeRed(err)) {
-        await offline.encolar("trayectoria", { carteraId, puntos });
-        setTrayectoriaMensaje("Guardado sin conexión (se sincronizará).");
+        const guardado = await offline.encolar("trayectoria", { carteraId, puntos });
+        setTrayectoriaMensaje(
+          guardado === false
+            ? "La cola offline está llena. Sincroniza antes de continuar."
+            : "Guardado sin conexión (se sincronizará).",
+        );
       } else {
         setTrayectoriaMensaje("No se pudo enviar la trayectoria.");
       }

@@ -93,7 +93,7 @@ describe("OfflineProvider", () => {
     (cola.listarCola as jest.Mock).mockResolvedValue([
       { eventoIdCliente: "a", tipoEvento: "visita", payload: {}, creadoEn: "" },
     ]);
-    (sincronizarCola as jest.Mock).mockResolvedValue(["a"]);
+    (sincronizarCola as jest.Mock).mockResolvedValue([{ eventoIdCliente: "a", estado: "sincronizado" }]);
     (cola.contarCola as jest.Mock).mockResolvedValue(0);
     const { getByTestId } = await renderConProvider();
 
@@ -147,7 +147,7 @@ describe("OfflineProvider", () => {
     (cola.listarCola as jest.Mock).mockResolvedValue([
       { eventoIdCliente: "a", tipoEvento: "visita", payload: {}, creadoEn: "" },
     ]);
-    (sincronizarCola as jest.Mock).mockResolvedValue(["a"]);
+    (sincronizarCola as jest.Mock).mockResolvedValue([{ eventoIdCliente: "a", estado: "sincronizado" }]);
     (cola.contarCola as jest.Mock).mockResolvedValue(0);
     const { ref } = await renderConProvider();
     await waitFor(() => expect(ref.current).toBeTruthy());
@@ -165,7 +165,7 @@ describe("OfflineProvider", () => {
     expect(ref.current!.errorSync).toBeTruthy();
 
     // Luego éxito: debe limpiar
-    (sincronizarCola as jest.Mock).mockResolvedValueOnce(["a"]);
+    (sincronizarCola as jest.Mock).mockResolvedValueOnce([{ eventoIdCliente: "a", estado: "sincronizado" }]);
     (cola.listarCola as jest.Mock).mockResolvedValueOnce([
       { eventoIdCliente: "a", tipoEvento: "visita", payload: {}, creadoEn: "" },
     ]);

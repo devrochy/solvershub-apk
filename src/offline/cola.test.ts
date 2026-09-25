@@ -29,9 +29,12 @@ jest.mock("expo-crypto", () => {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  MAX_COLA,
   contarCola,
   encolar,
   existePendiente,
+  fusionarPendiente,
+  insertarEvento,
   limpiarCola,
   listarCola,
   removerDeCola,
@@ -45,9 +48,9 @@ describe("cola offline", () => {
   it("encola un evento con eventoIdCliente generado", async () => {
     const evento = await encolar("visita", { clienteId: "2" });
 
-    expect(evento.eventoIdCliente).toBe("11111111-2222-4333-8444-000000000001");
-    expect(evento.tipoEvento).toBe("visita");
-    expect(evento.payload).toEqual({ clienteId: "2" });
+    expect(evento!.eventoIdCliente).toBe("11111111-2222-4333-8444-000000000001");
+    expect(evento!.tipoEvento).toBe("visita");
+    expect(evento!.payload).toEqual({ clienteId: "2" });
     await expect(contarCola()).resolves.toBe(1);
   });
 
@@ -63,7 +66,7 @@ describe("cola offline", () => {
   it("removerDeCola quita solo el evento indicado", async () => {
     await encolar("visita", {});
     const segundo = await encolar("gasto", {});
-    await removerDeCola(segundo.eventoIdCliente);
+    await removerDeCola(segundo!.eventoIdCliente);
 
     const cola = await listarCola();
     expect(cola.map((e) => e.tipoEvento)).toEqual(["visita"]);
@@ -81,5 +84,41 @@ describe("cola offline", () => {
 
     await expect(existePendiente("visita", "pago-3359")).resolves.toBe(true);
     await expect(existePendiente("visita", "pago-3360")).resolves.toBe(false);
+  });
+
+  it("no encola cuando la cola está llena (REQ-APK-009)", async () => {
+    const cola = Array.from({ length: MAX_COLA }, (_, i) => ({
+      eventoIdCliente: `e-${i}`,
+      tipoEvento: "visita",
+      payload: {},
+      creadoEn: "2026-09-01T00:00:00.000Z",
+    }));
+    await insertarEvento(cola[0]);
+    // Rellena hasta el tope directamente.
+    await AsyncStorage.setItem("cobranza_cola_offline", JSON.stringify(cola));
+
+    await expect(encolar("visita", {})).resolves.toBeNull();
+    await expect(contarCola()).resolves.toBe(MAX_COLA);
+  });
+
+  it("fusiona la 2ª edición del mismo cliente en vez de descartarla (REQ-APK-011)", async () => {
+    await encolar(
+      "cambio_cliente",
+      { clienteId: "2", input: { nombre: "Ana" } },
+      "cambio_cliente-2",
+    );
+
+    const fusionado = await fusionarPendiente("cambio_cliente", "cambio_cliente-2", {
+      clienteId: "2",
+      input: { telefonoWhatsapp: "300" },
+    });
+
+    expect(fusionado).toBe(true);
+    const cola = await listarCola();
+    expect(cola).toHaveLength(1);
+    expect(cola[0].payload).toEqual({
+      clienteId: "2",
+      input: { nombre: "Ana", telefonoWhatsapp: "300" },
+    });
   });
 });
