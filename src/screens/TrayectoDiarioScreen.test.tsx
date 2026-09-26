@@ -135,6 +135,8 @@ async function renderConApi(
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return render(
     <PantallaActivaProvider>
@@ -678,6 +680,8 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     const { getByTestId } = await render(
       <PantallaActivaProvider>
@@ -730,6 +734,8 @@ describe("TrayectoDiarioScreen — sin cartera activa", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     await render(
       <PantallaActivaProvider>

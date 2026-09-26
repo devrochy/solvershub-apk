@@ -58,6 +58,8 @@ async function renderConEstado(
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return render(
     <OfflineContext.Provider value={offline}>

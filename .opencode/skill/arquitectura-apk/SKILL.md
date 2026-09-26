@@ -1,4 +1,4 @@
-# Arquitectura APK — Cumplimiento estructural (app-cobranza-apk)
+# Arquitectura APK — Cumplimiento estructural (solvershub-apk)
 
 Usar al crear o mover módulos, pantallas, hooks o tipos nuevos. Asegura que sigan exactamente la estructura y convenciones de `src/` descubiertas en el repo.
 

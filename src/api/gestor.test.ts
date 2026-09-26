@@ -288,6 +288,16 @@ describe("gestorApi", () => {
     expect(Array.from(bytes)).toEqual([37, 80, 68, 70]);
   });
 
+  it("crearLinkPago hace POST a /cuotas/:id/link-pago", async () => {
+    request.mockResolvedValue({ modo: "online", monto: 1000, qrPng: null });
+
+    await api.crearLinkPago("6", "10");
+
+    expect(request).toHaveBeenCalledWith("/gestor/carteras/6/cuotas/10/link-pago", {
+      method: "POST",
+    });
+  });
+
   it("crearCliente hace POST multipart con los datos y evidencias", async () => {
     request.mockResolvedValue({ id: "50" });
 

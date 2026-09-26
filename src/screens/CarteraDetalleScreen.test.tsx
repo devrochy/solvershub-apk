@@ -129,6 +129,8 @@ async function renderDetalle(
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return render(
     <SessionContext.Provider value={valor}>
@@ -163,6 +165,8 @@ function arbolDetalle(
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return (
     <SessionContext.Provider value={valor}>
@@ -366,6 +370,8 @@ describe("CarteraDetalleScreen", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     const { getByTestId, getByText } = await render(
       <SessionContext.Provider value={valor}>

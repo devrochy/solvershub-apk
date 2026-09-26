@@ -1,4 +1,4 @@
-# Backlog — APK del cobrador (app-cobranza-apk)
+# Backlog — APK del cobrador (solvershub-apk)
 
 Ítems de seguimiento detectados durante la implementación (no se resuelven en el mismo cambio).
 

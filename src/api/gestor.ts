@@ -8,6 +8,7 @@ import type {
   EstadoCuentaPrestamoPublic,
   EstadisticasCarteraPublic,
   GastoPublic,
+  LinkPagoCobro,
   LiquidacionPublic,
   PerfilPublic,
   PrestamoPublic,
@@ -123,6 +124,18 @@ export interface GestorApi {
   ): Promise<LiquidacionPublic>;
   listarLiquidaciones(carteraId: string): Promise<LiquidacionPublic[]>;
   exportarLiquidacionPdf(carteraId: string, liquidacionId: string): Promise<Uint8Array>;
+  crearLinkPago(carteraId: string, cuotaId: string): Promise<LinkPagoCobro>;
+  vincularDispositivo(input: {
+    imei: string;
+    whatsapp: string;
+    publicKey?: string;
+  }): Promise<{ estado: string; imei: string; whatsapp: string }>;
+  estadoDispositivo(): Promise<{
+    vinculado: boolean;
+    estado: string;
+    imei: string | null;
+    whatsapp: string | null;
+  }>;
   registrarApertura(
     carteraId: string,
     input: { latitud?: number; longitud?: number },
@@ -403,6 +416,26 @@ export function gestorApi(client: ApiClient): GestorApi {
       client.requestBytes(
         `/gestor/carteras/${carteraId}/liquidaciones/${liquidacionId}/export-pdf`,
       ),
+
+    crearLinkPago: (carteraId: string, cuotaId: string) =>
+      client.request<LinkPagoCobro>(
+        `/gestor/carteras/${carteraId}/cuotas/${cuotaId}/link-pago`,
+        { method: "POST" },
+      ),
+
+    vincularDispositivo: (input) =>
+      client.request<{ estado: string; imei: string; whatsapp: string }>(
+        "/gestor/dispositivo",
+        { method: "POST", headers: JSON_HEADERS, body: jsonBody(input) },
+      ),
+
+    estadoDispositivo: () =>
+      client.request<{
+        vinculado: boolean;
+        estado: string;
+        imei: string | null;
+        whatsapp: string | null;
+      }>("/gestor/dispositivo"),
 
     registrarApertura: (
       carteraId: string,

@@ -15,6 +15,8 @@ export interface CarteraActiva {
   config: CarteraConfigPublic;
   /** Permisos del gestor en la cartera (para gatear acciones en la APK). */
   permisos?: GestorPermisoEstado[];
+  /** Cobro con QR/link habilitado (ADR-0067). */
+  pagoQrActivo?: boolean;
 }
 
 export interface CarteraActivaContextValue {
@@ -31,6 +33,7 @@ export function aCarteraActiva(cartera: CarteraApkPublic): CarteraActiva {
     numCuotas: cartera.numCuotas,
     config: cartera.config,
     permisos: cartera.permisos,
+    pagoQrActivo: cartera.pagoQrActivo,
   };
 }
 
