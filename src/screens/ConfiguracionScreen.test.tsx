@@ -15,6 +15,9 @@ async function renderConOffline(overrides: Partial<OfflineValue> = {}) {
     errorSync: null,
     ultimaSincronizacion: null,
     versionRecarga: 0,
+    eventosError: [],
+    reintentarEvento: jest.fn(),
+    descartarEvento: jest.fn(),
     encolar: jest.fn().mockResolvedValue(undefined),
     encolarSiNoExiste: jest.fn().mockResolvedValue(true),
     sincronizar: jest.fn().mockResolvedValue(undefined),
@@ -28,6 +31,8 @@ async function renderConOffline(overrides: Partial<OfflineValue> = {}) {
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   const rendered = await render(
     <SessionContext.Provider value={sesion}>

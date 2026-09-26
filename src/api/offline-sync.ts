@@ -2,7 +2,7 @@ import { ApiError } from "./client";
 import { authUrl } from "../config";
 import type { EventoOffline } from "../offline/cola";
 
-interface AckEventoSync {
+export interface AckEventoSync {
   eventoIdCliente: string;
   estado: "sincronizado" | "duplicado" | "error";
   error?: string;
@@ -10,13 +10,13 @@ interface AckEventoSync {
 
 /**
  * Envía la cola offline a `POST /sync-offline/eventos` autenticado con el
- * **access token del gestor** (Bearer). Devuelve los `eventoIdCliente`
- * confirmados (sincronizado o duplicado) para poder removerlos de la cola local.
+ * **access token del gestor** (Bearer). Devuelve el **ack por evento**
+ * (`sincronizado`/`duplicado`/`error`) para remover los confirmados y exponer los errores.
  */
 export async function sincronizarCola(
   eventos: EventoOffline[],
   accessToken: string,
-): Promise<string[]> {
+): Promise<AckEventoSync[]> {
   if (eventos.length === 0) {
     return [];
   }
@@ -39,8 +39,5 @@ export async function sincronizarCola(
     throw new ApiError(res.status, await res.text().catch(() => ""));
   }
 
-  const acks = (await res.json()) as AckEventoSync[];
-  return acks
-    .filter((a) => a.estado === "sincronizado" || a.estado === "duplicado")
-    .map((a) => a.eventoIdCliente);
+  return (await res.json()) as AckEventoSync[];
 }

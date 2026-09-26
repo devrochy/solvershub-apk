@@ -37,7 +37,14 @@ describe("sincronizarCola", () => {
 
     const confirmados = await sincronizarCola([evento], "access.token");
 
-    expect(confirmados).toEqual([evento.eventoIdCliente]);
+    expect(confirmados).toEqual([
+      { eventoIdCliente: evento.eventoIdCliente, estado: "sincronizado" },
+      {
+        eventoIdCliente: "bbbbbbbb-0000-0000-0000-000000000002",
+        estado: "error",
+        error: "boom",
+      },
+    ]);
     expect(fetchMock).toHaveBeenCalledWith(
       "http://localhost:3000/sync-offline/eventos",
       expect.objectContaining({
@@ -75,7 +82,9 @@ describe("sincronizarCola", () => {
 
     const confirmados = await sincronizarCola([evento], "access.token");
 
-    expect(confirmados).toEqual([evento.eventoIdCliente]);
+    expect(confirmados).toEqual([
+      { eventoIdCliente: evento.eventoIdCliente, estado: "duplicado" },
+    ]);
   });
 
   it("lanza ApiError si el servidor responde error", async () => {

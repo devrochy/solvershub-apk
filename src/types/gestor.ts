@@ -61,13 +61,35 @@ export interface CarteraApkPublic {
   estatus: string;
   tipoInteres: number;
   numCuotas: number;
+  /** Cobro con QR/link habilitado por el propietario (ADR-0067). */
+  pagoQrActivo?: boolean;
   config: CarteraConfigPublic;
   permisos: GestorPermisoEstado[];
+}
+
+/** Resultado de crear el link/QR de cobro de una cuota (ADR-0067). */
+export interface LinkPagoCobro {
+  modo: "online" | "informativo";
+  monto: number;
+  referencia?: string;
+  url?: string | null;
+  /** QR como data URI PNG (o null si no se pudo generar). */
+  qrPng: string | null;
+  metodos?: string[];
+  titular?: string;
+  banco?: string;
+  tipoCuenta?: string;
+  numeroCuenta?: string;
+  alias?: string;
+  nota?: string;
 }
 
 export interface ClienteTrayectoDiarioPublic {
   clienteId: string;
   nombre: string;
+  /** Coordenadas del negocio (para "cliente cercano"). */
+  latitud?: number | null;
+  longitud?: number | null;
   enTrayecto: boolean;
   color: ColorListaDelDia;
   visitaRegistrada: boolean;
@@ -330,6 +352,13 @@ export interface LiquidacionPublic {
   createdAt: string;
   pagos: ItemLiquidacionDetalle[];
   abonos: ItemLiquidacionDetalle[];
+  /** KPIs del día (REQ-APK-003). */
+  pagaron: number;
+  faltan: number;
+  totalDia: number;
+  sinCuentas: number;
+  horaPrimera: string | null;
+  horaUltima: string | null;
 }
 
 export interface CuotaEstado {

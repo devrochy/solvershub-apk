@@ -10,9 +10,17 @@ const PREFIJO_TRAYECTO_DIARIO = "cobranza_cache_trayecto_diario";
 const PREFIJO_CLIENTE = "cobranza_cache_cliente";
 const PREFIJO_ESTADISTICAS = "cobranza_cache_estadisticas";
 
+/** TTL del cache offline: pasado este tiempo, el dato se considera vencido (REQ-APK-015). */
+export const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
 export interface ClienteCache {
   tarjeta: ClienteTarjetaPublic;
   prestamos: PrestamoPublic[];
+}
+
+interface Envoltorio<T> {
+  v: T;
+  t: number;
 }
 
 async function leer<T>(clave: string): Promise<T | null> {
@@ -21,14 +29,19 @@ async function leer<T>(clave: string): Promise<T | null> {
     return null;
   }
   try {
-    return JSON.parse(raw) as T;
+    const envuelto = JSON.parse(raw) as Envoltorio<T>;
+    if (typeof envuelto?.t !== "number" || Date.now() - envuelto.t > CACHE_TTL_MS) {
+      return null;
+    }
+    return envuelto.v;
   } catch {
     return null;
   }
 }
 
-async function escribir(clave: string, valor: unknown): Promise<void> {
-  await AsyncStorage.setItem(clave, JSON.stringify(valor));
+async function escribir<T>(clave: string, valor: T): Promise<void> {
+  const envuelto: Envoltorio<T> = { v: valor, t: Date.now() };
+  await AsyncStorage.setItem(clave, JSON.stringify(envuelto));
 }
 
 export async function guardarTrayectoDiario(carteraId: string, trayectoDiario: TrayectoDiarioApkPublic): Promise<void> {

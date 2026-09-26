@@ -1,6 +1,6 @@
 # APK CobraIA — App de Cobranza (Mapa de Contenido)
 
-> Abre este repositorio como vault de Obsidian: *Open folder as vault* → `/Users/roaguilar/Projects/app-cobranza-apk`.
+> Abre este repositorio como vault de Obsidian: *Open folder as vault* → `/Users/roaguilar/Projects/solvershub-apk`.
 
 ## Documentación clave
 
@@ -15,6 +15,6 @@
 
 ## Estado del desarrollo
 
-- Repo: `devrochy/app-cobranza-apk` (privado). Ramas: `main` (producción) + `develop` (integración).
+- Repo: `devrochy/solvershub-apk` (privado). Ramas: `main` (producción) + `develop` (integración).
 - Expo Go + Metro (LAN) · API del backend NestJS en `http://localhost:3000` (vía túnel cloudflared o IP LAN para el dispositivo).
 - Roles: cobrador (`POST /auth/cobrador/login`) y socio (`POST /auth/socio/login`).

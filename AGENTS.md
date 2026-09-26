@@ -1,4 +1,4 @@
-# AGENTS.md — Reglas del sistema para agentes de IA en la APK del gestor (app-cobranza-apk)
+# AGENTS.md — Reglas del sistema para agentes de IA en la APK del gestor (solvershub-apk)
 
 Este archivo se carga automáticamente en cada sesión de OpenCode. Es la fuente de verdad sobre cómo debe comportarse el agente en este proyecto.
 

@@ -124,6 +124,38 @@ export function ConfiguracionScreen() {
             </Text>
           ) : null}
         </View>
+
+        {offline.eventosError.length > 0 ? (
+          <>
+            <Text style={styles.seccionTitulo}>Eventos con error</Text>
+            <View style={styles.tarjeta}>
+              {offline.eventosError.map((e) => (
+                <View key={e.eventoIdCliente} style={styles.filaError}>
+                  <View style={styles.errorTexto}>
+                    <Text style={styles.errorTipo}>{e.tipoEvento}</Text>
+                    <Text style={styles.errorDetalle} numberOfLines={2}>
+                      {e.error}
+                    </Text>
+                  </View>
+                  <View style={styles.errorAcciones}>
+                    <Pressable
+                      testID={`error-reintentar-${e.eventoIdCliente}`}
+                      onPress={() => void offline.reintentarEvento(e.eventoIdCliente)}
+                    >
+                      <Text style={styles.botonTexto}>Reintentar</Text>
+                    </Pressable>
+                    <Pressable
+                      testID={`error-descartar-${e.eventoIdCliente}`}
+                      onPress={() => void offline.descartarEvento(e.eventoIdCliente)}
+                    >
+                      <Text style={styles.botonTextoPeligro}>Descartar</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
     </VentanaCerrarConSwipe>
@@ -173,6 +205,17 @@ function crearEstilos(c: ColoresTema) {
     botonTexto: { color: c.acento, fontWeight: "600" },
     cargando: { marginBottom: 12 },
     mensaje: { fontSize: 13, fontWeight: "500", marginBottom: 12 },
+    filaError: {
+      paddingVertical: 12,
+      borderTopWidth: 1,
+      borderTopColor: c.fondo,
+      gap: 8,
+    },
+    errorTexto: { gap: 2 },
+    errorTipo: { fontSize: 13, fontWeight: "700", color: c.texto },
+    errorDetalle: { fontSize: 12, color: c.textoSuave },
+    errorAcciones: { flexDirection: "row", gap: 20 },
+    botonTextoPeligro: { color: "#dc2626", fontWeight: "600" },
     mensajeOk: { color: "#15803d" },
     mensajeError: { color: c.peligro },
   });

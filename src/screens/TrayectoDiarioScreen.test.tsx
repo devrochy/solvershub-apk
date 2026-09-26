@@ -109,6 +109,9 @@ const offlineValor: OfflineValue = {
   errorSync: null,
   ultimaSincronizacion: null,
   versionRecarga: 0,
+  eventosError: [],
+  reintentarEvento: jest.fn(),
+  descartarEvento: jest.fn(),
   sincronizarGeneral: jest.fn().mockResolvedValue(undefined),
   encolar: jest.fn().mockResolvedValue(undefined),
   encolarSiNoExiste: jest.fn().mockResolvedValue(true),
@@ -132,6 +135,8 @@ async function renderConApi(
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return render(
     <PantallaActivaProvider>
@@ -675,6 +680,8 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     const { getByTestId } = await render(
       <PantallaActivaProvider>
@@ -727,6 +734,8 @@ describe("TrayectoDiarioScreen — sin cartera activa", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     await render(
       <PantallaActivaProvider>

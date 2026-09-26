@@ -1,6 +1,11 @@
 import { apiLogin } from "./auth";
 import { TENANT } from "../config";
 
+jest.mock("../features/dispositivo/dispositivo", () => ({
+  imeiDelEquipo: jest.fn().mockResolvedValue("ANDROID-TEST"),
+  leerWhatsappVinculacion: jest.fn().mockResolvedValue("3000000000"),
+}));
+
 describe("apiLogin", () => {
   beforeEach(() => {
     global.fetch = jest.fn();
@@ -18,7 +23,7 @@ describe("apiLogin", () => {
       "http://localhost:3000/auth/gestor/login",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ tenant: TENANT, usuario: "c1", password: "pass" }),
+        body: JSON.stringify({ tenant: TENANT, usuario: "c1", password: "pass", imei: "ANDROID-TEST", whatsapp: "3000000000" }),
       }),
     );
   });
@@ -34,7 +39,7 @@ describe("apiLogin", () => {
     expect(global.fetch).toHaveBeenCalledWith(
       "http://localhost:3000/auth/propietario/login",
       expect.objectContaining({
-        body: JSON.stringify({ tenant: TENANT, usuario: "s1", password: "pass" }),
+        body: JSON.stringify({ tenant: TENANT, usuario: "s1", password: "pass", imei: "ANDROID-TEST", whatsapp: "3000000000" }),
       }),
     );
   });

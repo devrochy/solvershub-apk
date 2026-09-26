@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { File, Paths } from "expo-file-system";
+import * as Location from "expo-location";
 import { shareAsync } from "expo-sharing";
 import { apiErrorStatus, esErrorDeRed } from "../api/client";
 import { CargaError } from "../components/CargaError";
@@ -22,6 +23,7 @@ import { HeaderApp } from "../components/HeaderApp";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
+import { clienteMasCercano } from "../features/cliente/cliente-cercano";
 import { MAX_EVIDENCIAS, evidenciasParaOffline, useEvidencias } from "../features/gastos/use-evidencias";
 import {
   abrirNavegacion,
@@ -33,6 +35,7 @@ import { usePantallaActiva } from "../navigation/pantalla-activa-context";
 import { useTrayectosOverlay } from "../navigation/trayectos-overlay-context";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, guardarTrayectoDiario, leerTrayectoDiario } from "../offline/cache";
+import { guardarBorrador, leerBorrador, limpiarBorrador } from "../offline/borrador";
 import { clientesAprecargar } from "../offline/precarga";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
@@ -58,6 +61,7 @@ export function TrayectoDiarioScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refrescando, setRefrescando] = useState(false);
   const [offlineCache, setOfflineCache] = useState(false);
+  const [mensajeCercano, setMensajeCercano] = useState<string | null>(null);
 
   const [gastoAbierto, setGastoAbierto] = useState(false);
   const [gastoDescripcion, setGastoDescripcion] = useState("");
@@ -197,6 +201,32 @@ export function TrayectoDiarioScreen() {
     precargadosRef.current = new Map();
   }, [carteraId]);
 
+  // REQ-APK-014: recupera un gasto capturado si un 401 tumbó la sesión.
+  const borradorGastoRef = useRef(false);
+  useEffect(() => {
+    if (borradorGastoRef.current || !carteraId) {
+      return;
+    }
+    borradorGastoRef.current = true;
+    void (async () => {
+      const borrador = await leerBorrador<{ descripcion: string; valor: string }>(
+        `gasto:${carteraId}`,
+      );
+      if (!borrador) {
+        return;
+      }
+      setGastoDescripcion(borrador.descripcion);
+      setGastoValor(borrador.valor);
+      setGastoAbierto(true);
+      setGastoMensaje({
+        texto: "Recuperamos el gasto que estabas capturando.",
+        esError: false,
+      });
+      await limpiarBorrador(`gasto:${carteraId}`);
+    })().catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar la cartera
+  }, [carteraId]);
+
   async function registrarGasto() {
     const valor = Number(gastoValor);
     if (!gastoDescripcion.trim() || !Number.isFinite(valor) || valor <= 0) {
@@ -215,15 +245,29 @@ export function TrayectoDiarioScreen() {
       setGastoAbierto(false);
       setGastoMensaje({ texto: "Gasto registrado.", esError: false });
     } catch (err) {
-      if (esErrorDeRed(err)) {
-        await offline.encolar("gasto", { ...input, carteraId, evidencias: evidenciasOffline });
+      if (apiErrorStatus(err) === 401) {
+        await guardarBorrador(`gasto:${carteraId}`, {
+          descripcion: gastoDescripcion,
+          valor: gastoValor,
+        });
+        await logout();
+      } else if (esErrorDeRed(err)) {
+        const guardado = await offline.encolar("gasto", {
+          ...input,
+          carteraId,
+          evidencias: evidenciasOffline,
+        });
         setGastoDescripcion("");
         setGastoValor("");
         setGastoAbierto(false);
-        setGastoMensaje({
-          texto: "Guardado sin conexión (se sincronizará).",
-          esError: false,
-        });
+        setGastoMensaje(
+          guardado === false
+            ? {
+                texto: "La cola offline está llena. Sincroniza antes de registrar más.",
+                esError: true,
+              }
+            : { texto: "Guardado sin conexión (se sincronizará).", esError: false },
+        );
       } else if (apiErrorStatus(err) === 413) {
         setGastoMensaje({
           texto: "Las evidencias son demasiado grandes. Intenta con menos fotos.",
@@ -262,6 +306,42 @@ export function TrayectoDiarioScreen() {
     }
   }
 
+  async function irAlClienteCercano() {
+    setMensajeCercano(null);
+    if (!clientes || clientes.length === 0) {
+      setMensajeCercano("No hay clientes para hoy.");
+      return;
+    }
+    try {
+      const permiso = await Location.requestForegroundPermissionsAsync();
+      if (!permiso.granted) {
+        setMensajeCercano("Se necesita permiso de ubicación.");
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const cercano = clienteMasCercano(clientes, {
+        latitud: pos.coords.latitude,
+        longitud: pos.coords.longitude,
+      });
+      if (!cercano) {
+        setMensajeCercano("No hay clientes con ubicación.");
+        return;
+      }
+      abrirPantallaActiva({
+        tipo: "cliente",
+        carteraId,
+        clienteId: cercano.clienteId,
+        nombre: cercano.nombre ?? "Cliente",
+        ...(typeof cercano.latitud === "number" && typeof cercano.longitud === "number"
+          ? { latitud: cercano.latitud, longitud: cercano.longitud }
+          : {}),
+        prestamoAutoSeleccionado: true,
+      });
+    } catch {
+      setMensajeCercano("No se pudo obtener tu ubicación.");
+    }
+  }
+
   async function detenerYEnviarTrayectoria() {
     const puntos = trayectoria.detener();
     if (puntos.length < 2) {
@@ -275,8 +355,12 @@ export function TrayectoDiarioScreen() {
       setTrayectoriaMensaje("Trayectoria enviada.");
     } catch (err) {
       if (esErrorDeRed(err)) {
-        await offline.encolar("trayectoria", { carteraId, puntos });
-        setTrayectoriaMensaje("Guardado sin conexión (se sincronizará).");
+        const guardado = await offline.encolar("trayectoria", { carteraId, puntos });
+        setTrayectoriaMensaje(
+          guardado === false
+            ? "La cola offline está llena. Sincroniza antes de continuar."
+            : "Guardado sin conexión (se sincronizará).",
+        );
       } else {
         setTrayectoriaMensaje("No se pudo enviar la trayectoria.");
       }
@@ -518,6 +602,18 @@ export function TrayectoDiarioScreen() {
                 <Text style={styles.botonTrayectosTexto}>Ver trayectos</Text>
               </Pressable>
             ) : null}
+            <Pressable
+              testID="btn-cliente-cercano"
+              style={styles.botonTrayectos}
+              onPress={() => void irAlClienteCercano()}
+            >
+              <Text style={styles.botonTrayectosTexto}>Cliente cercano</Text>
+            </Pressable>
+            {mensajeCercano ? (
+              <Text testID="cliente-cercano-mensaje" style={styles.mensajeTrayectoria}>
+                {mensajeCercano}
+              </Text>
+            ) : null}
             {liquidacionVisible ? (
               <Pressable
                 testID="btn-liquidacion"
@@ -720,6 +816,19 @@ export function TrayectoDiarioScreen() {
                     <Text style={styles.liquidacionLinea}>
                       Comisión: {liquidacion.comisionPorcentaje}% = {liquidacion.comisionValor}
                     </Text>
+                    <Text testID="liquidacion-conteos" style={styles.liquidacionLinea}>
+                      Pagaron: {liquidacion.pagaron} · Faltan: {liquidacion.faltan} de{" "}
+                      {liquidacion.totalDia}
+                    </Text>
+                    <Text style={styles.liquidacionLinea}>
+                      Clientes sin cuentas: {liquidacion.sinCuentas}
+                    </Text>
+                    {liquidacion.horaPrimera ? (
+                      <Text style={styles.liquidacionLinea}>
+                        Primera cuota: {liquidacion.horaPrimera} · Última:{" "}
+                        {liquidacion.horaUltima ?? "—"}
+                      </Text>
+                    ) : null}
                     {liquidacion.comentario ? (
                       <Text style={styles.liquidacionLinea}>
                         Comentario: {liquidacion.comentario}

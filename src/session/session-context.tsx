@@ -10,6 +10,7 @@ import {
 import { gestorApi, GestorApi } from "../api/gestor";
 import { ApiClient } from "../api/client";
 import { apiLogin, RolLogin } from "../api/auth";
+import { guardarWhatsappVinculacion, leerWhatsappVinculacion } from "../features/dispositivo/dispositivo";
 import {
   clearSession,
   readProfile,
@@ -28,6 +29,9 @@ export interface SessionValue {
   gestor: UsuarioPerfil | null;
   loading: boolean;
   api: GestorApi;
+  /** El equipo aún no está vinculado/aprobado (HU-39/43). */
+  requiereVinculacion: boolean;
+  marcarDispositivoVinculado(): void;
   login(usuario: string, password: string, rol?: RolLogin): Promise<void>;
   logout(): Promise<void>;
   actualizarPerfil(input: ActualizarPerfilInput): Promise<void>;
@@ -38,6 +42,7 @@ export const SessionContext = createContext<SessionValue | null>(null);
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [gestor, setGestor] = useState<UsuarioPerfil | null>(null);
   const [loading, setLoading] = useState(true);
+  const [requiereVinculacion, setRequiereVinculacion] = useState(false);
 
   useEffect(() => {
     let activo = true;
@@ -62,6 +67,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (usuario: string, password: string, rol: RolLogin = "gestor") => {
       const result = await apiLogin(usuario, password, rol);
+      // Prellena el WhatsApp del gestor para la vinculación (HU-39/43).
+      if (result.telefono && !(await leerWhatsappVinculacion())) {
+        await guardarWhatsappVinculacion(result.telefono);
+      }
       const perfilSesion: UsuarioPerfil = rol === "propietario"
         ? {
             id: result.propietario?.id ?? "",
@@ -80,13 +89,19 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       await writeSession(result);
       await writeProfile(perfilSesion);
       setGestor(perfilSesion);
+      setRequiereVinculacion(Boolean(result.requiereVinculacion));
     },
     [],
   );
 
+  const marcarDispositivoVinculado = useCallback(() => {
+    setRequiereVinculacion(false);
+  }, []);
+
   const logout = useCallback(async () => {
     await clearSession();
     setGestor(null);
+    setRequiereVinculacion(false);
   }, []);
 
   const actualizarPerfil = useCallback(
@@ -106,8 +121,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ gestor, loading, api, login, logout, actualizarPerfil }),
-    [gestor, loading, api, login, logout, actualizarPerfil],
+    () => ({
+      gestor,
+      loading,
+      api,
+      requiereVinculacion,
+      marcarDispositivoVinculado,
+      login,
+      logout,
+      actualizarPerfil,
+    }),
+    [
+      gestor,
+      loading,
+      api,
+      requiereVinculacion,
+      marcarDispositivoVinculado,
+      login,
+      logout,
+      actualizarPerfil,
+    ],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

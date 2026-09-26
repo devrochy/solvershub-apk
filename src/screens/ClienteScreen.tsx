@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Linking,
   Pressable,
+  Share,
   ScrollView,
   StyleSheet,
   Text,
@@ -63,6 +65,7 @@ import {
 import type { RootStackParamList } from "../navigation/types";
 import { useOffline } from "../offline/offline-context";
 import { guardarCliente, leerCliente } from "../offline/cache";
+import { guardarBorrador, leerBorrador, limpiarBorrador } from "../offline/borrador";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { useTheme } from "../theme/theme-context";
@@ -73,6 +76,7 @@ import type {
   DetalleCuotaPublic,
   EstadoCuentaPrestamoPublic,
   PrestamoPublic,
+  LinkPagoCobro,
 } from "../types/gestor";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Cliente">;
@@ -186,6 +190,10 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   }, [metodosDisponibles, metodoPago]);
   const [motivoNoPago, setMotivoNoPago] = useState<(typeof MOTIVOS_NO_PAGO)[number]>("no_esta");
   const [tipoPago, setTipoPago] = useState<"cuota" | "abono">("cuota");
+  const [qrAbierto, setQrAbierto] = useState(false);
+  const [qrCargando, setQrCargando] = useState(false);
+  const [qrCobro, setQrCobro] = useState<LinkPagoCobro | null>(null);
+  const [qrMensaje, setQrMensaje] = useState<string | null>(null);
   const [fechaPrometida, setFechaPrometida] = useState("");
   const [valorPrometido, setValorPrometido] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -393,6 +401,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         await cargar();
       } catch (err) {
         if (apiErrorStatus(err) === 401) {
+          await guardarBorrador(`cobro:${carteraId}:${clienteId}`, {
+            accionCuota: "pago",
+            valor,
+            metodoPago,
+            tipoPago,
+          });
           await logout();
         } else if (esErrorDeRed(err)) {
           const encolado = await offline.encolarSiNoExiste(
@@ -456,6 +470,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         await recargarEstadoPrestamo();
       } catch (err) {
         if (apiErrorStatus(err) === 401) {
+          await guardarBorrador(`no_pago:${carteraId}:${clienteId}`, {
+            accionCuota: "no_pago",
+            motivoNoPago,
+            fechaPrometida,
+            valorPrometido,
+          });
           await logout();
         } else if (esErrorDeRed(err)) {
           const encolado = await offline.encolarSiNoExiste(
@@ -579,6 +599,85 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
       }
     } finally {
       setBorrando(false);
+    }
+  }
+
+  // REQ-APK-014: recupera un cobro/visita capturado si un 401 tumbó la sesión.
+  const borradorRevisadoRef = useRef(false);
+  useEffect(() => {
+    if (borradorRevisadoRef.current) {
+      return;
+    }
+    borradorRevisadoRef.current = true;
+    void (async () => {
+      const cobro = await leerBorrador<{
+        accionCuota: "pago";
+        valor: string;
+        metodoPago: typeof metodoPago;
+        tipoPago: "cuota" | "abono";
+      }>(`cobro:${carteraId}:${clienteId}`);
+      const noPago = await leerBorrador<{
+        accionCuota: "no_pago";
+        motivoNoPago: typeof motivoNoPago;
+        fechaPrometida: string;
+        valorPrometido: string;
+      }>(`no_pago:${carteraId}:${clienteId}`);
+      if (cobro) {
+        setAccionCuota("pago");
+        setValor(cobro.valor);
+        setMetodoPago(cobro.metodoPago);
+        setTipoPago(cobro.tipoPago);
+        await limpiarBorrador(`cobro:${carteraId}:${clienteId}`);
+        mensajeExito("Recuperamos el cobro que estabas capturando.");
+      } else if (noPago) {
+        setAccionCuota("no_pago");
+        setMotivoNoPago(noPago.motivoNoPago);
+        setFechaPrometida(noPago.fechaPrometida);
+        setValorPrometido(noPago.valorPrometido);
+        await limpiarBorrador(`no_pago:${carteraId}:${clienteId}`);
+        mensajeExito("Recuperamos la visita que estabas capturando.");
+      }
+    })().catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar
+  }, []);
+
+  async function abrirCobroQr() {
+    if (!detalleCuota?.cuotaId) {
+      return;
+    }
+    setQrAbierto(true);
+    setQrCobro(null);
+    setQrMensaje(null);
+    setQrCargando(true);
+    try {
+      const data = await api.crearLinkPago(carteraId, detalleCuota.cuotaId);
+      setQrCobro(data);
+    } catch (err) {
+      if (apiErrorStatus(err) === 401) {
+        await logout();
+        return;
+      }
+      setQrMensaje("No se pudo generar el cobro con QR.");
+    } finally {
+      setQrCargando(false);
+    }
+  }
+
+  async function compartirCobro() {
+    const d = qrCobro;
+    if (!d) {
+      return;
+    }
+    const texto =
+      d.modo === "online" && d.url
+        ? `Paga tu cuota aquí: ${d.url}`
+        : ["Paga tu cuota", d.titular, d.banco, d.tipoCuenta, d.numeroCuenta, d.alias]
+            .filter(Boolean)
+            .join(" · ");
+    try {
+      await Share.share({ message: texto });
+    } catch {
+      // El usuario canceló o no hay app de compartir: no es un error.
     }
   }
 
@@ -719,6 +818,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         mensajeError("El número de documento no es válido para el tipo seleccionado.");
         return;
       }
+    }
+    if (
+      carteraActiva?.config.registroDocumentoCliente &&
+      !edicion.tipoDocumento &&
+      !edicion.numeroDocumento
+    ) {
+      mensajeError("Esta cartera exige documento de identidad. Complétalo para guardar.");
+      return;
     }
     // Consistencia con el alta: si se toca el teléfono, debe ser válido.
     const telefonoTocado =
@@ -1797,6 +1904,16 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       <MaterialIcons name="block" size={16} color="#ffffff" />
                       <Text style={styles.cuotaAccionTexto}>No pago</Text>
                     </Pressable>
+                    {carteraActiva?.pagoQrActivo ? (
+                      <Pressable
+                        testID="accion-qr"
+                        style={[styles.cuotaAccion, styles.cuotaAccionQr]}
+                        onPress={() => void abrirCobroQr()}
+                      >
+                        <MaterialIcons name="qr-code" size={16} color="#ffffff" />
+                        <Text style={styles.cuotaAccionTexto}>Cobro con QR</Text>
+                      </Pressable>
+                    ) : null}
                   </View>
                 ) : null}
 
@@ -1991,6 +2108,53 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         ) : (
           <Text style={styles.errorTexto}>No se pudo cargar el detalle de la cuota.</Text>
         )}
+      </ModalConFooter>
+
+      {/* Cobro con QR / pago en línea (ADR-0067) */}
+      <ModalConFooter
+        visible={qrAbierto}
+        titulo="Cobro con QR"
+        onCerrar={() => setQrAbierto(false)}
+        onCancelar={() => setQrAbierto(false)}
+        onConfirmar={() => void compartirCobro()}
+        labelConfirmar="Compartir"
+        confirmarTestID="qr-compartir"
+        testID="cobro-qr"
+      >
+        {qrCargando ? (
+          <ActivityIndicator />
+        ) : qrMensaje ? (
+          <Text testID="qr-mensaje" style={styles.mensajeModal}>
+            {qrMensaje}
+          </Text>
+        ) : qrCobro ? (
+          <>
+            <Text style={styles.cuotaLinea}>Monto: {qrCobro.monto}</Text>
+            {qrCobro.qrPng ? (
+              <Image
+                testID="qr-imagen"
+                source={{ uri: qrCobro.qrPng }}
+                style={styles.qrImagen}
+              />
+            ) : null}
+            {qrCobro.modo === "online" && qrCobro.url ? (
+              <Text style={styles.cuotaLinea}>{qrCobro.url}</Text>
+            ) : null}
+            {qrCobro.modo === "informativo" ? (
+              <>
+                <Text style={styles.cuotaLinea}>Titular: {qrCobro.titular}</Text>
+                <Text style={styles.cuotaLinea}>
+                  Banco: {qrCobro.banco} {qrCobro.tipoCuenta}
+                </Text>
+                <Text style={styles.cuotaLinea}>Cuenta: {qrCobro.numeroCuenta}</Text>
+                {qrCobro.alias ? (
+                  <Text style={styles.cuotaLinea}>Alias: {qrCobro.alias}</Text>
+                ) : null}
+                <Text style={styles.cuotaLinea}>{qrCobro.nota}</Text>
+              </>
+            ) : null}
+          </>
+        ) : null}
       </ModalConFooter>
     </>
   );
@@ -2402,6 +2566,8 @@ function crearEstilos(c: ColoresTema) {
     paddingVertical: 11,
   },
   cuotaAccionNoPago: { backgroundColor: c.peligro },
+  cuotaAccionQr: { backgroundColor: "#0e7490" },
+  qrImagen: { width: 220, height: 220, alignSelf: "center", marginVertical: 8 },
   cuotaAccionActiva: { opacity: 0.85 },
   cuotaAccionTexto: { color: "#ffffff", fontWeight: "700" },
 });

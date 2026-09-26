@@ -53,6 +53,9 @@ const offline: OfflineValue = {
   errorSync: null,
   ultimaSincronizacion: null,
   versionRecarga: 0,
+  eventosError: [],
+  reintentarEvento: jest.fn(),
+  descartarEvento: jest.fn(),
   sincronizarGeneral: jest.fn().mockResolvedValue(undefined),
   encolar: jest.fn(),
   encolarSiNoExiste: jest.fn().mockResolvedValue(true),
@@ -104,6 +107,8 @@ async function renderConCarteras(
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return render(
     <OfflineContext.Provider value={offlineValue}>
@@ -127,6 +132,8 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     const { getByTestId } = await render(
       <OfflineContext.Provider value={offline}>
@@ -280,6 +287,8 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     const { getByTestId } = await render(
       <OfflineContext.Provider value={offlineConPendientes}>

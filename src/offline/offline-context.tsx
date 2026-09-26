@@ -14,10 +14,18 @@ import {
   contarCola,
   encolar as encolarCola,
   existePendiente,
+  fusionarPendiente,
+  insertarEvento,
   listarCola,
   removerDeCola,
 } from "./cola";
-import { guardarUltimaSincronizacion, leerUltimaSincronizacion } from "./sync-meta";
+import {
+  EventoError,
+  guardarErroresSync,
+  guardarUltimaSincronizacion,
+  leerErroresSync,
+  leerUltimaSincronizacion,
+} from "./sync-meta";
 
 export interface OfflineValue {
   isOnline: boolean;
@@ -25,9 +33,12 @@ export interface OfflineValue {
   errorSync: string | null;
   /** Timestamp (ms) de la última sincronización exitosa; `null` si nunca. */
   ultimaSincronizacion: number | null;
+  /** Eventos que el backend rechazó (REQ-APK-010). */
+  eventosError: EventoError[];
   /** Se incrementa al "sincronizar general" para que las pantallas re-consulten. */
   versionRecarga: number;
-  encolar(tipoEvento: string, payload: Record<string, unknown>): Promise<void>;
+  /** Devuelve `false` si la cola está llena (para que la UI avise). */
+  encolar(tipoEvento: string, payload: Record<string, unknown>): Promise<boolean>;
   encolarSiNoExiste(
     tipoEvento: string,
     payload: Record<string, unknown>,
@@ -36,6 +47,10 @@ export interface OfflineValue {
   sincronizar(): Promise<void>;
   /** Flush de la cola + refetch de datos (carteras/día). */
   sincronizarGeneral(): Promise<void>;
+  /** Reintenta un evento rechazado (vuelve a la cola con su mismo id). */
+  reintentarEvento(eventoIdCliente: string): Promise<void>;
+  /** Descarta un evento rechazado. */
+  descartarEvento(eventoIdCliente: string): Promise<void>;
 }
 
 export const OfflineContext = createContext<OfflineValue | null>(null);
@@ -45,6 +60,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   const [sinSubir, setSinSubir] = useState(0);
   const [errorSync, setErrorSync] = useState<string | null>(null);
   const [ultimaSincronizacion, setUltimaSincronizacion] = useState<number | null>(null);
+  const [eventosError, setEventosError] = useState<EventoError[]>([]);
   const [versionRecarga, setVersionRecarga] = useState(0);
 
   useEffect(() => {
@@ -64,7 +80,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     contarCola()
       .then((n) => {
         if (activo) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- async on-mount
+           
           setSinSubir(n);
         }
       })
@@ -72,8 +88,16 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     leerUltimaSincronizacion()
       .then((ts) => {
         if (activo) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- async on-mount
+           
           setUltimaSincronizacion(ts);
+        }
+      })
+      .catch(() => undefined);
+    leerErroresSync()
+      .then((errs) => {
+        if (activo) {
+           
+          setEventosError(errs);
         }
       })
       .catch(() => undefined);
@@ -89,8 +113,15 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
 
   const encolar = useCallback(
     async (tipoEvento: string, payload: Record<string, unknown>) => {
-      await encolarCola(tipoEvento, payload);
+      const evento = await encolarCola(tipoEvento, payload);
       await actualizarContador();
+      if (!evento) {
+        setErrorSync(
+          "La cola offline está llena. Conéctate y sincroniza antes de registrar más.",
+        );
+        return false;
+      }
+      return true;
     },
     [actualizarContador],
   );
@@ -102,10 +133,21 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       dedupeKey: string,
     ) => {
       if (await existePendiente(tipoEvento, dedupeKey)) {
+        // REQ-APK-011: no descartar la 2ª edición offline; fusionar los cambios.
+        if (tipoEvento === "cambio_cliente") {
+          await fusionarPendiente(tipoEvento, dedupeKey, payload);
+          return true;
+        }
         return false;
       }
-      await encolarCola(tipoEvento, payload, dedupeKey);
+      const evento = await encolarCola(tipoEvento, payload, dedupeKey);
       await actualizarContador();
+      if (!evento) {
+        setErrorSync(
+          "La cola offline está llena. Conéctate y sincroniza antes de registrar más.",
+        );
+        return false;
+      }
       return true;
     },
     [actualizarContador],
@@ -119,9 +161,32 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
         if (!tokens) {
           throw new Error("Sesión expirada");
         }
-        const confirmados = await sincronizarCola(eventos, tokens.accessToken);
-        for (const id of confirmados) {
-          await removerDeCola(id);
+        const acks = await sincronizarCola(eventos, tokens.accessToken);
+        const porId = new Map(eventos.map((e) => [e.eventoIdCliente, e]));
+        const errores: EventoError[] = [];
+        for (const ack of acks) {
+          const evento = porId.get(ack.eventoIdCliente);
+          if (ack.estado === "error") {
+            errores.push({
+              eventoIdCliente: ack.eventoIdCliente,
+              tipoEvento: evento?.tipoEvento ?? "?",
+              error: ack.error ?? "El servidor rechazó el evento.",
+              payload: evento?.payload ?? {},
+              creadoEn: new Date().toISOString(),
+            });
+          }
+          // Confirmados y rechazados salen de la cola: los rechazados quedan
+          // visibles para reintentar/descartar (no bloquean el resto).
+          await removerDeCola(ack.eventoIdCliente);
+        }
+        if (errores.length > 0) {
+          const previos = await leerErroresSync();
+          const fusionados = [
+            ...previos.filter((p) => !errores.some((e) => e.eventoIdCliente === p.eventoIdCliente)),
+            ...errores,
+          ];
+          setEventosError(fusionados);
+          await guardarErroresSync(fusionados);
         }
       }
       setErrorSync(null);
@@ -129,8 +194,8 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       setUltimaSincronizacion(ts);
       await guardarUltimaSincronizacion(ts);
     } catch {
-      // Device key inválida/ausente, 401 del backend o error de red: la cola
-      // se queda pendiente y se expone el error para que la UI avise.
+      // 401 del backend o error de red: la cola se queda pendiente y se expone
+      // el error para que la UI avise.
       setErrorSync(
         "No se pudo sincronizar. Verifica la conexión e inicia sesión de nuevo.",
       );
@@ -146,6 +211,40 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     setVersionRecarga((v) => v + 1);
   }, [sincronizar]);
 
+  const reintentarEvento = useCallback(
+    async (eventoIdCliente: string) => {
+      const error = eventosError.find((e) => e.eventoIdCliente === eventoIdCliente);
+      if (!error) {
+        return;
+      }
+      const insertado = await insertarEvento({
+        eventoIdCliente: error.eventoIdCliente,
+        tipoEvento: error.tipoEvento,
+        payload: error.payload,
+        creadoEn: error.creadoEn,
+      });
+      if (!insertado) {
+        setErrorSync("No se pudo reintentar: la cola offline está llena.");
+        return;
+      }
+      const restantes = eventosError.filter((e) => e.eventoIdCliente !== eventoIdCliente);
+      setEventosError(restantes);
+      await guardarErroresSync(restantes);
+      await actualizarContador();
+      void sincronizar().catch(() => undefined);
+    },
+    [actualizarContador, eventosError, sincronizar],
+  );
+
+  const descartarEvento = useCallback(
+    async (eventoIdCliente: string) => {
+      const restantes = eventosError.filter((e) => e.eventoIdCliente !== eventoIdCliente);
+      setEventosError(restantes);
+      await guardarErroresSync(restantes);
+    },
+    [eventosError],
+  );
+
   useEffect(() => {
     if (isOnline) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- async flush de la cola
@@ -159,22 +258,28 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       sinSubir,
       errorSync,
       ultimaSincronizacion,
+      eventosError,
       versionRecarga,
       encolar,
       encolarSiNoExiste,
       sincronizar,
       sincronizarGeneral,
+      reintentarEvento,
+      descartarEvento,
     }),
     [
       isOnline,
       sinSubir,
       errorSync,
       ultimaSincronizacion,
+      eventosError,
       versionRecarga,
       encolar,
       encolarSiNoExiste,
       sincronizar,
       sincronizarGeneral,
+      reintentarEvento,
+      descartarEvento,
     ],
   );
 

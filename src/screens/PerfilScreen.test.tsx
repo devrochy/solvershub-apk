@@ -17,6 +17,8 @@ function renderPerfil() {
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil,
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
 
   return render(

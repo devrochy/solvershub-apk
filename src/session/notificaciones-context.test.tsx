@@ -50,6 +50,8 @@ function renderCtx() {
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return render(
     <SessionContext.Provider value={session}>
