@@ -1,5 +1,6 @@
 export type RootStackParamList = {
   Login: undefined;
+  VincularDispositivo: undefined;
   Main: undefined;
   Cartera: { seccion?: "Cartera" | "TrayectoDiario" | "Clientes" } | undefined;
   Perfil: undefined;

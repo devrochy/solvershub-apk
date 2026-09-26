@@ -107,6 +107,8 @@ async function renderConCarteras(
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   return render(
     <OfflineContext.Provider value={offlineValue}>
@@ -130,6 +132,8 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     const { getByTestId } = await render(
       <OfflineContext.Provider value={offline}>
@@ -283,6 +287,8 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
       login: jest.fn(),
       logout: jest.fn(),
       actualizarPerfil: jest.fn(),
+      requiereVinculacion: false,
+      marcarDispositivoVinculado: jest.fn(),
     };
     const { getByTestId } = await render(
       <OfflineContext.Provider value={offlineConPendientes}>

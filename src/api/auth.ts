@@ -1,4 +1,5 @@
 import { authUrl, TENANT } from "../config";
+import { imeiDelEquipo, leerWhatsappVinculacion } from "../features/dispositivo/dispositivo";
 import { ApiError } from "./client";
 import type { LoginResult } from "../types/auth";
 
@@ -14,10 +15,14 @@ export async function apiLogin(
   rol: RolLogin = "gestor",
 ): Promise<LoginResult> {
   const path = rol === "propietario" ? "/auth/propietario/login" : "/auth/gestor/login";
+  const [imei, whatsapp] = await Promise.all([
+    imeiDelEquipo(),
+    leerWhatsappVinculacion(),
+  ]);
   const res = await fetch(authUrl(path), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tenant: TENANT, usuario, password }),
+    body: JSON.stringify({ tenant: TENANT, usuario, password, imei, whatsapp }),
   });
 
   if (!res.ok) {

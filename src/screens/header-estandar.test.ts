@@ -7,7 +7,7 @@ import { join } from "path";
  * propia banda. `LoginScreen` es la única excepción (pantalla previa a la
  * sesión, con diseño propio).
  */
-const EXCLUIDAS = new Set(["LoginScreen.tsx"]);
+const EXCLUIDAS = new Set(["LoginScreen.tsx", "VincularDispositivoScreen.tsx"]);
 
 const DIRECTORIO = __dirname;
 

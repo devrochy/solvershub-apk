@@ -31,6 +31,8 @@ async function renderConOffline(overrides: Partial<OfflineValue> = {}) {
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   const rendered = await render(
     <SessionContext.Provider value={sesion}>

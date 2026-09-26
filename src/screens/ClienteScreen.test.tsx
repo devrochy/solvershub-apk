@@ -166,6 +166,8 @@ async function renderConApi(
     login: jest.fn(),
     logout: jest.fn(),
     actualizarPerfil: jest.fn(),
+    requiereVinculacion: false,
+    marcarDispositivoVinculado: jest.fn(),
   };
   const navigation = { navigate } as never;
   return render(
