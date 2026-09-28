@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Animated, StyleSheet } from "react-native";
 
+import { conAlfa } from "../theme/alpha";
 import { shColor } from "../theme/tokens";
 
 /**
@@ -16,15 +17,6 @@ const COLORES: Record<string, string> = {
 };
 
 const COLOR_POR_DEFECTO = shColor.slate["400"];
-
-/** Hex → rgba con alfa (para los tonos suaves derivados del token). */
-function conAlfa(hex: string, alfa: number): string {
-  const limpio = hex.replace("#", "");
-  const r = parseInt(limpio.slice(0, 2), 16);
-  const g = parseInt(limpio.slice(2, 4), 16);
-  const b = parseInt(limpio.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alfa})`;
-}
 
 /** Color sólido de un estado (verde/rojo/azul/blanco). */
 export function colorDeEstado(color: string): string {
