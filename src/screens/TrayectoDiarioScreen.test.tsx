@@ -103,6 +103,7 @@ import { TrayectosOverlayProvider } from "../navigation/trayectos-overlay-contex
 import { shareAsync } from "expo-sharing";
 import { File } from "expo-file-system";
 import { COLORES } from "../theme/theme";
+import { colorDeEstado } from "../components/ColorBadge";
 
 const offlineValor: OfflineValue = {
   isOnline: true,
@@ -601,8 +602,8 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     });
 
     await waitFor(() => expect(getByTestId("acento-1")).toBeTruthy());
-    expect(getByTestId("acento-1")).toHaveStyle({ backgroundColor: "#dc2626" });
-    expect(getByTestId("acento-2")).toHaveStyle({ backgroundColor: "#16a34a" });
+    expect(getByTestId("acento-1")).toHaveStyle({ backgroundColor: colorDeEstado("rojo") });
+    expect(getByTestId("acento-2")).toHaveStyle({ backgroundColor: colorDeEstado("verde") });
   });
 
   it("'+ Gastos' abre el modal y registrarGasto guarda el gasto", async () => {

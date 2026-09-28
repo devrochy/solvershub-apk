@@ -1,43 +1,45 @@
 import { useEffect, useState } from "react";
 import { Animated, StyleSheet } from "react-native";
 
+import { shColor } from "../theme/tokens";
+
+/**
+ * Colores de estado del cliente derivados de los tokens de marca (SolversHub).
+ * Los tonos suaves (fondo/borde) se componen con alfa sobre el color semántico,
+ * así una sola fuente (tokens.json) gobierna sólidos y pasteles.
+ */
 const COLORES: Record<string, string> = {
-  verde: "#16a34a",
-  rojo: "#dc2626",
-  azul: "#172f6c",
-  blanco: "#94a3b8",
+  verde: shColor.success,
+  rojo: shColor.danger,
+  azul: shColor.navy["700"],
+  blanco: shColor.slate["400"],
 };
 
-const FONDOS: Record<string, string> = {
-  verde: "#dcfce7",
-  rojo: "#fee2e2",
-  azul: "#dbeafe",
-  blanco: "#f1f5f9",
-};
+const COLOR_POR_DEFECTO = shColor.slate["400"];
 
-const BORDES: Record<string, string> = {
-  verde: "#bbf7d0",
-  rojo: "#fecaca",
-  azul: "#bfdbfe",
-  blanco: "#e2e8f0",
-};
+/** Hex → rgba con alfa (para los tonos suaves derivados del token). */
+function conAlfa(hex: string, alfa: number): string {
+  const limpio = hex.replace("#", "");
+  const r = parseInt(limpio.slice(0, 2), 16);
+  const g = parseInt(limpio.slice(2, 4), 16);
+  const b = parseInt(limpio.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alfa})`;
+}
 
 /** Color sólido de un estado (verde/rojo/azul/blanco). */
 export function colorDeEstado(color: string): string {
-  return COLORES[color] ?? "#94a3b8";
+  return COLORES[color] ?? COLOR_POR_DEFECTO;
 }
 
 /** Fondo suave (pastel) de tarjeta según el estado del cliente (N4). */
 export function fondoDeEstado(color: string): string {
-  return FONDOS[color] ?? "#f1f5f9";
+  return conAlfa(colorDeEstado(color), 0.12);
 }
 
 /** Borde suave (pastel) de tarjeta según el estado. */
 export function bordeDeEstado(color: string): string {
-  return BORDES[color] ?? "#e2e8f0";
+  return conAlfa(colorDeEstado(color), 0.3);
 }
-
-const COLOR_POR_DEFECTO = "#94a3b8";
 
 /**
  * Indicador de color de una tarjeta/cliente: un punto circular del color
@@ -82,7 +84,7 @@ export function ColorBadge({
       testID={`color-badge-${color}`}
       style={[
         styles.punto,
-        { backgroundColor: COLORES[color] ?? COLOR_POR_DEFECTO },
+        { backgroundColor: colorDeEstado(color) },
         animar ? { opacity: opacidad } : null,
       ]}
     />

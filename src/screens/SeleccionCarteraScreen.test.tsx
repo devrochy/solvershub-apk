@@ -1,6 +1,7 @@
 import { act, fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { Pressable, Text } from "react-native";
 import { SeleccionCarteraScreen } from "./SeleccionCarteraScreen";
+import { bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { CarteraActivaContext } from "../session/cartera-activa-context";
@@ -311,10 +312,10 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
     await waitFor(() => expect(getByTestId("cartera-6")).toBeTruthy());
 
     expect(getByTestId("cartera-header-6")).toHaveStyle({
-      backgroundColor: "#dcfce7",
+      backgroundColor: fondoDeEstado("verde"),
     });
     expect(within(getByTestId("cartera-6")).getByTestId("color-badge-verde")).toBeTruthy();
-    expect(getByTestId("cartera-6")).toHaveStyle({ borderColor: "#bbf7d0" });
+    expect(getByTestId("cartera-6")).toHaveStyle({ borderColor: bordeDeEstado("verde") });
   });
 
   it("usa el pastel rojo en el header de una cartera inactiva", async () => {
@@ -330,7 +331,7 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
     await waitFor(() => expect(getByTestId("cartera-7")).toBeTruthy());
 
     expect(getByTestId("cartera-header-7")).toHaveStyle({
-      backgroundColor: "#fee2e2",
+      backgroundColor: fondoDeEstado("rojo"),
     });
     expect(getByTestId("color-badge-rojo")).toBeTruthy();
   });

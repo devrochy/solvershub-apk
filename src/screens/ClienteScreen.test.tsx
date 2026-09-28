@@ -1,6 +1,7 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import { ClienteScreen } from "./ClienteScreen";
+import { colorDeEstado } from "../components/ColorBadge";
 import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
@@ -1191,7 +1192,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     });
 
     await waitFor(() => expect(getByTestId("header-tarjeta-cliente")).toBeTruthy());
-    expect(getByTestId("header-tarjeta-cliente")).toHaveStyle({ backgroundColor: "#dc2626" });
+    expect(getByTestId("header-tarjeta-cliente")).toHaveStyle({ backgroundColor: colorDeEstado("rojo") });
   });
 
   it("la tarjeta cédula usa boxShadow moderno (sin shadow/elevation legacy)", async () => {
