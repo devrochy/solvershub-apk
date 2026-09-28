@@ -55,7 +55,8 @@
     "test": "jest",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "check": "scripts/check.sh"
+    "check": "scripts/check.sh",
+    "tokens:sync": "node scripts/sync-tokens.mjs"
   },
   "private": true
 }

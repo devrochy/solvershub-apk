@@ -1,3 +1,15 @@
+/**
+ * Paleta del APK derivada de los design tokens de SolversHub (DTCG).
+ *
+ * `tokens.ts` es una copia generada de `solvershub/brand/tokens/dist/theme.ts`:
+ * la paleta se edita SOLO en `brand/tokens/tokens.json` y se regenera. Los roles
+ * de abajo son la interfaz que consumen las pantallas (`ColoresTema`), mapeados a
+ * los tokens semánticos del tema, así que cambiar la marca no toca componentes.
+ *
+ * Ver manual de marca §5 (color) y §5.5 (tema oscuro por defecto en producto).
+ */
+import { shColor, shTheme } from "./tokens";
+
 export type Tema = "claro" | "oscuro";
 
 export interface ColoresTema {
@@ -18,27 +30,30 @@ export interface ColoresTema {
 
 export const COLORES: Record<Tema, ColoresTema> = {
   claro: {
-    fondo: "#f8fafc",
-    tarjeta: "#ffffff",
-    texto: "#0f172a",
-    textoSuave: "#64748b",
-    borde: "#e2e8f0",
-    primario: "#172f6c",
-    sobrePrimario: "#ffffff",
-    acento: "#172f6c",
-    activoSuave: "#eef2ff",
-    peligro: "#dc2626",
+    fondo: shTheme.light.bg,
+    tarjeta: shTheme.light.surface,
+    texto: shTheme.light.text,
+    textoSuave: shTheme.light.textMuted,
+    borde: shTheme.light.border,
+    primario: shColor.navy["700"],
+    sobrePrimario: shColor.white,
+    acento: shTheme.light.link,
+    activoSuave: shTheme.light.surfaceRaised,
+    peligro: shColor.danger,
   },
   oscuro: {
-    fondo: "#0f172a",
-    tarjeta: "#1e293b",
-    texto: "#f1f5f9",
-    textoSuave: "#94a3b8",
-    borde: "#334155",
-    primario: "#111c3f",
-    sobrePrimario: "#e2e8f0",
-    acento: "#93c5fd",
-    activoSuave: "#1e3a8a",
-    peligro: "#f87171",
+    fondo: shTheme.dark.bg,
+    tarjeta: shTheme.dark.surface,
+    texto: shTheme.dark.text,
+    textoSuave: shTheme.dark.textMuted,
+    borde: shTheme.dark.border,
+    primario: shTheme.dark.surface,
+    sobrePrimario: shColor.white,
+    acento: shTheme.dark.link,
+    activoSuave: shTheme.dark.surface2,
+    peligro: shColor.danger,
   },
 };
+
+// Tipografías de marca (Montserrat/Inter, manual §6): pendientes de instalar
+// (@expo-google-fonts) junto con el pase de estilos. Hoy la APK usa Roboto.

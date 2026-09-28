@@ -102,6 +102,7 @@ import { OverlaysActivos } from "../navigation/OverlaysActivos";
 import { TrayectosOverlayProvider } from "../navigation/trayectos-overlay-context";
 import { shareAsync } from "expo-sharing";
 import { File } from "expo-file-system";
+import { COLORES } from "../theme/theme";
 
 const offlineValor: OfflineValue = {
   isOnline: true,
@@ -636,7 +637,7 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     expect(
       getByText("Ingresa descripción y un valor válido."),
     ).toBeTruthy();
-    expect(getByTestId("gasto-mensaje")).toHaveStyle({ color: "#dc2626" });
+    expect(getByTestId("gasto-mensaje")).toHaveStyle({ color: COLORES.claro.peligro });
     expect(registrarGasto).not.toHaveBeenCalled();
   });
 
