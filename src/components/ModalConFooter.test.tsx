@@ -1,6 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { ModalConFooter } from "./ModalConFooter";
+import { COLORES } from "../theme/theme";
 
 describe("ModalConFooter", () => {
   it("renderiza header con título, botón de cerrar, cuerpo y footer", async () => {
@@ -117,7 +118,7 @@ describe("ModalConFooter", () => {
     );
 
     expect(getByTestId("modal-header")).toHaveStyle({
-      backgroundColor: "#172f6c",
+      backgroundColor: COLORES.claro.primario,
     });
     expect(getByText("Completa los datos")).toBeTruthy();
   });

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import { shColor } from "../theme/tokens";
 import { StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -102,6 +103,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: shColor.mist,
   },
 });

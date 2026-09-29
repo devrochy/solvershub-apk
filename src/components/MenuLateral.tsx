@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   marca: {
     fontSize: 22,
     fontWeight: "700",
-    fontFamily: "Roboto_700Bold",
+    fontFamily: "Montserrat_700Bold",
   },
   items: { gap: 2 },
   item: {
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: "600",
-    fontFamily: "Roboto_600SemiBold",
+    fontFamily: "Montserrat_600SemiBold",
   },
   chevron: { marginLeft: "auto" },
   dot: { width: 10, height: 10, borderRadius: 5, marginHorizontal: 5 },
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontWeight: "700",
-    fontFamily: "Roboto_700Bold",
+    fontFamily: "Montserrat_700Bold",
   },
   itemAccent: {
     position: "absolute",
@@ -419,11 +419,11 @@ const styles = StyleSheet.create({
   usuarioNombre: {
     fontSize: 14,
     fontWeight: "700",
-    fontFamily: "Roboto_700Bold",
+    fontFamily: "Montserrat_700Bold",
   },
   usuarioHandle: {
     fontSize: 12,
-    fontFamily: "Roboto_400Regular",
+    fontFamily: "Inter_400Regular",
     opacity: 0.75,
   },
 });

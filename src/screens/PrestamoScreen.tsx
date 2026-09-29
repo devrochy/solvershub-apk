@@ -14,16 +14,18 @@ import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 import type { EstadoCuentaPrestamoPublic } from "../types/gestor";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Prestamo">;
 
 const COLORES: Record<TipoCuotaCanvas, { fondo: string; borde: string }> = {
-  pagada: { fondo: "#dcfce7", borde: "#16a34a" },
-  actual: { fondo: "#dbeafe", borde: "#172f6c" },
-  en_mora: { fondo: "#fee2e2", borde: "#dc2626" },
-  futura: { fondo: "#f1f5f9", borde: "#cbd5e1" },
-  abonada: { fondo: "#fef9c3", borde: "#d97706" },
+  pagada: { fondo: conAlfa(shColor.success, 0.12), borde: shColor.success },
+  actual: { fondo: conAlfa(shColor.navy["700"], 0.12), borde: shColor.navy["700"] },
+  en_mora: { fondo: conAlfa(shColor.danger, 0.12), borde: shColor.danger },
+  futura: { fondo: shColor.frost, borde: shColor.slate["300"] },
+  abonada: { fondo: conAlfa(shColor.warning, 0.15), borde: shColor.warning },
 };
 
 const ETIQUETA: Record<TipoCuotaCanvas, string> = {
@@ -186,7 +188,7 @@ function crearEstilos(c: ColoresTema) {
     cuadroNumero: { fontSize: 16, fontWeight: "700", color: c.texto },
     cuadroValor: { fontSize: 11, color: c.textoSuave, fontWeight: "600" },
     cuadroFecha: { fontSize: 9, color: c.textoSuave },
-    cuadroAbono: { fontSize: 9, color: "#16a34a", fontWeight: "600" },
+    cuadroAbono: { fontSize: 9, color: shColor.success, fontWeight: "600" },
     cuadroSaldo: { fontSize: 9, color: c.acento, fontWeight: "600" },
     cuadroEtiqueta: {
       borderWidth: 1,
@@ -197,12 +199,12 @@ function crearEstilos(c: ColoresTema) {
     },
     cuadroEtiquetaTexto: { fontSize: 9, fontWeight: "600" },
     botonWhatsApp: {
-      backgroundColor: "#16a34a",
+      backgroundColor: shColor.success,
       borderRadius: 8,
       paddingVertical: 12,
       paddingHorizontal: 16,
       alignItems: "center",
     },
-    botonWhatsAppTexto: { color: "#ffffff", fontSize: 15, fontWeight: "600" },
+    botonWhatsAppTexto: { color: shColor.white, fontSize: 15, fontWeight: "600" },
   });
 }

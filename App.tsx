@@ -1,9 +1,5 @@
-import {
-  Roboto_400Regular,
-  Roboto_500Medium,
-  Roboto_600SemiBold,
-  Roboto_700Bold,
-} from "@expo-google-fonts/roboto";
+import { Inter_400Regular, Inter_500Medium } from "@expo-google-fonts/inter";
+import { Montserrat_600SemiBold, Montserrat_700Bold } from "@expo-google-fonts/montserrat";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
@@ -78,10 +74,10 @@ function RootNavigator() {
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    Roboto_400Regular,
-    Roboto_500Medium,
-    Roboto_600SemiBold,
-    Roboto_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
   });
 
   if (!fontsLoaded) {

@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
@@ -35,7 +37,7 @@ function crearEstilos(c: ColoresTema) {
     input: {
       backgroundColor: c.tarjeta,
       borderWidth: 1,
-      borderColor: "#dbeafe",
+      borderColor: conAlfa(shColor.blue["500"], 0.2),
       borderRadius: 10,
       paddingHorizontal: 12,
       paddingVertical: 10,

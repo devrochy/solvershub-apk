@@ -1,4 +1,6 @@
 import { render } from "@testing-library/react-native";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 import { BannerMensaje } from "./BannerMensaje";
 
 describe("BannerMensaje", () => {
@@ -8,7 +10,7 @@ describe("BannerMensaje", () => {
     );
 
     expect(getByText("Pago registrado.")).toBeTruthy();
-    expect(getByTestId("banner-mensaje")).toHaveStyle({ backgroundColor: "#f0fdf4" });
+    expect(getByTestId("banner-mensaje")).toHaveStyle({ backgroundColor: conAlfa(shColor.success, 0.12) });
   });
 
   it("usa fondo rojo cuando es un mensaje de error", async () => {
@@ -17,6 +19,6 @@ describe("BannerMensaje", () => {
     );
 
     expect(getByText("No se pudo registrar el pago.")).toBeTruthy();
-    expect(getByTestId("banner-mensaje")).toHaveStyle({ backgroundColor: "#fef2f2" });
+    expect(getByTestId("banner-mensaje")).toHaveStyle({ backgroundColor: conAlfa(shColor.danger, 0.12) });
   });
 });

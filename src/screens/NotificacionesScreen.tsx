@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { shColor } from "../theme/tokens";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -121,6 +122,6 @@ function crearEstilos(c: ColoresTema) {
       backgroundColor: c.primario,
       alignItems: "center",
     },
-    marcarTexto: { color: "#ffffff", fontWeight: "700" },
+    marcarTexto: { color: shColor.white, fontWeight: "700" },
   });
 }

@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet } from "react-native";
+import { shColor } from "../theme/tokens";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useMenuLateral } from "../navigation/menu-lateral-context";
 
@@ -15,7 +16,7 @@ export function BotonMenu() {
       onPress={alternar}
       style={styles.boton}
     >
-      <MaterialIcons name="menu" size={24} color="#ffffff" />
+      <MaterialIcons name="menu" size={24} color={shColor.white} />
     </Pressable>
   );
 }

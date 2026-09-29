@@ -87,7 +87,7 @@ function crearEstilos(c: ColoresTema) {
       fontSize: 13,
       fontWeight: "600",
       color: c.acento,
-      fontFamily: "Roboto_600SemiBold",
+      fontFamily: "Montserrat_600SemiBold",
     },
     separador: { alignItems: "center", justifyContent: "center" },
     textoActual: {
@@ -95,7 +95,7 @@ function crearEstilos(c: ColoresTema) {
       fontSize: 13,
       fontWeight: "700",
       color: c.texto,
-      fontFamily: "Roboto_700Bold",
+      fontFamily: "Montserrat_700Bold",
     },
   });
 }

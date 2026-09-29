@@ -1,6 +1,9 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 import { Alert } from "react-native";
 import { ClienteScreen } from "./ClienteScreen";
+import { colorDeEstado } from "../components/ColorBadge";
 import { ApiError } from "../api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
@@ -992,7 +995,7 @@ describe("ClienteScreen — WhatsApp con screenshot del detalle", () => {
     );
 
     await waitFor(() => expect(getByTestId("canvas-prestamo")).toBeTruthy());
-    expect(getByTestId("canvas-prestamo")).toHaveStyle({ backgroundColor: "#ffffff" });
+    expect(getByTestId("canvas-prestamo")).toHaveStyle({ backgroundColor: shColor.white });
   });
 
   it("cae al enlace wa.me si no se puede capturar el screenshot", async () => {
@@ -1094,7 +1097,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     await waitFor(() => expect(getByTestId("doc-frente")).toBeTruthy());
     expect(getByText("Verificado")).toBeTruthy();
-    expect(getByTestId("doc-frente-icono")).toHaveStyle({ backgroundColor: "#dcfce7" });
+    expect(getByTestId("doc-frente-icono")).toHaveStyle({ backgroundColor: conAlfa(shColor.success, 0.12) });
   });
 
   it("tocar la miniatura del documento abre el modal para ver/subir", async () => {
@@ -1172,7 +1175,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
 
     await waitFor(() => expect(getByTestId("doc-reverso")).toBeTruthy());
     expect(getByText("Verificado")).toBeTruthy();
-    expect(getByTestId("doc-reverso-icono")).toHaveStyle({ backgroundColor: "#dcfce7" });
+    expect(getByTestId("doc-reverso-icono")).toHaveStyle({ backgroundColor: conAlfa(shColor.success, 0.12) });
   });
 
   it("muestra el documento de identidad en la tarjeta del cliente", async () => {
@@ -1191,7 +1194,7 @@ describe("ClienteScreen — tarjeta principal, avatar y documento", () => {
     });
 
     await waitFor(() => expect(getByTestId("header-tarjeta-cliente")).toBeTruthy());
-    expect(getByTestId("header-tarjeta-cliente")).toHaveStyle({ backgroundColor: "#dc2626" });
+    expect(getByTestId("header-tarjeta-cliente")).toHaveStyle({ backgroundColor: colorDeEstado("rojo") });
   });
 
   it("la tarjeta cédula usa boxShadow moderno (sin shadow/elevation legacy)", async () => {

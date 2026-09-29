@@ -1,6 +1,8 @@
 import { render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
+import { COLORES } from "../theme/theme";
+import { shColor } from "../theme/tokens";
 
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: jest.fn(() => ({ top: 47, bottom: 0, left: 0, right: 0 })),
@@ -15,7 +17,7 @@ describe("HeaderPantalla", () => {
     );
 
     const banda = getByTestId("banda-header");
-    expect(banda).toHaveStyle({ backgroundColor: "#172f6c", paddingTop: 47 });
+    expect(banda).toHaveStyle({ backgroundColor: COLORES.claro.primario, paddingTop: 47 });
   });
 
   it("renderiza los children dentro de la banda", async () => {
@@ -35,8 +37,8 @@ describe("estilosHeader — estándar de headers", () => {
       expect.objectContaining({
         fontSize: 18,
         fontWeight: "700",
-        color: "#ffffff",
-        fontFamily: "Roboto_700Bold",
+        color: shColor.white,
+        fontFamily: "Montserrat_700Bold",
       }),
     );
   });

@@ -12,6 +12,8 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 
 export interface ModalConFooterProps {
   visible: boolean;
@@ -34,7 +36,7 @@ export interface ModalConFooterProps {
 /**
  * Modal reutilizable con header (título + botón cerrar/back), cuerpo (children)
  * y footer con botones (ej. Cancelar/Confirmar). El header usa el azul principal
- * (`#172f6c`) y el resto del modal tonos pastel suaves para que la interfaz no
+ * (navy-700 del tema) y el resto del modal tonos pastel suaves para que la interfaz no
  * sea brusca. Se usa en: editar cliente, nuevo préstamo, avatar, detalle de
  * cuota, registrar pago/no pago, nuevo cliente, nuevo gasto y nueva nota.
  */
@@ -80,7 +82,7 @@ export function ModalConFooter({
               hitSlop={10}
               onPress={onCerrar}
             >
-              <MaterialIcons name="close" size={22} color="#ffffff" />
+              <MaterialIcons name="close" size={22} color={shColor.white} />
             </Pressable>
           </View>
 
@@ -139,7 +141,7 @@ function crearEstilos(c: ColoresTema) {
       justifyContent: "flex-end",
     },
     carta: {
-      backgroundColor: "#f5f7ff",
+      backgroundColor: shColor.frost,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       overflow: "hidden",
@@ -165,14 +167,14 @@ function crearEstilos(c: ColoresTema) {
       textAlign: "left",
       fontSize: 16,
       fontWeight: "700",
-      color: "#ffffff",
-      fontFamily: "Roboto_700Bold",
+      color: shColor.white,
+      fontFamily: "Montserrat_700Bold",
     },
     subtitulo: {
-      color: "#d4dff0",
+      color: shColor.ice,
       fontSize: 13,
       marginTop: 2,
-      fontFamily: "Roboto_400Regular",
+      fontFamily: "Inter_400Regular",
     },
     cuerpoScroll: { flexShrink: 1 },
     cuerpo: { padding: 16, gap: 10 },
@@ -186,12 +188,12 @@ function crearEstilos(c: ColoresTema) {
     },
     botonCancelarTexto: { color: c.acento, fontWeight: "600" },
     botonConfirmar: {
-      backgroundColor: "#2563eb",
+      backgroundColor: shColor.blue["600"],
       borderRadius: 10,
       paddingVertical: 12,
       alignItems: "center",
     },
-    botonConfirmarTexto: { color: "#ffffff", fontWeight: "600" },
+    botonConfirmarTexto: { color: shColor.white, fontWeight: "600" },
     botonDeshabilitado: { opacity: 0.5 },
   });
 }

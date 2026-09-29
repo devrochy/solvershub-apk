@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { shColor } from "../theme/tokens";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
@@ -42,6 +43,6 @@ function crearEstilos(c: ColoresTema) {
       paddingVertical: 8,
       borderRadius: 8,
     },
-    botonTexto: { color: "#ffffff", fontWeight: "600" },
+    botonTexto: { color: shColor.white, fontWeight: "600" },
   });
 }

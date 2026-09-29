@@ -43,6 +43,9 @@ import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
+
 import type { ClienteGestorPublic } from "../types/gestor";
 
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
@@ -61,10 +64,10 @@ const FILTROS: { key: FiltroClientes; label: string }[] = [
 
 /** Color semántico de cada filtro (activo = sólido; inactivo = borde/texto). */
 const COLOR_FILTRO: Record<FiltroClientes, string> = {
-  todos: "#172f6c",
-  al_dia: "#16a34a",
-  en_mora: "#dc2626",
-  sin_prestamos: "#64748b",
+  todos: shColor.navy["700"],
+  al_dia: shColor.success,
+  en_mora: shColor.danger,
+  sin_prestamos: shColor.slate["400"],
 };
 
 export function ClientesScreen({
@@ -562,7 +565,7 @@ export function ClientesScreen({
         ]}
         onPress={abrirNuevoCliente}
       >
-        <MaterialIcons name="add" size={30} color="#ffffff" />
+        <MaterialIcons name="add" size={30} color={shColor.white} />
       </Pressable>
 
       <ModalConFooter
@@ -577,7 +580,7 @@ export function ClientesScreen({
       >
         {creadoOk ? (
           <View style={styles.exito} testID="cliente-creado-ok">
-            <MaterialIcons name="check-circle" size={48} color="#16a34a" />
+            <MaterialIcons name="check-circle" size={48} color={shColor.success} />
             <Text style={styles.exitoTexto}>Cliente registrado correctamente</Text>
           </View>
         ) : (
@@ -750,9 +753,9 @@ export function ClientesScreen({
                 onPress={() => void buscarDireccion()}
               >
                 {buscandoDireccion ? (
-                  <ActivityIndicator color="#ffffff" size="small" />
+                  <ActivityIndicator color={shColor.white} size="small" />
                 ) : (
-                  <MaterialIcons name="search" size={18} color="#ffffff" />
+                  <MaterialIcons name="search" size={18} color={shColor.white} />
                 )}
               </Pressable>
             </View>
@@ -881,8 +884,8 @@ function crearEstilos(c: ColoresTema) {
       paddingHorizontal: 8,
       paddingVertical: 8,
     },
-    chipFiltroTexto: { fontSize: 11, fontFamily: "Roboto_500Medium" },
-    chipFiltroTextoActivo: { color: "#ffffff", fontSize: 11, fontFamily: "Roboto_600SemiBold" },
+    chipFiltroTexto: { fontSize: 11, fontFamily: "Inter_500Medium" },
+    chipFiltroTextoActivo: { color: shColor.white, fontSize: 11, fontFamily: "Montserrat_600SemiBold" },
     lista: { padding: 16, gap: 10 },
     fab: {
       position: "absolute",
@@ -933,18 +936,18 @@ function crearEstilos(c: ColoresTema) {
     chip: {
       backgroundColor: c.activoSuave,
       borderWidth: 1,
-      borderColor: "#c7d2fe",
+      borderColor: conAlfa(shColor.blue["500"], 0.35),
       borderRadius: 999,
       paddingHorizontal: 12,
       paddingVertical: 6,
     },
-    chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+    chipActivo: { backgroundColor: shColor.blue["600"], borderColor: shColor.blue["600"] },
     chipTexto: { color: c.acento, fontSize: 13 },
-    chipTextoActivo: { color: "#ffffff", fontSize: 13 },
+    chipTextoActivo: { color: shColor.white, fontSize: 13 },
     input: {
       backgroundColor: c.tarjeta,
       borderWidth: 1,
-      borderColor: "#dbeafe",
+      borderColor: conAlfa(shColor.blue["500"], 0.2),
       borderRadius: 10,
       paddingHorizontal: 12,
       paddingVertical: 10,
@@ -977,11 +980,11 @@ function crearEstilos(c: ColoresTema) {
       alignItems: "center",
       gap: 8,
       borderWidth: 1,
-      borderColor: "#bfdbfe",
+      borderColor: conAlfa(shColor.blue["500"], 0.35),
       borderRadius: 10,
       paddingVertical: 14,
       paddingHorizontal: 16,
-      backgroundColor: "#eff6ff",
+      backgroundColor: conAlfa(shColor.blue["500"], 0.1),
     },
     botonFuenteModalTexto: { color: c.acento, fontWeight: "600", fontSize: 15 },
     filaBusqueda: { flexDirection: "row", gap: 8 },
@@ -995,7 +998,7 @@ function crearEstilos(c: ColoresTema) {
     },
     gpsTexto: { color: c.textoSuave, fontSize: 12, flexDirection: "row", alignItems: "center", gap: 6 },
     exito: { alignItems: "center", gap: 12, paddingVertical: 24 },
-    exitoTexto: { color: "#16a34a", fontSize: 16, fontWeight: "700" },
+    exitoTexto: { color: shColor.success, fontSize: 16, fontWeight: "700" },
     mensajeError: { color: c.peligro, fontSize: 13 },
   });
 }

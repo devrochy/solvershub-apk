@@ -70,6 +70,9 @@ import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
+
 import type {
   ClienteTarjetaPublic,
   CuotaPublic,
@@ -104,11 +107,11 @@ type ModalActivo =
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
 
 const COLORES_CANVAS: Record<TipoCuotaCanvas, { fondo: string; borde: string }> = {
-  pagada: { fondo: "#dcfce7", borde: "#16a34a" },
-  actual: { fondo: "#dbeafe", borde: "#172f6c" },
-  en_mora: { fondo: "#fee2e2", borde: "#dc2626" },
-  futura: { fondo: "#f1f5f9", borde: "#cbd5e1" },
-  abonada: { fondo: "#fef9c3", borde: "#d97706" },
+  pagada: { fondo: conAlfa(shColor.success, 0.12), borde: shColor.success },
+  actual: { fondo: conAlfa(shColor.blue["500"], 0.2), borde: shColor.navy["700"] },
+  en_mora: { fondo: conAlfa(shColor.danger, 0.12), borde: shColor.danger },
+  futura: { fondo: shColor.frost, borde: shColor.slate["300"] },
+  abonada: { fondo: conAlfa(shColor.warning, 0.15), borde: shColor.warning },
 };
 
 const ETIQUETA_CANVAS: Record<TipoCuotaCanvas, string> = {
@@ -1105,7 +1108,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
               {tarjeta.nombre}
             </Text>
             <Pressable testID="btn-editar-cliente" style={styles.tarjetaHeaderEditar} onPress={abrirEditar}>
-              <MaterialIcons name="edit" size={16} color="#ffffff" />
+              <MaterialIcons name="edit" size={16} color={shColor.white} />
               <Text style={styles.tarjetaHeaderEditarTexto}>Editar</Text>
             </Pressable>
           </View>
@@ -1177,7 +1180,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 <MaterialIcons
                   name="badge"
                   size={40}
-                  color={docFrenteUrl ? "#16a34a" : "#94a3b8"}
+                  color={docFrenteUrl ? shColor.success : shColor.slate["400"]}
                 />
               </View>
               <View
@@ -1188,7 +1191,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 ]}
               >
                 {docFrenteUrl ? (
-                  <MaterialIcons name="check" size={11} color="#16a34a" />
+                  <MaterialIcons name="check" size={11} color={shColor.success} />
                 ) : null}
                 <Text
                   style={[
@@ -1220,7 +1223,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 <MaterialIcons
                   name="credit-card"
                   size={40}
-                  color={docReversoUrl ? "#16a34a" : "#94a3b8"}
+                  color={docReversoUrl ? shColor.success : shColor.slate["400"]}
                 />
               </View>
               <View
@@ -1231,7 +1234,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 ]}
               >
                 {docReversoUrl ? (
-                  <MaterialIcons name="check" size={11} color="#16a34a" />
+                  <MaterialIcons name="check" size={11} color={shColor.success} />
                 ) : null}
                 <Text
                   style={[
@@ -1253,12 +1256,12 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 style={[styles.comoLlegar, mapaAbierto && styles.comoLlegarActivo]}
                 onPress={() => setMapaAbierto((abierto) => !abierto)}
               >
-                <MaterialIcons name="directions" size={16} color="#0e7490" />
+                <MaterialIcons name="directions" size={16} color={shColor.blue["600"]} />
                 <Text style={styles.comoLlegarTexto}>Cómo llegar</Text>
                 <MaterialIcons
                   name={mapaAbierto ? "expand-less" : "expand-more"}
                   size={18}
-                  color="#0e7490"
+                  color={shColor.blue["600"]}
                 />
               </Pressable>
               <Pressable
@@ -1282,7 +1285,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 style={[styles.botonNavegar]}
                 onPress={() => abrirNavegacion(latNegocio, lngNegocio, "maps")}
               >
-                <MaterialIcons name="map" size={16} color="#ffffff" />
+                <MaterialIcons name="map" size={16} color={shColor.white} />
                 <Text style={styles.botonNavegarTexto}>Google Maps</Text>
               </Pressable>
               <Pressable
@@ -1290,7 +1293,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 style={[styles.botonNavegar, styles.botonWaze]}
                 onPress={() => abrirNavegacion(latNegocio, lngNegocio, "waze")}
               >
-                <MaterialIcons name="navigation" size={16} color="#ffffff" />
+                <MaterialIcons name="navigation" size={16} color={shColor.white} />
                 <Text style={styles.botonNavegarTexto}>Waze</Text>
               </Pressable>
             </View>
@@ -1355,7 +1358,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                   </View>
                   {seleccionado ? (
                     <View testID={`check-prestamo-${p.id}`}>
-                      <MaterialIcons name="check-circle" size={22} color="#16a34a" />
+                      <MaterialIcons name="check-circle" size={22} color={shColor.success} />
                     </View>
                   ) : null}
                   <ColorBadge
@@ -1382,9 +1385,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 onPress={() => void compartirDetalle()}
               >
                 {compartiendo ? (
-                  <ActivityIndicator size="small" color="#25D366" />
+                  <ActivityIndicator size="small" color={shColor.success} />
                 ) : (
-                  <MaterialIcons name="chat" size={18} color="#25D366" />
+                  <MaterialIcons name="chat" size={18} color={shColor.success} />
                 )}
               </Pressable>
               <Text style={styles.detalleTitulo}>Préstamo #{prestamoSeleccionado.id}</Text>
@@ -1614,9 +1617,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             onPress={() => void buscarUbicacionDireccion()}
           >
             {ubicacionBuscando ? (
-              <ActivityIndicator color="#ffffff" size="small" />
+              <ActivityIndicator color={shColor.white} size="small" />
             ) : (
-              <MaterialIcons name="search" size={18} color="#ffffff" />
+              <MaterialIcons name="search" size={18} color={shColor.white} />
             )}
           </Pressable>
         </View>
@@ -1819,7 +1822,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                             disabled={!offline.isOnline}
                             onPress={() => iniciarBorrarPago(pago)}
                           >
-                            <MaterialIcons name="delete-outline" size={16} color="#dc2626" />
+                            <MaterialIcons name="delete-outline" size={16} color={shColor.danger} />
                           </Pressable>
                         ) : null}
                       </View>
@@ -1846,7 +1849,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                             disabled={!offline.isOnline}
                             onPress={() => iniciarBorrarAbono(abono)}
                           >
-                            <MaterialIcons name="delete-outline" size={16} color="#dc2626" />
+                            <MaterialIcons name="delete-outline" size={16} color={shColor.danger} />
                           </Pressable>
                         ) : null}
                       </View>
@@ -1889,7 +1892,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       ]}
                       onPress={() => toggleAccionCuota("pago")}
                     >
-                      <MaterialIcons name="payments" size={16} color="#ffffff" />
+                      <MaterialIcons name="payments" size={16} color={shColor.white} />
                       <Text style={styles.cuotaAccionTexto}>Registrar pago</Text>
                     </Pressable>
                     <Pressable
@@ -1901,7 +1904,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       ]}
                       onPress={() => toggleAccionCuota("no_pago")}
                     >
-                      <MaterialIcons name="block" size={16} color="#ffffff" />
+                      <MaterialIcons name="block" size={16} color={shColor.white} />
                       <Text style={styles.cuotaAccionTexto}>No pago</Text>
                     </Pressable>
                     {carteraActiva?.pagoQrActivo ? (
@@ -1910,7 +1913,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                         style={[styles.cuotaAccion, styles.cuotaAccionQr]}
                         onPress={() => void abrirCobroQr()}
                       >
-                        <MaterialIcons name="qr-code" size={16} color="#ffffff" />
+                        <MaterialIcons name="qr-code" size={16} color={shColor.white} />
                         <Text style={styles.cuotaAccionTexto}>Cobro con QR</Text>
                       </Pressable>
                     ) : null}
@@ -1960,7 +1963,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                         onPress={() => void confirmarBorrar()}
                       >
                         {borrando ? (
-                          <ActivityIndicator color="#ffffff" />
+                          <ActivityIndicator color={shColor.white} />
                         ) : (
                           <Text style={styles.botonConfirmarLineaTexto}>Eliminar</Text>
                         )}
@@ -2029,7 +2032,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       onPress={() => void enviarAccionCuota()}
                     >
                       {enviando ? (
-                        <ActivityIndicator color="#ffffff" />
+                        <ActivityIndicator color={shColor.white} />
                       ) : (
                         <Text style={styles.botonConfirmarLineaTexto}>
                           {tipoPago === "cuota" ? "Registrar pago" : "Registrar abono"}
@@ -2093,7 +2096,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       onPress={() => void enviarAccionCuota()}
                     >
                       {enviando ? (
-                        <ActivityIndicator color="#ffffff" />
+                        <ActivityIndicator color={shColor.white} />
                       ) : (
                         <Text style={styles.botonConfirmarLineaTexto}>Registrar visita</Text>
                       )}
@@ -2175,14 +2178,14 @@ function crearEstilos(c: ColoresTema) {
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
-  tarjetaHeaderNombre: { fontSize: 16, fontWeight: "700", color: "#ffffff", flex: 1 },
+  tarjetaHeaderNombre: { fontSize: 16, fontWeight: "700", color: shColor.white, flex: 1 },
   tarjetaHeaderEditar: { flexDirection: "row", alignItems: "center", gap: 4 },
-  tarjetaHeaderEditarTexto: { color: "#ffffff", fontSize: 14, fontWeight: "600" },
+  tarjetaHeaderEditarTexto: { color: shColor.white, fontSize: 14, fontWeight: "600" },
   filaCedula: { flexDirection: "row", gap: 16, alignItems: "flex-start" },
   datosCedula: { flex: 1, gap: 6 },
-  datoCedulaLineal: { fontSize: 14, color: "#1e293b", flexWrap: "wrap" },
+  datoCedulaLineal: { fontSize: 14, color: shColor.navy["900"], flexWrap: "wrap" },
   datoCedulaEtiqueta: { fontWeight: "700", color: c.textoSuave },
-  datoCedulaValor: { fontWeight: "600", color: "#1e293b" },
+  datoCedulaValor: { fontWeight: "600", color: shColor.navy["900"] },
   documentosFila: { flexDirection: "row", gap: 14, marginTop: 16 },
   miniaturaIconoMarco: {
     width: 96,
@@ -2193,8 +2196,8 @@ function crearEstilos(c: ColoresTema) {
     justifyContent: "center",
   },
   miniaturaIconoVerificado: {
-    borderColor: "#bbf7d0",
-    backgroundColor: "#dcfce7",
+    borderColor: conAlfa(shColor.success, 0.3),
+    backgroundColor: conAlfa(shColor.success, 0.12),
   },
   miniaturaIconoPendiente: {
     borderColor: c.borde,
@@ -2252,10 +2255,10 @@ function crearEstilos(c: ColoresTema) {
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  badgeVerificado: { backgroundColor: "#dcfce7" },
-  badgePendiente: { backgroundColor: "#fef3c7" },
-  badgeVerificadoTexto: { color: "#16a34a", fontSize: 10, fontWeight: "700" },
-  badgePendienteTexto: { color: "#b45309", fontSize: 10, fontWeight: "700" },
+  badgeVerificado: { backgroundColor: conAlfa(shColor.success, 0.12) },
+  badgePendiente: { backgroundColor: conAlfa(shColor.warning, 0.18) },
+  badgeVerificadoTexto: { color: shColor.success, fontSize: 10, fontWeight: "700" },
+  badgePendienteTexto: { color: shColor.navy["900"], fontSize: 10, fontWeight: "700" },
   detalle: { color: c.textoSuave, fontSize: 14 },
   footerTarjeta: {
     marginTop: 10,
@@ -2270,21 +2273,21 @@ function crearEstilos(c: ColoresTema) {
     alignItems: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: "#a5f3fc",
-    backgroundColor: "#ecfeff",
+    borderColor: conAlfa(shColor.cyan["400"], 0.35),
+    backgroundColor: conAlfa(shColor.cyan["400"], 0.12),
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  comoLlegarActivo: { borderColor: "#67e8f9" },
-  comoLlegarTexto: { color: "#0e7490", fontWeight: "600", fontSize: 13 },
+  comoLlegarActivo: { borderColor: conAlfa(shColor.cyan["400"], 0.5) },
+  comoLlegarTexto: { color: shColor.blue["600"], fontWeight: "600", fontSize: 13 },
   editarUbicacion: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: "#bfdbfe",
-    backgroundColor: "#eff6ff",
+    borderColor: conAlfa(shColor.blue["500"], 0.35),
+    backgroundColor: conAlfa(shColor.blue["500"], 0.1),
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -2298,26 +2301,26 @@ function crearEstilos(c: ColoresTema) {
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    backgroundColor: "#0e7490",
+    backgroundColor: shColor.blue["600"],
     borderRadius: 10,
     paddingVertical: 10,
   },
-  botonWaze: { backgroundColor: "#1d4ed8" },
-  botonNavegarTexto: { color: "#ffffff", fontWeight: "600", fontSize: 13 },
+  botonWaze: { backgroundColor: shColor.blue["600"] },
+  botonNavegarTexto: { color: shColor.white, fontWeight: "600", fontSize: 13 },
   notificacion: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#eff6ff",
+    backgroundColor: conAlfa(shColor.blue["500"], 0.1),
     borderWidth: 1,
-    borderColor: "#bfdbfe",
+    borderColor: conAlfa(shColor.blue["500"], 0.35),
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
   notificacionContenido: { flex: 1 },
-  notificacionTitulo: { fontSize: 13, fontWeight: "700", color: "#1e40af" },
-  notificacionDetalle: { fontSize: 12, color: "#3b82f6", marginTop: 2 },
+  notificacionTitulo: { fontSize: 13, fontWeight: "700", color: shColor.navy["600"] },
+  notificacionDetalle: { fontSize: 12, color: shColor.blue["500"], marginTop: 2 },
   seccion: {
     marginTop: 12,
     backgroundColor: c.tarjeta,
@@ -2340,7 +2343,7 @@ function crearEstilos(c: ColoresTema) {
   botonNuevoTexto: { color: c.acento, fontSize: 14, fontWeight: "600" },
   seccionTitulo: { fontSize: 15, fontWeight: "700", color: c.texto },
   sinPrestamos: { color: c.textoSuave, fontSize: 13, marginTop: 10 },
-  requiereConexion: { color: "#b45309", fontSize: 12, marginTop: 6 },
+  requiereConexion: { color: shColor.navy["900"], fontSize: 12, marginTop: 6 },
   prestamoItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -2355,16 +2358,16 @@ function crearEstilos(c: ColoresTema) {
     marginTop: 8,
   },
   prestamoItemSeleccionado: {
-    borderColor: "#86efac",
+    borderColor: conAlfa(shColor.success, 0.45),
     borderWidth: 2,
-    backgroundColor: "#f0fdf4",
+    backgroundColor: conAlfa(shColor.success, 0.1),
   },
   prestamoInfo: { flex: 1, marginRight: 8 },
-  prestamoValor: { fontSize: 14, fontWeight: "700", color: "#1e293b" },
+  prestamoValor: { fontSize: 14, fontWeight: "700", color: shColor.navy["900"] },
   prestamoDetalle: { color: c.textoSuave, fontSize: 12, marginTop: 2 },
   prestamoEstatus: { color: c.textoSuave, fontSize: 12, marginTop: 2, fontWeight: "600" },
   canvasScreenshot: {
-    backgroundColor: "#ffffff",
+    backgroundColor: shColor.white,
     borderRadius: 12,
     padding: 12,
   },
@@ -2377,7 +2380,7 @@ function crearEstilos(c: ColoresTema) {
     gap: 8,
     marginTop: 4,
   },
-  detalleTitulo: { fontSize: 15, fontWeight: "700", color: "#1e293b" },
+  detalleTitulo: { fontSize: 15, fontWeight: "700", color: shColor.navy["900"] },
   detalleTituloFila: { flexDirection: "row", alignItems: "center", gap: 8 },
   iconoWhatsApp: {
     width: 30,
@@ -2385,7 +2388,7 @@ function crearEstilos(c: ColoresTema) {
     borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#ecfdf5",
+    backgroundColor: conAlfa(shColor.success, 0.08),
   },
   detalleLinea: { color: c.textoSuave, fontSize: 13 },
   detalleCarga: { marginVertical: 16 },
@@ -2406,7 +2409,7 @@ function crearEstilos(c: ColoresTema) {
   cuadroNumero: { fontSize: 16, fontWeight: "700", color: c.texto },
   cuadroValor: { fontSize: 11, color: c.textoSuave, fontWeight: "600" },
   cuadroFecha: { fontSize: 11, color: c.textoSuave },
-  cuadroAbono: { fontSize: 11, color: "#16a34a", fontWeight: "600" },
+  cuadroAbono: { fontSize: 11, color: shColor.success, fontWeight: "600" },
   cuadroSaldo: { fontSize: 11, color: c.acento, fontWeight: "600" },
   cuadroEtiqueta: {
     borderWidth: 1,
@@ -2421,12 +2424,12 @@ function crearEstilos(c: ColoresTema) {
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    backgroundColor: "#16a34a",
+    backgroundColor: shColor.success,
     borderRadius: 10,
     paddingVertical: 12,
     marginTop: 6,
   },
-  botonWhatsAppTexto: { color: "#ffffff", fontSize: 14, fontWeight: "600" },
+  botonWhatsAppTexto: { color: shColor.white, fontSize: 14, fontWeight: "600" },
   acciones: { flexDirection: "row", gap: 10, marginTop: 2 },
   botonAccion: {
     flex: 1,
@@ -2437,15 +2440,15 @@ function crearEstilos(c: ColoresTema) {
     borderRadius: 10,
     paddingVertical: 12,
   },
-  botonPago: { backgroundColor: "#16a34a" },
-  botonNoPago: { backgroundColor: "#d97706" },
-  botonAccionTexto: { color: "#ffffff", fontWeight: "600" },
+  botonPago: { backgroundColor: shColor.success },
+  botonNoPago: { backgroundColor: shColor.warning },
+  botonAccionTexto: { color: shColor.white, fontWeight: "600" },
   deshabilitado: { opacity: 0.5 },
   label: { fontSize: 13, color: c.textoSuave, marginTop: 2 },
   input: {
     backgroundColor: c.tarjeta,
     borderWidth: 1,
-    borderColor: "#dbeafe",
+    borderColor: conAlfa(shColor.blue["500"], 0.2),
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -2468,16 +2471,16 @@ function crearEstilos(c: ColoresTema) {
   chip: {
     backgroundColor: c.activoSuave,
     borderWidth: 1,
-    borderColor: "#c7d2fe",
+    borderColor: conAlfa(shColor.blue["500"], 0.35),
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  chipActivo: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+  chipActivo: { backgroundColor: shColor.blue["600"], borderColor: shColor.blue["600"] },
   chipTexto: { color: c.acento, fontSize: 13 },
-  chipTextoActivo: { color: "#ffffff", fontSize: 13 },
+  chipTextoActivo: { color: shColor.white, fontSize: 13 },
   promesaNota: { color: c.textoSuave, fontSize: 13 },
-  mensaje: { color: "#16a34a", fontSize: 14, marginTop: 2 },
+  mensaje: { color: shColor.success, fontSize: 14, marginTop: 2 },
   errorTexto: { color: c.peligro, fontSize: 13, marginTop: 2 },
   cuotaResumen: {
     backgroundColor: c.fondo,
@@ -2518,14 +2521,14 @@ function crearEstilos(c: ColoresTema) {
     borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fef2f2",
+    backgroundColor: conAlfa(shColor.danger, 0.1),
   },
   borrarPanel: {
     borderWidth: 1,
-    borderColor: "#fecaca",
+    borderColor: conAlfa(shColor.danger, 0.3),
     borderRadius: 10,
     padding: 10,
-    backgroundColor: "#fff7f7",
+    backgroundColor: conAlfa(shColor.danger, 0.06),
     gap: 6,
   },
   borrarAcciones: { flexDirection: "row", gap: 10, marginTop: 4 },
@@ -2545,13 +2548,13 @@ function crearEstilos(c: ColoresTema) {
     paddingVertical: 10,
     alignItems: "center",
   },
-  botonConfirmarLineaTexto: { color: "#ffffff", fontWeight: "600" },
+  botonConfirmarLineaTexto: { color: shColor.white, fontWeight: "600" },
   formPanel: {
     borderWidth: 1,
-    borderColor: "#bfdbfe",
+    borderColor: conAlfa(shColor.blue["500"], 0.35),
     borderRadius: 10,
     padding: 10,
-    backgroundColor: "#eff6ff",
+    backgroundColor: conAlfa(shColor.blue["500"], 0.1),
     gap: 6,
   },
   cuotaAcciones: { flexDirection: "row", gap: 10, marginTop: 4 },
@@ -2561,14 +2564,14 @@ function crearEstilos(c: ColoresTema) {
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    backgroundColor: "#16a34a",
+    backgroundColor: shColor.success,
     borderRadius: 10,
     paddingVertical: 11,
   },
   cuotaAccionNoPago: { backgroundColor: c.peligro },
-  cuotaAccionQr: { backgroundColor: "#0e7490" },
+  cuotaAccionQr: { backgroundColor: shColor.blue["600"] },
   qrImagen: { width: 220, height: 220, alignSelf: "center", marginVertical: 8 },
   cuotaAccionActiva: { opacity: 0.85 },
-  cuotaAccionTexto: { color: "#ffffff", fontWeight: "700" },
+  cuotaAccionTexto: { color: shColor.white, fontWeight: "700" },
 });
 }

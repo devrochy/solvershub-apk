@@ -41,6 +41,9 @@ import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
+
 import type { ClienteTrayectoDiarioPublic, LiquidacionPublic, TrayectoPublic } from "../types/gestor";
 
 /** TTL de la precarga offline de clientes (evita re-precargar cada 30s). */
@@ -544,7 +547,7 @@ export function TrayectoDiarioScreen() {
                   onPress={detenerYEnviarTrayectoria}
                 >
                   {trayectoriaEnviando ? (
-                    <ActivityIndicator color="#ffffff" />
+                    <ActivityIndicator color={shColor.white} />
                   ) : (
                     <Text style={styles.botonPrimarioTexto}>Detener y enviar</Text>
                   )}
@@ -576,7 +579,7 @@ export function TrayectoDiarioScreen() {
                   onPress={generarTrayecto}
                 >
                   {generandoTrayecto ? (
-                    <ActivityIndicator color="#ffffff" />
+                    <ActivityIndicator color={shColor.white} />
                   ) : (
                     <Text style={styles.botonPrimarioTexto}>Generar trayecto</Text>
                   )}
@@ -869,7 +872,7 @@ export function TrayectoDiarioScreen() {
                     onPress={() => void descargarPdf()}
                   >
                     {descargandoPdf ? (
-                      <ActivityIndicator color="#ffffff" />
+                      <ActivityIndicator color={shColor.white} />
                     ) : (
                       <Text style={styles.botonLiquidacionTexto}>Descargar PDF</Text>
                     )}
@@ -910,7 +913,7 @@ export function TrayectoDiarioScreen() {
                   onPress={() => void generarLiquidacion()}
                 >
                   {generandoLiquidacion ? (
-                    <ActivityIndicator color="#ffffff" />
+                    <ActivityIndicator color={shColor.white} />
                   ) : (
                     <Text style={styles.botonLiquidacionTexto}>Generar liquidación</Text>
                   )}
@@ -930,7 +933,7 @@ function crearEstilos(c: ColoresTema) {
   lista: { padding: 16, gap: 12 },
   vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24, fontSize: 14 },
   acciones: { marginBottom: 8, gap: 10 },
-  avisoOffline: { color: "#d97706", fontWeight: "600", fontSize: 13 },
+  avisoOffline: { color: shColor.warning, fontWeight: "600", fontSize: 13 },
   botonPrimario: {
     backgroundColor: c.primario,
     borderRadius: 12,
@@ -939,7 +942,7 @@ function crearEstilos(c: ColoresTema) {
     paddingHorizontal: 16,
     alignItems: "center",
   },
-  botonPrimarioTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
+  botonPrimarioTexto: { color: shColor.white, fontWeight: "700", fontSize: 15 },
   botonSecundario: {
     backgroundColor: c.peligro,
     borderRadius: 12,
@@ -949,14 +952,14 @@ function crearEstilos(c: ColoresTema) {
     alignItems: "center",
   },
   botonTrayectos: {
-    backgroundColor: "#0e7490",
+    backgroundColor: shColor.blue["600"],
     borderRadius: 12,
     borderCurve: "continuous",
     paddingVertical: 13,
     paddingHorizontal: 16,
     alignItems: "center",
   },
-  botonTrayectosTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
+  botonTrayectosTexto: { color: shColor.white, fontWeight: "700", fontSize: 15 },
   botonLiquidacion: {
     backgroundColor: c.primario,
     borderRadius: 12,
@@ -966,7 +969,7 @@ function crearEstilos(c: ColoresTema) {
     alignItems: "center",
   },
   botonLiquidacionBloqueado: { opacity: 0.4 },
-  botonLiquidacionTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
+  botonLiquidacionTexto: { color: shColor.white, fontWeight: "700", fontSize: 15 },
   liquidacionContenedor: { flex: 1, backgroundColor: c.fondo },
   liquidacionHeader: {
     flexDirection: "row",
@@ -976,7 +979,7 @@ function crearEstilos(c: ColoresTema) {
     paddingVertical: 12,
     backgroundColor: c.primario,
   },
-  liquidacionTitulo: { fontSize: 16, fontWeight: "700", color: "#ffffff" },
+  liquidacionTitulo: { fontSize: 16, fontWeight: "700", color: shColor.white },
   liquidacionCerrar: {
     width: 34,
     height: 34,
@@ -985,10 +988,10 @@ function crearEstilos(c: ColoresTema) {
     justifyContent: "center",
     backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
-  liquidacionCerrarTexto: { color: "#ffffff", fontSize: 16 },
+  liquidacionCerrarTexto: { color: shColor.white, fontSize: 16 },
   liquidacionCarga: { marginTop: 40 },
   liquidacionScroll: { padding: 16, gap: 10 },
-  liquidacionAviso: { color: "#b45309", fontSize: 13, fontWeight: "600" },
+  liquidacionAviso: { color: shColor.navy["900"], fontSize: 13, fontWeight: "600" },
   liquidacionResumen: {
     backgroundColor: c.tarjeta,
     borderRadius: 10,
@@ -1010,13 +1013,13 @@ function crearEstilos(c: ColoresTema) {
   },
   liquidacionItemTexto: { color: c.texto, fontSize: 13 },
   liquidacionMensaje: { color: c.peligro, fontSize: 13, fontWeight: "500" },
-  liquidacionMensajeOk: { color: "#16a34a", fontSize: 13, fontWeight: "500" },
-  botonSecundarioTexto: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
+  liquidacionMensajeOk: { color: shColor.success, fontSize: 13, fontWeight: "500" },
+  botonSecundarioTexto: { color: shColor.white, fontWeight: "700", fontSize: 15 },
   trayectoriaActiva: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "#fee2e2",
+    backgroundColor: conAlfa(shColor.danger, 0.12),
     borderRadius: 8,
     padding: 10,
   },
@@ -1026,20 +1029,20 @@ function crearEstilos(c: ColoresTema) {
     borderRadius: 6,
     backgroundColor: c.peligro,
   },
-  trayectoriaTexto: { color: "#7f1d1d", fontWeight: "600", flex: 1 },
+  trayectoriaTexto: { color: shColor.navy["900"], fontWeight: "600", flex: 1 },
   mensajeTrayectoria: { color: c.textoSuave, fontSize: 13 },
   gating: {
-    backgroundColor: "#fef9c3",
+    backgroundColor: conAlfa(shColor.warning, 0.15),
     borderWidth: 1,
-    borderColor: "#fde68a",
+    borderColor: conAlfa(shColor.warning, 0.35),
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 8,
   },
-  gatingTexto: { color: "#92400e", fontSize: 13, fontWeight: "600" },
+  gatingTexto: { color: shColor.navy["900"], fontSize: 13, fontWeight: "600" },
   tarjetaBloqueada: { opacity: 0.5 },
-  deshabilitado: { backgroundColor: "#6b8ab5" },
+  deshabilitado: { backgroundColor: shColor.slate["500"] },
   tarjeta: {
     flexDirection: "row",
     alignItems: "stretch",
@@ -1058,25 +1061,25 @@ function crearEstilos(c: ColoresTema) {
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  chipMora: { backgroundColor: "#fee2e2" },
+  chipMora: { backgroundColor: conAlfa(shColor.danger, 0.12) },
   chipMoraTexto: {
     color: c.peligro,
     fontSize: 12,
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
   },
-  chipCompromiso: { backgroundColor: "#fef3c7" },
+  chipCompromiso: { backgroundColor: conAlfa(shColor.warning, 0.18) },
   chipCompromisoTexto: {
-    color: "#92400e",
+    color: shColor.navy["900"],
     fontSize: 12,
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
   },
-  chipTrayecto: { backgroundColor: "#dbeafe" },
-  chipTrayectoTexto: { color: "#1d4ed8", fontSize: 12, fontWeight: "700" },
+  chipTrayecto: { backgroundColor: conAlfa(shColor.blue["500"], 0.2) },
+  chipTrayectoTexto: { color: shColor.blue["600"], fontSize: 12, fontWeight: "700" },
   llegar: { marginTop: 2, alignSelf: "flex-start", paddingVertical: 2 },
-  llegarTexto: { color: "#0e7490", fontWeight: "700", fontSize: 13 },
-  gastoMensaje: { color: "#16a34a", fontSize: 13 },
+  llegarTexto: { color: shColor.blue["600"], fontWeight: "700", fontSize: 13 },
+  gastoMensaje: { color: shColor.success, fontSize: 13 },
   gastoMensajeError: { color: c.peligro },
 });
 }

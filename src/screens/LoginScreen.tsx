@@ -19,6 +19,8 @@ import type { RolLogin } from "../api/auth";
 import { useSession } from "../session/session-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 
 export function LoginScreen() {
   const { colores } = useTheme();
@@ -98,7 +100,7 @@ export function LoginScreen() {
               testID="usuario-input"
               style={styles.input}
               placeholder="Usuario"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={shColor.fog}
               autoCapitalize="none"
               autoCorrect={false}
               value={usuario}
@@ -109,7 +111,7 @@ export function LoginScreen() {
                 testID="password-input"
                 style={styles.passwordInput}
                 placeholder="Contraseña"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={shColor.fog}
                 secureTextEntry={!mostrarPassword}
                 value={password}
                 onChangeText={setPassword}
@@ -187,12 +189,12 @@ function crearEstilos(c: ColoresTema) {
     alignItems: "center",
   },
   rolActivo: { backgroundColor: c.tarjeta, borderColor: c.tarjeta },
-  rolTexto: { color: "#ffffff", fontWeight: "600" },
+  rolTexto: { color: shColor.white, fontWeight: "600" },
   rolTextoActivo: { color: c.texto, fontWeight: "600" },
   input: {
     backgroundColor: c.tarjeta,
     borderWidth: 1,
-    borderColor: "#dbeafe",
+    borderColor: shColor.mist,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -204,7 +206,7 @@ function crearEstilos(c: ColoresTema) {
     alignItems: "center",
     backgroundColor: c.tarjeta,
     borderWidth: 1,
-    borderColor: "#dbeafe",
+    borderColor: shColor.mist,
     borderRadius: 8,
     paddingRight: 10,
   },
@@ -216,17 +218,17 @@ function crearEstilos(c: ColoresTema) {
     color: c.texto,
   },
   error: {
-    color: "#fecaca",
+    color: shColor.danger,
     fontSize: 14,
   },
   boton: {
-    backgroundColor: "#f7f4ec",
+    backgroundColor: shColor.paper,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
   },
   botonDeshabilitado: {
-    backgroundColor: "rgba(247, 244, 236, 0.45)",
+    backgroundColor: conAlfa(shColor.paper, 0.45),
   },
   botonTexto: {
     color: c.acento,

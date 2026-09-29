@@ -1,13 +1,14 @@
 import { render } from "@testing-library/react-native";
 import { Animated } from "react-native";
 import { ColorBadge } from "./ColorBadge";
+import { shColor } from "../theme/tokens";
 
 describe("ColorBadge", () => {
   it("renderiza un punto circular con el color semántico", async () => {
     const { getByTestId } = await render(<ColorBadge color="rojo" />);
     const punto = getByTestId("color-badge-rojo");
     expect(punto).toBeTruthy();
-    expect(punto).toHaveStyle({ backgroundColor: "#dc2626" });
+    expect(punto).toHaveStyle({ backgroundColor: shColor.danger });
   });
 
   it("no muestra texto del color", async () => {

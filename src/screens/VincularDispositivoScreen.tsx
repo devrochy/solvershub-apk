@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { shColor } from "../theme/tokens";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -119,7 +120,7 @@ export function VincularDispositivoScreen() {
                 onPress={() => void vincular()}
               >
                 {estado === "enviando" ? (
-                  <ActivityIndicator color="#ffffff" />
+                  <ActivityIndicator color={shColor.white} />
                 ) : (
                   <Text style={styles.botonTexto}>Enviar solicitud</Text>
                 )}
@@ -156,7 +157,7 @@ function crearEstilos(c: ColoresTema) {
       backgroundColor: c.tarjeta,
     },
     error: { color: c.peligro, fontSize: 13 },
-    ok: { color: "#16a34a", fontSize: 14, marginVertical: 8 },
+    ok: { color: shColor.success, fontSize: 14, marginVertical: 8 },
     boton: {
       backgroundColor: c.primario,
       borderRadius: 10,
@@ -166,7 +167,7 @@ function crearEstilos(c: ColoresTema) {
       minHeight: 44,
       justifyContent: "center",
     },
-    botonTexto: { color: "#ffffff", fontWeight: "700" },
+    botonTexto: { color: shColor.white, fontWeight: "700" },
     deshabilitado: { opacity: 0.6 },
     salir: { color: c.acento, textAlign: "center", marginTop: 16, fontWeight: "600" },
   });

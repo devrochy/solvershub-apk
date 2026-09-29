@@ -1,4 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { shColor } from "../theme/tokens";
 import { Linking } from "react-native";
 import { ClientesScreen } from "./ClientesScreen";
 import { ApiError } from "../api/client";
@@ -126,8 +127,8 @@ describe("ClientesScreen", () => {
     });
 
     await waitFor(() => expect(getByTestId("cliente-11")).toBeTruthy());
-    expect(getByTestId("cliente-acento-11")).toHaveStyle({ backgroundColor: "#16a34a" });
-    expect(getByTestId("cliente-11")).toHaveStyle({ borderColor: "#16a34a" });
+    expect(getByTestId("cliente-acento-11")).toHaveStyle({ backgroundColor: shColor.success });
+    expect(getByTestId("cliente-11")).toHaveStyle({ borderColor: shColor.success });
   });
 
   it("colorea en mora en rojo (barra y borde)", async () => {
@@ -138,8 +139,8 @@ describe("ClientesScreen", () => {
     });
 
     await waitFor(() => expect(getByTestId("cliente-acento-21")).toBeTruthy());
-    expect(getByTestId("cliente-acento-21")).toHaveStyle({ backgroundColor: "#dc2626" });
-    expect(getByTestId("cliente-21")).toHaveStyle({ borderColor: "#dc2626" });
+    expect(getByTestId("cliente-acento-21")).toHaveStyle({ backgroundColor: shColor.danger });
+    expect(getByTestId("cliente-21")).toHaveStyle({ borderColor: shColor.danger });
   });
 
   it("colorea sin préstamos en gris (barra y borde)", async () => {
@@ -150,8 +151,8 @@ describe("ClientesScreen", () => {
     });
 
     await waitFor(() => expect(getByTestId("cliente-acento-22")).toBeTruthy());
-    expect(getByTestId("cliente-acento-22")).toHaveStyle({ backgroundColor: "#64748b" });
-    expect(getByTestId("cliente-22")).toHaveStyle({ borderColor: "#64748b" });
+    expect(getByTestId("cliente-acento-22")).toHaveStyle({ backgroundColor: shColor.slate["400"] });
+    expect(getByTestId("cliente-22")).toHaveStyle({ borderColor: shColor.slate["400"] });
   });
 
   it("muestra avatar con iniciales si el cliente no tiene foto", async () => {
@@ -400,7 +401,7 @@ describe("ClientesScreen", () => {
 
     await waitFor(() => expect(getByTestId("filtro-chip-en_mora")).toBeTruthy());
     expect(getByTestId("filtro-chip-en_mora")).toHaveStyle({
-      backgroundColor: "#dc2626",
+      backgroundColor: shColor.danger,
     });
   });
 
@@ -413,7 +414,7 @@ describe("ClientesScreen", () => {
 
     await waitFor(() => expect(getByTestId("filtro-chip-al_dia")).toBeTruthy());
     expect(getByTestId("filtro-chip-al_dia")).toHaveStyle({
-      backgroundColor: "#16a34a",
+      backgroundColor: shColor.success,
     });
   });
 

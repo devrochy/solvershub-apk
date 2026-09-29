@@ -1,4 +1,5 @@
 import { StyleSheet, View } from "react-native";
+import { shColor } from "../theme/tokens";
 import { WebView } from "react-native-webview";
 
 export interface MapaClienteProps {
@@ -52,6 +53,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: shColor.mist,
   },
 });

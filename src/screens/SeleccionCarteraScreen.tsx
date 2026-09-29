@@ -23,6 +23,9 @@ import { useCarteraActiva, aCarteraActiva } from "../session/cartera-activa-cont
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
+
 import type { CarteraApkPublic } from "../types/gestor";
 
 interface CarteraKpi {
@@ -163,7 +166,7 @@ export function SeleccionCarteraScreen({
           key: `car-${c.id}`,
           label: c.nombre,
           icon: "circle",
-          color: c.estatus === "activo" ? "#16a34a" : "#dc2626",
+          color: c.estatus === "activo" ? shColor.success : shColor.danger,
           onPress: () => seleccionRef.current(c),
         })),
       });
@@ -277,7 +280,7 @@ export function SeleccionCarteraScreen({
                 <Text
                   style={[
                     styles.tarjetaHeaderTexto,
-                    { color: activa ? "#166534" : "#b91c1c" },
+                    { color: activa ? shColor.navy["900"] : shColor.navy["900"] },
                   ]}
                 >
                   {item.nombre}
@@ -293,14 +296,14 @@ export function SeleccionCarteraScreen({
                     <Text style={styles.kpiEtiqueta}>clientes</Text>
                   </View>
                   <View style={styles.kpi}>
-                    <MaterialIcons name="today" size={26} color="#0e7490" />
+                    <MaterialIcons name="today" size={26} color={shColor.cyan["400"]} />
                     <Text style={styles.kpiValor} testID={`kpi-trayectoDiario-${item.id}`}>
                       {kpi.clientesDia}
                     </Text>
                     <Text style={styles.kpiEtiqueta}>del día</Text>
                   </View>
                   <View style={styles.kpi}>
-                    <MaterialIcons name="warning" size={26} color="#dc2626" />
+                    <MaterialIcons name="warning" size={26} color={shColor.danger} />
                     <Text style={styles.kpiValor} testID={`kpi-mora-${item.id}`}>
                       {kpi.enMora}
                     </Text>
@@ -309,7 +312,7 @@ export function SeleccionCarteraScreen({
                 </View>
               </View>
               <View style={styles.chevron}>
-                <MaterialIcons name="chevron-right" size={28} color="#94a3b8" />
+                <MaterialIcons name="chevron-right" size={28} color={shColor.slate["400"]} />
               </View>
             </Pressable>
           );
@@ -338,19 +341,19 @@ function crearEstilos(c: ColoresTema) {
       backgroundColor: c.borde,
     },
     tabActivo: { backgroundColor: c.primario },
-    tabTexto: { color: c.texto, fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
-    tabTextoActivo: { color: "#ffffff", fontWeight: "700", fontFamily: "Roboto_700Bold" },
+    tabTexto: { color: c.texto, fontWeight: "600", fontFamily: "Montserrat_600SemiBold" },
+    tabTextoActivo: { color: shColor.white, fontWeight: "700", fontFamily: "Montserrat_700Bold" },
     badge: {
-      backgroundColor: "#f59e0b",
+      backgroundColor: shColor.warning,
       borderRadius: 999,
       paddingHorizontal: 10,
       paddingVertical: 4,
     },
-    badgeTexto: { color: "#ffffff", fontSize: 12, fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
+    badgeTexto: { color: shColor.white, fontSize: 12, fontWeight: "600", fontFamily: "Montserrat_600SemiBold" },
     avisoErrorSync: {
-      backgroundColor: "#fee2e2",
+      backgroundColor: conAlfa(shColor.danger, 0.12),
       borderWidth: 1,
-      borderColor: "#fca5a5",
+      borderColor: conAlfa(shColor.danger, 0.35),
       marginHorizontal: 16,
       marginTop: 12,
       borderRadius: 8,
