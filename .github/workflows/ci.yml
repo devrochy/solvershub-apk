@@ -5,6 +5,11 @@ on:
   push:
     branches: [develop]
 
+# Una corrida por ref: evita encolar dos jobs en el runner self-hosted (único).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     # Runner self-hosted (Linux Mint): los minutos hospedados estan bloqueados por
@@ -36,7 +41,11 @@ jobs:
       - name: Test
         run: npm test -- --silent
 
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Gitleaks (secret scan)
+        # Binario fijado descargado a $RUNNER_TEMP (directorio del runner): evita
+        # el caché y el /tmp que dejaba trabado a `gitleaks-action`.
+        run: |
+          VER=8.24.3
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${VER}/gitleaks_${VER}_linux_x64.tar.gz" \
+            | tar -xz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/gitleaks" detect --source . --redact -v
