@@ -25,6 +25,8 @@ import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 import type {
   ClienteGestorPublic,
   TrayectoDiarioApkPublic,
@@ -288,7 +290,7 @@ export function CarteraDetalleScreen({
               style={estilosHeader.accionPill}
               onPress={() => (puedeEditar ? abrirEdicion() : setAvisoEdicion(true))}
             >
-              <MaterialIcons name="edit" size={18} color="#ffffff" />
+              <MaterialIcons name="edit" size={18} color={shColor.white} />
               <Text style={estilosHeader.accionPillTexto}>Editar</Text>
             </Pressable>
           }
@@ -314,14 +316,14 @@ export function CarteraDetalleScreen({
               <Text style={styles.kpiEtiqueta}>Clientes</Text>
             </View>
             <View style={styles.kpi}>
-              <MaterialIcons name="today" size={22} color="#0e7490" />
+              <MaterialIcons name="today" size={22} color={shColor.cyan["400"]} />
               <Text style={styles.kpiValor} testID="kpi-clientes-trayectoDiario">
                 {trayectoDiario.clientes.length}
               </Text>
               <Text style={styles.kpiEtiqueta}>Del día</Text>
             </View>
             <View style={styles.kpi}>
-              <MaterialIcons name="warning" size={22} color="#dc2626" />
+              <MaterialIcons name="warning" size={22} color={shColor.danger} />
               <Text style={styles.kpiValor} testID="kpi-en-mora">
                 {enMora}
               </Text>
@@ -384,7 +386,7 @@ export function CarteraDetalleScreen({
                 setNotaMensaje(null);
               }}
             >
-              <MaterialIcons name="add" size={16} color="#ffffff" />
+              <MaterialIcons name="add" size={16} color={shColor.white} />
               <Text style={styles.botonNotaTexto}>Nota</Text>
             </Pressable>
           </View>
@@ -478,15 +480,15 @@ function crearEstilos(c: ColoresTema) {
       paddingHorizontal: 20,
       paddingVertical: 10,
     },
-    botonSinCarteraTexto: { color: "#ffffff", fontWeight: "600" },
+    botonSinCarteraTexto: { color: shColor.white, fontWeight: "600" },
     aviso: {
-      backgroundColor: "#fef9c3",
+      backgroundColor: conAlfa(shColor.warning, 0.15),
       borderBottomWidth: 1,
-      borderBottomColor: "#fde68a",
+      borderBottomColor: conAlfa(shColor.warning, 0.35),
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
-    avisoTexto: { color: "#92400e", fontSize: 13, fontWeight: "600" },
+    avisoTexto: { color: shColor.navy["900"], fontSize: 13, fontWeight: "600" },
     scroll: { flex: 1 },
     scrollContenido: { padding: 16, gap: 12 },
     seccion: {
@@ -506,7 +508,7 @@ function crearEstilos(c: ColoresTema) {
     estadoFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
     estadoEtiqueta: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
     estadoValor: { fontSize: 14, fontWeight: "700", color: c.acento },
-    avisoOffline: { fontSize: 12, color: "#92400e", fontWeight: "600" },
+    avisoOffline: { fontSize: 12, color: shColor.navy["900"], fontWeight: "600" },
     pares: { flexDirection: "row", gap: 8 },
     par: { flex: 1, alignItems: "center", gap: 1 },
     parValor: { fontSize: 20, fontWeight: "800", color: c.texto },
@@ -514,7 +516,7 @@ function crearEstilos(c: ColoresTema) {
     parAnterior: { fontSize: 11, color: c.textoSuave },
     parDelta: { fontSize: 12, fontWeight: "700", color: c.textoSuave },
     parDeltaSube: { color: c.peligro },
-    parDeltaBaja: { color: "#16a34a" },
+    parDeltaBaja: { color: shColor.success },
     botonNota: {
       flexDirection: "row",
       alignItems: "center",
@@ -524,7 +526,7 @@ function crearEstilos(c: ColoresTema) {
       paddingHorizontal: 12,
       paddingVertical: 6,
     },
-    botonNotaTexto: { color: "#ffffff", fontWeight: "600", fontSize: 13 },
+    botonNotaTexto: { color: shColor.white, fontWeight: "600", fontSize: 13 },
     vacio: { color: c.textoSuave, fontSize: 13 },
     nota: {
       borderWidth: 1,
