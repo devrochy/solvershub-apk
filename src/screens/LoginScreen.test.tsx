@@ -13,6 +13,11 @@ async function renderConSesion(login: jest.Mock) {
     actualizarPerfil: jest.fn(),
     requiereVinculacion: false,
     marcarDispositivoVinculado: jest.fn(),
+    negociosPendientes: [],
+    membresiaToken: null,
+    invitaciones: [],
+    seleccionarNegocio: jest.fn(),
+    resolverInvitacion: jest.fn(),
   };
   return render(
     <SessionContext.Provider value={valor}>
@@ -41,19 +46,7 @@ describe("LoginScreen", () => {
     await fireEvent.changeText(getByTestId("password-input"), "secret");
     await fireEvent.press(getByTestId("login-button"));
 
-    await waitFor(() => expect(login).toHaveBeenCalledWith("gestor1", "secret", "gestor"));
-  });
-
-  it("permite elegir rol propietario y lo pasa al login", async () => {
-    const login = jest.fn().mockResolvedValue(undefined);
-    const { getByTestId } = await renderConSesion(login);
-
-    await fireEvent.press(getByTestId("rol-propietario"));
-    await fireEvent.changeText(getByTestId("usuario-input"), "propietario1");
-    await fireEvent.changeText(getByTestId("password-input"), "secret");
-    await fireEvent.press(getByTestId("login-button"));
-
-    await waitFor(() => expect(login).toHaveBeenCalledWith("propietario1", "secret", "propietario"));
+    await waitFor(() => expect(login).toHaveBeenCalledWith("gestor1", "secret"));
   });
 
   it("muestra error de credenciales cuando el login responde 401", async () => {

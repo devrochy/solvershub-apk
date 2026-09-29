@@ -17,6 +17,11 @@ function renderHeader() {
     actualizarPerfil: jest.fn(),
     requiereVinculacion: false,
     marcarDispositivoVinculado: jest.fn(),
+    negociosPendientes: [],
+    membresiaToken: null,
+    invitaciones: [],
+    seleccionarNegocio: jest.fn(),
+    resolverInvitacion: jest.fn(),
   };
   return render(
     <SafeAreaProvider

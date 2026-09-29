@@ -6,7 +6,7 @@ const ACCESS_KEY = "cobranza_access_token";
 const REFRESH_KEY = "cobranza_refresh_token";
 const PROFILE_KEY = "cobranza_gestor_profile";
 
-export type RolUsuario = "gestor" | "propietario";
+export type RolUsuario = "gestor" | "propietario" | "master";
 
 export interface UsuarioPerfil {
   id: string;

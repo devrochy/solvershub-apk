@@ -139,6 +139,11 @@ async function renderConApi(
     actualizarPerfil: jest.fn(),
     requiereVinculacion: false,
     marcarDispositivoVinculado: jest.fn(),
+    negociosPendientes: [],
+    membresiaToken: null,
+    invitaciones: [],
+    seleccionarNegocio: jest.fn(),
+    resolverInvitacion: jest.fn(),
   };
   return render(
     <PantallaActivaProvider>
@@ -684,6 +689,11 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
       actualizarPerfil: jest.fn(),
       requiereVinculacion: false,
       marcarDispositivoVinculado: jest.fn(),
+      negociosPendientes: [],
+      membresiaToken: null,
+      invitaciones: [],
+      seleccionarNegocio: jest.fn(),
+      resolverInvitacion: jest.fn(),
     };
     const { getByTestId } = await render(
       <PantallaActivaProvider>
@@ -738,6 +748,11 @@ describe("TrayectoDiarioScreen — sin cartera activa", () => {
       actualizarPerfil: jest.fn(),
       requiereVinculacion: false,
       marcarDispositivoVinculado: jest.fn(),
+      negociosPendientes: [],
+      membresiaToken: null,
+      invitaciones: [],
+      seleccionarNegocio: jest.fn(),
+      resolverInvitacion: jest.fn(),
     };
     await render(
       <PantallaActivaProvider>

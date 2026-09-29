@@ -80,6 +80,11 @@ async function renderConCarteraActiva(
     actualizarPerfil: jest.fn(),
     requiereVinculacion: false,
     marcarDispositivoVinculado: jest.fn(),
+    negociosPendientes: [],
+    membresiaToken: null,
+    invitaciones: [],
+    seleccionarNegocio: jest.fn(),
+    resolverInvitacion: jest.fn(),
   };
   return render(
     <PantallaActivaProvider>

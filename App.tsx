@@ -14,6 +14,8 @@ import { PantallaActivaProvider } from "./src/navigation/pantalla-activa-context
 import { TrayectosOverlayProvider } from "./src/navigation/trayectos-overlay-context";
 import { OfflineProvider } from "./src/offline/offline-context";
 import { LoginScreen } from "./src/screens/LoginScreen";
+import { SeleccionNegocioScreen } from "./src/screens/SeleccionNegocioScreen";
+import { InvitacionesScreen } from "./src/screens/InvitacionesScreen";
 import { VincularDispositivoScreen } from "./src/screens/VincularDispositivoScreen";
 import { SeleccionCarteraScreen } from "./src/screens/SeleccionCarteraScreen";
 import { PerfilScreen } from "./src/screens/PerfilScreen";
@@ -27,7 +29,7 @@ import { ThemeProvider } from "./src/theme/theme-context";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
-  const { gestor, loading, requiereVinculacion } = useSession();
+  const { gestor, loading, requiereVinculacion, negociosPendientes, membresiaToken } = useSession();
 
   if (loading) {
     return (
@@ -42,7 +44,11 @@ function RootNavigator() {
       <MenuLateralProvider>
         <TrayectosOverlayProvider>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {gestor && requiereVinculacion ? (
+            {membresiaToken ? (
+              <Stack.Screen name="Invitaciones" component={InvitacionesScreen} />
+            ) : negociosPendientes.length > 0 ? (
+              <Stack.Screen name="SeleccionNegocio" component={SeleccionNegocioScreen} />
+            ) : gestor && requiereVinculacion ? (
               <Stack.Screen
                 name="VincularDispositivo"
                 component={VincularDispositivoScreen}

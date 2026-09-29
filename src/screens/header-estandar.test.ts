@@ -4,10 +4,15 @@ import { join } from "path";
 /**
  * Guard del estándar de headers: toda pantalla autenticada debe invocar el
  * componente `HeaderApp` (hamburguesa + campana + título) en vez de armar su
- * propia banda. `LoginScreen` es la única excepción (pantalla previa a la
- * sesión, con diseño propio).
+ * propia banda. Las pantallas previas a la sesión (login, selector de negocio e
+ * invitaciones) tienen diseño propio y quedan excluidas (ADR-0081).
  */
-const EXCLUIDAS = new Set(["LoginScreen.tsx", "VincularDispositivoScreen.tsx"]);
+const EXCLUIDAS = new Set([
+  "LoginScreen.tsx",
+  "VincularDispositivoScreen.tsx",
+  "SeleccionNegocioScreen.tsx",
+  "InvitacionesScreen.tsx",
+]);
 
 const DIRECTORIO = __dirname;
 
