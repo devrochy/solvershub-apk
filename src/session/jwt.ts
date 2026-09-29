@@ -5,7 +5,7 @@ export interface AccessTokenPayload {
   /** Identidad del pack (ADR-0066): `admins.id` + perfil opcional del gestor. */
   admin_id: string;
   gestor_id?: string;
-  rol: "gestor" | "propietario";
+  rol: "gestor" | "propietario" | "master";
   typ: "access" | "refresh";
   exp?: number;
 }

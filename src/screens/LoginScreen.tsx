@@ -15,7 +15,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { apiErrorStatus } from "../api/client";
-import type { RolLogin } from "../api/auth";
 import { useSession } from "../session/session-context";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
@@ -30,7 +29,6 @@ export function LoginScreen() {
   const logoTamano = Math.round(anchoPantalla * 0.44);
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
-  const [rol, setRol] = useState<RolLogin>("gestor");
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +42,7 @@ export function LoginScreen() {
     setSubmitting(true);
     setError(null);
     try {
-      await login(usuario.trim(), password, rol);
+      await login(usuario.trim(), password);
     } catch (err) {
       setError(
         apiErrorStatus(err) === 401
@@ -76,24 +74,7 @@ export function LoginScreen() {
             />
 
             <View style={styles.roles}>
-              <Pressable
-                testID="rol-gestor"
-                style={[styles.rol, rol === "gestor" && styles.rolActivo]}
-                onPress={() => setRol("gestor")}
-              >
-                <Text style={rol === "gestor" ? styles.rolTextoActivo : styles.rolTexto}>
-                  Gestor
-                </Text>
-              </Pressable>
-              <Pressable
-                testID="rol-propietario"
-                style={[styles.rol, rol === "propietario" && styles.rolActivo]}
-                onPress={() => setRol("propietario")}
-              >
-                <Text style={rol === "propietario" ? styles.rolTextoActivo : styles.rolTexto}>
-                  Propietario
-                </Text>
-              </Pressable>
+              <Text style={styles.rolTexto}>Entra con tu cuenta de SolversHub</Text>
             </View>
 
             <TextInput
@@ -179,18 +160,8 @@ function crearEstilos(c: ColoresTema) {
     alignSelf: "center",
     marginBottom: 16,
   },
-  roles: { flexDirection: "row", gap: 8 },
-  rol: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.6)",
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  rolActivo: { backgroundColor: c.tarjeta, borderColor: c.tarjeta },
+  roles: { alignItems: "center" },
   rolTexto: { color: shColor.white, fontWeight: "600" },
-  rolTextoActivo: { color: c.texto, fontWeight: "600" },
   input: {
     backgroundColor: c.tarjeta,
     borderWidth: 1,
