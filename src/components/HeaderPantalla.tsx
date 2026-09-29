@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { shColor } from "../theme/tokens";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../theme/theme-context";
@@ -65,17 +66,17 @@ export const estilosHeader = StyleSheet.create({
   titulo: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#ffffff",
+    color: shColor.white,
     fontFamily: "Roboto_700Bold",
   },
   subtitulo: {
-    color: "#d4dff0",
+    color: shColor.ice,
     fontSize: 13,
     marginTop: 2,
     fontFamily: "Roboto_400Regular",
   },
   accionTexto: {
-    color: "#ffffff",
+    color: shColor.white,
     fontWeight: "600",
     fontSize: 14,
     fontFamily: "Roboto_600SemiBold",
@@ -92,7 +93,7 @@ export const estilosHeader = StyleSheet.create({
     paddingVertical: 6,
   },
   accionPillTexto: {
-    color: "#ffffff",
+    color: shColor.white,
     fontWeight: "700",
     fontSize: 13,
     fontFamily: "Roboto_700Bold",

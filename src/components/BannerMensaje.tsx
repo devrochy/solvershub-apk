@@ -1,4 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 
 export interface BannerMensajeProps {
   texto: string;
@@ -30,9 +32,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  exito: { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0" },
-  error: { backgroundColor: "#fef2f2", borderColor: "#fecaca" },
+  exito: { backgroundColor: conAlfa(shColor.success, 0.12), borderColor: conAlfa(shColor.success, 0.3) },
+  error: { backgroundColor: conAlfa(shColor.danger, 0.12), borderColor: conAlfa(shColor.danger, 0.3) },
   texto: { fontSize: 13, fontWeight: "500" },
-  textoExito: { color: "#15803d" },
-  textoError: { color: "#b91c1c" },
+  textoExito: { color: shColor.navy["900"] },
+  textoError: { color: shColor.navy["900"] },
 });

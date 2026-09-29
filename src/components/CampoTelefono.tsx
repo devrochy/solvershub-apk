@@ -11,6 +11,8 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme/theme-context";
 import type { ColoresTema } from "../theme/theme";
+import { conAlfa } from "../theme/alpha";
+import { shColor } from "../theme/tokens";
 import {
   PAISES_TELEFONO,
   PAIS_DEFECTO_TELEFONO,
@@ -94,7 +96,7 @@ export function CampoTelefono({
                 hitSlop={10}
                 onPress={() => setListaAbierta(false)}
               >
-                <MaterialIcons name="close" size={22} color="#ffffff" />
+                <MaterialIcons name="close" size={22} color={shColor.white} />
               </Pressable>
             </View>
             <FlatList
@@ -110,7 +112,7 @@ export function CampoTelefono({
                   <Text style={styles.nombrePais}>{item.nombre}</Text>
                   <Text style={styles.prefijoFila}>{item.prefijo}</Text>
                   {item.codigo === pais.codigo ? (
-                    <MaterialIcons name="check" size={18} color="#16a34a" />
+                    <MaterialIcons name="check" size={18} color={shColor.success} />
                   ) : null}
                 </Pressable>
               )}
@@ -152,7 +154,7 @@ function crearEstilos(c: ColoresTema) {
       justifyContent: "flex-end",
     },
     carta: {
-      backgroundColor: "#f5f7ff",
+      backgroundColor: shColor.frost,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       overflow: "hidden",
@@ -167,7 +169,7 @@ function crearEstilos(c: ColoresTema) {
       paddingVertical: 14,
       backgroundColor: c.primario,
     },
-    headerTitulo: { fontSize: 16, fontWeight: "700", color: "#ffffff" },
+    headerTitulo: { fontSize: 16, fontWeight: "700", color: shColor.white },
     filaPais: {
       flexDirection: "row",
       alignItems: "center",

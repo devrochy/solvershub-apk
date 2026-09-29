@@ -2,6 +2,7 @@ import { render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
 import { COLORES } from "../theme/theme";
+import { shColor } from "../theme/tokens";
 
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: jest.fn(() => ({ top: 47, bottom: 0, left: 0, right: 0 })),
@@ -36,7 +37,7 @@ describe("estilosHeader — estándar de headers", () => {
       expect.objectContaining({
         fontSize: 18,
         fontWeight: "700",
-        color: "#ffffff",
+        color: shColor.white,
         fontFamily: "Roboto_700Bold",
       }),
     );
