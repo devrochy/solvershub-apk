@@ -33,6 +33,11 @@ async function renderConOffline(overrides: Partial<OfflineValue> = {}) {
     actualizarPerfil: jest.fn(),
     requiereVinculacion: false,
     marcarDispositivoVinculado: jest.fn(),
+    negociosPendientes: [],
+    membresiaToken: null,
+    invitaciones: [],
+    seleccionarNegocio: jest.fn(),
+    resolverInvitacion: jest.fn(),
   };
   const rendered = await render(
     <SessionContext.Provider value={sesion}>

@@ -31,6 +31,11 @@ async function renderMenu(items: MenuItem[] = [], logout: jest.Mock = jest.fn())
     actualizarPerfil: jest.fn(),
     requiereVinculacion: false,
     marcarDispositivoVinculado: jest.fn(),
+    negociosPendientes: [],
+    membresiaToken: null,
+    invitaciones: [],
+    seleccionarNegocio: jest.fn(),
+    resolverInvitacion: jest.fn(),
   };
   const utils = await render(
     <MenuLateralProvider>

@@ -131,6 +131,11 @@ async function renderDetalle(
     actualizarPerfil: jest.fn(),
     requiereVinculacion: false,
     marcarDispositivoVinculado: jest.fn(),
+    negociosPendientes: [],
+    membresiaToken: null,
+    invitaciones: [],
+    seleccionarNegocio: jest.fn(),
+    resolverInvitacion: jest.fn(),
   };
   return render(
     <SessionContext.Provider value={valor}>
@@ -167,6 +172,11 @@ function arbolDetalle(
     actualizarPerfil: jest.fn(),
     requiereVinculacion: false,
     marcarDispositivoVinculado: jest.fn(),
+    negociosPendientes: [],
+    membresiaToken: null,
+    invitaciones: [],
+    seleccionarNegocio: jest.fn(),
+    resolverInvitacion: jest.fn(),
   };
   return (
     <SessionContext.Provider value={valor}>
@@ -372,6 +382,11 @@ describe("CarteraDetalleScreen", () => {
       actualizarPerfil: jest.fn(),
       requiereVinculacion: false,
       marcarDispositivoVinculado: jest.fn(),
+      negociosPendientes: [],
+      membresiaToken: null,
+      invitaciones: [],
+      seleccionarNegocio: jest.fn(),
+      resolverInvitacion: jest.fn(),
     };
     const { getByTestId, getByText } = await render(
       <SessionContext.Provider value={valor}>
