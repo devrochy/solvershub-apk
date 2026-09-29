@@ -1,5 +1,5 @@
 // GENERADO — no editar a mano.
-// Copia de solvershub/brand/tokens/dist/theme.ts (fuente: tokens.json, DTCG).
+// Copia de ../solvershub-panel/brand/tokens/dist/theme.ts (fuente: tokens.json, DTCG).
 // Regenerar: (cd brand/tokens && npm run build) && npm run tokens:sync
 // SolversHub — tema React Native (GENERADO por build.mjs — NO EDITAR).
 import type { TextStyle } from "react-native";
