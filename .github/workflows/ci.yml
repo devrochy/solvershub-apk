@@ -7,7 +7,10 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    # Runner self-hosted (Linux Mint): los minutos hospedados estan bloqueados por
+    # facturacion en la cuenta; ademas se evita ejecutar PRs de forks en el runner.
+    runs-on: [self-hosted, linux, x64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: read
       pull-requests: read
