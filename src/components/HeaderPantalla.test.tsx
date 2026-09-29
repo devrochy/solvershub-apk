@@ -38,7 +38,7 @@ describe("estilosHeader — estándar de headers", () => {
         fontSize: 18,
         fontWeight: "700",
         color: shColor.white,
-        fontFamily: "Roboto_700Bold",
+        fontFamily: "Montserrat_700Bold",
       }),
     );
   });

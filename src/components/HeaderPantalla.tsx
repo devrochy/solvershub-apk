@@ -67,19 +67,19 @@ export const estilosHeader = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: shColor.white,
-    fontFamily: "Roboto_700Bold",
+    fontFamily: "Montserrat_700Bold",
   },
   subtitulo: {
     color: shColor.ice,
     fontSize: 13,
     marginTop: 2,
-    fontFamily: "Roboto_400Regular",
+    fontFamily: "Inter_400Regular",
   },
   accionTexto: {
     color: shColor.white,
     fontWeight: "600",
     fontSize: 14,
-    fontFamily: "Roboto_600SemiBold",
+    fontFamily: "Montserrat_600SemiBold",
   },
   accionPill: {
     flexDirection: "row",
@@ -96,7 +96,7 @@ export const estilosHeader = StyleSheet.create({
     color: shColor.white,
     fontWeight: "700",
     fontSize: 13,
-    fontFamily: "Roboto_700Bold",
+    fontFamily: "Montserrat_700Bold",
   },
 });
 

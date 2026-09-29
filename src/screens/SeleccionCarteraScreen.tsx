@@ -341,15 +341,15 @@ function crearEstilos(c: ColoresTema) {
       backgroundColor: c.borde,
     },
     tabActivo: { backgroundColor: c.primario },
-    tabTexto: { color: c.texto, fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
-    tabTextoActivo: { color: shColor.white, fontWeight: "700", fontFamily: "Roboto_700Bold" },
+    tabTexto: { color: c.texto, fontWeight: "600", fontFamily: "Montserrat_600SemiBold" },
+    tabTextoActivo: { color: shColor.white, fontWeight: "700", fontFamily: "Montserrat_700Bold" },
     badge: {
       backgroundColor: shColor.warning,
       borderRadius: 999,
       paddingHorizontal: 10,
       paddingVertical: 4,
     },
-    badgeTexto: { color: shColor.white, fontSize: 12, fontWeight: "600", fontFamily: "Roboto_600SemiBold" },
+    badgeTexto: { color: shColor.white, fontSize: 12, fontWeight: "600", fontFamily: "Montserrat_600SemiBold" },
     avisoErrorSync: {
       backgroundColor: conAlfa(shColor.danger, 0.12),
       borderWidth: 1,

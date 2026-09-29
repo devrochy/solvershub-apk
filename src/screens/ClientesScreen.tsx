@@ -884,8 +884,8 @@ function crearEstilos(c: ColoresTema) {
       paddingHorizontal: 8,
       paddingVertical: 8,
     },
-    chipFiltroTexto: { fontSize: 11, fontFamily: "Roboto_500Medium" },
-    chipFiltroTextoActivo: { color: shColor.white, fontSize: 11, fontFamily: "Roboto_600SemiBold" },
+    chipFiltroTexto: { fontSize: 11, fontFamily: "Inter_500Medium" },
+    chipFiltroTextoActivo: { color: shColor.white, fontSize: 11, fontFamily: "Montserrat_600SemiBold" },
     lista: { padding: 16, gap: 10 },
     fab: {
       position: "absolute",
