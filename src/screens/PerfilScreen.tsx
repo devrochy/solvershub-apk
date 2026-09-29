@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { shColor } from "../theme/tokens";
 import {
   Pressable,
   ScrollView,
@@ -111,7 +112,7 @@ export function PerfilScreen() {
             style={estilosHeader.accionPill}
             onPress={abrirEdicion}
           >
-            <MaterialIcons name="edit" size={16} color="#ffffff" />
+            <MaterialIcons name="edit" size={16} color={shColor.white} />
             <Text style={estilosHeader.accionPillTexto}>Editar</Text>
           </Pressable>
         }

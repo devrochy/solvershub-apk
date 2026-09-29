@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { shColor } from "../theme/tokens";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
@@ -215,8 +216,8 @@ function crearEstilos(c: ColoresTema) {
     errorTipo: { fontSize: 13, fontWeight: "700", color: c.texto },
     errorDetalle: { fontSize: 12, color: c.textoSuave },
     errorAcciones: { flexDirection: "row", gap: 20 },
-    botonTextoPeligro: { color: "#dc2626", fontWeight: "600" },
-    mensajeOk: { color: "#15803d" },
+    botonTextoPeligro: { color: shColor.danger, fontWeight: "600" },
+    mensajeOk: { color: shColor.navy["900"] },
     mensajeError: { color: c.peligro },
   });
 }

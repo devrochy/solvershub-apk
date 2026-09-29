@@ -1,4 +1,5 @@
 import { ReactNode, useMemo } from "react";
+import { shColor } from "../theme/tokens";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -57,7 +58,7 @@ export function HeaderApp({ titulo, subtitulo, acciones }: HeaderAppProps) {
             navigation.navigate("Notificaciones");
           }}
         >
-          <MaterialIcons name="notifications-none" size={24} color="#ffffff" />
+          <MaterialIcons name="notifications-none" size={24} color={shColor.white} />
           {noLeidas > 0 ? (
             <View testID="notif-badge" style={styles.badge}>
               <Text style={styles.badgeTexto}>{noLeidas > 9 ? "9+" : noLeidas}</Text>
@@ -87,6 +88,6 @@ function crearEstilos(c: ColoresTema) {
       justifyContent: "center",
       paddingHorizontal: 4,
     },
-    badgeTexto: { color: "#ffffff", fontSize: 10, fontWeight: "700" },
+    badgeTexto: { color: shColor.white, fontSize: 10, fontWeight: "700" },
   });
 }

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { shColor } from "../theme/tokens";
 import {
   ActivityIndicator,
   Image,
@@ -116,7 +117,7 @@ function crearEstilos(c: ColoresTema) {
       alignItems: "center",
       justifyContent: "center",
     },
-    quitarTexto: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
+    quitarTexto: { color: shColor.white, fontWeight: "700", fontSize: 14 },
     contador: { color: c.textoSuave, fontSize: 12 },
   });
 }

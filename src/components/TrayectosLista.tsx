@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { shColor } from "../theme/tokens";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HeaderApp } from "./HeaderApp";
@@ -99,12 +100,12 @@ function crearEstilos(c: ColoresTema) {
     paradas: { gap: 4 },
     paradaNombre: { color: c.texto, fontSize: 14, flex: 1 },
     botonNavegar: {
-      backgroundColor: "#0e7490",
+      backgroundColor: shColor.blue["600"],
       borderRadius: 8,
       paddingVertical: 10,
       alignItems: "center",
       marginTop: 4,
     },
-    botonNavegarTexto: { color: "#ffffff", fontWeight: "600" },
+    botonNavegarTexto: { color: shColor.white, fontWeight: "600" },
   });
 }

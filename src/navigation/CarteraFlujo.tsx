@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { shColor } from "../theme/tokens";
 import { BackHandler, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { OverlaysActivos } from "./OverlaysActivos";
@@ -83,7 +84,7 @@ export function CarteraFlujo({ route, navigation }: Props) {
           key: `car-${c.id}`,
           label: c.nombre,
           icon: "circle",
-          color: c.estatus === "activo" ? "#16a34a" : "#dc2626",
+          color: c.estatus === "activo" ? shColor.success : shColor.danger,
           activo: c.id === carteraActiva?.carteraId,
           onPress: () => {
             setCarteraActiva(aCarteraActiva(c));
