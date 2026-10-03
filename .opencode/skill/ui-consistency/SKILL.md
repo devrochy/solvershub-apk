@@ -1,3 +1,8 @@
+---
+name: ui-consistency
+description: "Sistema de diseño de la APK del cobrador (solvershub-apk). Usar para cualquier pantalla o componente nuevo, o al modificar la UI existente, para respetar StyleSheet.create y los patrones de src/screens y src/components."
+---
+
 # UI Consistency — Sistema de diseño de la APK (solvershub-apk)
 
 Usar para **cualquier** pantalla o componente nuevo, o al modificar la UI existente. Garantiza que el resultado respete el design system actual del cobrador (CobraIA). Se basa en el código real de `src/screens/*` y `src/components/*`.

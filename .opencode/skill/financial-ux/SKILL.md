@@ -1,3 +1,8 @@
+---
+name: financial-ux
+description: "UX financiera de la APK del cobrador (solvershub-apk). Usar en cualquier pantalla o formulario que maneje dinero, cuotas, préstamos, saldos, mora o reportes: montos, tablas de deuda y badges de estado."
+---
+
 # Financial UX — UX financiera CobraIA (solvershub-apk)
 
 Usar en cualquier pantalla/formulario que maneje **dinero, cuotas, préstamos, saldos, mora o reportes**. Estandariza el tratamiento de montos, datos tabulares de deuda y badges de estado en el cobrador.
