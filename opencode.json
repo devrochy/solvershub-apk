@@ -29,6 +29,10 @@
     "backend": {
       "path": "../app-cobranza",
       "description": "Backend NestJS: contratos de endpoints, entidades y PRD. Fuente de verdad para verificar endpoints/campos (anti-alucinación)."
+    },
+    "docs": {
+      "path": "~/Proyectos/solvershub/solvershub-docs",
+      "description": "Plan SDD de SolversHub: HU, specs, decisiones y bitácora. Úsalo al trabajar una HU con la skill ejecutar-hu."
     }
   },
 
