@@ -18,8 +18,10 @@ permisos y la vinculación de dispositivo.
 **Un solo login de admin como puerta única** (`POST /api/v1/auth/login` con identifier+password).
 La sesión admin (token opaco + `X-Tenant-Id`) da acceso a todos los módulos del panel según
 `MeResponse.permissions`. Para el **modo campo**, un endpoint nuevo del backend
-`POST /api/v1/auth/gestor-token` intercambia la sesión admin por un JWT de gestor (valida que el
-usuario tiene rol de pack `gestor`, carteras asignadas y dispositivo vinculado, ADR-0068). La app
+`POST /api/v1/pack/cobranza/gestor-token` (API admin del pack, sesión admin vía `get_principal`)
+intercambia la sesión admin por un JWT de gestor (valida que el usuario tiene rol de pack
+`gestor`, carteras asignadas y dispositivo vinculado, ADR-0068; reusa la lógica del login
+unificado ADR-0081). Vive en el pack porque el core no depende de packs (invariante 5). La app
 guarda ambos tokens en `expo-secure-store` y el `ApiClient` selecciona la credencial según el
 módulo/superficie. El refresh del gestor conserva el flujo actual (`POST /auth/refresh`); la sesión
 admin no tiene refresh (se re-loguea al expirar, como el panel).
@@ -50,5 +52,6 @@ el login de gestor deje de existir.
 
 ## Impacto en el código
 
-- Backend: `POST /api/v1/auth/gestor-token` en agent-core (HU-APP-02).
+- Backend: `POST /api/v1/pack/cobranza/gestor-token` en el pack de cobranza de agent-core
+  (ADR-0094, HU-APP-02).
 - App: `src/core/session/**` con doble credencial y `ApiClient` por superficie (HU-APP-02).
