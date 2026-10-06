@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
-import { ApiAuthError, apiOlvidarContrasena, apiRestablecerContrasena } from "../api";
+import { ApiAuthError, apiOlvidarContrasena, apiRestablecerContrasena } from "@core/api/auth-admin";
 
 export interface RecuperarContrasenaProps {
   volverAlLogin(): void;

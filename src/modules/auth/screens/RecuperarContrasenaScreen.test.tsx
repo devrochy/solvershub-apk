@@ -1,5 +1,5 @@
 jest.mock("expo-secure-store");
-jest.mock("../api", () => ({
+jest.mock("@core/api/auth-admin", () => ({
   apiOlvidarContrasena: jest.fn(),
   apiRestablecerContrasena: jest.fn(),
   ApiAuthError: class extends Error {
@@ -14,7 +14,7 @@ jest.mock("../api", () => ({
 }));
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { apiOlvidarContrasena, apiRestablecerContrasena } from "../api";
+import { apiOlvidarContrasena, apiRestablecerContrasena } from "@core/api/auth-admin";
 import { RecuperarContrasenaScreen } from "./RecuperarContrasenaScreen";
 
 describe("RecuperarContrasenaScreen (HU-APP-02)", () => {
@@ -62,7 +62,7 @@ describe("RecuperarContrasenaScreen (HU-APP-02)", () => {
 
   it("código inválido muestra el error del servidor", async () => {
     (apiOlvidarContrasena as jest.Mock).mockResolvedValue(undefined);
-    const { ApiAuthError } = jest.requireMock("../api");
+    const { ApiAuthError } = jest.requireMock("@core/api/auth-admin");
     (apiRestablecerContrasena as jest.Mock).mockRejectedValue(
       new ApiAuthError(400, "invalid_token", "Código inválido o vencido."),
     );

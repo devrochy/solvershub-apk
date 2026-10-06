@@ -6,7 +6,7 @@ import { BotonMenu } from "../modules/cobranza/components/BotonMenu";
 import { MenuLateralProvider, useMenuLateral, type MenuItem } from "../modules/cobranza/navigation/menu-lateral-context";
 import { SessionContext, SessionValue } from "../modules/cobranza/session/session-context";
 import { COLORES } from "@core/theme/theme";
-jest.mock("../modules/auth/admin-session-context", () => ({
+jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: () => ({ sesion: null, loading: false, logout: jest.fn() }),
 }));
 

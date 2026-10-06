@@ -1,0 +1,118 @@
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { useTheme } from "@core/theme/theme-context";
+import { useAdminApi } from "@core/session/use-admin-api";
+import { buscar, type SeccionResultados } from "../api";
+
+export function BusquedaScreen() {
+  const { colores } = useTheme();
+  const api = useAdminApi();
+  const [texto, setTexto] = useState("");
+  const [secciones, setSecciones] = useState<SeccionResultados[]>([]);
+  const [buscando, setBuscando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const consultar = useCallback(
+    async (q: string) => {
+      if (q.trim().length < 2) {
+        setSecciones([]);
+        return;
+      }
+      setBuscando(true);
+      setError(null);
+      try {
+        setSecciones(await buscar(api, q.trim()));
+      } catch {
+        setError("No pudimos buscar. Revisa tu conexión.");
+      } finally {
+        setBuscando(false);
+      }
+    },
+    [api],
+  );
+
+  useEffect(() => {
+    const temporizador = setTimeout(() => void consultar(texto), 350);
+    return () => clearTimeout(temporizador);
+  }, [texto, consultar]);
+
+  const filas = secciones.flatMap((s) =>
+    s.items.map((i) => ({ key: `${s.seccion}-${i.id}`, seccion: s.label, item: i })),
+  );
+
+  return (
+    <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
+      <TextInput
+        testID="busqueda-campo"
+        value={texto}
+        onChangeText={setTexto}
+        placeholder="Buscar clientes, conversaciones, pedidos, citas…"
+        placeholderTextColor={colores.textoSuave}
+        autoCapitalize="none"
+        autoCorrect={false}
+        style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
+      />
+
+      {error ? (
+        <Text testID="busqueda-error" style={{ color: colores.peligro, marginBottom: 8 }}>
+          {error}
+        </Text>
+      ) : null}
+
+      {buscando ? <ActivityIndicator style={{ marginTop: 16 }} /> : null}
+
+      <FlatList
+        testID="busqueda-resultados"
+        data={filas}
+        keyExtractor={(f) => f.key}
+        ListEmptyComponent={
+          !buscando && texto.trim().length >= 2 ? (
+            <Text style={{ color: colores.textoSuave, textAlign: "center", marginTop: 20 }}>
+              Sin resultados para “{texto.trim()}”.
+            </Text>
+          ) : null
+        }
+        renderItem={({ item }) => (
+          <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: colores.texto, fontWeight: "600" }} numberOfLines={1}>
+                {item.item.titulo}
+              </Text>
+              <Text style={{ color: colores.textoSuave, fontSize: 12 }} numberOfLines={1}>
+                {item.seccion} · {item.item.subtitulo}
+              </Text>
+            </View>
+            <Text style={{ color: colores.acento, fontSize: 11 }}>{item.item.tipo}</Text>
+          </View>
+        )}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  contenedor: { flex: 1, padding: 12 },
+  campo: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  fila: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+});

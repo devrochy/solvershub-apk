@@ -10,3 +10,17 @@ Base local cifrada (expo-sqlite + SQLCipher), repos, sync-engine y auditoría lo
 - `bootstrap.ts`: inicialización idempotente llamada desde `App.tsx`.
 
 SQLCipher requiere build propio (EAS): en Expo Go la base abre SIN cifrado (solo desarrollo).
+
+## Matriz offline (HU-APP-15)
+
+| Módulo | Lectura offline | Escritura encolada | Solo con red |
+|---|---|---|---|
+| Cobranza (campo) | ✅ caché + trayecto diario | ✅ cola SQLite (`cola_evento`) con ack | liquidación PDF |
+| Cobranza (admin) | `sync/{entidad}` en curso (engine listo) | — | acciones admin |
+| Operación | pendiente de wire al engine | — | responder/resolver |
+| Comercio | pendiente de wire al engine | cambio de estado de pedido (pendiente) | crear productos |
+| Calendario | pendiente de wire al engine | mover/cancelar cita (pendiente) | crear/bloquear |
+| Negocio/Configuración/Herramientas | — | — | ✅ siempre |
+
+El motor (`src/data/sync-engine.ts`) aplica cursor por entidad, LWW por `updatedAt` y
+`deletedIds`; el wire por módulo se activa cuando cada pantalla consuma la caché.

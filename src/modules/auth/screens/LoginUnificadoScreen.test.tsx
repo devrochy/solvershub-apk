@@ -4,10 +4,10 @@ jest.mock("expo-local-authentication", () => ({
   isEnrolledAsync: jest.fn().mockResolvedValue(false),
   authenticateAsync: jest.fn().mockResolvedValue({ success: true }),
 }));
-jest.mock("../admin-session-context", () => ({
+jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: jest.fn(),
 }));
-jest.mock("../api", () => ({
+jest.mock("@core/api/auth-admin", () => ({
   apiGestorToken: jest.fn(),
   ApiAuthError: class extends Error {
     status: number;
@@ -21,8 +21,8 @@ jest.mock("../api", () => ({
 }));
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { apiGestorToken } from "../api";
-import { useAdminSession } from "../admin-session-context";
+import { apiGestorToken } from "@core/api/auth-admin";
+import { useAdminSession } from "@core/session/admin-session-context";
 import { LoginUnificadoScreen } from "./LoginUnificadoScreen";
 
 const mockUseAdminSession = useAdminSession as jest.Mock;
@@ -116,7 +116,7 @@ describe("LoginUnificadoScreen (HU-APP-02/03)", () => {
   });
 
   it("si el exchange devuelve 403 entra al panel con la sesión admin", async () => {
-    const { ApiAuthError } = jest.requireMock("../api");
+    const { ApiAuthError } = jest.requireMock("@core/api/auth-admin");
     (apiGestorToken as jest.Mock).mockRejectedValue(
       new ApiAuthError(403, "sin_acceso_campo", "Sin acceso de campo."),
     );
@@ -133,7 +133,7 @@ describe("LoginUnificadoScreen (HU-APP-02/03)", () => {
   });
 
   it("con credenciales inválidas muestra el error sin delegar", async () => {
-    const { ApiAuthError } = jest.requireMock("../api");
+    const { ApiAuthError } = jest.requireMock("@core/api/auth-admin");
     (apiGestorToken as jest.Mock).mockRejectedValue(
       new ApiAuthError(401, "invalid_credentials", "Mal."),
     );

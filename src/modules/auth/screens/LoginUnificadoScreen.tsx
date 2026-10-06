@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import type { LoginResult } from "@shared/types/auth";
-import { useAdminSession } from "../admin-session-context";
-import { ApiAuthError, apiGestorToken } from "../api";
+import { useAdminSession } from "@core/session/admin-session-context";
+import { ApiAuthError, apiGestorToken } from "@core/api/auth-admin";
 import { biometriaDisponible, biometriaHabilitada, deshabilitarBiometria, habilitarBiometria } from "../biometria";
 
 export interface LoginUnificadoProps {

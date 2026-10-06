@@ -9,7 +9,7 @@ jest.mock("@expo/vector-icons", () => {
 });
 
 let mockSesionValue: unknown = null;
-jest.mock("../modules/auth/admin-session-context", () => ({
+jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: () => ({ sesion: mockSesionValue, loading: false }),
 }));
 

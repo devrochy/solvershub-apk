@@ -68,16 +68,26 @@ export function crearSqliteFake(): SqlExecutor & { filasDe(tabla: string): unkno
           const col = indice(t, columnas[pos]);
           fila[col] = v === "?" ? params[iParam++] : v.replace(/^'|'$/g, "");
         });
-        const id = String(fila[indice(t, "id")]);
-        const existente = t.filas.get(id);
+        const idCol = t.columnas.indexOf("id");
+        const conflicto = /on\s+conflict\s*\(([^)]+)\)/i.exec(s);
+        const clave =
+          idCol >= 0
+            ? String(fila[idCol])
+            : conflicto
+              ? conflicto[1]
+                  .split(",")
+                  .map((c) => String(fila[indice(t, c.trim())]))
+                  .join("|")
+              : fila.map(String).join("|");
+        const existente = t.filas.get(clave);
         if (ins[1] && existente) {
           return; // OR IGNORE
         }
         if (existente && /on\s+conflict/i.test(s)) {
-          t.filas.set(id, [...fila]);
+          t.filas.set(clave, [...fila]);
           return;
         }
-        t.filas.set(id, fila);
+        t.filas.set(clave, fila);
         return;
       }
       const upd = /^update\s+(\w+)\s+set\s+([\s\S]+?)\s+where\s+id\s*=\s*\?/i.exec(s);

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../modules/cobranza/components/Avatar";
 import { useMenuLateral, type MenuItem } from "../modules/cobranza/navigation/menu-lateral-context";
 import { useSession } from "../modules/cobranza/session/session-context";
-import { useAdminSession } from "../modules/auth/admin-session-context";
+import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import type { RootStackParamList } from "../modules/cobranza/navigation/types";
 
