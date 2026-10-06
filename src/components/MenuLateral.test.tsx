@@ -6,6 +6,9 @@ import { BotonMenu } from "./BotonMenu";
 import { MenuLateralProvider, useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { COLORES } from "@core/theme/theme";
+jest.mock("../modules/auth/admin-session-context", () => ({
+  useAdminSession: () => ({ sesion: null, loading: false, logout: jest.fn() }),
+}));
 
 const mockNavigate = jest.fn();
 jest.mock("@react-navigation/native", () => ({

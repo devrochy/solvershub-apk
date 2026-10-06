@@ -15,6 +15,20 @@ export function authUrl(path: string): string {
 }
 
 /**
+ * Raíz del backend agent-core: `API_URL` apunta al prefijo del pack de campo
+ * (`…/api/pack/pack_cobranza`, ADR-0065); la API admin `/api/v1` cuelga de la
+ * raíz del host (ADR-0076/0077).
+ */
+export function apiRoot(): string {
+  const indice = API_URL.indexOf("/api/");
+  return indice > -1 ? API_URL.slice(0, indice) : API_URL;
+}
+
+export function apiV1(path: string): string {
+  return `${apiRoot()}/api/v1${path}`;
+}
+
+/**
  * Resuelve una cartera de archivo (p. ej. `/uploads/clientes/foto.jpg`) a una URL
  * absoluta del backend para usarla en <Image>. Si ya es una URL completa
  * (https://…), la devuelve tal cual. Si es un path absoluto del filesystem del

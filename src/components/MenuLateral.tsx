@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "./Avatar";
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { useSession } from "../session/session-context";
+import { useAdminSession } from "../modules/auth/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import type { RootStackParamList } from "../navigation/types";
 
@@ -104,6 +105,7 @@ function MenuRow({
 export function MenuLateral() {
   const { abierto, cerrar, itemsExtra } = useMenuLateral();
   const { gestor, logout } = useSession();
+  const { logout: logoutAdmin } = useAdminSession();
   const { colores, tema, alternarTema } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -245,7 +247,10 @@ export function MenuLateral() {
                 <Pressable
                   testID="menu-logout"
                   style={styles.submenuItem}
-                  onPress={() => ejecutar(() => void logout())}
+                  onPress={() => ejecutar(async () => {
+                    await logout();
+                    await logoutAdmin();
+                  })}
                 >
                   <MaterialIcons name="logout" size={20} color={colores.peligro} />
                   <Text style={[styles.itemTexto, { color: colores.peligro }]}>Cerrar sesión</Text>
