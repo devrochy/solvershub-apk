@@ -45,6 +45,8 @@ export interface SessionValue {
   login(usuario: string, password: string): Promise<void>;
   seleccionarNegocio(slug: string): Promise<void>;
   resolverInvitacion(id: string, accion: "aceptar" | "rechazar"): Promise<void>;
+  /** Aplica una sesión de campo ya resuelta (p. ej. el exchange admin, ADR-0094). */
+  aplicarSesionExterna?(result: LoginResult): Promise<void>;
   logout(): Promise<void>;
   actualizarPerfil(input: ActualizarPerfilInput): Promise<void>;
 }
@@ -202,6 +204,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       login,
       seleccionarNegocio,
       resolverInvitacion,
+      aplicarSesionExterna: aplicarSesion,
       logout,
       actualizarPerfil,
     }),
@@ -217,6 +220,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       login,
       seleccionarNegocio,
       resolverInvitacion,
+      aplicarSesion,
       logout,
       actualizarPerfil,
     ],
