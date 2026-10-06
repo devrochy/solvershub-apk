@@ -63,6 +63,13 @@
           "imageWidth": 250,
           "resizeMode": "contain"
         }
+      ],
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true,
+          "enableFTS": false
+        }
       ]
     ],
     "owner": "devrochy",
