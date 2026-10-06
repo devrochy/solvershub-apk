@@ -1,5 +1,6 @@
 import { Inter_400Regular, Inter_500Medium } from "@expo-google-fonts/inter";
 import { Montserrat_600SemiBold, Montserrat_700Bold } from "@expo-google-fonts/montserrat";
+import { useEffect, useRef, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
@@ -31,6 +32,8 @@ import {
   BloqueoBiometrico,
   useBloqueoBiometrico,
 } from "./src/modules/auth/screens/BloqueoBiometrico";
+import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/SeleccionNegocioAdminScreen";
+import { PanelShell } from "./src/navigation/PanelShell";
 import { ThemeProvider } from "@core/theme/theme-context";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -38,14 +41,28 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function AuthNavigator() {
   const { login: loginLegado, aplicarSesionExterna } = useSession();
 
+  const aplicarCampo = (result: unknown) =>
+    aplicarSesionExterna?.(result as never) ?? Promise.resolve();
+
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="LoginUnificado">
         {({ navigation }) => (
           <LoginUnificadoScreen
-            onAutenticado={(result) => aplicarSesionExterna?.(result) ?? Promise.resolve()}
+            onAutenticado={aplicarCampo}
             onFlujoLegado={(usuario, password) => loginLegado(usuario, password)}
+            alSeleccionarNegocios={() => navigation.navigate("SeleccionNegocioAdmin")}
+            onEntrarPanel={() => setModoPanelRef.current?.(true)}
             irARecuperarContrasena={() => navigation.navigate("RecuperarContrasena")}
+          />
+        )}
+      </AuthStack.Screen>
+      <AuthStack.Screen name="SeleccionNegocioAdmin">
+        {() => (
+          <SeleccionNegocioAdminScreen
+            onAutenticado={aplicarCampo}
+            onEntrarPanel={() => setModoPanelRef.current?.(true)}
+            onCancelar={() => undefined}
           />
         )}
       </AuthStack.Screen>
@@ -60,13 +77,30 @@ function AuthNavigator() {
   );
 }
 
+/** Ref del setter de "modo panel" para pasarlo al AuthNavigator sin prop drilling. */
+const setModoPanelRef: { current: ((v: boolean) => void) | null } = { current: null };
+
 function RootNavigator() {
   const { gestor, loading, requiereVinculacion, negociosPendientes, membresiaToken } =
     useSession();
-  const { sesion: sesionAdmin } = useAdminSession();
+  const { sesion: sesionAdmin, loading: loadingAdmin } = useAdminSession();
   const bio = useBloqueoBiometrico(sesionAdmin?.adminId ?? null);
+  const [modoPanel, setModoPanel] = useState(false);
+  setModoPanelRef.current = setModoPanel;
 
-  if (loading) {
+  // Hidratación inicial: admin persistido sin sesión de campo (usuario de
+  // panel) entra directo al panel; el login en curso no dispara este efecto.
+  const hidratado = useRef(false);
+  useEffect(() => {
+    if (!loadingAdmin && !loading && !hidratado.current) {
+      hidratado.current = true;
+      if (sesionAdmin && !gestor) {
+        setModoPanel(true);
+      }
+    }
+  }, [loadingAdmin, loading, sesionAdmin, gestor]);
+
+  if (loading || loadingAdmin) {
     return (
       <View style={styles.carga}>
         <ActivityIndicator size="large" />
@@ -90,6 +124,12 @@ function RootNavigator() {
         <BloqueoBiometrico onDesbloqueado={bio.marcarVerificado} />
       </NavigationContainer>
     );
+  }
+
+  // Usuario de panel (sin tokens de campo o con rol distinto de gestor):
+  // shell del panel armado por permisos (ADR-APP-02, HU-APP-03).
+  if (modoPanel || (gestor && gestor.rol !== "gestor")) {
+    return <PanelShell />;
   }
 
   // Sesión admin activa pero sin sesión de campo aún (flujo legado en curso):

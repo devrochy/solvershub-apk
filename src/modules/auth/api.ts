@@ -1,6 +1,6 @@
 import { apiV1 } from "@core/config";
 import type { LoginResult } from "@shared/types/auth";
-import type { MeAdmin } from "./types";
+import type { MeAdmin, TenantAdmin } from "./types";
 
 /**
  * Cliente de la identidad admin (ADR-0094, HU-APP-02).
@@ -68,6 +68,18 @@ export async function apiMeAdmin(token: string, tenantId?: string): Promise<MeAd
     throw await parseError(res);
   }
   return (await res.json()) as MeAdmin;
+}
+
+/** Negocios del admin para el selector multi-negocio (ADR-0077). */
+export async function apiTenantsAdmin(token: string): Promise<TenantAdmin[]> {
+  const res = await fetch(apiV1("/admin/tenants"), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  const body = (await res.json()) as { items?: TenantAdmin[] };
+  return body.items ?? [];
 }
 
 export async function apiOlvidarContrasena(identifier: string): Promise<void> {

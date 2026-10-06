@@ -17,14 +17,20 @@ import { biometriaDisponible, biometriaHabilitada, deshabilitarBiometria, habili
 export interface LoginUnificadoProps {
   /** Sesión de campo lista (exchange OK): el compositor la aplica. */
   onAutenticado(result: LoginResult): Promise<void>;
-  /** Cero o varios negocios: se delega al flujo legado (invitaciones/selector). */
+  /** Cero negocios: se delega al flujo legado (invitaciones ADR-0081). */
   onFlujoLegado(usuario: string, password: string): Promise<void>;
+  /** Varios negocios: se abre el selector admin (HU-APP-03). */
+  alSeleccionarNegocios(): void;
+  /** Negocio sin acceso de campo: se entra al panel con la sesión admin. */
+  onEntrarPanel(): void;
   irARecuperarContrasena(): void;
 }
 
 export function LoginUnificadoScreen({
   onAutenticado,
   onFlujoLegado,
+  alSeleccionarNegocios,
+  onEntrarPanel,
   irARecuperarContrasena,
 }: LoginUnificadoProps) {
   const { colores } = useTheme();
@@ -60,17 +66,29 @@ export function LoginUnificadoScreen({
     setError(null);
     try {
       const { sesion, me } = await loginAdmin(usuario.trim(), password);
-      if (me.tenantCount === 1 && me.tenant) {
-        const campo = await apiGestorToken(sesion.token, me.tenant.id);
-        await onAutenticado(campo);
-      } else {
+      if (me.tenantCount === 0) {
         await onFlujoLegado(usuario.trim(), password);
+        return;
       }
+      if (me.tenantCount === 1 && me.tenant) {
+        try {
+          const campo = await apiGestorToken(sesion.token, me.tenant.id);
+          await onAutenticado(campo);
+        } catch (err) {
+          // 403 del exchange = negocio sin acceso de campo (ADR-0094):
+          // el usuario opera el panel con su sesión admin.
+          if (err instanceof ApiAuthError && err.status === 403) {
+            onEntrarPanel();
+            return;
+          }
+          throw err;
+        }
+        return;
+      }
+      alSeleccionarNegocios();
     } catch (err) {
       if (err instanceof ApiAuthError && err.status === 401) {
         setError("Correo o contraseña incorrectos.");
-      } else if (err instanceof ApiAuthError && err.status === 403) {
-        setError("Tu cuenta no tiene acceso de campo en este negocio.");
       } else {
         setError("Sin conexión con el servidor. Intenta de nuevo.");
       }
