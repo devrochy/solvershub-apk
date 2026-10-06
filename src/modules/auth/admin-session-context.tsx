@@ -15,6 +15,8 @@ export interface AdminSessionValue {
   sesion: AdminSesion | null;
   loading: boolean;
   login(identifier: string, password: string): Promise<{ sesion: AdminSesion; me: MeAdmin }>;
+  /** Fija el negocio activo de la sesión admin (re-consulta `/admin/me` con X-Tenant-Id). */
+  seleccionarNegocio(tenantId: string): Promise<void>;
   logout(): Promise<void>;
 }
 
@@ -71,14 +73,32 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
     return { sesion: nueva, me };
   }, []);
 
+  const seleccionarNegocio = useCallback(
+    async (tenantId: string) => {
+      if (!sesion) {
+        return;
+      }
+      const me = await apiMeAdmin(sesion.token, tenantId);
+      const actualizada: AdminSesion = {
+        ...sesion,
+        tenantId: me.tenant?.id ?? sesion.tenantId,
+        tenantName: me.tenant?.name ?? sesion.tenantName,
+        permissions: me.permissions,
+      };
+      await secureSet(CLAVE_SESION_ADMIN, JSON.stringify(actualizada));
+      setSesion(actualizada);
+    },
+    [sesion],
+  );
+
   const logout = useCallback(async () => {
     await secureDelete(CLAVE_SESION_ADMIN);
     setSesion(null);
   }, []);
 
   const value = useMemo(
-    () => ({ sesion, loading, login, logout }),
-    [sesion, loading, login, logout],
+    () => ({ sesion, loading, login, seleccionarNegocio, logout }),
+    [sesion, loading, login, seleccionarNegocio, logout],
   );
 
   return <AdminSessionContext.Provider value={value}>{children}</AdminSessionContext.Provider>;
