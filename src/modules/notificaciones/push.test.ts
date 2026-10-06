@@ -1,3 +1,7 @@
+const mockEnExpoGo = jest.fn(() => false);
+jest.mock("expo", () => ({
+  isRunningInExpoGo: () => mockEnExpoGo(),
+}));
 jest.mock("expo-notifications", () => ({
   setNotificationChannelAsync: jest.fn(),
   getPermissionsAsync: jest.fn(),
@@ -11,6 +15,7 @@ import * as Notifications from "expo-notifications";
 import {
   addListener,
   configurarCanal,
+  enExpoGo,
   obtenerTokenExpo,
   solicitarPermisos,
 } from "./push";
@@ -65,6 +70,23 @@ describe("push (HU-APP-05)", () => {
     expect(Notifications.getExpoPushTokenAsync).toHaveBeenCalledWith({
       projectId: "proj-123",
     });
+  });
+
+  it("en Expo Go todas las utilidades de push son no-op (SDK 53+)", async () => {
+    mockEnExpoGo.mockReturnValue(true);
+    expect(enExpoGo()).toBe(true);
+
+    await expect(configurarCanal()).resolves.toBeUndefined();
+    await expect(solicitarPermisos()).resolves.toBe(false);
+    await expect(obtenerTokenExpo("proj-123")).resolves.toBeNull();
+    const sub = addListener(jest.fn());
+    expect(sub.remove).toBeDefined();
+
+    expect(Notifications.setNotificationChannelAsync).not.toHaveBeenCalled();
+    expect(Notifications.getPermissionsAsync).not.toHaveBeenCalled();
+    expect(Notifications.getExpoPushTokenAsync).not.toHaveBeenCalled();
+    expect(Notifications.addNotificationResponseReceivedListener).not.toHaveBeenCalled();
+    mockEnExpoGo.mockReturnValue(false);
   });
 
   it("addListener entrega el data de la notificación tocada", async () => {

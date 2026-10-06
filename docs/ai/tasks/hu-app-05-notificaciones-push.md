@@ -19,11 +19,22 @@ link v1 (actividad de campo → Diario).
   EAS desde `Constants`.
 - 11 tests nuevos (permisos, token, registro/baja, cambio de negocio, tap).
 
+## Fix Expo Go (2026-10-06)
+
+- `push.ts` detecta Expo Go (`isRunningInExpoGo` de `expo`): **todas las utilidades son no-op**
+  allí (canal, permisos, token, listener) para que el desarrollo con QR no falle — desde SDK 53
+  Expo Go (Android) elimina el push remoto y `getExpoPushTokenAsync` **lanza**. El push real
+  corre en dev client / preview / producción.
+- `PushProvider` agrega `.catch` defensivo en `configurarCanal()`.
+- Dependencias alineadas al SDK 57 con `expo install --fix` (expo-notifications ~57.0.22,
+  expo-sqlite ~57.0.4, expo-secure-store ~57.0.4, expo-location ~57.0.20, expo-image-picker
+  ~57.0.20, expo-sharing ~57.0.22, expo-crypto ~57.0.3, `@types/jest` 29.5.14, etc.).
+
 ## Deuda registrada
 
 - **Expo Go ya no recibe push remoto (SDK 53+)**: la verificación E2E del push requiere un dev
-  client (build `development` de EAS) o el APK preview. En Expo Go se prueba solo el registro del
-  token (permiso + POST, que ya pasó el smoke contra test).
+  client (build `development` de EAS) o el APK preview. En Expo Go el registro queda desactivado
+  por el guard (antes fallaba con el throw del SDK).
 - Opt-out por switch dentro de la app llega con Configuración móvil (HU-APP-12); hoy la baja es
   por logout o permiso del SO.
 - Deep links de notificaciones del panel (escalaciones, citas) se enrutan cuando existan sus
