@@ -44,7 +44,7 @@ export function PushProvider({
   });
 
   useEffect(() => {
-    void configurarCanal();
+    void configurarCanal().catch(() => undefined);
   }, []);
 
   useEffect(() => {

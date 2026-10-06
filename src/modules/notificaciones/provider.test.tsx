@@ -1,5 +1,5 @@
 jest.mock("./push", () => ({
-  configurarCanal: jest.fn(),
+  configurarCanal: jest.fn().mockResolvedValue(undefined),
   solicitarPermisos: jest.fn(),
   obtenerTokenExpo: jest.fn(),
   addListener: jest.fn(() => ({ remove: jest.fn() })),
