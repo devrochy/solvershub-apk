@@ -1,11 +1,22 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { grupoVisible, seccionesPermitidas } from "@core/permisos";
 import { useTheme } from "@core/theme/theme-context";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SeccionEnConstruccion } from "./screens/SeccionEnConstruccion";
+import { DashboardScreen } from "../modules/dashboard";
+import { OperacionNavigator } from "../modules/operacion";
+import { ComercioScreen } from "../modules/comercio";
+import { CalendarioScreen } from "../modules/calendario";
+import { NegocioScreen } from "../modules/negocio";
+import { ConfiguracionScreen } from "../modules/configuracion";
+import { HerramientasScreen } from "../modules/herramientas";
+import { BusquedaScreen } from "../modules/busqueda";
 
 /**
  * Shell del panel (ADR-APP-02): tabs + lista "Más" armados SOLO con las
@@ -116,14 +127,61 @@ export function seccionesDeMenu(
   ];
 }
 
+export type MasStackParamList = {
+  Mas: undefined;
+  Busqueda: undefined;
+  Herramientas: undefined;
+};
+
+const MasStack = createNativeStackNavigator<MasStackParamList>();
+
+function MasNavigator() {
+  return (
+    <MasStack.Navigator>
+      <MasStack.Screen name="Mas" component={MasScreen} options={{ title: "Más" }} />
+      <MasStack.Screen
+        name="Busqueda"
+        component={BusquedaScreen}
+        options={{ title: "Búsqueda global" }}
+      />
+      <MasStack.Screen
+        name="Herramientas"
+        component={HerramientasScreen}
+        options={{ title: "Herramientas y plataforma" }}
+      />
+    </MasStack.Navigator>
+  );
+}
+
 function MasScreen() {
   const { colores } = useTheme();
   const { sesion } = useAdminSession();
+  const navigation = useNavigation<NativeStackNavigationProp<MasStackParamList>>();
   const esMaster = sesion?.role === "master";
   const items = seccionesDeMenu(sesion?.permissions ?? {}, esMaster);
 
   return (
     <View style={[styles.mas, { backgroundColor: colores.fondo }]}>
+      <Pressable
+        testID="mas-buscar"
+        onPress={() => navigation.navigate("Busqueda")}
+        style={[styles.item, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+      >
+        <Text style={[styles.itemSeccion, { color: colores.texto }]}>Buscar en todo el negocio</Text>
+        <Text style={[styles.itemGrupo, { color: colores.textoSuave }]}>Búsqueda global</Text>
+      </Pressable>
+      <Pressable
+        testID="mas-herramientas"
+        onPress={() => navigation.navigate("Herramientas")}
+        style={[styles.item, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+      >
+        <Text style={[styles.itemSeccion, { color: colores.texto }]}>
+          Herramientas y plataforma
+        </Text>
+        <Text style={[styles.itemGrupo, { color: colores.textoSuave }]}>
+          Fallos de envío{esMaster ? " · negocios" : ""}
+        </Text>
+      </Pressable>
       <FlatList
         testID="mas-lista"
         data={items}
@@ -141,7 +199,25 @@ function MasScreen() {
   );
 }
 
-function TabPlaceholder({ grupo }: { grupo: GrupoSecciones }) {
+function ContenidoDeGrupo({ grupo }: { grupo: GrupoSecciones }) {
+  if (grupo.clave === "inicio") {
+    return <DashboardScreen />;
+  }
+  if (grupo.clave === "conversaciones") {
+    return <OperacionNavigator />;
+  }
+  if (grupo.clave === "comercio") {
+    return <ComercioScreen />;
+  }
+  if (grupo.clave === "calendario") {
+    return <CalendarioScreen />;
+  }
+  if (grupo.clave === "negocio") {
+    return <NegocioScreen />;
+  }
+  if (grupo.clave === "configuracion") {
+    return <ConfiguracionScreen />;
+  }
   return <SeccionEnConstruccion titulo={grupo.label} detalle={grupo.detalleHU} />;
 }
 
@@ -176,7 +252,7 @@ export function PanelShell() {
               ),
             }}
           >
-            {() => <TabPlaceholder grupo={grupo} />}
+            {() => <ContenidoDeGrupo grupo={grupo} />}
           </Tab.Screen>
         ))}
         <Tab.Screen
@@ -188,7 +264,7 @@ export function PanelShell() {
             ),
           }}
         >
-          {() => <MasScreen />}
+          {() => <MasNavigator />}
         </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>
