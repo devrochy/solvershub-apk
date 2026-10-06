@@ -6,6 +6,11 @@ jest.mock("@react-native-async-storage/async-storage", () =>
 );
 
 jest.mock("@react-native-community/netinfo", () => ({
+  __esModule: true,
+  default: {
+    addEventListener: jest.fn(() => jest.fn()),
+    fetch: jest.fn().mockResolvedValue({ isConnected: true }),
+  },
   addEventListener: jest.fn(() => jest.fn()),
   fetch: jest.fn().mockResolvedValue({ isConnected: true }),
 }));
