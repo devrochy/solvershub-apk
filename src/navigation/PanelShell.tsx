@@ -11,6 +11,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SeccionEnConstruccion } from "./screens/SeccionEnConstruccion";
 import { DashboardScreen } from "../modules/dashboard";
 import { OperacionNavigator } from "../modules/operacion";
+import { CobranzaAdminNavigator } from "../modules/cobranza-admin";
 import { ComercioScreen } from "../modules/comercio";
 import { CalendarioScreen } from "../modules/calendario";
 import { NegocioScreen } from "../modules/negocio";
@@ -205,6 +206,9 @@ function ContenidoDeGrupo({ grupo }: { grupo: GrupoSecciones }) {
   }
   if (grupo.clave === "conversaciones") {
     return <OperacionNavigator />;
+  }
+  if (grupo.clave === "cobranza") {
+    return <CobranzaAdminNavigator />;
   }
   if (grupo.clave === "comercio") {
     return <ComercioScreen />;
