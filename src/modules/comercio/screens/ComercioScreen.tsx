@@ -10,9 +10,11 @@ import {
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import NetInfo from "@react-native-community/netinfo";
+import { baseActual } from "@data/bootstrap";
+import { cambiarEstadoPedidoConOffline } from "../offline";
 import {
   alternarPromocion,
-  cambiarEstadoPedido,
   cargarCategorias,
   cargarPedidos,
   cargarProductos,
@@ -69,9 +71,28 @@ export function ComercioScreen() {
         ...opciones.map((estado) => ({
           text: estado,
           onPress: () => {
-            void cambiarEstadoPedido(api, pedido.id, estado)
-              .then(cargar)
-              .catch(() => setError("No se pudo cambiar el estado del pedido."));
+            void (async () => {
+              try {
+                const red = await NetInfo.fetch();
+                const resultado = await cambiarEstadoPedidoConOffline(
+                  baseActual(),
+                  api,
+                  pedido.id,
+                  estado,
+                  red.isConnected !== false,
+                );
+                if (resultado === "encolado") {
+                  Alert.alert(
+                    "Sin conexión",
+                    "El cambio quedó encolado y se sincronizará al reconectar.",
+                  );
+                } else {
+                  await cargar();
+                }
+              } catch {
+                setError("No se pudo cambiar el estado del pedido.");
+              }
+            })();
           },
         })),
         { text: "Cancelar", style: "cancel" as const },

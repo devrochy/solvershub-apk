@@ -106,7 +106,14 @@ export function crearSqliteFake(): SqlExecutor & { filasDe(tabla: string): unkno
             continue;
           }
           const valor = m[2].trim();
-          fila[indice(t, m[1])] = valor === "?" ? params[iParam++] : valor.replace(/^'|'$/g, "");
+          const inc = /^(\w+)\s*\+\s*1$/.exec(valor);
+          if (valor === "?") {
+            fila[indice(t, m[1])] = params[iParam++];
+          } else if (inc) {
+            fila[indice(t, m[1])] = Number(fila[indice(t, inc[1])]) + 1;
+          } else {
+            fila[indice(t, m[1])] = valor.replace(/^'|'$/g, "");
+          }
         }
         return;
       }

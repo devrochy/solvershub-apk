@@ -7,8 +7,11 @@ import {
   TextInput,
   View,
 } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { baseActual } from "@data/bootstrap";
+import { buscarEnCache } from "@data/busqueda-cache";
 import { buscar, type SeccionResultados } from "../api";
 
 export function BusquedaScreen() {
@@ -30,6 +33,31 @@ export function BusquedaScreen() {
       try {
         setSecciones(await buscar(api, q.trim()));
       } catch {
+        // Sin red: búsqueda local sobre la caché del sync (ADR-0097).
+        const db = baseActual();
+        if (db) {
+          try {
+            const locales = await buscarEnCache(db, q.trim());
+            if (locales.length > 0) {
+              setSecciones([
+                {
+                  seccion: "local",
+                  label: "Resultados guardados en tu teléfono",
+                  items: locales.map((l) => ({
+                    id: l.id,
+                    tipo: l.entidad,
+                    titulo: l.id,
+                    subtitulo: l.entidad,
+                    extra: {},
+                  })),
+                },
+              ]);
+              return;
+            }
+          } catch {
+            // cae al mensaje de error
+          }
+        }
         setError("No pudimos buscar. Revisa tu conexión.");
       } finally {
         setBuscando(false);

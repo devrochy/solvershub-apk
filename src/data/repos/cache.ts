@@ -46,6 +46,25 @@ export async function borrarCache(
   );
 }
 
+/** Todas las filas cacheadas de una entidad (para búsqueda local). */
+export async function listarCache(
+  db: SqlExecutor,
+  modulo: string,
+  entidad: string,
+): Promise<EntidadCache[]> {
+  const filas = await db.getAllAsync<{ id: string; json: string; updated_at: string }>(
+    `SELECT id, json, updated_at FROM cache_entidad WHERE modulo = ? AND entidad = ?;`,
+    [modulo, entidad],
+  );
+  return filas.map((f) => ({
+    modulo,
+    entidad,
+    id: f.id,
+    json: f.json,
+    updatedAt: f.updated_at,
+  }));
+}
+
 export async function limpiarEntidad(
   db: SqlExecutor,
   modulo: string,

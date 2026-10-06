@@ -39,6 +39,7 @@ import { campoNavRef } from "./src/navigation/refs";
 import { PushProvider, type PushDatos } from "./src/modules/notificaciones";
 import { ThemeProvider } from "@core/theme/theme-context";
 import { inicializarBase } from "./src/data/bootstrap";
+import { SincronizadorProvider } from "./src/data/SincronizadorProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -225,7 +226,8 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AdminSessionProvider>
-          <PushRoot>
+          <SincronizadorProvider>
+            <PushRoot>
             <SessionProvider>
               <OfflineProvider>
                 <CarteraActivaProvider>
@@ -235,7 +237,8 @@ export default function App() {
                 </CarteraActivaProvider>
               </OfflineProvider>
             </SessionProvider>
-          </PushRoot>
+            </PushRoot>
+          </SincronizadorProvider>
         </AdminSessionProvider>
       </ThemeProvider>
     </SafeAreaProvider>

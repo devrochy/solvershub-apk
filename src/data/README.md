@@ -16,11 +16,12 @@ SQLCipher requiere build propio (EAS): en Expo Go la base abre SIN cifrado (solo
 | Módulo | Lectura offline | Escritura encolada | Solo con red |
 |---|---|---|---|
 | Cobranza (campo) | ✅ caché + trayecto diario | ✅ cola SQLite (`cola_evento`) con ack | liquidación PDF |
-| Cobranza (admin) | `sync/{entidad}` en curso (engine listo) | — | acciones admin |
-| Operación | pendiente de wire al engine | — | responder/resolver |
-| Comercio | pendiente de wire al engine | cambio de estado de pedido (pendiente) | crear productos |
-| Calendario | pendiente de wire al engine | mover/cancelar cita (pendiente) | crear/bloquear |
+| Cobranza (admin) | ✅ sync por cursor (activo vía SincronizadorProvider) | — | acciones admin |
+| Operación | ✅ sync + caché (hidratación pendiente en listas) | — | responder/resolver |
+| Comercio | ✅ sync + caché | ✅ cambio de estado de pedido (encolado + despachador) | crear productos |
+| Calendario | ✅ sync + caché | mover/cancelar cita (pendiente) | crear/bloquear |
 | Negocio/Configuración/Herramientas | — | — | ✅ siempre |
 
-El motor (`src/data/sync-engine.ts`) aplica cursor por entidad, LWW por `updatedAt` y
-`deletedIds`; el wire por módulo se activa cuando cada pantalla consuma la caché.
+**Wire activo (HU-APP-15)**: `SincronizadorProvider` (App) dispara `sincronizarTodo` con
+sesión admin + red (y al reconectar); escrituras encoladas con despachadores por módulo
+(`src/data/escrituras.ts`); búsqueda local sobre caché sin red (`src/data/busqueda-cache.ts`).
