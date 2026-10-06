@@ -1,16 +1,20 @@
 import { Platform } from "react-native";
 import { isRunningInExpoGo } from "expo";
-import * as Notifications from "expo-notifications";
 
 /**
  * Capa nativa de notificaciones push (ADR-0095, HU-APP-05).
  * Todo el acceso a expo-notifications vive aquí para poder mockearlo en tests.
  *
- * IMPORTANTE — Expo Go: desde SDK 53 el push REMOTO no existe en Expo Go
- * (Android lanza al pedir el token). Todas las funciones son no-op en Expo Go
- * para que el desarrollo con QR no falle; el push real corre en dev client,
- * preview y producción (builds propios con los módulos nativos).
+ * IMPORTANTE — Expo Go: desde SDK 53 el push REMOTO no existe en Expo Go.
+ * Además, **importar** el paquete evalúa su auto-registro
+ * (`DevicePushTokenAutoRegistration.fx`), que llama a `warnOfExpoGoPushUsage()`
+ * y LANZA en Android dentro de Expo Go durante la evaluación del bundle
+ * (`[runtime not ready]`). Por eso el paquete se carga con require DIFERIDO y
+ * nunca se evalúa en Expo Go; el push real corre en dev client, preview y
+ * producción (builds propios con los módulos nativos).
  */
+
+type ModuloNotificaciones = typeof import("expo-notifications");
 
 export const CANAL_DEFAULT = "solvershub-general";
 
@@ -23,8 +27,18 @@ export function enExpoGo(): boolean {
   }
 }
 
+/** Carga expo-notifications solo fuera de Expo Go (null allí). */
+function notificaciones(): ModuloNotificaciones | null {
+  if (enExpoGo()) {
+    return null;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require("expo-notifications") as ModuloNotificaciones;
+}
+
 export async function configurarCanal(): Promise<void> {
-  if (enExpoGo() || Platform.OS !== "android") {
+  const Notifications = notificaciones();
+  if (!Notifications || Platform.OS !== "android") {
     return;
   }
   await Notifications.setNotificationChannelAsync(CANAL_DEFAULT, {
@@ -36,7 +50,8 @@ export async function configurarCanal(): Promise<void> {
 
 /** Pide permiso (si no está resuelto) y devuelve true si quedó concedido. */
 export async function solicitarPermisos(): Promise<boolean> {
-  if (enExpoGo()) {
+  const Notifications = notificaciones();
+  if (!Notifications) {
     return false;
   }
   const actual = await Notifications.getPermissionsAsync();
@@ -51,7 +66,8 @@ export async function solicitarPermisos(): Promise<boolean> {
 }
 
 export async function obtenerTokenExpo(projectId: string): Promise<string | null> {
-  if (enExpoGo()) {
+  const Notifications = notificaciones();
+  if (!Notifications) {
     return null;
   }
   const token = await Notifications.getExpoPushTokenAsync({ projectId });
@@ -61,7 +77,8 @@ export async function obtenerTokenExpo(projectId: string): Promise<string | null
 export function addListener(
   handler: (data: Record<string, unknown> | undefined) => void,
 ): { remove(): void } {
-  if (enExpoGo()) {
+  const Notifications = notificaciones();
+  if (!Notifications) {
     return { remove: () => undefined };
   }
   const sub = Notifications.addNotificationResponseReceivedListener((response) => {

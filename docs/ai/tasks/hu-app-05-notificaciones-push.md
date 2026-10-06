@@ -21,10 +21,13 @@ link v1 (actividad de campo → Diario).
 
 ## Fix Expo Go (2026-10-06)
 
-- `push.ts` detecta Expo Go (`isRunningInExpoGo` de `expo`): **todas las utilidades son no-op**
-  allí (canal, permisos, token, listener) para que el desarrollo con QR no falle — desde SDK 53
-  Expo Go (Android) elimina el push remoto y `getExpoPushTokenAsync` **lanza**. El push real
-  corre en dev client / preview / producción.
+- **Causa raíz (capturada con `adb logcat`)**: importar `expo-notifications` **evalúa su
+  auto-registro** (`DevicePushTokenAutoRegistration.fx`) al cargar el bundle, que llama a
+  `warnOfExpoGoPushUsage()` y **lanza en Android/Expo Go** (`[runtime not ready]`) antes de que
+  corra cualquier guard. Por eso ahora el paquete se carga con **require diferido** y nunca se
+  evalúa en Expo Go.
+- `push.ts` además detecta Expo Go (`isRunningInExpoGo` de `expo`): canal, permisos, token y
+  listener son **no-op** allí. El push real corre en dev client / preview / producción.
 - `PushProvider` agrega `.catch` defensivo en `configurarCanal()`.
 - Dependencias alineadas al SDK 57 con `expo install --fix` (expo-notifications ~57.0.22,
   expo-sqlite ~57.0.4, expo-secure-store ~57.0.4, expo-location ~57.0.20, expo-image-picker
