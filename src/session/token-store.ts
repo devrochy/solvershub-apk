@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import type { TokenPair } from "../types/auth";
+import type { TokenPair } from "@shared/types/auth";
 
 const ACCESS_KEY = "cobranza_access_token";
 const REFRESH_KEY = "cobranza_refresh_token";

@@ -1,4 +1,4 @@
-import type { ClienteGestorPublic } from "../types/gestor";
+import type { ClienteGestorPublic } from "@shared/types/gestor";
 
 function normalizar(texto: string): string {
   return texto

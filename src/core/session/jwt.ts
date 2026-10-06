@@ -1,5 +1,5 @@
 import { decodeJwt } from "jose";
-import type { TokenPair } from "../types/auth";
+import type { TokenPair } from "@shared/types/auth";
 
 export interface AccessTokenPayload {
   /** Identidad del pack (ADR-0066): `admins.id` + perfil opcional del gestor. */

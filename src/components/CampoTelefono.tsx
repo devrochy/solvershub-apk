@@ -9,16 +9,16 @@ import {
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 import {
   PAISES_TELEFONO,
   PAIS_DEFECTO_TELEFONO,
   paisDesdeTelefono,
   type PaisTelefono,
-} from "../domain/paises-telefono";
+} from "@shared/domain/paises-telefono";
 
 export interface CampoTelefonoProps {
   /** Número completo internacional (p. ej. "+5917000111") o vacío. */

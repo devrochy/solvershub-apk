@@ -11,11 +11,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { apiErrorStatus, esErrorDeRed } from "../api/client";
+import { apiErrorStatus, esErrorDeRed } from "@core/api/client";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
-import { contarEnMora } from "../domain/contar-en-mora";
-import { etiquetaEstatus } from "../domain/estatus";
+import { contarEnMora } from "@shared/domain/contar-en-mora";
+import { etiquetaEstatus } from "@shared/domain/estatus";
 import { HeaderApp } from "../components/HeaderApp";
 import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
@@ -23,17 +23,17 @@ import { guardarEstadisticasCartera, leerEstadisticasCartera } from "../offline/
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 import type {
   ClienteGestorPublic,
   TrayectoDiarioApkPublic,
   EstadisticasConteosPublic,
   EstadisticasCarteraPublic,
   CarteraNotaPublic,
-} from "../types/gestor";
+} from "@shared/types/gestor";
 
 export interface CarteraDetalleScreenProps {
   carteraId?: string;

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
@@ -10,8 +10,8 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { useOffline } from "../offline/offline-context";
 import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 import type { RootStackParamList } from "../navigation/types";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 
 function formatearUltimaSincronizacion(ts: number | null): string {
   return ts ? new Date(ts).toLocaleString("es") : "Nunca";

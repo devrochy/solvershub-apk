@@ -1,4 +1,4 @@
-import type { ClienteGestorPublic } from "../types/gestor";
+import type { ClienteGestorPublic } from "@shared/types/gestor";
 
 export type FiltroClientes = "todos" | "al_dia" | "en_mora" | "sin_prestamos";
 

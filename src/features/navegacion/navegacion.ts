@@ -1,5 +1,5 @@
 import { Linking } from "react-native";
-import type { TrayectoPublic } from "../../types/gestor";
+import type { TrayectoPublic } from "@shared/types/gestor";
 
 export interface Coordenada {
   latitud: number;

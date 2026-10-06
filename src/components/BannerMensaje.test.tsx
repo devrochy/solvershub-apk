@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react-native";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 import { BannerMensaje } from "./BannerMensaje";
 
 describe("BannerMensaje", () => {

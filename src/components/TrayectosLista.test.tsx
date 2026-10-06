@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { Linking } from "react-native";
 import { TrayectosLista } from "./TrayectosLista";
-import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "../types/gestor";
+import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "@shared/types/gestor";
 
 jest.mock("../features/navegacion/navegacion", () => {
   const real = jest.requireActual("../features/navegacion/navegacion");

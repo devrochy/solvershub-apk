@@ -1,15 +1,15 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { Linking } from "react-native";
 import { ClientesScreen } from "./ClientesScreen";
-import { ApiError } from "../api/client";
+import { ApiError } from "@core/api/client";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { CarteraActivaContext } from "../session/cartera-activa-context";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import { OverlaysActivos } from "../navigation/OverlaysActivos";
 import { TrayectosOverlayProvider } from "../navigation/trayectos-overlay-context";
-import type { FiltroClientes } from "../domain/filtro-clientes";
+import type { FiltroClientes } from "@shared/domain/filtro-clientes";
 
 jest.mock("../screens/ClienteScreen", () => {
   const React = require("react");

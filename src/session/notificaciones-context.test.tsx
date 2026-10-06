@@ -2,7 +2,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Pressable, Text } from "react-native";
 import { NotificacionesProvider, useNotificaciones } from "./notificaciones-context";
 import { SessionContext, SessionValue } from "./session-context";
-import type { NotificacionPublic } from "../types/gestor";
+import type { NotificacionPublic } from "@shared/types/gestor";
 
 const notis: NotificacionPublic[] = [
   {

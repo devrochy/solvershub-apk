@@ -54,3 +54,14 @@ npm run check                # lint + typecheck + test
 ```
 
 El backend NestJS debe estar corriendo en `http://localhost:3000` (o la IP de tu máquina para un dispositivo físico; configurar en `.env.local`).
+## 8. Arquitectura modular (SPEC-25 · App oficial)
+
+- Estructura: `src/{app,core,shared,data,modules,navigation}`. Un módulo solo importa de su
+  carpeta, de `@core/`, `@shared/` y `@data/` (verificado por
+  `scripts/check-module-boundaries.mjs`, ADR-APP-01). Plantilla en `docs/modulo-template.md`.
+- Aliases: `@core/*`, `@shared/*`, `@data/*` (tsconfig + jest).
+- Tipos de API: `src/core/api/schema.d.ts` es GENERADO (`npm run api:types`, ADR-APP-06); no
+  editar a mano.
+- Decisiones de arquitectura: `docs/adr/adr-app-0X-*.md` (SPEC-25).
+- Carpetas legacy (screens, components, features, offline, session, api, types) migran a
+  `src/modules/cobranza/` en HU-APP-07; hasta entonces están exentas del check de fronteras.

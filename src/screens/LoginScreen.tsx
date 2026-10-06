@@ -14,12 +14,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { apiErrorStatus } from "../api/client";
+import { apiErrorStatus } from "@core/api/client";
 import { useSession } from "../session/session-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 
 export function LoginScreen() {
   const { colores } = useTheme();

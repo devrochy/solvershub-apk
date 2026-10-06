@@ -1,8 +1,8 @@
 import { render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
-import { COLORES } from "../theme/theme";
-import { shColor } from "../theme/tokens";
+import { COLORES } from "@core/theme/theme";
+import { shColor } from "@core/theme/tokens";
 
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: jest.fn(() => ({ top: 47, bottom: 0, left: 0, right: 0 })),

@@ -24,7 +24,7 @@ import { NotificacionesScreen } from "./src/screens/NotificacionesScreen";
 import { CarteraActivaProvider } from "./src/session/cartera-activa-context";
 import { NotificacionesProvider } from "./src/session/notificaciones-context";
 import { SessionProvider, useSession } from "./src/session/session-context";
-import { ThemeProvider } from "./src/theme/theme-context";
+import { ThemeProvider } from "@core/theme/theme-context";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

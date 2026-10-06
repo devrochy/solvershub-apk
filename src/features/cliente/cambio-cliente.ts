@@ -1,5 +1,5 @@
-import type { ClienteTarjetaPublic } from "../../types/gestor";
-import type { TipoDocumento } from "../../domain/tipo-documento";
+import type { ClienteTarjetaPublic } from "@shared/types/gestor";
+import type { TipoDocumento } from "@shared/domain/tipo-documento";
 
 export interface CambioClienteInput {
   nombre?: string;

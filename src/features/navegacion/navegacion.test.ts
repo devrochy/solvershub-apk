@@ -6,7 +6,7 @@ import {
   enlaceGoogleMapsCartera,
   enlaceWaze,
 } from "./navegacion";
-import type { TrayectoPublic } from "../../types/gestor";
+import type { TrayectoPublic } from "@shared/types/gestor";
 
 const trayectos: TrayectoPublic = {
   id: "1",

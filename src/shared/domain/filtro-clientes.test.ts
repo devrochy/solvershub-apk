@@ -1,5 +1,5 @@
 import { filtrarClientes, estadoCliente } from "./filtro-clientes";
-import type { ClienteGestorPublic } from "../types/gestor";
+import type { ClienteGestorPublic } from "@shared/types/gestor";
 
 function cliente(overrides: Partial<ClienteGestorPublic>): ClienteGestorPublic {
   return {

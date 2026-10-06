@@ -1,4 +1,4 @@
-import type { ClienteTrayectoDiarioPublic } from "../types/gestor";
+import type { ClienteTrayectoDiarioPublic } from "@shared/types/gestor";
 
 /**
  * Cuenta los clientes en mora (color rojo) de una lista del día.

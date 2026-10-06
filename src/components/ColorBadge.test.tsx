@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react-native";
 import { Animated } from "react-native";
 import { ColorBadge } from "./ColorBadge";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 
 describe("ColorBadge", () => {
   it("renderiza un punto circular con el color semántico", async () => {

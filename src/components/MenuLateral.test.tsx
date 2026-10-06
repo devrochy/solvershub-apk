@@ -5,7 +5,7 @@ import { MenuLateral } from "./MenuLateral";
 import { BotonMenu } from "./BotonMenu";
 import { MenuLateralProvider, useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { SessionContext, SessionValue } from "../session/session-context";
-import { COLORES } from "../theme/theme";
+import { COLORES } from "@core/theme/theme";
 
 const mockNavigate = jest.fn();
 jest.mock("@react-navigation/native", () => ({

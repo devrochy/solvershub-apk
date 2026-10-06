@@ -2,7 +2,7 @@ import {
   enlaceWhatsApp,
   textoReportePrestamo,
 } from "./estado-cuenta";
-import type { ClienteTarjetaPublic, PrestamoPublic } from "../../types/gestor";
+import type { ClienteTarjetaPublic, PrestamoPublic } from "@shared/types/gestor";
 
 const prestamo: PrestamoPublic = {
   id: "1",

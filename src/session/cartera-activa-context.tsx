@@ -5,7 +5,7 @@ import type {
   GestorPermisoEstado,
   CarteraConfigPublic,
   CarteraApkPublic,
-} from "../types/gestor";
+} from "@shared/types/gestor";
 
 export interface CarteraActiva {
   carteraId: string;

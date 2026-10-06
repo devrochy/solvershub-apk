@@ -1,6 +1,6 @@
-import { authUrl } from "../config";
-import { isAccessTokenExpired } from "../session/jwt";
-import type { TokenPair } from "../types/auth";
+import { authUrl } from "@core/config";
+import { isAccessTokenExpired } from "@core/session/jwt";
+import type { TokenPair } from "@shared/types/auth";
 
 export class ApiError extends Error {
   constructor(

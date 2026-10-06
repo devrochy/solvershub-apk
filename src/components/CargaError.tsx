@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 
 export interface CargaErrorProps {
   cargando: boolean;

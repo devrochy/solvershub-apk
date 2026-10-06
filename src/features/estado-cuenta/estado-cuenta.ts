@@ -1,7 +1,7 @@
 import type {
   ClienteTarjetaPublic,
   PrestamoPublic,
-} from "../../types/gestor";
+} from "@shared/types/gestor";
 
 /**
  * Texto legible del estado de cuenta de un préstamo (HU-54): por cada cuota
