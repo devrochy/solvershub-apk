@@ -1,6 +1,6 @@
 import { apiV1 } from "@core/config";
 import type { LoginResult } from "@shared/types/auth";
-import type { MeAdmin, TenantAdmin } from "./types";
+import type { MeAdmin, TenantAdmin } from "../session/types";
 
 /**
  * Cliente de la identidad admin (ADR-0094, HU-APP-02).

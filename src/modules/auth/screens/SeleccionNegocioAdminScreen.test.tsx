@@ -5,7 +5,7 @@ const mockTenants = jest.fn();
 const mockExchange = jest.fn();
 
 const SESION_FIJA = { token: "t-opaco", adminId: "a-1", role: "owner" };
-jest.mock("../admin-session-context", () => ({
+jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: () => ({
     sesion: SESION_FIJA,
     loading: false,
@@ -13,7 +13,7 @@ jest.mock("../admin-session-context", () => ({
     logout: mockLogout,
   }),
 }));
-jest.mock("../api", () => ({
+jest.mock("@core/api/auth-admin", () => ({
   apiTenantsAdmin: (...args: unknown[]) => mockTenants(...args),
   apiGestorToken: (...args: unknown[]) => mockExchange(...args),
   ApiAuthError: class extends Error {

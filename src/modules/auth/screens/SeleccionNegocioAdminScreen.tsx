@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import type { LoginResult } from "@shared/types/auth";
-import { useAdminSession } from "../admin-session-context";
-import { apiGestorToken, apiTenantsAdmin } from "../api";
-import type { TenantAdmin } from "../types";
+import { useAdminSession } from "@core/session/admin-session-context";
+import { apiGestorToken, apiTenantsAdmin } from "@core/api/auth-admin";
+import type { TenantAdmin } from "@core/session/types";
 
 export interface SeleccionNegocioAdminProps {
   /** Sesión de campo lista (exchange OK) para el negocio elegido. */

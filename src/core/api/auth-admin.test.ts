@@ -5,7 +5,7 @@ import {
   apiMeAdmin,
   apiOlvidarContrasena,
   apiRestablecerContrasena,
-} from "./api";
+} from "./auth-admin";
 
 const fetchMock = jest.fn();
 global.fetch = fetchMock as unknown as typeof fetch;

@@ -1091,6 +1091,9 @@ export interface paths {
         /**
          * Wizard Exchange
          * @description Canjea el código del Embedded Signup (el popup ya pudo dar waba/phone).
+         *
+         *     La WABA y el número del popup se guardan recién después del canje, verificados con
+         *     el token nuevo y sin dueño en otro negocio (ADR-0095).
          */
         post: operations["wizard_exchange_api_v1_admin_meta_wizard_exchange_post"];
         delete?: never;
@@ -1678,7 +1681,7 @@ export interface paths {
         put?: never;
         /**
          * Post Forgot Password
-         * @description Siempre 202 con el mismo cuerpo: no filtra si la cuenta existe (ADR-0094).
+         * @description Siempre 202 con el mismo cuerpo: no filtra si la cuenta existe (ADR-0098).
          *
          *     El trabajo pesado (hash + correo) va en background para emparejar el tiempo
          *     de respuesta de cuentas existentes e inexistentes.
@@ -2356,7 +2359,7 @@ export interface paths {
         put?: never;
         /**
          * Gestor Token
-         * @description Sesión admin → par de tokens de campo del negocio activo (HU-APP-02, ADR-0094).
+         * @description Sesión admin → par de tokens de campo del negocio activo (HU-APP-02, ADR-0098).
          *
          *     Reusa la lógica del login unificado de la API de campo (ADR-0081): resuelve
          *     la membresía de campo del admin en el negocio activo (`X-Tenant-Id`) y emite

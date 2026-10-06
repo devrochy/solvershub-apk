@@ -1,5 +1,5 @@
 jest.mock("expo-secure-store");
-jest.mock("./api", () => ({
+jest.mock("@core/api/auth-admin", () => ({
   apiLoginAdmin: jest.fn(),
   apiMeAdmin: jest.fn(),
   apiOlvidarContrasena: jest.fn(),
@@ -19,7 +19,7 @@ jest.mock("./api", () => ({
 import { Pressable, Text } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import * as SecureStore from "expo-secure-store";
-import { apiLoginAdmin, apiMeAdmin } from "./api";
+import { apiLoginAdmin, apiMeAdmin } from "@core/api/auth-admin";
 import { AdminSessionProvider, useAdminSession } from "./admin-session-context";
 
 function Consumidor() {

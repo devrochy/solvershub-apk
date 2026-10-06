@@ -25,7 +25,7 @@ import { NotificacionesScreen } from "./src/modules/cobranza/screens/Notificacio
 import { CarteraActivaProvider } from "./src/modules/cobranza/session/cartera-activa-context";
 import { NotificacionesProvider } from "./src/modules/cobranza/session/notificaciones-context";
 import { SessionProvider, useSession } from "./src/modules/cobranza/session/session-context";
-import { AdminSessionProvider, useAdminSession } from "./src/modules/auth/admin-session-context";
+import { AdminSessionProvider, useAdminSession } from "./src/core/session/admin-session-context";
 import { AuthStack } from "./src/modules/auth/navigation";
 import { LoginUnificadoScreen } from "./src/modules/auth/screens/LoginUnificadoScreen";
 import { RecuperarContrasenaScreen } from "./src/modules/auth/screens/RecuperarContrasenaScreen";

@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { secureDelete, secureGet, secureSet } from "@core/secure-kv";
-import { apiLoginAdmin, apiMeAdmin } from "./api";
+import { apiLoginAdmin, apiMeAdmin } from "@core/api/auth-admin";
 import { AdminSesion, CLAVE_SESION_ADMIN, MeAdmin } from "./types";
 
 export interface AdminSessionValue {

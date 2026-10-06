@@ -1,6 +1,6 @@
 import * as LocalAuthentication from "expo-local-authentication";
 import { secureGet, secureSet } from "@core/secure-kv";
-import { CLAVE_BIOMETRIA } from "./types";
+import { CLAVE_BIOMETRIA } from "@core/session/types";
 
 /**
  * Biometría de la app oficial (HU-APP-02): desbloqueo opt-in por huella/rostro.

@@ -2,7 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useAdminSession } from "../modules/auth/admin-session-context";
+import { useAdminSession } from "@core/session/admin-session-context";
 import { grupoVisible, seccionesPermitidas } from "@core/permisos";
 import { useTheme } from "@core/theme/theme-context";
 import { SeccionEnConstruccion } from "./screens/SeccionEnConstruccion";
