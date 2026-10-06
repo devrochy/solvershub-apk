@@ -66,12 +66,15 @@ describe("api admin (ADR-0094)", () => {
     await expect(apiOlvidarContrasena("correo@x.com")).rejects.toBeInstanceOf(ApiAuthError);
   });
 
-  it("reset-password postea token y contraseña nueva", async () => {
+  it("reset-password postea token y contraseña nueva (snake_case del /api/v1)", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(204, {}));
     await apiRestablecerContrasena("ABC123", "nueva-clave-123");
     const [url, init] = fetchMock.mock.calls[0];
     expect(String(url)).toContain("/api/v1/auth/reset-password");
-    expect(JSON.parse(init.body)).toEqual({ token: "ABC123", newPassword: "nueva-clave-123" });
+    expect(JSON.parse(init.body)).toEqual({
+      token: "ABC123",
+      new_password: "nueva-clave-123",
+    });
   });
 
   it("gestor-token intercambia la sesión admin por tokens de campo", async () => {
