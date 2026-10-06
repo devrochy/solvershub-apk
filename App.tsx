@@ -38,6 +38,7 @@ import { PanelShell } from "./src/navigation/PanelShell";
 import { campoNavRef } from "./src/navigation/refs";
 import { PushProvider, type PushDatos } from "./src/modules/notificaciones";
 import { ThemeProvider } from "@core/theme/theme-context";
+import { inicializarBase } from "./src/data/bootstrap";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -243,6 +244,13 @@ export default function App() {
 
 function RootContent() {
   const { gestor } = useSession();
+
+  // Base local cifrada (ADR-APP-05): se abre al arrancar; un fallo no bloquea
+  // la app (los flujos legacy de AsyncStorage siguen operando hasta HU-APP-07).
+  useEffect(() => {
+    inicializarBase().catch(() => undefined);
+  }, []);
+
   return (
     <PantallaActivaProvider resetKey={gestor?.id ?? null}>
       <StatusBar style="light" />
