@@ -90,7 +90,8 @@ export async function apiRestablecerContrasena(
   const res = await fetch(apiV1("/auth/reset-password"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, newPassword }),
+    // La API /api/v1 usa snake_case (ADR-0076); el campo es `new_password`.
+    body: JSON.stringify({ token, new_password: newPassword }),
   });
   if (!res.ok) {
     throw await parseError(res);
