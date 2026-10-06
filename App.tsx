@@ -1,6 +1,7 @@
 import { Inter_400Regular, Inter_500Medium } from "@expo-google-fonts/inter";
 import { Montserrat_600SemiBold, Montserrat_700Bold } from "@expo-google-fonts/montserrat";
 import { useEffect, useRef, useState } from "react";
+import Constants from "expo-constants";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
@@ -34,9 +35,37 @@ import {
 } from "./src/modules/auth/screens/BloqueoBiometrico";
 import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/SeleccionNegocioAdminScreen";
 import { PanelShell } from "./src/navigation/PanelShell";
+import { campoNavRef } from "./src/navigation/refs";
+import { PushProvider, type PushDatos } from "./src/modules/notificaciones";
 import { ThemeProvider } from "@core/theme/theme-context";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const PROYECTO_EAS =
+  (Constants.expoConfig?.extra?.eas as { projectId?: string } | undefined)?.projectId ??
+  "3e8fed2f-1720-4cd7-ab2f-01fac56167ed";
+
+/** Puente: lee la sesión admin y arma el PushProvider (HU-APP-05). */
+function PushRoot({ children }: { children: React.ReactNode }) {
+  const { sesion } = useAdminSession();
+  const alTocarPush = (datos: PushDatos) => {
+    // Deep link v1: la actividad de campo lleva al diario. Los tipos del panel
+    // se enrutan cuando existan sus pantallas (HU-APP-04/08+).
+    if (datos?.type === "cobranza.sync" && campoNavRef.isReady()) {
+      campoNavRef.navigate("Cartera", {});
+    }
+  };
+  return (
+    <PushProvider
+      adminToken={sesion?.token ?? null}
+      tenantId={sesion?.tenantId ?? null}
+      projectId={PROYECTO_EAS}
+      alTocarNotificacion={alTocarPush}
+    >
+      {children}
+    </PushProvider>
+  );
+}
 
 function AuthNavigator() {
   const { login: loginLegado, aplicarSesionExterna } = useSession();
@@ -143,7 +172,7 @@ function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={campoNavRef}>
       <MenuLateralProvider>
         <TrayectosOverlayProvider>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -195,15 +224,17 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AdminSessionProvider>
-          <SessionProvider>
-            <OfflineProvider>
-              <CarteraActivaProvider>
-                <NotificacionesProvider>
-                  <RootContent />
-                </NotificacionesProvider>
-              </CarteraActivaProvider>
-            </OfflineProvider>
-          </SessionProvider>
+          <PushRoot>
+            <SessionProvider>
+              <OfflineProvider>
+                <CarteraActivaProvider>
+                  <NotificacionesProvider>
+                    <RootContent />
+                  </NotificacionesProvider>
+                </CarteraActivaProvider>
+              </OfflineProvider>
+            </SessionProvider>
+          </PushRoot>
         </AdminSessionProvider>
       </ThemeProvider>
     </SafeAreaProvider>
