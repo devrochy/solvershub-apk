@@ -70,7 +70,8 @@
           "useSQLCipher": true,
           "enableFTS": false
         }
-      ]
+      ],
+      "./plugins/solvershub-nsc"
     ],
     "owner": "devrochy",
     "extra": {

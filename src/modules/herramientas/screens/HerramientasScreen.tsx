@@ -11,6 +11,8 @@ import {
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { baseActual } from "@data/bootstrap";
+import { registrarAccionCritica } from "@data/auditoria-sync";
 import {
   accionNegocio,
   cargarDlq,
@@ -70,6 +72,15 @@ export function HerramientasScreen() {
           text: suspender ? "Suspender" : "Activar",
           style: suspender ? "destructive" : "default",
           onPress: () => {
+            const db = baseActual();
+            if (db) {
+              void registrarAccionCritica(db, {
+                accion: suspender ? "suspender_negocio" : "activar_negocio",
+                entidad: "tenant",
+                entidadId: t.id,
+                payload: { slug: t.slug },
+              }).catch(() => undefined);
+            }
             void accionNegocio(api, t.id, suspender ? "deactivate" : "activate")
               .then(cargar)
               .catch(() => setError("No se pudo cambiar el negocio."));
