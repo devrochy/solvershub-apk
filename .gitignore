@@ -50,3 +50,4 @@ builds/
 
 # obsidian (config de máquina)
 .obsidian/
+# Generado por scripts/sync-api-types.mjs (se commitea; ver ADR-APP-06)

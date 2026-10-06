@@ -1,5 +1,5 @@
-import type { GestorPermisoNombre } from "./gestor-permisos";
-import type { TipoDocumento } from "../domain/tipo-documento";
+import type { GestorPermisoNombre } from "@shared/types/gestor-permisos";
+import type { TipoDocumento } from "@shared/domain/tipo-documento";
 
 export type ColorRiesgo = "azul" | "rojo" | "blanco";
 export type ColorListaDelDia = "verde" | "rojo" | "blanco";

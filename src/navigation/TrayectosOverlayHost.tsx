@@ -3,8 +3,8 @@ import { StyleSheet } from "react-native";
 import { TrayectosLista } from "../components/TrayectosLista";
 import { useTrayectosOverlay } from "./trayectos-overlay-context";
 import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 
 /**
  * Capa del overlay de trayectos. Se monta como hermana por encima de la capa de

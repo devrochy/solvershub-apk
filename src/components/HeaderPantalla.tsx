@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "../theme/theme-context";
+import { useTheme } from "@core/theme/theme-context";
 
 /**
  * Banda superior azul (primary) de las pantallas autenticadas. Se extiende

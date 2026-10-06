@@ -4,8 +4,8 @@ import { ClienteScreen } from "../screens/ClienteScreen";
 import { CarteraDetalleScreen } from "../screens/CarteraDetalleScreen";
 import type { PantallaActiva } from "./pantalla-activa-context";
 import { VentanaCerrarConSwipe } from "./VentanaCerrarConSwipe";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 
 export interface OverlayDetalleProps {
   pantalla?: PantallaActiva | null;

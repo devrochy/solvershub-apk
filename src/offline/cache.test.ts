@@ -18,7 +18,7 @@ jest.mock("@react-native-async-storage/async-storage", () => {
 });
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { ClienteTarjetaPublic, TrayectoDiarioApkPublic, EstadisticasCarteraPublic, PrestamoPublic } from "../types/gestor";
+import type { ClienteTarjetaPublic, TrayectoDiarioApkPublic, EstadisticasCarteraPublic, PrestamoPublic } from "@shared/types/gestor";
 import {
   guardarCliente,
   guardarTrayectoDiario,

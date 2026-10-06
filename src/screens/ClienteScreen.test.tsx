@@ -1,17 +1,17 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 import { Alert } from "react-native";
 import { ClienteScreen } from "./ClienteScreen";
 import { colorDeEstado } from "../components/ColorBadge";
-import { ApiError } from "../api/client";
+import { ApiError } from "@core/api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { CarteraActivaContext } from "../session/cartera-activa-context";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
-import { API_URL } from "../config";
-import type { EstadoCuentaPrestamoPublic, PrestamoPublic } from "../types/gestor";
+import { API_URL } from "@core/config";
+import type { EstadoCuentaPrestamoPublic, PrestamoPublic } from "@shared/types/gestor";
 
 jest.mock("../features/estado-cuenta/estado-cuenta", () => ({
   enlaceWhatsApp: jest.fn(

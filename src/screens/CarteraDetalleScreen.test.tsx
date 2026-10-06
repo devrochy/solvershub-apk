@@ -2,7 +2,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { CarteraDetalleScreen } from "./CarteraDetalleScreen";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { CarteraActivaContext } from "../session/cartera-activa-context";
-import type { GestorPermisoEstado } from "../types/gestor";
+import type { GestorPermisoEstado } from "@shared/types/gestor";
 
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: jest.fn() }),

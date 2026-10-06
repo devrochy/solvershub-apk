@@ -1,5 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { ApiError } from "../api/client";
+import { ApiError } from "@core/api/client";
 import { LoginScreen } from "./LoginScreen";
 import { SessionContext, SessionValue } from "../session/session-context";
 

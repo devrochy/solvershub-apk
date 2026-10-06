@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet } from "react-native";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useMenuLateral } from "../navigation/menu-lateral-context";
 

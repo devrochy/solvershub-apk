@@ -1,5 +1,5 @@
 import { ReactNode, useMemo } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -7,8 +7,8 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { BotonMenu } from "./BotonMenu";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
 import { useNotificaciones } from "../session/notificaciones-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 import type { RootStackParamList } from "../navigation/types";
 
 export interface HeaderAppProps {

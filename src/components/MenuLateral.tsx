@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "./Avatar";
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
 import { useSession } from "../session/session-context";
-import { useTheme } from "../theme/theme-context";
+import { useTheme } from "@core/theme/theme-context";
 import type { RootStackParamList } from "../navigation/types";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -10,9 +10,9 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 import type { RootStackParamList } from "../navigation/types";
 import { useNotificaciones } from "../session/notificaciones-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import type { NotificacionTipo } from "../types/gestor";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import type { NotificacionTipo } from "@shared/types/gestor";
 
 const ICONO: Record<NotificacionTipo, keyof typeof MaterialIcons.glyphMap> = {
   pago: "payments",

@@ -18,14 +18,14 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { captureRef } from "react-native-view-shot";
 import { shareAsync } from "expo-sharing";
 import * as Location from "expo-location";
-import { apiErrorStatus, esErrorDeRed } from "../api/client";
+import { apiErrorStatus, esErrorDeRed } from "@core/api/client";
 import { Avatar } from "../components/Avatar";
 import { HeaderApp } from "../components/HeaderApp";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
 import { BannerMensaje } from "../components/BannerMensaje";
 import { ColorBadge, colorDeEstado } from "../components/ColorBadge";
-import { urlArchivo } from "../config";
+import { urlArchivo } from "@core/config";
 import { MapaCliente } from "../components/MapaCliente";
 import { MapaPin } from "../components/MapaPin";
 import { CampoModal } from "../components/CampoModal";
@@ -34,10 +34,10 @@ import {
   ETIQUETAS_TIPO_DOCUMENTO,
   TIPOS_DOCUMENTO,
   validarNumeroDocumento,
-} from "../domain/tipo-documento";
+} from "@shared/domain/tipo-documento";
 import { ModalConFooter } from "../components/ModalConFooter";
-import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "../domain/catalogos";
-import { etiquetaEstatus } from "../domain/estatus";
+import { METODOS_PAGO, MOTIVOS_NO_PAGO } from "@shared/domain/catalogos";
+import { etiquetaEstatus } from "@shared/domain/estatus";
 import {
   cambioClientePayload,
   camposCambiados,
@@ -68,10 +68,10 @@ import { guardarCliente, leerCliente } from "../offline/cache";
 import { guardarBorrador, leerBorrador, limpiarBorrador } from "../offline/borrador";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 
 import type {
   ClienteTarjetaPublic,
@@ -80,7 +80,7 @@ import type {
   EstadoCuentaPrestamoPublic,
   PrestamoPublic,
   LinkPagoCobro,
-} from "../types/gestor";
+} from "@shared/types/gestor";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Cliente">;
 

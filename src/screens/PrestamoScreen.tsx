@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { apiErrorStatus } from "../api/client";
+import { apiErrorStatus } from "@core/api/client";
 import { CargaError } from "../components/CargaError";
 import { HeaderApp } from "../components/HeaderApp";
 import {
@@ -12,11 +12,11 @@ import {
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
-import type { EstadoCuentaPrestamoPublic } from "../types/gestor";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
+import type { EstadoCuentaPrestamoPublic } from "@shared/types/gestor";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Prestamo">;
 

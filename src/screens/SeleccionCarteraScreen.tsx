@@ -9,10 +9,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { apiErrorStatus } from "../api/client";
+import { apiErrorStatus } from "@core/api/client";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge, bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";
-import { contarEnMora } from "../domain/contar-en-mora";
+import { contarEnMora } from "@shared/domain/contar-en-mora";
 import { HeaderApp } from "../components/HeaderApp";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -21,12 +21,12 @@ import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva, aCarteraActiva } from "../session/cartera-activa-context";
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 
-import type { CarteraApkPublic } from "../types/gestor";
+import type { CarteraApkPublic } from "@shared/types/gestor";
 
 interface CarteraKpi {
   totalClientes: number;

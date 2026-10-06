@@ -1,5 +1,5 @@
 import { contarEnMora } from "./contar-en-mora";
-import type { ClienteTrayectoDiarioPublic } from "../types/gestor";
+import type { ClienteTrayectoDiarioPublic } from "@shared/types/gestor";
 
 function cliente(color: ClienteTrayectoDiarioPublic["color"]): ClienteTrayectoDiarioPublic {
   return {

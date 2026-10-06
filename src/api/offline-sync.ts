@@ -1,5 +1,5 @@
-import { ApiError } from "./client";
-import { authUrl } from "../config";
+import { ApiError } from "@core/api/client";
+import { authUrl } from "@core/config";
 import type { EventoOffline } from "../offline/cola";
 
 export interface AckEventoSync {

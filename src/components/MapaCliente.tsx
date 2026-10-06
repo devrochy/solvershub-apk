@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { WebView } from "react-native-webview";
 
 export interface MapaClienteProps {

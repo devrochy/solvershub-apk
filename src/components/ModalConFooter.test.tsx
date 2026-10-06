@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { ModalConFooter } from "./ModalConFooter";
-import { COLORES } from "../theme/theme";
+import { COLORES } from "@core/theme/theme";
 
 describe("ModalConFooter", () => {
   it("renderiza header con título, botón de cerrar, cuerpo y footer", async () => {

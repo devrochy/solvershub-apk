@@ -1,12 +1,12 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { BackHandler } from "react-native";
 import { TrayectoDiarioScreen } from "./TrayectoDiarioScreen";
-import { ApiError } from "../api/client";
+import { ApiError } from "@core/api/client";
 import * as cache from "../offline/cache";
 import { OfflineContext, OfflineValue } from "../offline/offline-context";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { CarteraActivaContext } from "../session/cartera-activa-context";
-import type { GestorPermisoEstado } from "../types/gestor";
+import type { GestorPermisoEstado } from "@shared/types/gestor";
 import { PantallaActivaProvider } from "../navigation/pantalla-activa-context";
 import * as useEvidenciasModule from "../features/gastos/use-evidencias";
 
@@ -102,7 +102,7 @@ import { OverlaysActivos } from "../navigation/OverlaysActivos";
 import { TrayectosOverlayProvider } from "../navigation/trayectos-overlay-context";
 import { shareAsync } from "expo-sharing";
 import { File } from "expo-file-system";
-import { COLORES } from "../theme/theme";
+import { COLORES } from "@core/theme/theme";
 import { colorDeEstado } from "../components/ColorBadge";
 
 const offlineValor: OfflineValue = {

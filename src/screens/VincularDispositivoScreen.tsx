@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -11,15 +11,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { apiErrorStatus } from "../api/client";
+import { apiErrorStatus } from "@core/api/client";
 import {
   guardarWhatsappVinculacion,
   imeiDelEquipo,
   leerWhatsappVinculacion,
 } from "../features/dispositivo/dispositivo";
 import { useSession } from "../session/session-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 
 /**
  * HU-39/43: vincula este equipo al gestor. El equipo queda **pendiente** de

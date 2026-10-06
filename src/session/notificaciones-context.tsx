@@ -9,7 +9,7 @@ import {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSession } from "./session-context";
-import type { NotificacionPublic } from "../types/gestor";
+import type { NotificacionPublic } from "@shared/types/gestor";
 
 const CLAVE_LAST_SEEN = "cobranza_notif_last_seen";
 const CLAVE_DESCARTADAS = "cobranza_notif_descartadas";

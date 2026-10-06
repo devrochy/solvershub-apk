@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 
 export interface CampoModalProps extends TextInputProps {
   /** Etiqueta superior del campo (opcional). */

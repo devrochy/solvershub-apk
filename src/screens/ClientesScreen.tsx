@@ -15,7 +15,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import { apiErrorStatus, esErrorDeRed } from "../api/client";
+import { apiErrorStatus, esErrorDeRed } from "@core/api/client";
 import { Avatar } from "../components/Avatar";
 import { CampoTelefono } from "../components/CampoTelefono";
 import { CargaError } from "../components/CargaError";
@@ -29,24 +29,24 @@ import {
   TIPOS_DOCUMENTO,
   validarNumeroDocumento,
   type TipoDocumento,
-} from "../domain/tipo-documento";
+} from "@shared/domain/tipo-documento";
 import {
   useEvidenciasCliente,
   type CampoEvidenciaCliente,
   type FuenteEvidencia,
 } from "../features/cliente/use-evidencias-cliente";
 import { usePantallaActiva } from "../navigation/pantalla-activa-context";
-import { filtrarClientes, estadoCliente, type FiltroClientes } from "../domain/filtro-clientes";
-import { filtrarPorTexto } from "../domain/busqueda-clientes";
+import { filtrarClientes, estadoCliente, type FiltroClientes } from "@shared/domain/filtro-clientes";
+import { filtrarPorTexto } from "@shared/domain/busqueda-clientes";
 import { enlaceWhatsApp } from "../features/estado-cuenta/estado-cuenta";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 
-import type { ClienteGestorPublic } from "../types/gestor";
+import type { ClienteGestorPublic } from "@shared/types/gestor";
 
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
 

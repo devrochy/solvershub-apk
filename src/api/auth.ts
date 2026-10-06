@@ -1,7 +1,7 @@
-import { authUrl } from "../config";
+import { authUrl } from "@core/config";
 import { imeiDelEquipo, leerWhatsappVinculacion } from "../features/dispositivo/dispositivo";
-import { ApiError } from "./client";
-import type { Invitacion, LoginResult } from "../types/auth";
+import { ApiError } from "@core/api/client";
+import type { Invitacion, LoginResult } from "@shared/types/auth";
 
 export type RolLogin = "gestor" | "propietario";
 

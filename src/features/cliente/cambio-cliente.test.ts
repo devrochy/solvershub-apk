@@ -1,4 +1,4 @@
-import { ClienteTarjetaPublic } from "../../types/gestor";
+import { ClienteTarjetaPublic } from "@shared/types/gestor";
 import {
   cambioClientePayload,
   camposCambiados,

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 

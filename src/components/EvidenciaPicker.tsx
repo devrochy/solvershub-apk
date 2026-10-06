@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import {
   ActivityIndicator,
   Image,
@@ -8,8 +8,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 import type { EvidenciaSeleccionada } from "../features/gastos/use-evidencias";
 
 export interface EvidenciaPickerProps {

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 
 export interface BannerMensajeProps {
   texto: string;

@@ -20,9 +20,9 @@ import type {
   CarteraNotaPublic,
   NotificacionPublic,
   VisitaPublic,
-} from "../types/gestor";
-import type { ApiClient } from "./client";
-import { construirMultipart } from "./multipart";
+} from "@shared/types/gestor";
+import type { ApiClient } from "@core/api/client";
+import { construirMultipart } from "@core/api/multipart";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 

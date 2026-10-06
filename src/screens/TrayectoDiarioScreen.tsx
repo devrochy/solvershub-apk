@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { File, Paths } from "expo-file-system";
 import * as Location from "expo-location";
 import { shareAsync } from "expo-sharing";
-import { apiErrorStatus, esErrorDeRed } from "../api/client";
+import { apiErrorStatus, esErrorDeRed } from "@core/api/client";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
 import { colorDeEstado } from "../components/ColorBadge";
@@ -39,12 +39,12 @@ import { guardarBorrador, leerBorrador, limpiarBorrador } from "../offline/borra
 import { clientesAprecargar } from "../offline/precarga";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 
-import type { ClienteTrayectoDiarioPublic, LiquidacionPublic, TrayectoPublic } from "../types/gestor";
+import type { ClienteTrayectoDiarioPublic, LiquidacionPublic, TrayectoPublic } from "@shared/types/gestor";
 
 /** TTL de la precarga offline de clientes (evita re-precargar cada 30s). */
 const PRECARGA_TTL_MS = 5 * 60 * 1000;

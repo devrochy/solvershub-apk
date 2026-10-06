@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { gestorApi, GestorApi } from "../api/gestor";
-import { ApiClient } from "../api/client";
+import { ApiClient } from "@core/api/client";
 import {
   apiLogin,
   apiResolverInvitacion,
@@ -23,7 +23,7 @@ import {
   writeSession,
   type UsuarioPerfil,
 } from "./token-store";
-import type { Invitacion, LoginResult, Negocio } from "../types/auth";
+import type { Invitacion, LoginResult, Negocio } from "@shared/types/auth";
 
 export interface ActualizarPerfilInput {
   nombre: string;

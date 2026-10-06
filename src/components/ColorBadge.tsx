@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Animated, StyleSheet } from "react-native";
 
-import { conAlfa } from "../theme/alpha";
-import { shColor } from "../theme/tokens";
+import { conAlfa } from "@core/theme/alpha";
+import { shColor } from "@core/theme/tokens";
 
 /**
  * Colores de estado del cliente derivados de los tokens de marca (SolversHub).

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import {
   Pressable,
   ScrollView,
@@ -20,8 +20,8 @@ import { CampoModal } from "../components/CampoModal";
 import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { useSession } from "../session/session-context";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
 
 const ROL_LABEL: Record<string, string> = {
   gestor: "Gestor",

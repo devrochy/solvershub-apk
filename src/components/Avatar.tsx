@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { urlArchivo } from "../config";
-import { useTheme } from "../theme/theme-context";
+import { urlArchivo } from "@core/config";
+import { useTheme } from "@core/theme/theme-context";
 
 export interface AvatarProps {
   nombre: string;

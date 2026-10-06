@@ -4,7 +4,7 @@ import type {
   TrayectoDiarioApkPublic,
   EstadisticasCarteraPublic,
   PrestamoPublic,
-} from "../types/gestor";
+} from "@shared/types/gestor";
 
 const PREFIJO_TRAYECTO_DIARIO = "cobranza_cache_trayecto_diario";
 const PREFIJO_CLIENTE = "cobranza_cache_cliente";

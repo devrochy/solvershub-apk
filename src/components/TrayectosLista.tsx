@@ -1,11 +1,11 @@
 import { useMemo } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HeaderApp } from "./HeaderApp";
-import { useTheme } from "../theme/theme-context";
-import type { ColoresTema } from "../theme/theme";
-import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "../types/gestor";
+import { useTheme } from "@core/theme/theme-context";
+import type { ColoresTema } from "@core/theme/theme";
+import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "@shared/types/gestor";
 import { enlaceGoogleMapsCartera } from "../features/navegacion/navegacion";
 
 export interface TrayectosListaProps {

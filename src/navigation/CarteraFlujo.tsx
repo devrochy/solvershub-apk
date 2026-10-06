@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { shColor } from "../theme/tokens";
+import { shColor } from "@core/theme/tokens";
 import { BackHandler, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { OverlaysActivos } from "./OverlaysActivos";
@@ -11,8 +11,8 @@ import { TrayectoDiarioScreen } from "../screens/TrayectoDiarioScreen";
 import { ClientesScreen } from "../screens/ClientesScreen";
 import { aCarteraActiva, useCarteraActiva } from "../session/cartera-activa-context";
 import { useSession } from "../session/session-context";
-import type { FiltroClientes } from "../domain/filtro-clientes";
-import type { CarteraApkPublic } from "../types/gestor";
+import type { FiltroClientes } from "@shared/domain/filtro-clientes";
+import type { CarteraApkPublic } from "@shared/types/gestor";
 import type { RootStackParamList } from "./types";
 
 type Seccion = "Cartera" | "TrayectoDiario" | "Clientes";
