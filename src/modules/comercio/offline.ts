@@ -1,6 +1,7 @@
 import type { ClienteAdmin } from "@core/api/admin";
 import type { SqlExecutor } from "@data/db/executor";
 import { encolarEscritura, registrarDespachador } from "@data/escrituras";
+import { registrarAccionCritica } from "@data/auditoria-sync";
 import { cambiarEstadoPedido, type EstadoPedido } from "./api";
 
 /**
@@ -18,6 +19,14 @@ export async function cambiarEstadoPedidoConOffline(
   status: EstadoPedido,
   enLinea: boolean,
 ): Promise<"ok" | "encolado"> {
+  if (db) {
+    await registrarAccionCritica(db, {
+      accion: "cambiar_estado_pedido",
+      entidad: "pedido",
+      entidadId: pedidoId,
+      payload: { status, encolado: !enLinea },
+    }).catch(() => undefined);
+  }
   if (enLinea) {
     await cambiarEstadoPedido(cliente, pedidoId, status);
     return "ok";

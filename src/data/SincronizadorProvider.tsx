@@ -5,6 +5,7 @@ import { crearClienteAdmin } from "@core/api/admin";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { inicializarBase } from "./bootstrap";
 import { sincronizarTodo } from "./sync-global";
+import { subirAuditoriaPendiente } from "./auditoria-sync";
 
 /**
  * Sincronizador global (ADR-0097, HU-APP-15): al haber sesión admin y
@@ -35,6 +36,7 @@ export function SincronizadorProvider({ children }: { children: ReactNode }) {
       ejecutando.current = true;
       try {
         await sincronizarTodo(db, cliente);
+        await subirAuditoriaPendiente(db, cliente).catch(() => undefined);
       } finally {
         ejecutando.current = false;
       }
