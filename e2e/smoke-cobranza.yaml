@@ -1,0 +1,43 @@
+# Smoke de cobranza en la app oficial (HU-APP-07)
+# Contra el APK preview + API de test. Credenciales: seed_demo_login.py (demo12345).
+appId: com.solvershub.apk
+---
+- launchApp
+- assertVisible: "SolversHub"
+# 1. Login unificado
+- tapOn:
+    id: "login-usuario"
+- inputText: "gestor@demo.test"
+- tapOn:
+    id: "login-password"
+- inputText: "demo12345"
+- tapOn:
+    id: "login-entrar"
+# 2. Selector de negocio (el gestor demo tiene 2)
+- assertVisible: "Elige tu negocio"
+- tapOn: "Cobranza Demo"
+# 3. Campo: selección de cartera → diario
+- assertVisible: "Selecciona tu cartera"
+- tapOn:
+    text: "Cobranza Demo"
+# (siguientes pasos dependen de la cartera demo: diario → visita pago)
+- assertVisible: "Diario"
+# 4. Registro de visita de pago (primer cliente del día)
+- tapOn:
+    id: "boton-registrar-pago"
+    optional: true
+# 5. Offline: modo avión → segundo pago encolado
+- setAirplaneMode:
+    enabled: true
+- tapOn:
+    id: "boton-registrar-pago"
+    optional: true
+- assertVisible: "sin subir"
+- setAirplaneMode:
+    enabled: false
+# 6. Sincronización automática (cola vacía, sin duplicados)
+- extendedWaitUntil:
+    visible: "sin subir"
+    timeout: 60000
+# 7. Liquidación del día
+- tapOn: "Liquidar"

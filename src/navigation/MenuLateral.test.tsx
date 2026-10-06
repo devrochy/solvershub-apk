@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { fireEvent, render, within } from "@testing-library/react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MenuLateral } from "./MenuLateral";
-import { BotonMenu } from "./BotonMenu";
-import { MenuLateralProvider, useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
-import { SessionContext, SessionValue } from "../session/session-context";
+import { BotonMenu } from "../modules/cobranza/components/BotonMenu";
+import { MenuLateralProvider, useMenuLateral, type MenuItem } from "../modules/cobranza/navigation/menu-lateral-context";
+import { SessionContext, SessionValue } from "../modules/cobranza/session/session-context";
 import { COLORES } from "@core/theme/theme";
 jest.mock("../modules/auth/admin-session-context", () => ({
   useAdminSession: () => ({ sesion: null, loading: false, logout: jest.fn() }),

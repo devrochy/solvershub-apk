@@ -68,7 +68,7 @@ export function LoginScreen() {
           <View style={styles.form}>
             <Image
               testID="login-logo"
-              source={require("../../assets/logo-transparente.png")}
+              source={require("../../../../assets/logo-transparente.png")}
               style={[styles.logo, { width: logoTamano, height: logoTamano }]}
               resizeMode="contain"
             />

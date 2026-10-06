@@ -57,6 +57,12 @@ import {
 import { validarPrestamo } from "../features/prestamo/registrar-prestamo";
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import {
+  COLORES_CANVAS,
+  ETIQUETA_CANVAS,
+  esPendienteOAtrasada,
+  formatearFechaHora,
+} from "../features/cliente/presentacion";
+import {
   validarFechaPrometida,
   validarMonto,
   validarMontoContraTope,
@@ -105,35 +111,6 @@ type ModalActivo =
   | "documento";
 
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
-
-const COLORES_CANVAS: Record<TipoCuotaCanvas, { fondo: string; borde: string }> = {
-  pagada: { fondo: conAlfa(shColor.success, 0.12), borde: shColor.success },
-  actual: { fondo: conAlfa(shColor.blue["500"], 0.2), borde: shColor.navy["700"] },
-  en_mora: { fondo: conAlfa(shColor.danger, 0.12), borde: shColor.danger },
-  futura: { fondo: shColor.frost, borde: shColor.slate["300"] },
-  abonada: { fondo: conAlfa(shColor.warning, 0.15), borde: shColor.warning },
-};
-
-const ETIQUETA_CANVAS: Record<TipoCuotaCanvas, string> = {
-  pagada: "Pagada",
-  actual: "Cuota actual",
-  en_mora: "En mora",
-  futura: "Futura",
-  abonada: "Abonada",
-};
-
-function esPendienteOAtrasada(estatus: string): boolean {
-  return estatus === "pendiente" || estatus === "atrasada";
-}
-
-function formatearFechaHora(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) {
-    return iso;
-  }
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const params =

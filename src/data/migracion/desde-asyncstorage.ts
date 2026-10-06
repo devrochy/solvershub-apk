@@ -17,8 +17,11 @@ const FLAG_MIGRADA = "solvershub_sqlite_migrada";
  * origen y se fija la marca.
  */
 export interface ColaLegacy {
-  id: string;
+  eventoIdCliente?: string;
   tipoEvento?: string;
+  payload?: Record<string, unknown>;
+  creadoEn?: string;
+  dedupeKey?: string;
   [clave: string]: unknown;
 }
 
@@ -43,11 +46,11 @@ export async function migrarColaDesdeAsyncStorage(db: SqlExecutor): Promise<{
 
   for (const ev of eventos) {
     await encolarEvento(db, {
-      id: ev.id,
+      id: String(ev.eventoIdCliente ?? ev.id ?? ""),
       modulo: "cobranza",
-      tipo: String(ev.tipoEvento ?? ev.tipo ?? "desconocido"),
-      payload: JSON.stringify(ev),
-      creadoAt: String(ev.creadoAt ?? ev.createdAt ?? new Date().toISOString()),
+      tipo: String(ev.tipoEvento ?? "desconocido"),
+      payload: JSON.stringify({ payload: ev.payload ?? {}, dedupeKey: ev.dedupeKey ?? null }),
+      creadoAt: String(ev.creadoEn ?? new Date().toISOString()),
     });
   }
 
