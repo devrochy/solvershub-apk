@@ -70,3 +70,33 @@ export async function totalEventos(db: SqlExecutor, modulo: string): Promise<num
   );
   return fila?.n ?? 0;
 }
+
+/** Todos los eventos del módulo (cualquier estado), en orden de creación. */
+export async function listarEventos(db: SqlExecutor, modulo: string): Promise<EventoCola[]> {
+  const filas = await db.getAllAsync<{
+    id: string;
+    modulo: string;
+    tipo: string;
+    payload: string;
+    estado: string;
+    intentos: number;
+    creado_at: string;
+  }>(
+    `SELECT id, modulo, tipo, payload, estado, intentos, creado_at
+     FROM cola_evento WHERE modulo = ? ORDER BY creado_at ASC;`,
+    [modulo],
+  );
+  return filas.map((f) => ({
+    id: f.id,
+    modulo: f.modulo,
+    tipo: f.tipo,
+    payload: f.payload,
+    estado: f.estado as EventoCola["estado"],
+    intentos: f.intentos,
+    creadoAt: f.creado_at,
+  }));
+}
+
+export async function vaciarCola(db: SqlExecutor, modulo: string): Promise<void> {
+  await db.runAsync(`DELETE FROM cola_evento WHERE modulo = ?;`, [modulo]);
+}

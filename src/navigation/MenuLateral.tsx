@@ -4,12 +4,12 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar } from "./Avatar";
-import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
-import { useSession } from "../session/session-context";
+import { Avatar } from "../modules/cobranza/components/Avatar";
+import { useMenuLateral, type MenuItem } from "../modules/cobranza/navigation/menu-lateral-context";
+import { useSession } from "../modules/cobranza/session/session-context";
 import { useAdminSession } from "../modules/auth/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
-import type { RootStackParamList } from "../navigation/types";
+import type { RootStackParamList } from "../modules/cobranza/navigation/types";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
 

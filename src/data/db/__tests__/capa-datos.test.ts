@@ -136,8 +136,18 @@ describe("capa de datos (ADR-APP-05)", () => {
     await AsyncStorage.setItem(
       "cobranza_cola_offline",
       JSON.stringify([
-        { id: "l-1", tipoEvento: "pago", payload: {}, creadoAt: "2026-10-06T00:00:00Z" },
-        { id: "l-2", tipoEvento: "gasto", payload: {}, creadoAt: "2026-10-06T00:01:00Z" },
+        {
+          eventoIdCliente: "l-1",
+          tipoEvento: "pago",
+          payload: { clienteId: "c-1" },
+          creadoEn: "2026-10-06T00:00:00Z",
+        },
+        {
+          eventoIdCliente: "l-2",
+          tipoEvento: "gasto",
+          payload: {},
+          creadoEn: "2026-10-06T00:01:00Z",
+        },
       ]),
     );
     const resultado = await migrarColaDesdeAsyncStorage(db);
@@ -149,7 +159,7 @@ describe("capa de datos (ADR-APP-05)", () => {
     // Segunda corrida: no migra de nuevo.
     await AsyncStorage.setItem(
       "cobranza_cola_offline",
-      JSON.stringify([{ id: "l-3", tipoEvento: "pago", payload: {} }]),
+      JSON.stringify([{ eventoIdCliente: "l-3", tipoEvento: "pago", payload: {} }]),
     );
     expect(await migrarColaDesdeAsyncStorage(db)).toEqual({ migrados: 0 });
     expect(await totalEventos(db, "cobranza")).toBe(2);
