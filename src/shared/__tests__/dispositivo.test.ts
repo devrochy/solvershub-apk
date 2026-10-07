@@ -20,7 +20,7 @@ import {
   guardarWhatsappVinculacion,
   imeiDelEquipo,
   leerWhatsappVinculacion,
-} from "./dispositivo";
+} from "../dispositivo";
 
 describe("dispositivo (HU-39/43)", () => {
   it("devuelve un identificador de equipo", async () => {

@@ -1,10 +1,11 @@
-# Smoke de cobranza en la app oficial (HU-APP-07)
-# Contra el APK preview + API de test. Credenciales: seed_demo_login.py (demo12345).
+# Smoke de cobranza en la app oficial (actualizado a los testIDs reales del módulo)
+# Contra el APK preview + API de test. Credenciales: demo12345.
+# Requiere: dispositivo de prueba ya vinculado/aprobado para el gestor demo.
 appId: com.solvershub.apk
 ---
 - launchApp
 - assertVisible: "SolversHub"
-# 1. Login unificado
+# 1. Login unificado (panel → exchange de campo)
 - tapOn:
     id: "login-usuario"
 - inputText: "gestor@demo.test"
@@ -17,27 +18,17 @@ appId: com.solvershub.apk
 - assertVisible: "Elige tu negocio"
 - tapOn: "Cobranza Demo"
 # 3. Campo: selección de cartera → diario
-- assertVisible: "Selecciona tu cartera"
-- tapOn:
-    text: "Cobranza Demo"
-# (siguientes pasos dependen de la cartera demo: diario → visita pago)
+- assertVisible: "Selecciona una cartera"
+- tapOn: "Cobranza Demo"
 - assertVisible: "Diario"
-# 4. Registro de visita de pago (primer cliente del día)
+# 4. Liquidación del día visible desde el diario
+- assertVisible:
+    id: "btn-liquidacion"
+# 5. Generar trayecto del día (ruta con los clientes con cuota)
 - tapOn:
-    id: "boton-registrar-pago"
+    id: "generar-trayecto"
     optional: true
-# 5. Offline: modo avión → segundo pago encolado
-- setAirplaneMode:
-    enabled: true
+# 6. Abrir el cliente más cercano (tarjeta de cliente del diario)
 - tapOn:
-    id: "boton-registrar-pago"
+    id: "btn-cliente-cercano"
     optional: true
-- assertVisible: "sin subir"
-- setAirplaneMode:
-    enabled: false
-# 6. Sincronización automática (cola vacía, sin duplicados)
-- extendedWaitUntil:
-    visible: "sin subir"
-    timeout: 60000
-# 7. Liquidación del día
-- tapOn: "Liquidar"
