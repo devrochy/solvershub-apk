@@ -94,5 +94,7 @@ describe("api admin (ADR-0094)", () => {
     expect(String(url)).toContain("/api/v1/pack/cobranza/gestor-token");
     expect(init.headers.Authorization).toBe("Bearer t-opaco");
     expect(init.headers["X-Tenant-Id"]).toBe("t-1");
+    // El enforcement del dispositivo exige credenciales del equipo (ADR-0068).
+    expect(JSON.parse(init.body)).toMatchObject({ imei: expect.any(String), whatsapp: expect.any(String) });
   });
 });

@@ -1,5 +1,5 @@
 import { authUrl } from "@core/config";
-import { imeiDelEquipo, leerWhatsappVinculacion } from "../features/dispositivo/dispositivo";
+import { imeiDelEquipo, leerWhatsappVinculacion } from "@shared/dispositivo";
 import { ApiError } from "@core/api/client";
 import type { Invitacion, LoginResult } from "@shared/types/auth";
 

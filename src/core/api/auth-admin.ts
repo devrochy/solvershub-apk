@@ -1,6 +1,7 @@
 import { apiV1 } from "@core/config";
 import type { LoginResult } from "@shared/types/auth";
 import type { MeAdmin, TenantAdmin } from "../session/types";
+import { imeiDelEquipo, leerWhatsappVinculacion } from "@shared/dispositivo";
 
 /**
  * Cliente de la identidad admin (ADR-0094, HU-APP-02).
@@ -118,6 +119,12 @@ export async function apiGestorToken(
   adminToken: string,
   tenantId: string,
 ): Promise<LoginResult> {
+  // El enforcement de dispositivo (ADR-0068) exige las credenciales del equipo
+  // una vez vinculado: se envían las persistidas durante la vinculación.
+  const [imei, whatsapp] = await Promise.all([
+    imeiDelEquipo(),
+    leerWhatsappVinculacion(),
+  ]);
   const res = await fetch(apiV1("/pack/cobranza/gestor-token"), {
     method: "POST",
     headers: {
@@ -125,7 +132,7 @@ export async function apiGestorToken(
       "X-Tenant-Id": tenantId,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify({ imei, whatsapp }),
   });
   if (!res.ok) {
     throw await parseError(res);

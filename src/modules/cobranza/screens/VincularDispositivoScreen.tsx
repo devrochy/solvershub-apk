@@ -16,7 +16,7 @@ import {
   guardarWhatsappVinculacion,
   imeiDelEquipo,
   leerWhatsappVinculacion,
-} from "../features/dispositivo/dispositivo";
+} from "@shared/dispositivo";
 import { useSession } from "../session/session-context";
 import { useTheme } from "@core/theme/theme-context";
 import type { ColoresTema } from "@core/theme/theme";

@@ -1,6 +1,6 @@
 import { apiInvitaciones, apiLogin, apiResolverInvitacion } from "./auth";
 
-jest.mock("../features/dispositivo/dispositivo", () => ({
+jest.mock("@shared/dispositivo", () => ({
   imeiDelEquipo: jest.fn().mockResolvedValue("ANDROID-TEST"),
   leerWhatsappVinculacion: jest.fn().mockResolvedValue("3000000000"),
 }));

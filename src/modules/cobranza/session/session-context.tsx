@@ -14,7 +14,7 @@ import {
   apiLogin,
   apiResolverInvitacion,
 } from "../api/auth";
-import { guardarWhatsappVinculacion, leerWhatsappVinculacion } from "../features/dispositivo/dispositivo";
+import { guardarWhatsappVinculacion, leerWhatsappVinculacion } from "@shared/dispositivo";
 import {
   clearSession,
   readProfile,
