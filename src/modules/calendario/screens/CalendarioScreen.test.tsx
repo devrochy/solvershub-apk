@@ -7,7 +7,8 @@ import { CalendarioScreen } from "./CalendarioScreen";
 
 const mockUseAdminApi = useAdminApi as jest.Mock;
 const mockGet = jest.fn();
-const cliente = { get: mockGet, post: jest.fn(), put: jest.fn(), patch: jest.fn(), del: jest.fn() };
+const mockPost = jest.fn();
+const cliente = { get: mockGet, post: mockPost, put: jest.fn(), patch: jest.fn(), del: jest.fn() };
 
 describe("CalendarioScreen (HU-APP-11)", () => {
   beforeEach(() => {
@@ -76,5 +77,38 @@ describe("CalendarioScreen (HU-APP-11)", () => {
     mockGet.mockRejectedValue(new Error("red"));
     const { getByTestId } = await render(<CalendarioScreen />);
     await waitFor(() => expect(getByTestId("calendario-error")).toBeTruthy());
+  });
+
+  it("crea un tipo de cita desde el modal (HU-APP-20)", async () => {
+    mockPost.mockResolvedValue(undefined);
+    const { getByTestId } = await render(<CalendarioScreen />);
+    await waitFor(() => expect(getByTestId("calendario-lista-semana")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("calendario-tipos"));
+    await fireEvent.press(getByTestId("calendario-nuevo"));
+    await fireEvent.changeText(getByTestId("modal-nombre"), "Revisión express");
+    await fireEvent.changeText(getByTestId("modal-duracion"), "15");
+    await fireEvent.press(getByTestId("modal-crear"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/pack/calendar/types", { name: "Revisión express", duration_minutes: 15 }),
+    );
+  });
+
+  it("crea un bloqueo desde el modal (HU-APP-20)", async () => {
+    mockPost.mockResolvedValue(undefined);
+    const { getByTestId, getByText } = await render(<CalendarioScreen />);
+    await waitFor(() => expect(getByTestId("calendario-lista-semana")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("calendario-bloqueos"));
+    await fireEvent.press(getByTestId("calendario-nuevo"));
+    await fireEvent.changeText(getByTestId("modal-inicio"), "2026-10-07 12:00");
+    await fireEvent.changeText(getByTestId("modal-fin"), "2026-10-07 13:00");
+    await fireEvent.changeText(getByTestId("modal-nombre"), "Almuerzo equipo");
+    await fireEvent.press(getByTestId("modal-crear"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/pack/calendar/blocks", expect.objectContaining({ reason: "Almuerzo equipo" })),
+    );
   });
 });

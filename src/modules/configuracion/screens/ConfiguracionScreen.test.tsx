@@ -115,4 +115,23 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
     await fireEvent.press(getByTestId("config-conexiones"));
     expect(getByText("Principal · principal")).toBeTruthy();
   });
+
+  it("invita a un colaborador desde el modal (HU-APP-20)", async () => {
+    mockPost.mockResolvedValue(undefined);
+    const { getByTestId } = await render(<ConfiguracionScreen />);
+    await waitFor(() => expect(getByTestId("config-lista-colaboradores")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("config-invitar"));
+    await fireEvent.changeText(getByTestId("modal-email"), "nuevo@demo.test");
+    await fireEvent.changeText(getByTestId("modal-clave"), "clave123");
+    await fireEvent.press(getByTestId("modal-enviar"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/admin/collaborators", {
+        email: "nuevo@demo.test",
+        password: "clave123",
+        role: "colaborador",
+      }),
+    );
+  });
 });

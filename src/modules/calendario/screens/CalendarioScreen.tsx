@@ -9,10 +9,13 @@ import {
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { Modal, TextInput } from "react-native";
 import {
   cargarBloqueos,
   cargarSemana,
   cargarTipos,
+  crearBloqueo,
+  crearTipo,
   type BlockOut,
   type TypeOut,
   type WeekItem,
@@ -39,6 +42,12 @@ export function CalendarioScreen() {
   const [bloqueos, setBloqueos] = useState<BlockOut[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modalNuevo, setModalNuevo] = useState<"tipo" | "bloqueo" | null>(null);
+  const [campoNombre, setCampoNombre] = useState("");
+  const [campoDuracion, setCampoDuracion] = useState("");
+  const [campoInicio, setCampoInicio] = useState("");
+  const [campoFin, setCampoFin] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -61,6 +70,31 @@ export function CalendarioScreen() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial: los setState ocurren después del await (no síncronos)
     void cargar().finally(() => setCargando(false));
   }, [cargar]);
+
+  const crearNuevo = async () => {
+    setEnviando(true);
+    try {
+      if (modalNuevo === "tipo") {
+        await crearTipo(api, { name: campoNombre.trim(), duration_minutes: Number(campoDuracion) || 30 });
+      } else {
+        await crearBloqueo(api, {
+          start_at: new Date(campoInicio.trim()).toISOString(),
+          end_at: new Date(campoFin.trim()).toISOString(),
+          reason: campoNombre.trim() || "Bloqueo",
+        });
+      }
+      setModalNuevo(null);
+      setCampoNombre("");
+      setCampoDuracion("");
+      setCampoInicio("");
+      setCampoFin("");
+      await cargar();
+    } catch {
+      setError("No se pudo crear. Revisa las fechas (formato AAAA-MM-DD HH:MM).");
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
@@ -92,6 +126,57 @@ export function CalendarioScreen() {
           {error}
         </Text>
       ) : null}
+
+      {pestana !== "semana" ? (
+        <Pressable
+          testID="calendario-nuevo"
+          onPress={() => setModalNuevo(pestana === "tipos" ? "tipo" : "bloqueo")}
+          style={[styles.fab, { backgroundColor: colores.primario }]}
+        >
+          <Text style={{ color: "#ffffff", fontWeight: "700" }}>+ Nuevo</Text>
+        </Pressable>
+      ) : null}
+
+      <Modal visible={modalNuevo !== null} transparent animationType="fade">
+        <View style={styles.modalFondo}>
+          <View style={[styles.modalCaja, { backgroundColor: colores.tarjeta }]}>
+            <Text style={[styles.modalTitulo, { color: colores.texto }]}>
+              {modalNuevo === "tipo" ? "Nuevo tipo de cita" : "Nuevo bloqueo"}
+            </Text>
+            {modalNuevo === "tipo" ? (
+              <>
+                <TextInput testID="modal-nombre" value={campoNombre} onChangeText={setCampoNombre}
+                  placeholder="Nombre" placeholderTextColor={colores.textoSuave}
+                  style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+                <TextInput testID="modal-duracion" value={campoDuracion} onChangeText={setCampoDuracion}
+                  placeholder="Duración (minutos)" placeholderTextColor={colores.textoSuave} keyboardType="numeric"
+                  style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+              </>
+            ) : (
+              <>
+                <TextInput testID="modal-inicio" value={campoInicio} onChangeText={setCampoInicio}
+                  placeholder="Inicio (AAAA-MM-DD HH:MM)" placeholderTextColor={colores.textoSuave}
+                  style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+                <TextInput testID="modal-fin" value={campoFin} onChangeText={setCampoFin}
+                  placeholder="Fin (AAAA-MM-DD HH:MM)" placeholderTextColor={colores.textoSuave}
+                  style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+                <TextInput testID="modal-nombre" value={campoNombre} onChangeText={setCampoNombre}
+                  placeholder="Motivo" placeholderTextColor={colores.textoSuave}
+                  style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+              </>
+            )}
+            <View style={styles.modalBotones}>
+              <Pressable onPress={() => setModalNuevo(null)} style={{ padding: 10 }}>
+                <Text style={{ color: colores.textoSuave }}>Cancelar</Text>
+              </Pressable>
+              <Pressable testID="modal-crear" disabled={enviando} onPress={() => void crearNuevo()}
+                style={[styles.modalBoton, { backgroundColor: colores.primario }]}>
+                <Text style={{ color: "#ffffff", fontWeight: "700" }}>Crear</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {cargando ? (
         <ActivityIndicator size="large" style={{ marginTop: 30 }} />
@@ -197,4 +282,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  fab: { borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "center", marginTop: 4 },
+  modalFondo: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 },
+  modalCaja: { borderRadius: 14, padding: 18, gap: 10 },
+  modalTitulo: { fontSize: 16, fontWeight: "700" },
+  campo: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10 },
+  modalBotones: { flexDirection: "row", justifyContent: "flex-end", gap: 16, marginTop: 4 },
+  modalBoton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
 });
