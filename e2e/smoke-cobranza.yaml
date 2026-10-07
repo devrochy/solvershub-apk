@@ -1,4 +1,4 @@
-# Smoke de cobranza en la app oficial (actualizado a los testIDs reales del módulo)
+# Smoke de cobranza en la app oficial (testIDs reales del módulo de campo)
 # Contra el APK preview + API de test. Credenciales: demo12345.
 # Requiere: dispositivo de prueba ya vinculado/aprobado para el gestor demo.
 appId: com.solvershub.apk
@@ -17,13 +17,16 @@ appId: com.solvershub.apk
 # 2. Selector de negocio (el gestor demo tiene 2)
 - assertVisible: "Elige tu negocio"
 - tapOn: "Cobranza Demo"
-# 3. Campo: selección de cartera → diario
-- assertVisible: "Selecciona una cartera"
-- tapOn: "Cobranza Demo"
-- assertVisible: "Diario"
-# 4. Liquidación del día visible desde el diario
-- assertVisible:
-    id: "btn-liquidacion"
+# 3. Campo: el gestor con una sola cartera entra directo a su cartera
+- assertVisible: "Información de la cartera"
+# 4. Menú lateral → Diario del día
+- tapOn:
+    id: "btn-menu"
+- tapOn: "Diario"
+- extendedWaitUntil:
+    visible:
+      id: "btn-liquidacion"
+    timeout: 15000
 # 5. Generar trayecto del día (ruta con los clientes con cuota)
 - tapOn:
     id: "generar-trayecto"
