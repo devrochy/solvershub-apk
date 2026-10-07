@@ -1,5 +1,8 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
+jest.mock("@core/session/admin-session-context", () => ({
+  useAdminSession: () => ({ sesion: { token: "t", role: "master", permissions: {} }, loading: false }),
+}));
 
 import { Alert } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
@@ -9,7 +12,8 @@ import { CobranzaAdminScreen } from "./CobranzaAdminScreen";
 const mockUseAdminApi = useAdminApi as jest.Mock;
 const mockGet = jest.fn();
 const mockPost = jest.fn();
-const cliente = { get: mockGet, post: mockPost, put: jest.fn(), patch: jest.fn(), del: jest.fn() };
+const mockPut = jest.fn();
+const cliente = { get: mockGet, post: mockPost, put: mockPut, patch: jest.fn(), del: jest.fn() };
 
 describe("CobranzaAdminScreen (HU-APP-18)", () => {
   beforeEach(() => {
@@ -33,6 +37,21 @@ describe("CobranzaAdminScreen (HU-APP-18)", () => {
       }
       if (path === "/pack/cobranza/devices") {
         return Promise.resolve({ pendientes: 1, dispositivos: [{ id: "d-1", codigo: "D1", gestor: "Gestor Demo", imei: "123", whatsapp: null, estado: "pendiente", vinculado: false }], intentos: [], eventos: [] });
+      }
+      if (path === "/pack/cobranza/portfolios") {
+        return Promise.resolve([{ id: "car-1", nombre: "Cobranza Demo", descripcion: null, gestor: "Gestor Demo", gestor_id: null, tipo_interes: 10, num_cuotas: 4, moneda: "COP", estatus: "activo", costo_cobro: 0 }]);
+      }
+      if (path === "/pack/cobranza/reports") {
+        return Promise.resolve({ filas: [{ cartera: "Cobranza Demo", clientes: 2, prestamos: 1, saldo: 600, vencidas: 0, cobrado: 100, caja: 1200, gastos: 0 }], liquidaciones: [] });
+      }
+      if (path === "/pack/cobranza/monitoring") {
+        return Promise.resolve({ conversaciones: 1, escalaciones: 0, promesas_pendientes: 1, promesas_cumplidas: 0, promesas_incumplidas: 0, ultimas_promesas: [] });
+      }
+      if (path === "/pack/cobranza/rules") {
+        return Promise.resolve({ max_dias_prorroga: 5, min_abono_pct: 10, max_reprogramaciones: 2, umbral_saldo_autonomo: 100 });
+      }
+      if (path === "/pack/cobranza/alerts") {
+        return Promise.resolve({ total: 3, denegados: 1, items: [{ fecha: "2026-10-06T00:00:00Z", gestor: "Gestor Demo", resultado: "denegado", motivo: "dispositivo no autorizado", imei: "123", critico: true }] });
       }
       if (path === "/pack/cobranza/audit") {
         return Promise.resolve({ entidades: [], operaciones: [], filas: [{ fecha: "2026-10-06", entidad: "cuota", entidad_id: null, operacion: "editar", antes: null, despues: null, actor: null, motivo: null }] });
@@ -64,6 +83,7 @@ describe("CobranzaAdminScreen (HU-APP-18)", () => {
     await waitFor(() => expect(getByTestId("cobranza-promesas")).toBeTruthy());
 
     await fireEvent.press(getByTestId("cobranza-promesas"));
+    await waitFor(() => expect(getByText("pendiente ›")).toBeTruthy());
     await fireEvent.press(getByText("pendiente ›"));
     await waitFor(() =>
       expect(mockPost).toHaveBeenCalledWith("/pack/cobranza/promises/pr-1/status", {
@@ -90,6 +110,39 @@ describe("CobranzaAdminScreen (HU-APP-18)", () => {
       }),
     );
     alertSpy.mockRestore();
+  });
+
+  it("lista carteras y abre su detalle", async () => {
+    const { getByTestId, getByText } = await render(<CobranzaAdminScreen />);
+    await waitFor(() => expect(getByTestId("cobranza-carteras")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("cobranza-carteras"));
+    await waitFor(() => expect(getByText("Cobranza Demo")).toBeTruthy());
+  });
+
+  it("muestra reportes y alertas con sus KPIs", async () => {
+    const { getByTestId, getByText } = await render(<CobranzaAdminScreen />);
+    await waitFor(() => expect(getByTestId("cobranza-reportes")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("cobranza-reportes"));
+    await waitFor(() => expect(getByText("2 clientes · 1 préstamos · saldo $600")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("cobranza-alertas"));
+    await waitFor(() => expect(getByText("3 intentos · 1 denegados")).toBeTruthy());
+  });
+
+  it("edita y guarda las reglas de negociación", async () => {
+    const { getByTestId } = await render(<CobranzaAdminScreen />);
+    await waitFor(() => expect(getByTestId("cobranza-reglas")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("cobranza-reglas"));
+    await waitFor(() => expect(getByTestId("regla-Máx. días de prórroga")).toBeTruthy());
+
+    await fireEvent.changeText(getByTestId("regla-Máx. días de prórroga"), "7");
+    await fireEvent.press(getByTestId("reglas-guardar"));
+    await waitFor(() =>
+      expect(mockPut).toHaveBeenCalledWith("/pack/cobranza/rules", expect.objectContaining({ max_dias_prorroga: 7 })),
+    );
   });
 
   it("muestra la auditoría del pack", async () => {

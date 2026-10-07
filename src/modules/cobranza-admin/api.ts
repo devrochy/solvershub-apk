@@ -94,3 +94,93 @@ export async function decidirCambioCliente(
 ): Promise<void> {
   await api.post(`/pack/cobranza/client-changes/${id}/decision`, { decision, motivo: motivo ?? "" });
 }
+
+// ---------------- HU-APP-19 · cobranza admin profunda ----------------
+
+export interface CarteraCaja { saldo_inicial: number; saldo_actual: number; actualizado: string }
+export interface LiquidacionOut { cartera: string; fecha: string; periodo: string; cobrado: number; gastos: number; comision: number }
+export interface InjectionOut { fecha: string; valor: number; comentario: string; estado: string }
+export interface ReportRow {
+  cartera: string; clientes: number; prestamos: number; saldo: number;
+  vencidas: number; cobrado: number; caja: number; gastos: number;
+}
+export interface Reportes { filas: ReportRow[]; liquidaciones: LiquidacionOut[] }
+export interface Monitoring {
+  conversaciones: number; escalaciones: number; promesas_pendientes: number;
+  promesas_cumplidas: number; promesas_incumplidas: number; ultimas_promesas: PromesaAdmin[];
+}
+export interface Reglas {
+  max_dias_prorroga: number; min_abono_pct: number; max_reprogramaciones: number;
+  umbral_saldo_autonomo: number;
+}
+export interface AccessAttempt {
+  fecha: string; gestor: string; resultado: string; motivo: string; imei: string; critico: boolean;
+}
+export interface Alertas { total: number; denegados: number; items: AccessAttempt[] }
+export interface RouteClient {
+  id: string; cliente: string; telefono: string; saldo: number; mora: number;
+  riesgo: string; lat: number | null; lng: number | null;
+}
+export interface RoutePlan { orden: string[]; distancia_km: number; tiempo_min: number; fecha: string }
+export interface Ruta { clientes: RouteClient[]; plan: RoutePlan | null }
+export interface PortfolioRow {
+  id: string; nombre: string; descripcion: string | null; gestor: string | null;
+  gestor_id: string | null; tipo_interes: number; num_cuotas: number; moneda: string;
+  estatus: string; costo_cobro: number;
+}
+
+export async function cargarCarteras(api: ClienteAdmin): Promise<PortfolioRow[]> {
+  return api.get("/pack/cobranza/portfolios");
+}
+
+export async function cargarCaja(api: ClienteAdmin, id: string): Promise<CarteraCaja> {
+  return api.get(`/pack/cobranza/portfolios/${id}/cash`);
+}
+
+export async function ajustarCaja(api: ClienteAdmin, id: string, valorNuevo: number, motivo: string): Promise<void> {
+  await api.post(`/pack/cobranza/portfolios/${id}/cash/adjustment`, { valor_nuevo: valorNuevo, motivo });
+}
+
+export async function cerrarCaja(api: ClienteAdmin, id: string): Promise<void> {
+  await api.post(`/pack/cobranza/portfolios/${id}/cash/closing`);
+}
+
+export async function abrirCaja(api: ClienteAdmin, id: string): Promise<void> {
+  await api.post(`/pack/cobranza/portfolios/${id}/cash/opening`);
+}
+
+export async function inyectarCapital(api: ClienteAdmin, id: string, valor: number, comentario: string): Promise<void> {
+  await api.post(`/pack/cobranza/portfolios/${id}/injections`, { valor, comentario });
+}
+
+export async function liquidarCartera(api: ClienteAdmin, id: string, periodo: string): Promise<void> {
+  await api.post(`/pack/cobranza/portfolios/${id}/liquidations`, { periodo });
+}
+
+export async function cargarRuta(api: ClienteAdmin, id: string): Promise<Ruta> {
+  return api.get(`/pack/cobranza/portfolios/${id}/route`);
+}
+
+export async function optimizarRuta(api: ClienteAdmin, id: string): Promise<Ruta> {
+  return api.post(`/pack/cobranza/portfolios/${id}/route/optimize`);
+}
+
+export async function cargarReportes(api: ClienteAdmin): Promise<Reportes> {
+  return api.get("/pack/cobranza/reports");
+}
+
+export async function cargarMonitoreo(api: ClienteAdmin): Promise<Monitoring> {
+  return api.get("/pack/cobranza/monitoring");
+}
+
+export async function cargarReglas(api: ClienteAdmin): Promise<Reglas> {
+  return api.get("/pack/cobranza/rules");
+}
+
+export async function guardarReglas(api: ClienteAdmin, reglas: Reglas): Promise<void> {
+  await api.put("/pack/cobranza/rules", reglas);
+}
+
+export async function cargarAlertas(api: ClienteAdmin): Promise<Alertas> {
+  return api.get("/pack/cobranza/alerts");
+}

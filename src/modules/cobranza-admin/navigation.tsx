@@ -1,10 +1,12 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { CobranzaAdminScreen } from "./screens/CobranzaAdminScreen";
 import { ClienteDetalleScreen } from "./screens/ClienteDetalleScreen";
+import { CarteraDetalleScreen } from "./screens/CarteraDetalleScreen";
 
 export type CobranzaAdminStackParamList = {
   CobranzaAdmin: undefined;
   ClienteDetalle: { id: string; titulo: string };
+  CarteraDetalle: { id: string; titulo: string };
 };
 
 const Stack = createNativeStackNavigator<CobranzaAdminStackParamList>();
@@ -21,6 +23,11 @@ export function CobranzaAdminNavigator() {
       <Stack.Screen
         name="ClienteDetalle"
         component={ClienteDetalleScreen}
+        options={({ route }) => ({ title: route.params.titulo })}
+      />
+      <Stack.Screen
+        name="CarteraDetalle"
+        component={CarteraDetalleScreen}
         options={({ route }) => ({ title: route.params.titulo })}
       />
     </Stack.Navigator>
