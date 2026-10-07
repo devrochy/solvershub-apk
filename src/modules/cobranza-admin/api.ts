@@ -184,3 +184,115 @@ export async function guardarReglas(api: ClienteAdmin, reglas: Reglas): Promise<
 export async function cargarAlertas(api: ClienteAdmin): Promise<Alertas> {
   return api.get("/pack/cobranza/alerts");
 }
+
+// ---------------- Cierre de réplica: Gestores y Propietario ----------------
+
+export interface GestorOut {
+  id: string;
+  nombre: string;
+  correo: string | null;
+  telefono: string | null;
+  codigo: string | null;
+  estatus: string;
+}
+
+export interface PermisosGestor {
+  catalogo: string[];
+  activos: string[];
+}
+
+export interface OwnerCharge {
+  id: string;
+  periodo: string;
+  monto: number;
+  pagado: number | null;
+  vence: string;
+  estado: string;
+}
+
+export interface MensajePropietario {
+  id: string;
+  direccion: string;
+  tipo: string;
+  autor: string;
+  contenido: string;
+  fecha: string;
+}
+
+export interface HiloPropietario {
+  whatsapp: string;
+  asunto: string;
+  estado: string;
+  abierto: boolean;
+  mensajes: MensajePropietario[];
+}
+
+export async function cargarGestores(api: ClienteAdmin): Promise<GestorOut[]> {
+  return api.get<GestorOut[]>("/pack/cobranza/collectors");
+}
+
+export async function crearGestor(
+  api: ClienteAdmin,
+  datos: { nombre: string; apellido?: string; correo?: string; telefono?: string; password?: string },
+): Promise<{ resultado: string }> {
+  return api.post<{ resultado: string }>("/pack/cobranza/collectors", datos);
+}
+
+export async function editarGestor(
+  api: ClienteAdmin,
+  id: string,
+  datos: { nombre: string; apellido?: string; correo?: string; telefono?: string },
+): Promise<GestorOut> {
+  return api.put<GestorOut>(`/pack/cobranza/collectors/${id}`, datos);
+}
+
+export async function eliminarGestor(api: ClienteAdmin, id: string): Promise<void> {
+  await api.del(`/pack/cobranza/collectors/${id}`);
+}
+
+export async function cargarPermisosGestor(
+  api: ClienteAdmin,
+  id: string,
+): Promise<PermisosGestor> {
+  return api.get<PermisosGestor>(`/pack/cobranza/collectors/${id}/permissions`);
+}
+
+export async function guardarPermisosGestor(
+  api: ClienteAdmin,
+  id: string,
+  permisos: string[],
+): Promise<PermisosGestor> {
+  return api.put<PermisosGestor>(`/pack/cobranza/collectors/${id}/permissions`, { permisos });
+}
+
+export async function cargarCobrosPropietario(
+  api: ClienteAdmin,
+): Promise<{ cobros: OwnerCharge[] }> {
+  return api.get<{ cobros: OwnerCharge[] }>("/pack/cobranza/owner-charges");
+}
+
+export async function crearCobroPropietario(
+  api: ClienteAdmin,
+  datos: { periodo: string; monto: number; fecha_vencimiento: string },
+): Promise<void> {
+  await api.post("/pack/cobranza/owner-charges", datos);
+}
+
+export async function registrarPagoPropietario(
+  api: ClienteAdmin,
+  id: string,
+  datos: { monto_pagado: number; metodo_pago?: string },
+): Promise<void> {
+  await api.post(`/pack/cobranza/owner-charges/${id}/payment`, datos);
+}
+
+export async function cargarHiloPropietario(api: ClienteAdmin): Promise<HiloPropietario> {
+  return api.get<HiloPropietario>("/pack/cobranza/owner-thread");
+}
+
+export async function enviarMensajePropietario(
+  api: ClienteAdmin,
+  contenido: string,
+): Promise<void> {
+  await api.post("/pack/cobranza/owner-thread/messages", { contenido, direccion: "saliente" });
+}
