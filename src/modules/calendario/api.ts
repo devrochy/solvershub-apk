@@ -18,6 +18,15 @@ export async function cargarBloqueos(api: ClienteAdmin): Promise<BlockOut[]> {
   return api.get<BlockOut[]>("/pack/calendar/blocks");
 }
 
+// ---------------- HU-APP-20 · escrituras móviles ----------------
+
+export async function crearTipo(
+  api: ClienteAdmin,
+  datos: { name: string; duration_minutes: number },
+): Promise<void> {
+  await api.post("/pack/calendar/types", datos);
+}
+
 export async function crearBloqueo(
   api: ClienteAdmin,
   datos: { start_at: string; end_at: string; reason: string },

@@ -11,8 +11,10 @@ import {
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import NetInfo from "@react-native-community/netinfo";
+import { Modal, TextInput } from "react-native";
 import { baseActual } from "@data/bootstrap";
 import { cambiarEstadoPedidoConOffline } from "../offline";
+import { crearCategoria, crearProducto, crearPromocion } from "../api";
 import {
   alternarPromocion,
   cargarCategorias,
@@ -38,6 +40,11 @@ export function ComercioScreen() {
   const [categorias, setCategorias] = useState<CategoryOut[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modalNuevo, setModalNuevo] = useState<"producto" | "categoria" | "promocion" | null>(null);
+  const [campoNuevo, setCampoNuevo] = useState("");
+  const [campoPrecio, setCampoPrecio] = useState("");
+  const [campoTipo, setCampoTipo] = useState("temporada");
+  const [enviando, setEnviando] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -100,6 +107,31 @@ export function ComercioScreen() {
     );
   };
 
+  const crearNuevo = async () => {
+    if (modalNuevo === "producto" && !campoNuevo.trim()) {
+      setError("Escribe el nombre del producto.");
+      return;
+    }
+    setEnviando(true);
+    try {
+      if (modalNuevo === "producto") {
+        await crearProducto(api, { name: campoNuevo.trim(), price: Number(campoPrecio) || undefined });
+      } else if (modalNuevo === "categoria") {
+        await crearCategoria(api, { name: campoNuevo.trim() });
+      } else if (modalNuevo === "promocion") {
+        await crearPromocion(api, { type: campoTipo });
+      }
+      setModalNuevo(null);
+      setCampoNuevo("");
+      setCampoPrecio("");
+      await cargar();
+    } catch {
+      setError("No se pudo crear. Revisa los datos.");
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   const alternarPromo = (promo: PromotionOut) => {
     void alternarPromocion(api, promo.id)
       .then(cargar)
@@ -143,6 +175,57 @@ export function ComercioScreen() {
           {error}
         </Text>
       ) : null}
+
+      {pestana === "productos" || pestana === "categorias" || pestana === "promociones" ? (
+        <Pressable
+          testID="comercio-nuevo"
+          onPress={() => {
+            setModalNuevo(pestana === "productos" ? "producto" : pestana === "categorias" ? "categoria" : "promocion");
+          }}
+          style={[styles.fab, { backgroundColor: colores.primario }]}
+        >
+          <Text style={{ color: "#ffffff", fontWeight: "700" }}>+ Nuevo</Text>
+        </Pressable>
+      ) : null}
+
+      <Modal visible={modalNuevo !== null} transparent animationType="fade">
+        <View style={styles.modalFondo}>
+          <View style={[styles.modalCaja, { backgroundColor: colores.tarjeta }]}>
+            <Text style={[styles.modalTitulo, { color: colores.texto }]}>
+              {modalNuevo === "producto" ? "Nuevo producto" : modalNuevo === "categoria" ? "Nueva categoría" : "Nueva promoción"}
+            </Text>
+            {modalNuevo === "promocion" ? (
+              <View style={styles.chips}>
+                {["temporada", "volumen", "campaña"].map((tipo) => (
+                  <Pressable key={tipo} onPress={() => setCampoTipo(tipo)} style={[styles.chip, { borderColor: campoTipo === tipo ? colores.acento : colores.borde }]}>
+                    <Text style={{ color: campoTipo === tipo ? colores.acento : colores.textoSuave, fontSize: 12 }}>{tipo}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : (
+              <>
+                <TextInput testID="modal-nombre" value={campoNuevo} onChangeText={setCampoNuevo}
+                  placeholder="Nombre" placeholderTextColor={colores.textoSuave}
+                  style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+                {modalNuevo === "producto" ? (
+                  <TextInput testID="modal-precio" value={campoPrecio} onChangeText={setCampoPrecio}
+                    placeholder="Precio (opcional)" placeholderTextColor={colores.textoSuave} keyboardType="numeric"
+                    style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+                ) : null}
+              </>
+            )}
+            <View style={styles.modalBotones}>
+              <Pressable onPress={() => setModalNuevo(null)} style={{ padding: 10 }}>
+                <Text style={{ color: colores.textoSuave }}>Cancelar</Text>
+              </Pressable>
+              <Pressable testID="modal-crear" disabled={enviando} onPress={() => void crearNuevo()}
+                style={[styles.modalBoton, { backgroundColor: colores.primario }]}>
+                <Text style={{ color: "#ffffff", fontWeight: "700" }}>Crear</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {cargando ? (
         <ActivityIndicator size="large" style={{ marginTop: 30 }} />
@@ -262,4 +345,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  fab: { borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "center", marginTop: 4 },
+  modalFondo: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 },
+  modalCaja: { borderRadius: 14, padding: 18, gap: 10 },
+  modalTitulo: { fontSize: 16, fontWeight: "700" },
+  campo: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10 },
+  chips: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  chip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 },
+  modalBotones: { flexDirection: "row", justifyContent: "flex-end", gap: 16, marginTop: 4 },
+  modalBoton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
 });

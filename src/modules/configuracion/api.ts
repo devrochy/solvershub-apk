@@ -30,3 +30,13 @@ export async function accionHabilidad(
 export async function cargarConexiones(api: ClienteAdmin): Promise<ConnectionsResponse> {
   return api.get<ConnectionsResponse>("/admin/connections");
 }
+
+
+// ---------------- HU-APP-20 · escrituras móviles ----------------
+
+export async function invitarColaborador(
+  api: ClienteAdmin,
+  datos: { email: string; password: string; role: string },
+): Promise<void> {
+  await api.post("/admin/collaborators", datos);
+}

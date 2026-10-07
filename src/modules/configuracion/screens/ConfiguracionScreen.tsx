@@ -3,9 +3,11 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
@@ -16,6 +18,7 @@ import {
   cargarColaboradores,
   cargarConexiones,
   cargarHabilidades,
+  invitarColaborador,
   type CollaboratorItem,
   type ConnectionItem,
   type PluginSummary,
@@ -32,6 +35,11 @@ export function ConfiguracionScreen() {
   const [conexiones, setConexiones] = useState<ConnectionItem[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modalInvitar, setModalInvitar] = useState(false);
+  const [campoEmail, setCampoEmail] = useState("");
+  const [campoClave, setCampoClave] = useState("");
+  const [campoRol, setCampoRol] = useState("colaborador");
+  const [enviando, setEnviando] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -53,6 +61,25 @@ export function ConfiguracionScreen() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial: los setState ocurren después del await (no síncronos)
     void cargar().finally(() => setCargando(false));
   }, [cargar]);
+
+  const enviarInvitacion = async () => {
+    if (!campoEmail.trim() || campoClave.length < 6) {
+      setError("Correo y contraseña (mín. 6) son obligatorios.");
+      return;
+    }
+    setEnviando(true);
+    try {
+      await invitarColaborador(api, { email: campoEmail.trim(), password: campoClave, role: campoRol });
+      setModalInvitar(false);
+      setCampoEmail("");
+      setCampoClave("");
+      await cargar();
+    } catch {
+      setError("No se pudo invitar. Revisa los datos.");
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   const confirmarToggleColaborador = (c: CollaboratorItem) => {
     const accion = c.active ? "desactivar" : "activar";
@@ -126,6 +153,48 @@ export function ConfiguracionScreen() {
           {error}
         </Text>
       ) : null}
+
+      {pestana === "colaboradores" ? (
+        <Pressable
+          testID="config-invitar"
+          onPress={() => setModalInvitar(true)}
+          style={[styles.fab, { backgroundColor: colores.primario }]}
+        >
+          <Text style={{ color: "#ffffff", fontWeight: "700" }}>+ Invitar</Text>
+        </Pressable>
+      ) : null}
+
+      <Modal visible={modalInvitar} transparent animationType="fade">
+        <View style={styles.modalFondo}>
+          <View style={[styles.modalCaja, { backgroundColor: colores.tarjeta }]}>
+            <Text style={[styles.modalTitulo, { color: colores.texto }]}>Invitar colaborador</Text>
+            <TextInput testID="modal-email" value={campoEmail} onChangeText={setCampoEmail}
+              placeholder="Correo" placeholderTextColor={colores.textoSuave} autoCapitalize="none"
+              style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+            <TextInput testID="modal-clave" value={campoClave} onChangeText={setCampoClave}
+              placeholder="Contraseña" placeholderTextColor={colores.textoSuave} secureTextEntry
+              style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+            <View style={styles.chips}>
+              {["colaborador", "owner"].map((rol) => (
+                <Pressable key={rol} onPress={() => setCampoRol(rol)} style={[styles.chip, { borderColor: campoRol === rol ? colores.acento : colores.borde }]}>
+                  <Text style={{ color: campoRol === rol ? colores.acento : colores.textoSuave, fontSize: 12 }}>{rol}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <View style={styles.modalBotones}>
+              <Pressable onPress={() => setModalInvitar(false)} style={{ padding: 10 }}>
+                <Text style={{ color: colores.textoSuave }}>Cancelar</Text>
+              </Pressable>
+              <Pressable testID="modal-enviar" disabled={enviando}
+                onPress={() => void enviarInvitacion()}
+                style={[styles.modalBoton, { backgroundColor: colores.primario }]}
+              >
+                <Text style={{ color: "#ffffff", fontWeight: "700" }}>Enviar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {cargando ? (
         <ActivityIndicator size="large" style={{ marginTop: 30 }} />
@@ -238,4 +307,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  fab: { borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "center", marginTop: 4 },
+  modalFondo: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 },
+  modalCaja: { borderRadius: 14, padding: 18, gap: 10 },
+  modalTitulo: { fontSize: 16, fontWeight: "700" },
+  campo: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10 },
+  chips: { flexDirection: "row", gap: 8 },
+  chip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 },
+  modalBotones: { flexDirection: "row", justifyContent: "flex-end", gap: 16, marginTop: 4 },
+  modalBoton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
 });

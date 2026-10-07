@@ -36,3 +36,26 @@ export async function cargarCategorias(api: ClienteAdmin): Promise<CategoryOut[]
 export async function alternarPromocion(api: ClienteAdmin, id: string): Promise<void> {
   await api.post(`/pack/commerce/promotions/${id}/toggle`);
 }
+
+// ---------------- HU-APP-20 · escrituras móviles ----------------
+
+export async function crearProducto(
+  api: ClienteAdmin,
+  datos: { name: string; price?: number },
+): Promise<void> {
+  await api.post("/pack/commerce/products", { name: datos.name, price: datos.price });
+}
+
+export async function crearCategoria(
+  api: ClienteAdmin,
+  datos: { name: string },
+): Promise<void> {
+  await api.post("/pack/commerce/categories", { name: datos.name });
+}
+
+export async function crearPromocion(
+  api: ClienteAdmin,
+  datos: { type: string },
+): Promise<void> {
+  await api.post("/pack/commerce/promotions", { type: datos.type, active: true });
+}

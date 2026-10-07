@@ -91,4 +91,19 @@ describe("ComercioScreen (HU-APP-10)", () => {
       expect(mockPost).toHaveBeenCalledWith("/pack/commerce/promotions/pm-1/toggle"),
     );
   });
+  it("crea un producto desde el modal (HU-APP-20)", async () => {
+    mockPost.mockResolvedValue(undefined);
+    const { getByTestId } = await render(<ComercioScreen />);
+    await waitFor(() => expect(getByTestId("comercio-productos")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("comercio-productos"));
+    await fireEvent.press(getByTestId("comercio-nuevo"));
+    await fireEvent.changeText(getByTestId("modal-nombre"), "Termo promo");
+    await fireEvent.changeText(getByTestId("modal-precio"), "45000");
+    await fireEvent.press(getByTestId("modal-crear"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/pack/commerce/products", { name: "Termo promo", price: 45000 }),
+    );
+  });
 });
