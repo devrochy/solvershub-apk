@@ -8,13 +8,20 @@ import { CalendarioScreen } from "./CalendarioScreen";
 const mockUseAdminApi = useAdminApi as jest.Mock;
 const mockGet = jest.fn();
 const mockPost = jest.fn();
-const cliente = { get: mockGet, post: mockPost, put: jest.fn(), patch: jest.fn(), del: jest.fn() };
+const mockPut = jest.fn();
+const cliente = { get: mockGet, post: mockPost, put: mockPut, patch: jest.fn(), del: jest.fn() };
 
 describe("CalendarioScreen (HU-APP-11)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAdminApi.mockReturnValue(cliente);
     mockGet.mockImplementation((path: string) => {
+      if (path === "/admin/plugins/pack_calendar/config") {
+        return Promise.resolve({
+          plugin_id: "pack_calendar",
+          values: { business_hours: '{"mon":"08:00-18:00","sat":"09:00-12:00"}' },
+        });
+      }
       if (path === "/pack/calendar/week") {
         return Promise.resolve({
           start: "2026-10-05",
@@ -111,4 +118,25 @@ describe("CalendarioScreen (HU-APP-11)", () => {
       expect(mockPost).toHaveBeenCalledWith("/pack/calendar/blocks", expect.objectContaining({ reason: "Almuerzo equipo" })),
     );
   });
+
+  it("carga y guarda el horario de atención (cierre de réplica)", async () => {
+    mockPut.mockResolvedValue({ plugin_id: "pack_calendar", values: { business_hours: '{"mon":"09:00-17:00"}' } });
+    const { getByTestId } = await render(<CalendarioScreen />);
+    await waitFor(() => expect(getByTestId("calendario-lista-semana")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("calendario-horario"));
+    await waitFor(() => expect(getByTestId("horario-inicio-mon")).toBeTruthy());
+    expect(getByTestId("horario-inicio-mon").props.value).toBe("08:00");
+
+    await fireEvent.changeText(getByTestId("horario-inicio-mon"), "09:00");
+    await fireEvent.changeText(getByTestId("horario-fin-mon"), "17:00");
+    await fireEvent.press(getByTestId("horario-guardar"));
+
+    await waitFor(() =>
+      expect(mockPut).toHaveBeenCalledWith("/admin/plugins/pack_calendar/config", {
+        values: expect.objectContaining({ business_hours: expect.stringContaining('"mon":"09:00-17:00"') }),
+      }),
+    );
+  });
+
 });

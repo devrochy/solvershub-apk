@@ -59,3 +59,17 @@ export async function crearPromocion(
 ): Promise<void> {
   await api.post("/pack/commerce/promotions", { type: datos.type, active: true });
 }
+
+// ---------------- Cierre de réplica: resumen del comercio ----------------
+
+export interface KpiComercio {
+  leads: number;
+  products: number;
+  promotions: number;
+  orders: number;
+}
+
+export async function cargarResumenComercio(api: ClienteAdmin): Promise<KpiComercio> {
+  const res = await api.get<{ kpi: KpiComercio }>("/pack/commerce/dashboard");
+  return res.kpi;
+}
