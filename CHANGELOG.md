@@ -16,6 +16,12 @@
   costos IA), Configuración (colaboradores, habilidades, conexiones) y Herramientas/Plataforma
   (DLQ, negocios para master).
 - Búsqueda global con resultados por sección (y fallback local sin red).
+- Cobranza admin profunda: detalle de cartera (caja, ajustes, liquidación por período, ruta
+  optimizada), reportes consolidados, monitoreo IA, reglas de negociación y alertas de acceso.
+- Escrituras móviles: crear productos/categorías/promociones, tipos y bloqueos de agenda,
+  invitar colaboradores.
+- Herramientas profundas: playground del asistente, plan y suscripción (purga para master),
+  plantillas Meta por conexión, opt-out de push y deep links desde resultados de búsqueda.
 - Sync offline-first por módulos (cursor incremental, caché cifrada, escrituras encoladas).
 - Notificaciones push (Expo) con deep link al diario de campo.
 - Seguridad: almacenamiento local cifrado (SQLCipher), certificate pinning de la API,
