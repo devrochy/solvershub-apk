@@ -1,4 +1,4 @@
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -18,6 +18,8 @@ import { NegocioScreen } from "../modules/negocio";
 import { ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
+import { suscribirNavegacion } from "@shared/navegacion-evento";
+import { useEffect, useRef } from "react";
 
 /**
  * Shell del panel (ADR-APP-02): tabs + lista "Más" armados SOLO con las
@@ -230,13 +232,23 @@ export function PanelShell() {
   const { sesion } = useAdminSession();
   const esMaster = sesion?.role === "master";
   const permisos = sesion?.permissions ?? {};
+  const navRef = useRef(createNavigationContainerRef());
 
   const gruposVisibles = GRUPOS_PANEL.filter((g) =>
     grupoVisible(permisos, g.secciones, esMaster),
   );
 
+  useEffect(() => {
+    // Deep link desde módulos anidados (HU-APP-21): cambia de tab al destino.
+    return suscribirNavegacion((destino) => {
+      if (navRef.current?.isReady()) {
+        navRef.current.navigate(destino.tab as never);
+      }
+    });
+  }, []);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navRef}>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,

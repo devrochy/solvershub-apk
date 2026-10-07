@@ -13,17 +13,21 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import {
+  cargarPlayground,
+  enviarMensajePlayground,
   listarConversaciones,
   listarEscalaciones,
   listarLeads,
+  reiniciarPlayground,
   type ConversationSummary,
   type EscalationItem,
   type LeadRow,
+  type TurnoPlayground,
 } from "../api";
 import type { OperacionStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<OperacionStackParamList>;
-type Pestana = "conversaciones" | "escalaciones" | "leads";
+type Pestana = "conversaciones" | "escalaciones" | "leads" | "playground";
 
 const ESTADOS_CONVERSACION = [
   { clave: undefined, label: "Todas" },
@@ -57,6 +61,8 @@ export function OperacionScreen() {
   const [escalaciones, setEscalaciones] = useState<EscalationItem[]>([]);
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [busquedaLeads, setBusquedaLeads] = useState("");
+  const [turnos, setTurnos] = useState<TurnoPlayground[]>([]);
+  const [mensajePlay, setMensajePlay] = useState("");
 
   const cargarConversaciones = useCallback(
     async (texto: string, estadoFiltro: string | undefined, paginaPedida: number) => {
@@ -108,6 +114,23 @@ export function OperacionScreen() {
   const abrirConversacion = (id: string, titulo: string) =>
     navigation.navigate("ConversacionDetalle", { id, titulo });
 
+  const recargarPlayground = useCallback(async () => {
+    try {
+      setTurnos(await cargarPlayground(api));
+      setError(null);
+    } catch {
+      setError("No pudimos cargar el playground.");
+    }
+  }, [api]);
+
+  useEffect(() => {
+    if (pestana === "playground") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- el setState ocurre tras el await de recargarPlayground
+      void recargarPlayground().finally(() => setCargando(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al entrar a la pestaña
+  }, [pestana, recargarPlayground]);
+
   const colorEstado = (estadoConversacion: string) =>
     estadoConversacion === "escalated"
       ? colores.peligro
@@ -118,7 +141,7 @@ export function OperacionScreen() {
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
       <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(["conversaciones", "escalaciones", "leads"] as Pestana[]).map((p) => (
+        {(["conversaciones", "escalaciones", "leads", "playground"] as Pestana[]).map((p) => (
           <Pressable
             key={p}
             testID={`pestana-${p}`}
@@ -134,7 +157,13 @@ export function OperacionScreen() {
                 { color: pestana === p ? colores.texto : colores.textoSuave },
               ]}
             >
-              {p === "conversaciones" ? "Conversaciones" : p === "escalaciones" ? "Escalaciones" : "Clientes"}
+              {p === "conversaciones"
+                ? "Conversaciones"
+                : p === "escalaciones"
+                  ? "Escalaciones"
+                  : p === "leads"
+                    ? "Clientes"
+                    : "Playground"}
             </Text>
           </Pressable>
         ))}
@@ -185,6 +214,22 @@ export function OperacionScreen() {
           placeholderTextColor={colores.textoSuave}
           style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
         />
+      ) : null}
+
+      {pestana === "playground" ? (
+        <View style={{ marginBottom: 8 }}>
+          <Pressable
+            testID="playground-reset"
+            onPress={() => {
+              void reiniciarPlayground(api)
+                .then(() => setTurnos([]))
+                .catch(() => setError("No se pudo reiniciar el playground."));
+            }}
+            style={[styles.chip, { borderColor: colores.borde, alignSelf: "flex-start" }]}
+          >
+            <Text style={{ color: colores.textoSuave, fontSize: 12 }}>Reiniciar demo</Text>
+          </Pressable>
+        </View>
       ) : null}
 
       {error ? (
@@ -256,7 +301,7 @@ export function OperacionScreen() {
             </Pressable>
           )}
         />
-      ) : (
+      ) : pestana === "leads" ? (
         <FlatList
           testID="lista-leads"
           data={leads}
@@ -275,6 +320,47 @@ export function OperacionScreen() {
             </View>
           )}
         />
+      ) : (
+        <>
+          <FlatList
+            testID="lista-playground"
+            data={turnos}
+            keyExtractor={(_, i) => `turno-${i}`}
+            ListEmptyComponent={<Vacio texto="Conversación de demostración. Escribe abajo para probar el asistente." />}
+            renderItem={({ item }) => (
+              <View
+                style={[
+                  styles.fila,
+                  {
+                    borderColor: item.escalated ? colores.peligro : colores.borde,
+                    backgroundColor: colores.tarjeta,
+                  },
+                ]}
+              >
+                <Text style={{ color: colores.texto }}>{item.text}</Text>
+              </View>
+            )}
+          />
+          <TextInput
+            testID="playground-campo"
+            value={mensajePlay}
+            onChangeText={setMensajePlay}
+            placeholder="Escribe un mensaje de prueba…"
+            placeholderTextColor={colores.textoSuave}
+            onSubmitEditing={() => {
+              if (!mensajePlay.trim()) {
+                return;
+              }
+              void enviarMensajePlayground(api, mensajePlay.trim())
+                .then(() => {
+                  setMensajePlay("");
+                  return recargarPlayground();
+                })
+                .catch(() => setError("No se pudo enviar el mensaje."));
+            }}
+            style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
+          />
+        </>
       )}
     </View>
   );

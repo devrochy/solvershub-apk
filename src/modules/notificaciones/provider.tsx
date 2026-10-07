@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { darDeBajaPushToken, registrarPushToken } from "./api";
 import { addListener, configurarCanal, obtenerTokenExpo, solicitarPermisos } from "./push";
+import { CLAVE_PUSH_HABILITADO, leerAjuste, suscribirAjustes } from "@data/ajustes";
 
 export interface PushDatos {
   type?: string;
@@ -37,7 +38,29 @@ export function PushProvider({
   const [registrado, setRegistrado] = useState<{ token: string; tenantId: string } | null>(
     null,
   );
+  const [pushHabilitado, setPushHabilitado] = useState<boolean | null>(null);
   const alTocarRef = useRef(alTocarNotificacion);
+
+  // Opt-out local (HU-APP-21): el usuario apaga las notificaciones en Configuración.
+  useEffect(() => {
+    let activo = true;
+    void leerAjuste(CLAVE_PUSH_HABILITADO)
+      .then((v) => {
+        if (activo) {
+          setPushHabilitado(v !== "0");
+        }
+      })
+      .catch(() => undefined);
+    return suscribirAjustes(() => {
+      void leerAjuste(CLAVE_PUSH_HABILITADO)
+        .then((v) => {
+          if (activo) {
+            setPushHabilitado(v !== "0");
+          }
+        })
+        .catch(() => undefined);
+    });
+  }, []);
 
   useEffect(() => {
     alTocarRef.current = alTocarNotificacion;
@@ -69,7 +92,10 @@ export function PushProvider({
           setRegistrado(null);
         }
       }
-      if (!adminToken || !tenantId) {
+      if (!adminToken || !tenantId || pushHabilitado === false) {
+        return;
+      }
+      if (pushHabilitado === null) {
         return;
       }
       const permitido = await solicitarPermisos().catch(() => false);
@@ -89,7 +115,7 @@ export function PushProvider({
       activo = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- registrado solo como lectura del anterior
-  }, [adminToken, tenantId, projectId]);
+  }, [adminToken, tenantId, projectId, pushHabilitado]);
 
   return <>{children}</>;
 }

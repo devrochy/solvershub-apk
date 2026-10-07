@@ -78,3 +78,24 @@ export async function listarEscalaciones(
 export async function listarLeads(api: ClienteAdmin, q?: string, page = 1): Promise<PaginaLeads> {
   return api.get<PaginaLeads>("/admin/leads", { q, page, page_size: 20 });
 }
+
+// ---------------- HU-APP-21 · playground del asistente ----------------
+
+export interface TurnoPlayground {
+  text: string;
+  image_url?: string | null;
+  escalated?: boolean;
+}
+
+export async function cargarPlayground(api: ClienteAdmin): Promise<TurnoPlayground[]> {
+  const res = await api.get<{ turns: TurnoPlayground[] }>("/admin/playground");
+  return res.turns;
+}
+
+export async function enviarMensajePlayground(api: ClienteAdmin, text: string): Promise<void> {
+  await api.post("/admin/playground/message", { text });
+}
+
+export async function reiniciarPlayground(api: ClienteAdmin): Promise<void> {
+  await api.post("/admin/playground/reset");
+}
