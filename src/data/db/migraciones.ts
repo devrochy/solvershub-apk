@@ -40,6 +40,10 @@ export const TABLAS_SQL: string[] = [
     cursor TEXT NOT NULL,
     PRIMARY KEY (modulo, entidad)
   );`,
+  `CREATE TABLE IF NOT EXISTS ajuste_local (
+    clave TEXT PRIMARY KEY,
+    valor TEXT NOT NULL
+  );`,
 ];
 
 export async function migrarTablas(db: SqlExecutor): Promise<void> {

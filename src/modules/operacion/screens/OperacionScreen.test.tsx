@@ -7,9 +7,10 @@ import { OperacionScreen } from "./OperacionScreen";
 
 const mockUseAdminApi = useAdminApi as jest.Mock;
 const mockGet = jest.fn();
+const mockPost = jest.fn();
 const cliente = {
   get: mockGet,
-  post: jest.fn(),
+  post: mockPost,
   put: jest.fn(),
   patch: jest.fn(),
   del: jest.fn(),
@@ -76,6 +77,9 @@ describe("OperacionScreen (HU-APP-08)", () => {
           has_more: false,
         });
       }
+            if (path === "/admin/playground") {
+        return Promise.resolve({ turns: [{ text: "Hola, soy el demo", escalated: false }] });
+      }
       return Promise.reject(new Error("no mockeado"));
     });
   });
@@ -118,4 +122,16 @@ describe("OperacionScreen (HU-APP-08)", () => {
     const { getByTestId } = await render(<OperacionScreen />);
     await waitFor(() => expect(getByTestId("operacion-error")).toBeTruthy());
   });
+
+  it("muestra el playground y reinicia la demo (HU-APP-21)", async () => {
+    const { getByTestId, getByText } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("pestana-playground")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("pestana-playground"));
+    await waitFor(() => expect(getByText("Hola, soy el demo")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("playground-reset"));
+    await waitFor(() => expect(mockPost).toHaveBeenCalledWith("/admin/playground/reset"));
+  });
+
 });

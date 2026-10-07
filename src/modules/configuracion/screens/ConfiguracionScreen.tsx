@@ -7,24 +7,35 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  Switch,
   TextInput,
   View,
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { useAdminSession } from "@core/session/admin-session-context";
+import { CLAVE_PUSH_HABILITADO, guardarAjuste, leerAjuste } from "@data/ajustes";
 import {
   accionHabilidad,
   alternarColaborador,
+  borrarPlantilla,
   cargarColaboradores,
   cargarConexiones,
   cargarHabilidades,
+  cargarPlan,
+  cargarPlantillas,
   invitarColaborador,
+  purgarNegocio,
+  sincronizarPlantillas,
+  suscribirPlan,
+  type PlanResumen,
+  type PlantillaMeta,
   type CollaboratorItem,
   type ConnectionItem,
   type PluginSummary,
 } from "../api";
 
-type Pestana = "colaboradores" | "habilidades" | "conexiones";
+type Pestana = "colaboradores" | "habilidades" | "conexiones" | "plan" | "notificaciones";
 
 export function ConfiguracionScreen() {
   const { colores } = useTheme();
@@ -40,6 +51,12 @@ export function ConfiguracionScreen() {
   const [campoClave, setCampoClave] = useState("");
   const [campoRol, setCampoRol] = useState("colaborador");
   const [enviando, setEnviando] = useState(false);
+  const [plan, setPlan] = useState<PlanResumen | null>(null);
+  const [conexionPlantillas, setConexionPlantillas] = useState<ConnectionItem | null>(null);
+  const [plantillas, setPlantillas] = useState<PlantillaMeta[]>([]);
+  const [plantillasCargando, setPlantillasCargando] = useState(false);
+  const [pushOn, setPushOn] = useState(true);
+  const { sesion } = useAdminSession();
 
   const cargar = useCallback(async () => {
     try {
@@ -62,6 +79,20 @@ export function ConfiguracionScreen() {
     void cargar().finally(() => setCargando(false));
   }, [cargar]);
 
+  useEffect(() => {
+    if (pestana === "plan") {
+      cargarPlan(api)
+        .then(setPlan)
+        .catch(() => setError("No pudimos cargar el plan."));
+    }
+    if (pestana === "notificaciones") {
+      leerAjuste(CLAVE_PUSH_HABILITADO)
+        .then((v) => setPushOn(v !== "0"))
+        .catch(() => undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al entrar a la pestaña
+  }, [pestana, api]);
+
   const enviarInvitacion = async () => {
     if (!campoEmail.trim() || campoClave.length < 6) {
       setError("Correo y contraseña (mín. 6) son obligatorios.");
@@ -79,6 +110,20 @@ export function ConfiguracionScreen() {
     } finally {
       setEnviando(false);
     }
+  };
+
+  const alternarPush = (valor: boolean) => {
+    setPushOn(valor);
+    void guardarAjuste(CLAVE_PUSH_HABILITADO, valor ? "1" : "0").catch(() => undefined);
+  };
+
+  const abrirPlantillas = (c: ConnectionItem) => {
+    setConexionPlantillas(c);
+    setPlantillasCargando(true);
+    cargarPlantillas(api, c.id)
+      .then((r) => setPlantillas(r.templates))
+      .catch(() => setError("No pudimos cargar las plantillas."))
+      .finally(() => setPlantillasCargando(false));
   };
 
   const confirmarToggleColaborador = (c: CollaboratorItem) => {
@@ -125,7 +170,7 @@ export function ConfiguracionScreen() {
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
       <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(["colaboradores", "habilidades", "conexiones"] as Pestana[]).map((p) => (
+        {(["colaboradores", "habilidades", "conexiones", "plan", "notificaciones"] as Pestana[]).map((p) => (
           <Pressable
             key={p}
             testID={`config-${p}`}
@@ -142,7 +187,15 @@ export function ConfiguracionScreen() {
                 fontWeight: "600",
               }}
             >
-              {p === "colaboradores" ? "Colaboradores" : p === "habilidades" ? "Habilidades" : "Conexiones"}
+              {p === "colaboradores"
+                ? "Colab."
+                : p === "habilidades"
+                  ? "Habilidades"
+                  : p === "conexiones"
+                    ? "Conexiones"
+                    : p === "plan"
+                      ? "Plan"
+                      : "Push"}
             </Text>
           </Pressable>
         ))}
@@ -263,7 +316,7 @@ export function ConfiguracionScreen() {
             </Pressable>
           )}
         />
-      ) : (
+      ) : pestana === "conexiones" ? (
         <FlatList
           testID="config-lista-conexiones"
           data={conexiones}
@@ -274,7 +327,11 @@ export function ConfiguracionScreen() {
             </Text>
           }
           renderItem={({ item }) => (
-            <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+            <Pressable
+              testID={`conexion-${item.id}`}
+              onPress={() => abrirPlantillas(item)}
+              style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+            >
               <View style={{ flex: 1 }}>
                 <Text style={{ color: colores.texto, fontWeight: "600" }}>
                   {item.label}
@@ -287,10 +344,207 @@ export function ConfiguracionScreen() {
               <Text style={{ color: item.active ? colores.acento : colores.peligro, fontSize: 12 }}>
                 {item.active ? "activa" : "inactiva"}
               </Text>
+            </Pressable>
+          )}
+        />
+      ) : pestana === "plan" ? (
+        <FlatList
+          testID="config-lista-plan"
+          data={plan?.plans ?? []}
+          keyExtractor={(pl) => pl.id}
+          ListHeaderComponent={
+            plan ? (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ color: colores.texto, fontWeight: "700", fontSize: 15 }}>
+                  {plan.overview.plan_name ?? "Sin plan"}
+                </Text>
+                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                  {plan.overview.status}
+                  {typeof plan.overview.days_left === "number"
+                    ? ` · ${plan.overview.days_left} días restantes`
+                    : ""}
+                </Text>
+                {sesion?.role === "master" && sesion.tenantId ? (
+                  <Pressable
+                    testID="plan-purge"
+                    onPress={() => {
+                      Alert.alert(
+                        "Purgar negocio",
+                        "Esto borra TODOS los datos del negocio activo. No se puede deshacer.",
+                        [
+                          { text: "Cancelar", style: "cancel" },
+                          {
+                            text: "Borrar todo",
+                            style: "destructive",
+                            onPress: () => {
+                              Alert.alert(
+                                "Última confirmación",
+                                "¿De verdad quieres purgar este negocio?",
+                                [
+                                  { text: "Cancelar", style: "cancel" },
+                                  {
+                                    text: "Sí, purgar",
+                                    style: "destructive",
+                                    onPress: () => {
+                                      void purgarNegocio(api, sesion.tenantId as string)
+                                        .then(() => setError("Negocio purgado."))
+                                        .catch(() => setError("No se pudo purgar el negocio."));
+                                    },
+                                  },
+                                ],
+                              );
+                            },
+                          },
+                        ],
+                      );
+                    }}
+                    style={[styles.modalBoton, { backgroundColor: colores.peligro, alignSelf: "flex-start", marginTop: 10 }]}
+                  >
+                    <Text style={{ color: "#ffffff", fontWeight: "700" }}>Purgar negocio</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            <Text style={{ color: colores.textoSuave, textAlign: "center", marginTop: 20 }}>
+              Sin planes disponibles.
+            </Text>
+          }
+          renderItem={({ item }) => (
+            <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: colores.texto, fontWeight: "600" }}>
+                  {item.name}
+                  {item.current ? " · actual" : ""}
+                </Text>
+                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                  {item.is_free ? "Gratis" : item.price_cop ? `$${item.price_cop} COP` : ""}
+                </Text>
+              </View>
+              {!item.current ? (
+                <Pressable
+                  testID={`plan-suscribir-${item.id}`}
+                  onPress={() => {
+                    Alert.alert("Cambiar de plan", `¿Suscribirte a ${item.name}?`, [
+                      { text: "Cancelar", style: "cancel" },
+                      {
+                        text: "Suscribir",
+                        onPress: () => {
+                          void suscribirPlan(api, item.id)
+                            .then(() => cargarPlan(api))
+                            .then(setPlan)
+                            .catch(() => setError("No se pudo suscribir el plan."));
+                        },
+                      },
+                    ]);
+                  }}
+                  style={[styles.modalBoton, { backgroundColor: colores.primario }]}
+                >
+                  <Text style={{ color: "#ffffff", fontWeight: "700", fontSize: 12 }}>Suscribir</Text>
+                </Pressable>
+              ) : null}
             </View>
           )}
         />
+      ) : (
+        <View style={{ padding: 4 }}>
+          <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: colores.texto, fontWeight: "600" }}>Notificaciones push</Text>
+              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                Avisos de conversaciones, promesas y actividad del negocio.
+              </Text>
+            </View>
+            <Switch
+              testID="push-toggle"
+              value={pushOn}
+              onValueChange={alternarPush}
+              trackColor={{ true: colores.acento, false: colores.borde }}
+            />
+          </View>
+        </View>
       )}
+
+      <Modal visible={conexionPlantillas !== null} transparent animationType="fade">
+        <View style={styles.modalFondo}>
+          <View style={[styles.modalCaja, { backgroundColor: colores.tarjeta }]}>
+            <Text style={[styles.modalTitulo, { color: colores.texto }]}>
+              Plantillas · {conexionPlantillas?.label ?? ""}
+            </Text>
+            <Pressable
+              testID="plantillas-sync"
+              onPress={() => {
+                if (!conexionPlantillas) {
+                  return;
+                }
+                void sincronizarPlantillas(api, conexionPlantillas.id)
+                  .then(() => abrirPlantillas(conexionPlantillas))
+                  .catch(() => setError("No se pudo sincronizar con Meta."));
+              }}
+              style={[styles.modalBoton, { backgroundColor: colores.primario, alignSelf: "flex-start" }]}
+            >
+              <Text style={{ color: "#ffffff", fontWeight: "700", fontSize: 12 }}>Sincronizar</Text>
+            </Pressable>
+            {plantillasCargando ? (
+              <ActivityIndicator style={{ marginTop: 16 }} />
+            ) : plantillas.length === 0 ? (
+              <Text style={{ color: colores.textoSuave, marginTop: 12 }}>
+                Sin plantillas. Las plantillas se crean en Meta Business y se sincronizan aquí.
+              </Text>
+            ) : (
+              plantillas.map((plantilla) => (
+                <View
+                  key={plantilla.id}
+                  style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.fondo }]}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: colores.texto, fontWeight: "600" }}>{plantilla.name}</Text>
+                    <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                      {plantilla.language} · {plantilla.status}
+                      {plantilla.quality_score ? ` · calidad ${plantilla.quality_score}` : ""}
+                    </Text>
+                  </View>
+                  <Pressable
+                    testID={`plantilla-borrar-${plantilla.id}`}
+                    onPress={() => {
+                      if (!conexionPlantillas) {
+                        return;
+                      }
+                      Alert.alert(
+                        "Borrar plantilla",
+                        "Se borran todas las versiones de idioma.",
+                        [
+                          { text: "Cancelar", style: "cancel" },
+                          {
+                            text: "Borrar",
+                            style: "destructive",
+                            onPress: () => {
+                              void borrarPlantilla(api, conexionPlantillas.id, plantilla.id)
+                                .then(() => abrirPlantillas(conexionPlantillas))
+                                .catch(() => setError("No se pudo borrar la plantilla."));
+                            },
+                          },
+                        ],
+                      );
+                    }}
+                    style={{ padding: 6 }}
+                  >
+                    <Text style={{ color: colores.peligro, fontSize: 12 }}>Borrar</Text>
+                  </Pressable>
+                </View>
+              ))
+            )}
+            <Pressable
+              testID="plantillas-cerrar"
+              onPress={() => setConexionPlantillas(null)}
+              style={[styles.modalBoton, { backgroundColor: colores.borde, alignSelf: "flex-end" }]}
+            >
+              <Text style={{ color: colores.texto, fontWeight: "700" }}>Cerrar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

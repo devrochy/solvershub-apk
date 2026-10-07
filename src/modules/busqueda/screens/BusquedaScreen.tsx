@@ -2,21 +2,39 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
+import { useNavigation } from "@react-navigation/native";
+import { emitirNavegacion } from "@shared/navegacion-evento";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { baseActual } from "@data/bootstrap";
 import { buscarEnCache } from "@data/busqueda-cache";
 import { buscar, type SeccionResultados } from "../api";
 
+const TAB_POR_ENTIDAD: Record<string, string> = {
+  cliente: "cobranza",
+  prestamo: "cobranza",
+  promesa: "cobranza",
+  producto: "comercio",
+  pedido: "comercio",
+  categoria: "comercio",
+  cita: "calendario",
+  conversacion: "conversaciones",
+  lead: "conversaciones",
+  conexion: "configuracion",
+  colaborador: "configuracion",
+};
+
 export function BusquedaScreen() {
   const { colores } = useTheme();
   const api = useAdminApi();
+  const navigation = useNavigation();
   const [texto, setTexto] = useState("");
   const [secciones, setSecciones] = useState<SeccionResultados[]>([]);
   const [buscando, setBuscando] = useState(false);
@@ -108,7 +126,14 @@ export function BusquedaScreen() {
           ) : null
         }
         renderItem={({ item }) => (
-          <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+          <Pressable
+            testID={`busqueda-item-${item.item.tipo}-${item.item.id}`}
+            onPress={() => {
+              emitirNavegacion({ tab: TAB_POR_ENTIDAD[item.item.tipo] ?? "inicio" });
+              navigation.goBack();
+            }}
+            style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+          >
             <View style={{ flex: 1 }}>
               <Text style={{ color: colores.texto, fontWeight: "600" }} numberOfLines={1}>
                 {item.item.titulo}
@@ -118,7 +143,7 @@ export function BusquedaScreen() {
               </Text>
             </View>
             <Text style={{ color: colores.acento, fontSize: 11 }}>{item.item.tipo}</Text>
-          </View>
+          </Pressable>
         )}
       />
     </View>
