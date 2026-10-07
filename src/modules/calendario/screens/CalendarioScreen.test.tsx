@@ -16,6 +16,16 @@ describe("CalendarioScreen (HU-APP-11)", () => {
     jest.clearAllMocks();
     mockUseAdminApi.mockReturnValue(cliente);
     mockGet.mockImplementation((path: string) => {
+      if (path === "/pack/calendar/status") {
+        return Promise.resolve({
+          configured: true,
+          connected: false,
+          account_email: null,
+          connection_label: null,
+          timezone: "America/Bogota",
+          default_duration_minutes: 30,
+        });
+      }
       if (path === "/admin/plugins/pack_calendar/config") {
         return Promise.resolve({
           plugin_id: "pack_calendar",
@@ -137,6 +147,17 @@ describe("CalendarioScreen (HU-APP-11)", () => {
         values: expect.objectContaining({ business_hours: expect.stringContaining('"mon":"09:00-17:00"') }),
       }),
     );
+  });
+
+
+  it("muestra el estado de la conexión con Google (cierre de réplica)", async () => {
+    const { getByTestId, getByText } = await render(<CalendarioScreen />);
+    await waitFor(() => expect(getByTestId("calendario-lista-semana")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("calendario-conexion"));
+    await waitFor(() => expect(getByTestId("conexion-tarjeta")).toBeTruthy());
+    expect(getByText("Configurado pero sin conectar.")).toBeTruthy();
+    expect(getByText("Conectar con Google")).toBeTruthy();
   });
 
 });
