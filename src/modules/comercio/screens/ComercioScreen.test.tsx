@@ -17,6 +17,9 @@ describe("ComercioScreen (HU-APP-10)", () => {
     mockUseAdminApi.mockReturnValue(cliente);
     mockPost.mockResolvedValue(undefined);
     mockGet.mockImplementation((path: string) => {
+      if (path === "/pack/commerce/dashboard") {
+        return Promise.resolve({ kpi: { leads: 5, products: 12, promotions: 2, orders: 8 }, recent_orders: [] });
+      }
       if (path === "/pack/commerce/orders") {
         return Promise.resolve([
           {
@@ -58,6 +61,8 @@ describe("ComercioScreen (HU-APP-10)", () => {
     });
 
     const { getByTestId, getByText } = await render(<ComercioScreen />);
+    await waitFor(() => expect(getByTestId("comercio-resumen")).toBeTruthy());
+    await fireEvent.press(getByTestId("comercio-pedidos"));
     await waitFor(() => expect(getByText("OC-0001 · $150")).toBeTruthy());
 
     await fireEvent.press(getByTestId("pedido-OC-0001"));
@@ -71,7 +76,7 @@ describe("ComercioScreen (HU-APP-10)", () => {
 
   it("muestra productos y promociones en sus pestañas", async () => {
     const { getByTestId, getByText } = await render(<ComercioScreen />);
-    await waitFor(() => expect(getByTestId("comercio-lista-pedidos")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("comercio-resumen")).toBeTruthy());
 
     await fireEvent.press(getByTestId("comercio-productos"));
     expect(getByText("Chaqueta")).toBeTruthy();
@@ -83,7 +88,7 @@ describe("ComercioScreen (HU-APP-10)", () => {
 
   it("alternar promoción llama al toggle", async () => {
     const { getByTestId, getByText } = await render(<ComercioScreen />);
-    await waitFor(() => expect(getByTestId("comercio-lista-pedidos")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("comercio-resumen")).toBeTruthy());
 
     await fireEvent.press(getByTestId("comercio-promociones"));
     await fireEvent.press(getByText("temporada"));
@@ -106,4 +111,12 @@ describe("ComercioScreen (HU-APP-10)", () => {
       expect(mockPost).toHaveBeenCalledWith("/pack/commerce/products", { name: "Termo promo", price: 45000 }),
     );
   });
+
+  it("muestra el resumen con los KPIs del comercio (cierre de réplica)", async () => {
+    const { getByTestId } = await render(<ComercioScreen />);
+    await waitFor(() => expect(getByTestId("comercio-kpi-leads")).toBeTruthy());
+    expect(getByTestId("comercio-kpi-productos").props.children).toBe(12);
+    expect(getByTestId("comercio-kpi-pedidos").props.children).toBe(8);
+  });
+
 });

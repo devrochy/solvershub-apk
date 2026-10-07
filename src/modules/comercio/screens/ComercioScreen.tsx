@@ -21,19 +21,22 @@ import {
   cargarPedidos,
   cargarProductos,
   cargarPromociones,
+  cargarResumenComercio,
   ESTADOS_PEDIDO,
+  type KpiComercio,
   type CategoryOut,
   type OrderOut,
   type ProductOut,
   type PromotionOut,
 } from "../api";
 
-type Pestana = "pedidos" | "productos" | "promociones" | "categorias";
+type Pestana = "resumen" | "pedidos" | "productos" | "promociones" | "categorias";
 
 export function ComercioScreen() {
   const { colores } = useTheme();
   const api = useAdminApi();
-  const [pestana, setPestana] = useState<Pestana>("pedidos");
+  const [pestana, setPestana] = useState<Pestana>("resumen");
+  const [kpis, setKpis] = useState<KpiComercio | null>(null);
   const [pedidos, setPedidos] = useState<OrderOut[]>([]);
   const [productos, setProductos] = useState<ProductOut[]>([]);
   const [promos, setPromos] = useState<PromotionOut[]>([]);
@@ -48,13 +51,15 @@ export function ComercioScreen() {
 
   const cargar = useCallback(async () => {
     try {
-      const [p, pr, pm, c] = await Promise.all([
+      const [k, p, pr, pm, c] = await Promise.all([
+        cargarResumenComercio(api),
         cargarPedidos(api),
         cargarProductos(api),
         cargarPromociones(api),
         cargarCategorias(api),
       ]);
       setError(null);
+      setKpis(k);
       setPedidos(p);
       setProductos(pr);
       setPromos(pm);
@@ -141,7 +146,7 @@ export function ComercioScreen() {
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
       <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(["pedidos", "productos", "promociones", "categorias"] as Pestana[]).map((p) => (
+        {(["resumen", "pedidos", "productos", "promociones", "categorias"] as Pestana[]).map((p) => (
           <Pressable
             key={p}
             testID={`comercio-${p}`}
@@ -158,13 +163,15 @@ export function ComercioScreen() {
                 fontWeight: "600",
               }}
             >
-              {p === "pedidos"
-                ? "Pedidos"
-                : p === "productos"
-                  ? "Productos"
-                  : p === "promociones"
-                    ? "Promos"
-                    : "Categorías"}
+              {p === "resumen"
+                ? "Resumen"
+                : p === "pedidos"
+                  ? "Pedidos"
+                  : p === "productos"
+                    ? "Productos"
+                    : p === "promociones"
+                      ? "Promos"
+                      : "Categorías"}
             </Text>
           </Pressable>
         ))}
@@ -229,6 +236,20 @@ export function ComercioScreen() {
 
       {cargando ? (
         <ActivityIndicator size="large" style={{ marginTop: 30 }} />
+      ) : pestana === "resumen" ? (
+        <View style={styles.grid}>
+          {[
+            { clave: "leads", valor: kpis?.leads ?? 0 },
+            { clave: "productos", valor: kpis?.products ?? 0 },
+            { clave: "promociones", valor: kpis?.promotions ?? 0 },
+            { clave: "pedidos", valor: kpis?.orders ?? 0 },
+          ].map((k) => (
+            <View key={k.clave} style={[styles.kpi, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+              <Text testID={`comercio-kpi-${k.clave}`} style={[styles.kpiValor, { color: colores.texto }]}>{k.valor}</Text>
+              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{k.clave}</Text>
+            </View>
+          ))}
+        </View>
       ) : pestana === "pedidos" ? (
         <FlatList
           testID="comercio-lista-pedidos"
@@ -345,6 +366,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 8 },
+  kpi: { borderWidth: 1, borderRadius: 12, padding: 12, minWidth: 140, flexGrow: 1, flexBasis: "45%" },
+  kpiValor: { fontSize: 20, fontWeight: "700" },
   fab: { borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "center", marginTop: 4 },
   modalFondo: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 },
   modalCaja: { borderRadius: 14, padding: 18, gap: 10 },

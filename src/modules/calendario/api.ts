@@ -33,3 +33,22 @@ export async function crearBloqueo(
 ): Promise<void> {
   await api.post("/pack/calendar/blocks", datos);
 }
+
+// ---------------- Cierre de réplica: horario de atención ----------------
+
+export interface ConfigPlugin {
+  plugin_id: string;
+  values: Record<string, unknown>;
+}
+
+export async function cargarConfigPlugin(api: ClienteAdmin, pluginId: string): Promise<ConfigPlugin> {
+  return api.get<ConfigPlugin>(`/admin/plugins/${pluginId}/config`);
+}
+
+export async function guardarConfigPlugin(
+  api: ClienteAdmin,
+  pluginId: string,
+  values: Record<string, unknown>,
+): Promise<ConfigPlugin> {
+  return api.put<ConfigPlugin>(`/admin/plugins/${pluginId}/config`, { values });
+}

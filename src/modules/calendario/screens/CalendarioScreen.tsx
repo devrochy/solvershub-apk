@@ -9,19 +9,51 @@ import {
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
-import { Modal, TextInput } from "react-native";
+import { Modal, ScrollView, TextInput } from "react-native";
 import {
   cargarBloqueos,
+  cargarConfigPlugin,
   cargarSemana,
   cargarTipos,
   crearBloqueo,
   crearTipo,
+  guardarConfigPlugin,
   type BlockOut,
   type TypeOut,
   type WeekItem,
 } from "../api";
 
-type Pestana = "semana" | "tipos" | "bloqueos";
+const DIAS_SEMANA: { key: string; label: string }[] = [
+  { key: "mon", label: "Lunes" },
+  { key: "tue", label: "Martes" },
+  { key: "wed", label: "Miércoles" },
+  { key: "thu", label: "Jueves" },
+  { key: "fri", label: "Viernes" },
+  { key: "sat", label: "Sábado" },
+  { key: "sun", label: "Domingo" },
+];
+
+function parsearHorario(raw: unknown): Record<string, string> {
+  let data: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      data = JSON.parse(raw || "{}");
+    } catch {
+      data = {};
+    }
+  }
+  const out: Record<string, string> = {};
+  if (data && typeof data === "object") {
+    for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
+      if (typeof v === "string") {
+        out[k] = v;
+      }
+    }
+  }
+  return out;
+}
+
+type Pestana = "semana" | "tipos" | "bloqueos" | "horario";
 
 function fechaCorta(iso: string): string {
   const d = new Date(iso);
@@ -48,6 +80,9 @@ export function CalendarioScreen() {
   const [campoInicio, setCampoInicio] = useState("");
   const [campoFin, setCampoFin] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [horario, setHorario] = useState<Record<string, string>>({});
+  const [configPlugin, setConfigPlugin] = useState<Record<string, unknown> | null>(null);
+  const [guardandoHorario, setGuardandoHorario] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -70,6 +105,45 @@ export function CalendarioScreen() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial: los setState ocurren después del await (no síncronos)
     void cargar().finally(() => setCargando(false));
   }, [cargar]);
+
+  useEffect(() => {
+    if (pestana === "horario") {
+      cargarConfigPlugin(api, "pack_calendar")
+        .then((cfg) => {
+          setConfigPlugin(cfg.values);
+          setHorario(parsearHorario(cfg.values?.business_hours));
+        })
+        .catch(() => setError("No pudimos cargar el horario."));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al entrar a la pestaña
+  }, [pestana, api]);
+
+  const setRango = (dia: string, inicio: string, fin: string) => {
+    setHorario((previo) => ({ ...previo, [dia]: inicio && fin ? `${inicio}-${fin}` : "" }));
+  };
+
+  const guardarHorario = async () => {
+    setGuardandoHorario(true);
+    try {
+      const limpio: Record<string, string> = {};
+      for (const [k, v] of Object.entries(horario)) {
+        if (v && v.trim()) {
+          limpio[k] = v.trim();
+        }
+      }
+      const valores = {
+        ...(configPlugin ?? {}),
+        business_hours: JSON.stringify(limpio),
+      };
+      const res = await guardarConfigPlugin(api, "pack_calendar", valores);
+      setConfigPlugin(res.values);
+      setHorario(parsearHorario(res.values?.business_hours));
+    } catch {
+      setError("No se pudo guardar el horario.");
+    } finally {
+      setGuardandoHorario(false);
+    }
+  };
 
   const crearNuevo = async () => {
     setEnviando(true);
@@ -99,7 +173,7 @@ export function CalendarioScreen() {
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
       <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(["semana", "tipos", "bloqueos"] as Pestana[]).map((p) => (
+        {(["semana", "tipos", "bloqueos", "horario"] as Pestana[]).map((p) => (
           <Pressable
             key={p}
             testID={`calendario-${p}`}
@@ -115,7 +189,7 @@ export function CalendarioScreen() {
                 fontWeight: "600",
               }}
             >
-              {p === "semana" ? "Semana" : p === "tipos" ? "Tipos" : "Bloqueos"}
+              {p === "semana" ? "Semana" : p === "tipos" ? "Tipos" : p === "bloqueos" ? "Bloqueos" : "Horario"}
             </Text>
           </Pressable>
         ))}
@@ -127,7 +201,7 @@ export function CalendarioScreen() {
         </Text>
       ) : null}
 
-      {pestana !== "semana" ? (
+      {pestana !== "semana" && pestana !== "horario" ? (
         <Pressable
           testID="calendario-nuevo"
           onPress={() => setModalNuevo(pestana === "tipos" ? "tipo" : "bloqueo")}
@@ -242,6 +316,46 @@ export function CalendarioScreen() {
             </View>
           )}
         />
+      ) : pestana === "horario" ? (
+        <ScrollView testID="calendario-horario">
+          <Text style={{ color: colores.textoSuave, fontSize: 12, marginBottom: 10 }}>
+            Días y horas en que el asistente puede agendar citas. Rango en formato HH:MM-HH:MM; vacío = cerrado.
+          </Text>
+          {DIAS_SEMANA.map((dia) => {
+            const rango = horario[dia.key] ?? "";
+            const [inicio = "", fin = ""] = rango.split("-");
+            return (
+              <View key={dia.key} style={[styles.filaHorario, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+                <Text style={{ color: colores.texto, width: 90, fontWeight: "600" }}>{dia.label}</Text>
+                <TextInput
+                  testID={`horario-inicio-${dia.key}`}
+                  value={inicio}
+                  onChangeText={(v) => setRango(dia.key, v, fin)}
+                  placeholder="08:00"
+                  placeholderTextColor={colores.textoSuave}
+                  style={[styles.campoChico, { borderColor: colores.borde, color: colores.texto }]}
+                />
+                <Text style={{ color: colores.textoSuave }}>–</Text>
+                <TextInput
+                  testID={`horario-fin-${dia.key}`}
+                  value={fin}
+                  onChangeText={(v) => setRango(dia.key, inicio, v)}
+                  placeholder="18:00"
+                  placeholderTextColor={colores.textoSuave}
+                  style={[styles.campoChico, { borderColor: colores.borde, color: colores.texto }]}
+                />
+              </View>
+            );
+          })}
+          <Pressable
+            testID="horario-guardar"
+            disabled={guardandoHorario}
+            onPress={() => void guardarHorario()}
+            style={[styles.modalBoton, { backgroundColor: colores.primario, alignSelf: "center", marginTop: 10, paddingHorizontal: 24 }]}
+          >
+            <Text style={{ color: "#ffffff", fontWeight: "700" }}>Guardar horario</Text>
+          </Pressable>
+        </ScrollView>
       ) : (
         <FlatList
           testID="calendario-lista-bloqueos"
@@ -289,4 +403,14 @@ const styles = StyleSheet.create({
   campo: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10 },
   modalBotones: { flexDirection: "row", justifyContent: "flex-end", gap: 16, marginTop: 4 },
   modalBoton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
+  filaHorario: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  campoChico: { flex: 1, borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, textAlign: "center" },
 });
