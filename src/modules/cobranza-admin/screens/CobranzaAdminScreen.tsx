@@ -46,9 +46,11 @@ import {
   type Reportes,
 } from "../api";
 import type { CobranzaAdminStackParamList } from "../navigation";
+import { GestoresTab } from "./GestoresTab";
+import { PropietarioTab } from "./PropietarioTab";
 
 type Nav = NativeStackNavigationProp<CobranzaAdminStackParamList>;
-type Pestana = "resumen" | "carteras" | "clientes" | "pagos" | "promesas" | "dispositivos" | "reportes" | "monitoreo" | "reglas" | "alertas" | "auditoria";
+type Pestana = "resumen" | "carteras" | "clientes" | "pagos" | "promesas" | "dispositivos" | "reportes" | "monitoreo" | "reglas" | "alertas" | "auditoria" | "gestores" | "propietario";
 
 const PESTANAS: { clave: Pestana; label: string; seccion: string }[] = [
   { clave: "resumen", label: "Resumen", seccion: "pack_cobranza:resumen" },
@@ -62,6 +64,8 @@ const PESTANAS: { clave: Pestana; label: string; seccion: string }[] = [
   { clave: "reglas", label: "Reglas", seccion: "pack_cobranza:reglas" },
   { clave: "alertas", label: "Alertas", seccion: "pack_cobranza:alertas" },
   { clave: "auditoria", label: "Auditoría", seccion: "pack_cobranza:auditoria" },
+  { clave: "gestores", label: "Gestores", seccion: "pack_cobranza:gestores" },
+  { clave: "propietario", label: "Propietario", seccion: "pack_cobranza:propietario" },
 ];
 
 export function CobranzaAdminScreen() {
@@ -358,6 +362,10 @@ export function CobranzaAdminScreen() {
             </View>
           )}
         />
+      ) : pestana === "gestores" ? (
+        <GestoresTab api={api} />
+      ) : pestana === "propietario" ? (
+        <PropietarioTab api={api} />
       ) : (
         <FlatList testID="cobranza-lista-auditoria" data={auditoria?.filas ?? []} keyExtractor={(f, i) => `${f.fecha}-${f.entidad_id ?? ""}-${i}`}
           ListEmptyComponent={<Text style={styles.vacio}>Sin movimientos auditados.</Text>}

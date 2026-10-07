@@ -452,6 +452,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/domain-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Failed
+         * @description Últimos 50 eventos fallidos del tenant activo (RLS los acota).
+         */
+        get: operations["list_failed_api_v1_admin_domain_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/domain-events/{event_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry Event
+         * @description Re-encola un evento fallido: vuelve a `pendiente` con reintento inmediato.
+         */
+        post: operations["retry_event_api_v1_admin_domain_events__event_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/escalations": {
         parameters: {
             query?: never;
@@ -4178,6 +4218,24 @@ export interface components {
             /** Entries */
             entries: components["schemas"]["DlqEntry"][];
         };
+        /** DomainEventEntry */
+        DomainEventEntry: {
+            /** Attempts */
+            attempts: number;
+            /** Created At */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Last Error */
+            last_error: string | null;
+            /** Topic */
+            topic: string;
+        };
+        /** DomainEventsPage */
+        DomainEventsPage: {
+            /** Entries */
+            entries: components["schemas"]["DomainEventEntry"][];
+        };
         /** EscalationItem */
         EscalationItem: {
             /**
@@ -7594,6 +7652,68 @@ export interface operations {
             };
             path: {
                 entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_failed_api_v1_admin_domain_events_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainEventsPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_event_api_v1_admin_domain_events__event_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                event_id: string;
             };
             cookie?: never;
         };
