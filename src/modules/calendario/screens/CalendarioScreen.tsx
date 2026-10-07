@@ -13,15 +13,18 @@ import { Modal, ScrollView, TextInput } from "react-native";
 import {
   cargarBloqueos,
   cargarConfigPlugin,
+  cargarEstadoConexion,
   cargarSemana,
   cargarTipos,
   crearBloqueo,
   crearTipo,
   guardarConfigPlugin,
   type BlockOut,
+  type EstadoConexionCalendario,
   type TypeOut,
   type WeekItem,
 } from "../api";
+import { Linking } from "react-native";
 
 const DIAS_SEMANA: { key: string; label: string }[] = [
   { key: "mon", label: "Lunes" },
@@ -53,7 +56,7 @@ function parsearHorario(raw: unknown): Record<string, string> {
   return out;
 }
 
-type Pestana = "semana" | "tipos" | "bloqueos" | "horario";
+type Pestana = "semana" | "tipos" | "bloqueos" | "horario" | "conexion";
 
 function fechaCorta(iso: string): string {
   const d = new Date(iso);
@@ -83,6 +86,7 @@ export function CalendarioScreen() {
   const [horario, setHorario] = useState<Record<string, string>>({});
   const [configPlugin, setConfigPlugin] = useState<Record<string, unknown> | null>(null);
   const [guardandoHorario, setGuardandoHorario] = useState(false);
+  const [conexion, setConexion] = useState<EstadoConexionCalendario | null>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -107,6 +111,11 @@ export function CalendarioScreen() {
   }, [cargar]);
 
   useEffect(() => {
+    if (pestana === "conexion") {
+      cargarEstadoConexion(api)
+        .then(setConexion)
+        .catch(() => setError("No pudimos cargar la conexión del calendario."));
+    }
     if (pestana === "horario") {
       cargarConfigPlugin(api, "pack_calendar")
         .then((cfg) => {
@@ -173,7 +182,7 @@ export function CalendarioScreen() {
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
       <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(["semana", "tipos", "bloqueos", "horario"] as Pestana[]).map((p) => (
+        {(["semana", "tipos", "bloqueos", "horario", "conexion"] as Pestana[]).map((p) => (
           <Pressable
             key={p}
             testID={`calendario-${p}`}
@@ -189,7 +198,15 @@ export function CalendarioScreen() {
                 fontWeight: "600",
               }}
             >
-              {p === "semana" ? "Semana" : p === "tipos" ? "Tipos" : p === "bloqueos" ? "Bloqueos" : "Horario"}
+              {p === "semana"
+                ? "Semana"
+                : p === "tipos"
+                  ? "Tipos"
+                  : p === "bloqueos"
+                    ? "Bloqueos"
+                    : p === "horario"
+                      ? "Horario"
+                      : "Conexión"}
             </Text>
           </Pressable>
         ))}
@@ -201,7 +218,7 @@ export function CalendarioScreen() {
         </Text>
       ) : null}
 
-      {pestana !== "semana" && pestana !== "horario" ? (
+      {pestana !== "semana" && pestana !== "horario" && pestana !== "conexion" ? (
         <Pressable
           testID="calendario-nuevo"
           onPress={() => setModalNuevo(pestana === "tipos" ? "tipo" : "bloqueo")}
@@ -316,6 +333,39 @@ export function CalendarioScreen() {
             </View>
           )}
         />
+      ) : pestana === "conexion" ? (
+        <View testID="conexion-tarjeta" style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colores.texto, fontWeight: "700" }}>Google Calendar</Text>
+            <Text style={{ color: colores.textoSuave, fontSize: 12, marginTop: 4 }}>
+              {conexion?.connected
+                ? `Conectado · ${conexion.account_email ?? conexion.connection_label ?? ""}`
+                : conexion?.configured
+                  ? "Configurado pero sin conectar."
+                  : "Sin configurar."}
+            </Text>
+            {conexion?.timezone ? (
+              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                Zona horaria {conexion.timezone}
+                {conexion.default_duration_minutes ? ` · citas de ${conexion.default_duration_minutes} min` : ""}
+              </Text>
+            ) : null}
+          </View>
+          <Text style={{ color: conexion?.connected ? colores.acento : colores.textoSuave, fontSize: 11 }}>
+            {conexion?.connected ? "conectado" : "sin conectar"}
+          </Text>
+          <Pressable
+            testID="conexion-google"
+            onPress={() => {
+              void Linking.openURL("https://test.solvershub.site/calendario").catch(() => undefined);
+            }}
+            style={[styles.modalBoton, { backgroundColor: colores.primario, alignSelf: "flex-start" }]}
+          >
+            <Text style={{ color: "#ffffff", fontWeight: "700", fontSize: 12 }}>
+              {conexion?.connected ? "Gestionar" : "Conectar con Google"}
+            </Text>
+          </Pressable>
+        </View>
       ) : pestana === "horario" ? (
         <ScrollView testID="calendario-horario">
           <Text style={{ color: colores.textoSuave, fontSize: 12, marginBottom: 10 }}>

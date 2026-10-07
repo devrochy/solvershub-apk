@@ -52,3 +52,18 @@ export async function guardarConfigPlugin(
 ): Promise<ConfigPlugin> {
   return api.put<ConfigPlugin>(`/admin/plugins/${pluginId}/config`, { values });
 }
+
+// ---------------- Cierre de réplica: conexión con Google Calendar ----------------
+
+export interface EstadoConexionCalendario {
+  configured: boolean;
+  connected: boolean;
+  account_email: string | null;
+  connection_label: string | null;
+  timezone: string | null;
+  default_duration_minutes: number | null;
+}
+
+export async function cargarEstadoConexion(api: ClienteAdmin): Promise<EstadoConexionCalendario> {
+  return api.get<EstadoConexionCalendario>("/pack/calendar/status");
+}
