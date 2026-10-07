@@ -109,3 +109,52 @@ export async function borrarPlantilla(
 export async function purgarNegocio(api: ClienteAdmin, tenantId: string): Promise<void> {
   await api.post(`/admin/platform/tenants/${tenantId}/purge`);
 }
+
+// ---------------- Cierre de réplica: ajustes del agente ----------------
+
+export type SettingsResponse = components["schemas"]["SettingsResponse"];
+export type IdentitySettings = components["schemas"]["IdentitySettings"];
+export type BrainSettings = components["schemas"]["BrainSettings"];
+export type MemorySettings = components["schemas"]["MemorySettings"];
+
+export async function cargarSettings(api: ClienteAdmin): Promise<SettingsResponse> {
+  return api.get<SettingsResponse>("/admin/settings");
+}
+
+export async function guardarIdentity(
+  api: ClienteAdmin,
+  values: Partial<IdentitySettings> & { business_tz?: string },
+): Promise<void> {
+  await api.put<void>("/admin/settings/identity", values);
+}
+
+export async function guardarBrain(api: ClienteAdmin, values: BrainSettings): Promise<void> {
+  await api.put<void>("/admin/settings/brain", values);
+}
+
+export async function guardarMemory(api: ClienteAdmin, values: MemorySettings): Promise<void> {
+  await api.put<void>("/admin/settings/memory", values);
+}
+
+// ---------------- Cierre de réplica: checklist de Meta ----------------
+
+export type ChecklistOut = components["schemas"]["ChecklistOut"];
+export type ChecklistStep = components["schemas"]["ChecklistStep"];
+export type PreflightOut = components["schemas"]["PreflightOut"];
+
+export type TipoChecklist = "requirements" | "production";
+
+export async function cargarChecklist(api: ClienteAdmin, tipo: TipoChecklist): Promise<ChecklistOut> {
+  return api.get<ChecklistOut>(`/admin/meta/checklist/${tipo}`);
+}
+
+export async function guardarPasoChecklist(
+  api: ClienteAdmin,
+  payload: { step_key: string; done: boolean; notes: string },
+): Promise<void> {
+  await api.post<void>("/admin/meta/checklist/step", payload);
+}
+
+export async function correrChecksProduccion(api: ClienteAdmin): Promise<PreflightOut[]> {
+  return api.post<PreflightOut[]>("/admin/meta/checklist/production/run", {});
+}

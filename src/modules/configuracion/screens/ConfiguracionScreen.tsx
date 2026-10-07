@@ -15,6 +15,8 @@ import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { CLAVE_PUSH_HABILITADO, guardarAjuste, leerAjuste } from "@data/ajustes";
+import { AjustesTab } from "../components/AjustesTab";
+import { MetaChecklist } from "../components/MetaChecklist";
 import {
   accionHabilidad,
   alternarColaborador,
@@ -35,7 +37,13 @@ import {
   type PluginSummary,
 } from "../api";
 
-type Pestana = "colaboradores" | "habilidades" | "conexiones" | "plan" | "notificaciones";
+type Pestana =
+  | "colaboradores"
+  | "habilidades"
+  | "conexiones"
+  | "ajustes"
+  | "plan"
+  | "notificaciones";
 
 export function ConfiguracionScreen() {
   const { colores } = useTheme();
@@ -56,6 +64,7 @@ export function ConfiguracionScreen() {
   const [plantillas, setPlantillas] = useState<PlantillaMeta[]>([]);
   const [plantillasCargando, setPlantillasCargando] = useState(false);
   const [pushOn, setPushOn] = useState(true);
+  const [subConexiones, setSubConexiones] = useState<"canales" | "meta">("canales");
   const { sesion } = useAdminSession();
 
   const cargar = useCallback(async () => {
@@ -170,7 +179,14 @@ export function ConfiguracionScreen() {
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
       <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(["colaboradores", "habilidades", "conexiones", "plan", "notificaciones"] as Pestana[]).map((p) => (
+        {([
+          "colaboradores",
+          "habilidades",
+          "conexiones",
+          "ajustes",
+          "plan",
+          "notificaciones",
+        ] as Pestana[]).map((p) => (
           <Pressable
             key={p}
             testID={`config-${p}`}
@@ -190,12 +206,14 @@ export function ConfiguracionScreen() {
               {p === "colaboradores"
                 ? "Colab."
                 : p === "habilidades"
-                  ? "Habilidades"
+                  ? "Habil."
                   : p === "conexiones"
-                    ? "Conexiones"
-                    : p === "plan"
-                      ? "Plan"
-                      : "Push"}
+                    ? "Conex."
+                    : p === "ajustes"
+                      ? "Ajustes"
+                      : p === "plan"
+                        ? "Plan"
+                        : "Push"}
             </Text>
           </Pressable>
         ))}
@@ -317,36 +335,67 @@ export function ConfiguracionScreen() {
           )}
         />
       ) : pestana === "conexiones" ? (
-        <FlatList
-          testID="config-lista-conexiones"
-          data={conexiones}
-          keyExtractor={(c) => c.id}
-          ListEmptyComponent={
-            <Text style={{ color: colores.textoSuave, textAlign: "center", marginTop: 20 }}>
-              Sin conexiones.
-            </Text>
-          }
-          renderItem={({ item }) => (
-            <Pressable
-              testID={`conexion-${item.id}`}
-              onPress={() => abrirPlantillas(item)}
-              style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colores.texto, fontWeight: "600" }}>
-                  {item.label}
-                  {item.is_primary ? " · principal" : ""}
+        <View style={{ flex: 1 }}>
+          <View style={[styles.chips, { marginBottom: 8 }]}>
+            {(["canales", "meta"] as const).map((sc) => (
+              <Pressable
+                key={sc}
+                testID={`subconex-${sc}`}
+                onPress={() => setSubConexiones(sc)}
+                style={[
+                  styles.chip,
+                  { borderColor: subConexiones === sc ? colores.acento : colores.borde },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: subConexiones === sc ? colores.acento : colores.textoSuave,
+                    fontSize: 12,
+                    fontWeight: "600",
+                  }}
+                >
+                  {sc === "canales" ? "Canales" : "Meta"}
                 </Text>
-                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
-                  {item.channel} · {item.external_id}
+              </Pressable>
+            ))}
+          </View>
+          {subConexiones === "meta" ? (
+            <MetaChecklist />
+          ) : (
+            <FlatList
+              testID="config-lista-conexiones"
+              data={conexiones}
+              keyExtractor={(c) => c.id}
+              ListEmptyComponent={
+                <Text style={{ color: colores.textoSuave, textAlign: "center", marginTop: 20 }}>
+                  Sin conexiones.
                 </Text>
-              </View>
-              <Text style={{ color: item.active ? colores.acento : colores.peligro, fontSize: 12 }}>
-                {item.active ? "activa" : "inactiva"}
-              </Text>
-            </Pressable>
+              }
+              renderItem={({ item }) => (
+                <Pressable
+                  testID={`conexion-${item.id}`}
+                  onPress={() => abrirPlantillas(item)}
+                  style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: colores.texto, fontWeight: "600" }}>
+                      {item.label}
+                      {item.is_primary ? " · principal" : ""}
+                    </Text>
+                    <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                      {item.channel} · {item.external_id}
+                    </Text>
+                  </View>
+                  <Text style={{ color: item.active ? colores.acento : colores.peligro, fontSize: 12 }}>
+                    {item.active ? "activa" : "inactiva"}
+                  </Text>
+                </Pressable>
+              )}
+            />
           )}
-        />
+        </View>
+      ) : pestana === "ajustes" ? (
+        <AjustesTab />
       ) : pestana === "plan" ? (
         <FlatList
           testID="config-lista-plan"
