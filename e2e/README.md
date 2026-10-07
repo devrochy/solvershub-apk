@@ -28,5 +28,30 @@ maestro test e2e/smoke-cobranza.yaml
 
 ## Estado
 
-- **2026-10-06**: flujos commiteados; la corrida queda pendiente del build
-  preview (EAS) y del entorno Maestro local (HU-APP-07).
+Verificado en dispositivo real (OPPO CPH2603) el 2026-10-07:
+
+- Build `preview` (EAS) instalado por `adb install`, con
+  `EXPO_PUBLIC_API_URL=https://test.solvershub.site/api/pack/pack_cobranza`
+  (definido en `eas.json`, perfil preview).
+- Smoke completo en verde: login unificado → negocio → cartera → diario →
+  liquidación → generar trayecto → cliente cercano.
+- **Certificate pinning (positivo)**: el smoke corre sobre HTTPS contra
+  `test.solvershub.site`, así que todo el flujo pasa por el pin de la CA
+  (LE YE2 / ISRG Root X2); si el pin no coincidiera, el login fallaría con
+  error TLS.
+- **Certificate pinning (negativo)**: para probar el rechazo, editar el
+  plugin `solvershub-nsc` con un pin de otra CA, reconstruir y verificar que
+  el login falla con error de certificado (no con 401/403).
+
+## Semilla requerida
+
+El smoke asume el tenant demo sembrado (`seed_demo_login.py`):
+
+- `gestor@demo.test` con membresía de campo en "Cobranza Demo".
+- Dispositivo del equipo de prueba vinculado y **aprobado** por el dueño
+  (`dueno-a@demo.test`, `POST /pack/cobranza/devices/{id}/status`).
+- Cartera "Cobranza Demo" asignada al gestor
+  (`PUT /portfolios/{id}` con `gestor_id`).
+- Permisos del gestor (`PUT /collectors/{id}/permissions`) incluyendo
+  `generar_reporte`, y config de cartera `generar_reportes_apk: true`
+  (`PUT /portfolios/{id}/config`).
