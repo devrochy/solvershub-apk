@@ -332,4 +332,25 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
     );
   });
 
+  it("una comprobación no concluyente (ok=null) se muestra como info, no como fallo", async () => {
+    mockPost.mockResolvedValue([
+      { key: "rls_tests_pass", ok: null, detail: "Los tests corren en CI" },
+      { key: "connections_health", ok: false, detail: "Sin conexiones" },
+    ]);
+    const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
+    await waitFor(() => expect(getByTestId("config-conexiones")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("config-conexiones"));
+    await fireEvent.press(getByTestId("subconex-meta"));
+    await waitFor(() => expect(getByTestId("checklist-sub-production")).toBeTruthy());
+    await fireEvent.press(getByTestId("checklist-sub-production"));
+    await waitFor(() => expect(getByTestId("checklist-correr")).toBeTruthy());
+    await fireEvent.press(getByTestId("checklist-correr"));
+
+    await waitFor(() => expect(getByTestId("check-estado-rls_tests_pass")).toBeTruthy());
+    expect(getByTestId("check-estado-rls_tests_pass").props.children).toBe("info");
+    expect(getByTestId("check-estado-connections_health").props.children).toBe("revisar");
+    expect(getByText("Los tests corren en CI")).toBeTruthy();
+  });
+
 });
