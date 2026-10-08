@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { useAdminSession } from "@core/session/admin-session-context";
+import { apiRoot } from "@core/config";
 import { Modal, ScrollView, TextInput } from "react-native";
 import {
   cargarBloqueos,
@@ -67,9 +69,21 @@ function fechaCorta(iso: string): string {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/**
+ * Calendario del panel web para conectar Google (el OAuth vive en el panel, ADR-0093).
+ * El panel usa el negocio de su propia sesión, que puede ser otro: `?tenant=` le dice
+ * cuál está usando la app para que avise y ofrezca cambiar antes de conectar. El panel
+ * y la API comparten host (la API cuelga de `/api`).
+ */
+export function urlConectarGoogle(tenantId: string | null): string {
+  const base = `${apiRoot()}/calendario`;
+  return tenantId ? `${base}?tenant=${encodeURIComponent(tenantId)}` : base;
+}
+
 export function CalendarioScreen() {
   const { colores } = useTheme();
   const api = useAdminApi();
+  const { sesion } = useAdminSession();
   const [pestana, setPestana] = useState<Pestana>("semana");
   const [items, setItems] = useState<WeekItem[]>([]);
   const [inicio, setInicio] = useState<string>("");
@@ -361,7 +375,7 @@ export function CalendarioScreen() {
           <Pressable
             testID="conexion-google"
             onPress={() => {
-              void Linking.openURL("https://test.solvershub.site/calendario").catch(() => undefined);
+              void Linking.openURL(urlConectarGoogle(sesion?.tenantId ?? null)).catch(() => undefined);
             }}
             style={[styles.modalBoton, { backgroundColor: colores.primario, alignSelf: "flex-start" }]}
           >
