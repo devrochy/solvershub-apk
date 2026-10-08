@@ -9,7 +9,8 @@
       "distribution": "internal",
       "env": {
         "SOLVERSHUB_CLEARTEXT": "1"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -19,30 +20,53 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://test.solvershub.site/api/pack/pack_cobranza"
-      }
+      },
+      "channel": "preview"
     },
     "preview-pin-negativo": {
       "extends": "preview",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://test.solvershub.site/api/pack/pack_cobranza",
         "SOLVERSHUB_PINS": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-      }
+      },
+      "channel": "pin-negativo"
     },
     "staging": {
-      "distribution": "internal",
+      "distribution": "store",
+      "autoIncrement": true,
       "environment": "preview",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://test.solvershub.site/api/pack/pack_cobranza"
+      },
+      "channel": "staging",
+      "android": {
+        "buildType": "app-bundle"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://app.solvershub.site/api/pack/pack_cobranza"
+      },
+      "channel": "production",
+      "environment": "production",
+      "android": {
+        "buildType": "app-bundle"
       }
     }
   },
   "submit": {
-    "production": {}
+    "staging": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    },
+    "production": {
+      "android": {
+        "track": "production",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }
