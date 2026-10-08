@@ -13,6 +13,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "environment": "preview",
       "android": {
         "buildType": "apk"
       },
@@ -29,6 +30,7 @@
     },
     "staging": {
       "distribution": "internal",
+      "environment": "preview",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://test.solvershub.site/api/pack/pack_cobranza"
       }

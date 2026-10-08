@@ -47,6 +47,25 @@ describe("PushProvider (HU-APP-05)", () => {
     );
   });
 
+  it("si no obtiene el token (p. ej. sin FCM) lo deja en el log en vez de tragarlo", async () => {
+    const aviso = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    (solicitarPermisos as jest.Mock).mockResolvedValue(true);
+    (obtenerTokenExpo as jest.Mock).mockRejectedValue(
+      new Error("Default FirebaseApp is not initialized in this process"),
+    );
+
+    await renderPush("t-opaco", "t-1");
+
+    await waitFor(() =>
+      expect(aviso).toHaveBeenCalledWith(
+        "[push] no se obtuvo el token Expo",
+        "Default FirebaseApp is not initialized in this process",
+      ),
+    );
+    expect(registrarPushToken).not.toHaveBeenCalled();
+    aviso.mockRestore();
+  });
+
   it("sin permiso no pide token ni registra", async () => {
     (solicitarPermisos as jest.Mock).mockResolvedValue(false);
 

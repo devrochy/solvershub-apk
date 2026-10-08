@@ -51,3 +51,6 @@ builds/
 # obsidian (config de máquina)
 .obsidian/
 # Generado por scripts/sync-api-types.mjs (se commitea; ver ADR-APP-06)
+
+# Firebase (push Android): lo inyecta EAS como variable de archivo GOOGLE_SERVICES_JSON
+google-services.json
