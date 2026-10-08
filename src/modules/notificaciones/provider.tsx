@@ -42,24 +42,25 @@ export function PushProvider({
   const alTocarRef = useRef(alTocarNotificacion);
 
   // Opt-out local (HU-APP-21): el usuario apaga las notificaciones en Configuración.
+  // Solo un "0" explícito apaga el push: si la lectura falla (base aún no lista),
+  // se asume habilitado en vez de quedar en `null` y no registrar nunca.
   useEffect(() => {
     let activo = true;
-    void leerAjuste(CLAVE_PUSH_HABILITADO)
-      .then((v) => {
-        if (activo) {
-          setPushHabilitado(v !== "0");
-        }
-      })
-      .catch(() => undefined);
-    return suscribirAjustes(() => {
+    const leer = () =>
       void leerAjuste(CLAVE_PUSH_HABILITADO)
-        .then((v) => {
+        .then((v) => v !== "0")
+        .catch(() => true)
+        .then((habilitado) => {
           if (activo) {
-            setPushHabilitado(v !== "0");
+            setPushHabilitado(habilitado);
           }
-        })
-        .catch(() => undefined);
-    });
+        });
+    leer();
+    const desuscribir = suscribirAjustes(leer);
+    return () => {
+      activo = false;
+      desuscribir();
+    };
   }, []);
 
   useEffect(() => {
@@ -100,6 +101,7 @@ export function PushProvider({
       }
       const permitido = await solicitarPermisos().catch(() => false);
       if (!permitido) {
+        console.warn("[push] permiso de notificaciones no concedido");
         return;
       }
       // Sin Firebase (google-services.json) el SDK lanza aquí en Android: se deja en
