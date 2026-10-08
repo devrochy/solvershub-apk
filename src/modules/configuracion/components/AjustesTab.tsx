@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { AvanzadoTab } from "./AvanzadoTab";
+import { ChatWebTab } from "./ChatWebTab";
 import {
   cargarSettings,
   guardarBrain,
@@ -19,7 +21,15 @@ import {
   type SettingsResponse,
 } from "../api";
 
-type SubPestana = "identidad" | "cerebro" | "memoria";
+type SubPestana = "identidad" | "cerebro" | "memoria" | "chat-web" | "avanzado";
+
+const SUB_PESTANAS: { clave: SubPestana; label: string }[] = [
+  { clave: "identidad", label: "Identidad" },
+  { clave: "cerebro", label: "Cerebro" },
+  { clave: "memoria", label: "Memoria" },
+  { clave: "chat-web", label: "Chat web" },
+  { clave: "avanzado", label: "Avanzado" },
+];
 
 const TONOS = ["calido", "formal", "divertido"];
 const PERSONA_TONES = ["formal", "neutral", "cercano", "informal"];
@@ -326,7 +336,7 @@ export function AjustesTab() {
           policy_budget: aNumero(cerebro.policy_budget, 0),
         });
         setMensaje("Cerebro guardado.");
-      } else {
+      } else if (sub === "memoria") {
         await guardarMemory(api, {
           short_term_turns: aNumero(memoria.short_term_turns, 12),
           rag_top_k: aNumero(memoria.rag_top_k, 5),
@@ -356,7 +366,7 @@ export function AjustesTab() {
       ) : (
         <>
           <View style={[styles.subPestanas, { borderColor: colores.borde }]}>
-            {(["identidad", "cerebro", "memoria"] as SubPestana[]).map((p) => (
+            {SUB_PESTANAS.map(({ clave: p, label }) => (
               <Pressable
                 key={p}
                 testID={`ajustes-sub-${p}`}
@@ -376,7 +386,7 @@ export function AjustesTab() {
                     fontWeight: "600",
                   }}
                 >
-                  {p === "identidad" ? "Identidad" : p === "cerebro" ? "Cerebro" : "Memoria"}
+                  {label}
                 </Text>
               </Pressable>
             ))}
@@ -680,7 +690,7 @@ export function AjustesTab() {
                 })}
               </Campo>
             </View>
-          ) : (
+          ) : sub === "memoria" ? (
             <View testID="ajustes-memoria">
               <Campo id="ajustes-short-term" label="Turnos de contexto (memoria corta)">
                 {InputCampo({
@@ -707,31 +717,37 @@ export function AjustesTab() {
                 })}
               </Campo>
             </View>
-          )}
+          ) : null}
+
+          {/* Chat web y Avanzado cargan y guardan por su cuenta (endpoints propios). */}
+          {sub === "chat-web" ? <ChatWebTab /> : null}
+          {sub === "avanzado" ? <AvanzadoTab /> : null}
 
           {/* Resultado junto al botón: el formulario es largo y arriba quedaría fuera de pantalla. */}
-          <View testID="ajustes-pie">
-            {error ? (
-              <Text testID="ajustes-error" style={[styles.resultado, { color: colores.peligro }]}>
-                {error}
-              </Text>
-            ) : null}
-            {mensaje ? (
-              <Text testID="ajustes-mensaje" style={[styles.resultado, { color: colores.acento }]}>
-                {mensaje}
-              </Text>
-            ) : null}
-            <Pressable
-              testID="ajustes-guardar"
-              disabled={guardando}
-              onPress={() => void guardar()}
-              style={[styles.guardar, { backgroundColor: colores.primario }]}
-            >
-              <Text style={{ color: "#ffffff", fontWeight: "700" }}>
-                {guardando ? "Guardando…" : "Guardar"}
-              </Text>
-            </Pressable>
-          </View>
+          {sub === "chat-web" || sub === "avanzado" ? null : (
+            <View testID="ajustes-pie">
+              {error ? (
+                <Text testID="ajustes-error" style={[styles.resultado, { color: colores.peligro }]}>
+                  {error}
+                </Text>
+              ) : null}
+              {mensaje ? (
+                <Text testID="ajustes-mensaje" style={[styles.resultado, { color: colores.acento }]}>
+                  {mensaje}
+                </Text>
+              ) : null}
+              <Pressable
+                testID="ajustes-guardar"
+                disabled={guardando}
+                onPress={() => void guardar()}
+                style={[styles.guardar, { backgroundColor: colores.primario }]}
+              >
+                <Text style={{ color: "#ffffff", fontWeight: "700" }}>
+                  {guardando ? "Guardando…" : "Guardar"}
+                </Text>
+              </Pressable>
+            </View>
+          )}
         </>
       )}
     </ScrollView>
