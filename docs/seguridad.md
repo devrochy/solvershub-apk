@@ -20,7 +20,8 @@ Checklist OWASP MASVS v2 · nivel L1 aplicado a la app (evidencia de implementac
 1. Obtener el SPKI del intermedio vigente:
    `echo | openssl s_client -connect test.solvershub.site:443 -showcerts | awk '/BEGIN CERTIFICATE/{n++} n==2' | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | openssl enc -base64`
 2. Actualizar `PIN_INTERMEDIO` en `plugins/solvershub-nsc/index.js` (y la fecha de expiración) ANTES del vencimiento del pin-set.
-3. Release (AAB) + OTA (EAS Update) para builds existentes.
+   Para probar un pin nuevo sin tocar código: `SOLVERSHUB_PINS` en el `env` del perfil de EAS (SPKI SHA-256 en base64, separados por coma).
+3. Release nueva (AAB/APK). El `network_security_config` es nativo: **un OTA (EAS Update) no lo cambia**; los dispositivos con el pin viejo necesitan instalar la build nueva antes de que el certificado deje de coincidir.
 
 ## Verificación (pendiente de build)
 

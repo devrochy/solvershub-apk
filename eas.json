@@ -20,6 +20,13 @@
         "EXPO_PUBLIC_API_URL": "https://test.solvershub.site/api/pack/pack_cobranza"
       }
     },
+    "preview-pin-negativo": {
+      "extends": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://test.solvershub.site/api/pack/pack_cobranza",
+        "SOLVERSHUB_PINS": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      }
+    },
     "staging": {
       "distribution": "internal",
       "env": {
