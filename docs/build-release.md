@@ -115,4 +115,11 @@ antes y después; si el hash cambia, va AAB.
   (`e2e/README.md`), y pinning positivo y negativo verificado (`docs/seguridad.md`).
 - 2026-10-08: EAS Update activado (canales por perfil, `runtimeVersion` por fingerprint y
   `scripts/publicar-ota.sh`); `staging` y `production` como AAB con `submit` a borrador.
+- 2026-10-08: OTA y rollback verificados en el OPPO con el build `preview` `c6badbc0`
+  (runtimeVersion `ed2b721a…`, igual en local y en EAS gracias a `fingerprint.config.js`):
+  1. Publiqué con el script un OTA de prueba que cambiaba el título del Resumen.
+  2. La app lo bajó al abrir y lo aplicó en el arranque siguiente ("Resumen · OTA").
+  3. `update:republish` del grupo anterior lo revirtió y, dos arranques después, volvió a
+     "Resumen".
+  El bundle publicado lleva la API de test y no la de `.env.local`.
 - Pendiente: la cuenta de Play Console (pasos de arriba).
