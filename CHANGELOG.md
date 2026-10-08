@@ -42,3 +42,8 @@
 - Cobranza admin: la barra de pestañas ya no deja un hueco vacío antes del contenido.
 - Calendario · Horario confirma "Horario guardado."; Ajustes muestra el resultado junto al
   botón Guardar (antes quedaba arriba, fuera de pantalla).
+- Cada pestaña inferior del panel tiene su propio ícono (todas usaban la casa y las
+  etiquetas van truncadas).
+- Calendario · Conectar con Google abre el panel del mismo entorno que la API (estaba fijo a
+  test) y en el negocio activo de la app (`?tenant=`): el panel avisa si su sesión está en
+  otro negocio antes de conectar.

@@ -46,6 +46,31 @@ describe("PanelShell (HU-APP-03)", () => {
     expect(queryByText("Negocio")).toBeNull();
   });
 
+  it("cada pestaña tiene su propio ícono (las etiquetas van truncadas)", async () => {
+    mockSesionValue = {
+      token: "t",
+      adminId: "a-1",
+      role: "owner",
+      permissions: {
+        dashboard: "read",
+        conversations: "read",
+        "pack_cobranza:resumen": "read",
+        pack_commerce: "read",
+        "pack_calendar:citas": "read",
+        plan: "read",
+        settings: "read",
+      },
+    };
+
+    // El tab bar pinta cada ícono dos veces (activo/inactivo) para la transición.
+    const { getAllByTestId, queryByTestId } = await render(<PanelShell />);
+    await waitFor(() => expect(getAllByTestId("icono-dashboard").length).toBeGreaterThan(0));
+    for (const icono of ["chat", "payments", "storefront", "event", "business-center", "settings", "menu"]) {
+      expect(getAllByTestId(`icono-${icono}`).length).toBeGreaterThan(0);
+    }
+    expect(queryByTestId("icono-home")).toBeNull();
+  });
+
   it("los grupos sin encabezado propio reservan el área segura superior", async () => {
     mockSesionValue = {
       token: "t",

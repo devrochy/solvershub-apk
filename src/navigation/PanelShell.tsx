@@ -32,21 +32,25 @@ import { useEffect, useRef } from "react";
 export interface GrupoSecciones {
   clave: string;
   label: string;
+  /** Ícono de la pestaña: las etiquetas van truncadas con 8 pestañas. */
+  icono: keyof typeof MaterialIcons.glyphMap;
   secciones: string[];
   detalleHU: string;
 }
 
 export const GRUPOS_PANEL: GrupoSecciones[] = [
-  { clave: "inicio", label: "Inicio", secciones: ["dashboard"], detalleHU: "HU-APP-04" },
+  { clave: "inicio", label: "Inicio", icono: "dashboard", secciones: ["dashboard"], detalleHU: "HU-APP-04" },
   {
     clave: "conversaciones",
     label: "Conversaciones",
+    icono: "chat",
     secciones: ["conversations", "escalations", "leads"],
     detalleHU: "HU-APP-08",
   },
   {
     clave: "cobranza",
     label: "Cobranza",
+    icono: "payments",
     secciones: [
       "pack_cobranza:resumen",
       "pack_cobranza:gestores",
@@ -67,12 +71,14 @@ export const GRUPOS_PANEL: GrupoSecciones[] = [
   {
     clave: "comercio",
     label: "Comercio",
+    icono: "storefront",
     secciones: ["pack_commerce"],
     detalleHU: "HU-APP-10",
   },
   {
     clave: "calendario",
     label: "Calendario",
+    icono: "event",
     secciones: [
       "pack_calendar:citas",
       "pack_calendar:tipos",
@@ -82,10 +88,11 @@ export const GRUPOS_PANEL: GrupoSecciones[] = [
     ],
     detalleHU: "HU-APP-11",
   },
-  { clave: "negocio", label: "Negocio", secciones: ["plan", "costs"], detalleHU: "HU-APP-09" },
+  { clave: "negocio", label: "Negocio", icono: "business-center", secciones: ["plan", "costs"], detalleHU: "HU-APP-09" },
   {
     clave: "configuracion",
     label: "Configuración",
+    icono: "settings",
     secciones: ["collaborators", "connections", "plugins", "settings"],
     detalleHU: "HU-APP-12",
   },
@@ -95,6 +102,7 @@ export const GRUPOS_PANEL: GrupoSecciones[] = [
 export const GRUPO_PLATAFORMA: GrupoSecciones = {
   clave: "plataforma",
   label: "Plataforma",
+  icono: "admin-panel-settings",
   secciones: ["tenants"],
   detalleHU: "HU-APP-13",
 };
@@ -292,7 +300,7 @@ export function PanelShell() {
             options={{
               tabBarLabel: grupo.label,
               tabBarIcon: ({ color, size }) => (
-                <MaterialIcons name="home" size={size} color={color} />
+                <MaterialIcons name={grupo.icono} size={size} color={color} />
               ),
             }}
           >

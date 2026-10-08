@@ -20,6 +20,25 @@ import {
   type TipoChecklist,
 } from "../api";
 
+/**
+ * Estado de una comprobación automática. `ok: null` es "no concluyente" en la API (p. ej.
+ * `rls_tests_pass`, que corre en CI): informativo, no un fallo.
+ */
+function EstadoCheck({ clave, ok }: { clave: string; ok?: boolean | null }) {
+  const { colores } = useTheme();
+  const [texto, color] =
+    ok === null || ok === undefined
+      ? ["info", colores.textoSuave]
+      : ok
+        ? ["ok", colores.acento]
+        : ["revisar", colores.peligro];
+  return (
+    <Text testID={`check-estado-${clave}`} style={{ color, fontSize: 11, fontWeight: "700" }}>
+      {texto}
+    </Text>
+  );
+}
+
 /** Cierre de réplica: Requisitos de Meta y lista de Producción (panel: /conexiones/*). */
 export function MetaChecklist() {
   const { colores } = useTheme();
@@ -143,9 +162,7 @@ export function MetaChecklist() {
                   key={c.key}
                   style={[styles.checkFila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
                 >
-                  <Text style={{ color: c.ok ? colores.acento : colores.peligro, fontSize: 11, fontWeight: "700" }}>
-                    {c.ok ? "ok" : "revisar"}
-                  </Text>
+                  <EstadoCheck clave={c.key} ok={c.ok} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: colores.textoSuave, fontSize: 11 }}>{c.key}</Text>
                     {c.detail ? (
@@ -167,9 +184,7 @@ export function MetaChecklist() {
                   key={c.key}
                   style={[styles.checkFila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
                 >
-                  <Text style={{ color: c.ok ? colores.acento : colores.peligro, fontSize: 11, fontWeight: "700" }}>
-                    {c.ok ? "ok" : "revisar"}
-                  </Text>
+                  <EstadoCheck clave={c.key} ok={c.ok} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: colores.textoSuave, fontSize: 11 }}>{c.key}</Text>
                     {c.detail ? (

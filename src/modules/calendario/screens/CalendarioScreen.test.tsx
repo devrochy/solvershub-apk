@@ -1,7 +1,13 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
+let mockTenantId: string | null = "08ccdc19-f2ef-4eeb-b9a9-65c898c34fd1";
+jest.mock("@core/session/admin-session-context", () => ({
+  useAdminSession: () => ({ sesion: { token: "t", tenantId: mockTenantId } }),
+}));
 
+import { Linking } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { apiRoot } from "@core/config";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { CalendarioScreen } from "./CalendarioScreen";
 
@@ -159,6 +165,34 @@ describe("CalendarioScreen (HU-APP-11)", () => {
     await waitFor(() => expect(getByTestId("conexion-tarjeta")).toBeTruthy());
     expect(getByText("Configurado pero sin conectar.")).toBeTruthy();
     expect(getByText("Conectar con Google")).toBeTruthy();
+  });
+
+  it("Conectar abre el panel en el negocio activo de la app (no en el del navegador)", async () => {
+    const abrir = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const { getByTestId } = await render(<CalendarioScreen />);
+    await waitFor(() => expect(getByTestId("calendario-lista-semana")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("calendario-conexion"));
+    await waitFor(() => expect(getByTestId("conexion-google")).toBeTruthy());
+    await fireEvent.press(getByTestId("conexion-google"));
+
+    expect(abrir).toHaveBeenCalledWith(
+      `${apiRoot()}/calendario?tenant=08ccdc19-f2ef-4eeb-b9a9-65c898c34fd1`,
+    );
+  });
+
+  it("sin negocio activo abre el calendario del panel sin parámetro", async () => {
+    mockTenantId = null;
+    const abrir = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const { getByTestId } = await render(<CalendarioScreen />);
+    await waitFor(() => expect(getByTestId("calendario-lista-semana")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("calendario-conexion"));
+    await waitFor(() => expect(getByTestId("conexion-google")).toBeTruthy());
+    await fireEvent.press(getByTestId("conexion-google"));
+
+    expect(abrir).toHaveBeenCalledWith(`${apiRoot()}/calendario`);
+    mockTenantId = "08ccdc19-f2ef-4eeb-b9a9-65c898c34fd1";
   });
 
 });
