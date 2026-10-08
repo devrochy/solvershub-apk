@@ -102,11 +102,18 @@ export function PushProvider({
       if (!permitido) {
         return;
       }
-      const token = await obtenerTokenExpo(projectId).catch(() => null);
+      // Sin Firebase (google-services.json) el SDK lanza aquí en Android: se deja en
+      // el log (logcat ReactNativeJS) para que un APK sin push no falle en silencio.
+      const token = await obtenerTokenExpo(projectId).catch((e: unknown) => {
+        console.warn("[push] no se obtuvo el token Expo", e instanceof Error ? e.message : String(e));
+        return null;
+      });
       if (!token || !activo) {
         return;
       }
-      await registrarPushToken(adminToken, tenantId, token, "android").catch(() => undefined);
+      await registrarPushToken(adminToken, tenantId, token, "android").catch((e: unknown) => {
+        console.warn("[push] no se registró el token", e instanceof Error ? e.message : String(e));
+      });
       if (activo) {
         setRegistrado({ token, tenantId });
       }
