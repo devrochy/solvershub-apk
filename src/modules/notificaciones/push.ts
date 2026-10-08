@@ -48,21 +48,28 @@ export async function configurarCanal(): Promise<void> {
   });
 }
 
-/** Pide permiso (si no está resuelto) y devuelve true si quedó concedido. */
+/**
+ * Pide permiso si no está concedido y devuelve true si quedó concedido.
+ *
+ * Android 13+: el diálogo no aparece hasta que exista un canal, así que se crea
+ * antes; y un permiso nunca pedido llega como `denied` (no hay "undetermined"),
+ * por eso se pregunta mientras `canAskAgain` no sea false.
+ */
 export async function solicitarPermisos(): Promise<boolean> {
   const Notifications = notificaciones();
   if (!Notifications) {
     return false;
   }
+  await configurarCanal();
   const actual = await Notifications.getPermissionsAsync();
   if (actual.status === "granted") {
     return true;
   }
-  if (actual.status === "undetermined") {
-    const pedido = await Notifications.requestPermissionsAsync();
-    return pedido.status === "granted";
+  if (actual.canAskAgain === false) {
+    return false;
   }
-  return false;
+  const pedido = await Notifications.requestPermissionsAsync();
+  return pedido.status === "granted";
 }
 
 export async function obtenerTokenExpo(projectId: string): Promise<string | null> {
