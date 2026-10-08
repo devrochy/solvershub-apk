@@ -9,12 +9,25 @@ type Oyente = (destino: DestinoNavegacion) => void;
 
 const oyentes = new Set<Oyente>();
 
+/** Destino emitido sin nadie escuchando (p. ej. un push tocado con la app cerrada,
+ * antes de que el shell monte): se entrega una vez al primer suscriptor. */
+let pendiente: DestinoNavegacion | null = null;
+
 export function emitirNavegacion(destino: DestinoNavegacion): void {
+  if (oyentes.size === 0) {
+    pendiente = destino;
+    return;
+  }
   oyentes.forEach((fn) => fn(destino));
 }
 
 export function suscribirNavegacion(fn: Oyente): () => void {
   oyentes.add(fn);
+  if (pendiente) {
+    const destino = pendiente;
+    pendiente = null;
+    fn(destino);
+  }
   return () => {
     oyentes.delete(fn);
   };

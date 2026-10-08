@@ -8,6 +8,8 @@ jest.mock("expo-notifications", () => ({
   requestPermissionsAsync: jest.fn(),
   getExpoPushTokenAsync: jest.fn(),
   addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  getLastNotificationResponse: jest.fn(),
+  clearLastNotificationResponse: jest.fn(),
   AndroidImportance: { MAX: 5 },
 }));
 
@@ -15,6 +17,7 @@ import * as Notifications from "expo-notifications";
 import {
   addListener,
   configurarCanal,
+  consumirRespuestaInicial,
   enExpoGo,
   obtenerTokenExpo,
   solicitarPermisos,
@@ -36,6 +39,17 @@ describe("push (HU-APP-05)", () => {
     expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(1);
   });
 
+  it("devuelve una sola vez el push que abrió la app (arranque en frío)", () => {
+    (Notifications.getLastNotificationResponse as jest.Mock).mockReturnValue({
+      notification: { request: { content: { data: { type: "core.escalation" } } } },
+    });
+    expect(consumirRespuestaInicial()).toEqual({ type: "core.escalation" });
+    expect(Notifications.clearLastNotificationResponse).toHaveBeenCalled();
+
+    (Notifications.getLastNotificationResponse as jest.Mock).mockReturnValue(null);
+    expect(consumirRespuestaInicial()).toBeUndefined();
+  });
+
   it("no pide permiso si ya está concedido", async () => {
     (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
       status: "granted",
@@ -55,11 +69,47 @@ describe("push (HU-APP-05)", () => {
     expect(Notifications.requestPermissionsAsync).toHaveBeenCalled();
   });
 
-  it("sin permiso no registra token", async () => {
+  it("si el usuario lo negó y ya no se puede volver a preguntar, no insiste", async () => {
     (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
       status: "denied",
+      canAskAgain: false,
     });
     await expect(solicitarPermisos()).resolves.toBe(false);
+    expect(Notifications.requestPermissionsAsync).not.toHaveBeenCalled();
+  });
+
+  it("en Android pide el permiso aunque llegue 'denied' si aún se puede preguntar", async () => {
+    // Android no tiene "undetermined": un permiso nunca pedido llega como denied.
+    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: "denied",
+      canAskAgain: true,
+    });
+    (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: "granted",
+    });
+    await expect(solicitarPermisos()).resolves.toBe(true);
+    expect(Notifications.requestPermissionsAsync).toHaveBeenCalled();
+  });
+
+  it("en Android crea el canal antes de pedir el permiso (sin canal no sale el diálogo)", async () => {
+    const { Platform } = require("react-native");
+    const original = Platform.OS;
+    Platform.OS = "android";
+    const orden: string[] = [];
+    (Notifications.setNotificationChannelAsync as jest.Mock).mockImplementation(async () => {
+      orden.push("canal");
+    });
+    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: "denied",
+      canAskAgain: true,
+    });
+    (Notifications.requestPermissionsAsync as jest.Mock).mockImplementation(async () => {
+      orden.push("permiso");
+      return { status: "granted" };
+    });
+    await solicitarPermisos();
+    Platform.OS = original;
+    expect(orden).toEqual(["canal", "permiso"]);
   });
 
   it("obtiene el token con el projectId de EAS", async () => {

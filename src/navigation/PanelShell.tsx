@@ -274,17 +274,30 @@ export function PanelShell() {
     grupoVisible(permisos, g.secciones, esMaster),
   );
 
+  // Destino que llegó antes de que la navegación estuviera lista (push en frío).
+  const destinoPendiente = useRef<string | null>(null);
+
   useEffect(() => {
-    // Deep link desde módulos anidados (HU-APP-21): cambia de tab al destino.
+    // Deep link desde módulos anidados (HU-APP-21) y push tocados: cambia de tab.
     return suscribirNavegacion((destino) => {
       if (navRef.current?.isReady()) {
         navRef.current.navigate(destino.tab as never);
+      } else {
+        destinoPendiente.current = destino.tab;
       }
     });
   }, []);
 
   return (
-    <NavigationContainer ref={navRef}>
+    <NavigationContainer
+      ref={navRef}
+      onReady={() => {
+        if (destinoPendiente.current) {
+          navRef.current?.navigate(destinoPendiente.current as never);
+          destinoPendiente.current = null;
+        }
+      }}
+    >
       <Tab.Navigator
         screenOptions={{
           headerShown: false,

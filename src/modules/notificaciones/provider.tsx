@@ -1,6 +1,12 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { darDeBajaPushToken, registrarPushToken } from "./api";
-import { addListener, configurarCanal, obtenerTokenExpo, solicitarPermisos } from "./push";
+import {
+  addListener,
+  configurarCanal,
+  consumirRespuestaInicial,
+  obtenerTokenExpo,
+  solicitarPermisos,
+} from "./push";
 import { CLAVE_PUSH_HABILITADO, leerAjuste, suscribirAjustes } from "@data/ajustes";
 
 export interface PushDatos {
@@ -42,24 +48,25 @@ export function PushProvider({
   const alTocarRef = useRef(alTocarNotificacion);
 
   // Opt-out local (HU-APP-21): el usuario apaga las notificaciones en Configuración.
+  // Solo un "0" explícito apaga el push: si la lectura falla (base aún no lista),
+  // se asume habilitado en vez de quedar en `null` y no registrar nunca.
   useEffect(() => {
     let activo = true;
-    void leerAjuste(CLAVE_PUSH_HABILITADO)
-      .then((v) => {
-        if (activo) {
-          setPushHabilitado(v !== "0");
-        }
-      })
-      .catch(() => undefined);
-    return suscribirAjustes(() => {
+    const leer = () =>
       void leerAjuste(CLAVE_PUSH_HABILITADO)
-        .then((v) => {
+        .then((v) => v !== "0")
+        .catch(() => true)
+        .then((habilitado) => {
           if (activo) {
-            setPushHabilitado(v !== "0");
+            setPushHabilitado(habilitado);
           }
-        })
-        .catch(() => undefined);
-    });
+        });
+    leer();
+    const desuscribir = suscribirAjustes(leer);
+    return () => {
+      activo = false;
+      desuscribir();
+    };
   }, []);
 
   useEffect(() => {
@@ -71,11 +78,14 @@ export function PushProvider({
   }, []);
 
   useEffect(() => {
-    const sub = addListener((datos) => {
+    const despachar = (datos: Record<string, unknown> | undefined) => {
       if (datos && Object.keys(datos).length > 0) {
         alTocarRef.current(datos as PushDatos);
       }
-    });
+    };
+    // Arranque en frío: el push que abrió la app llega antes que este listener.
+    despachar(consumirRespuestaInicial());
+    const sub = addListener(despachar);
     return () => sub.remove();
   }, []);
 
@@ -100,6 +110,7 @@ export function PushProvider({
       }
       const permitido = await solicitarPermisos().catch(() => false);
       if (!permitido) {
+        console.warn("[push] permiso de notificaciones no concedido");
         return;
       }
       // Sin Firebase (google-services.json) el SDK lanza aquí en Android: se deja en

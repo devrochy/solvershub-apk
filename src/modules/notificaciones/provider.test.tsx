@@ -3,6 +3,13 @@ jest.mock("./push", () => ({
   solicitarPermisos: jest.fn(),
   obtenerTokenExpo: jest.fn(),
   addListener: jest.fn(() => ({ remove: jest.fn() })),
+  consumirRespuestaInicial: jest.fn(),
+}));
+const mockLeerAjuste = jest.fn();
+jest.mock("@data/ajustes", () => ({
+  CLAVE_PUSH_HABILITADO: "push_habilitado",
+  leerAjuste: (...args: unknown[]) => mockLeerAjuste(...args),
+  suscribirAjustes: () => () => undefined,
 }));
 jest.mock("./api", () => ({
   registrarPushToken: jest.fn().mockResolvedValue(undefined),
@@ -13,7 +20,7 @@ import { act, render, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { darDeBajaPushToken, registrarPushToken } from "./api";
 import { PushProvider } from "./provider";
-import { addListener, obtenerTokenExpo, solicitarPermisos } from "./push";
+import { addListener, consumirRespuestaInicial, obtenerTokenExpo, solicitarPermisos } from "./push";
 
 function renderPush(adminToken: string | null, tenantId: string | null) {
   return render(
@@ -29,7 +36,42 @@ function renderPush(adminToken: string | null, tenantId: string | null) {
 }
 
 describe("PushProvider (HU-APP-05)", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockLeerAjuste.mockResolvedValue(null);
+  });
+
+  it("despacha el push que abrió la app estando cerrada (arranque en frío)", async () => {
+    (consumirRespuestaInicial as jest.Mock).mockReturnValue({ type: "core.escalation" });
+    const alTocar = jest.fn();
+
+    await render(
+      <PushProvider adminToken={null} tenantId={null} projectId="p" alTocarNotificacion={alTocar}>
+        <Text>hijo</Text>
+      </PushProvider>,
+    );
+
+    await waitFor(() => expect(alTocar).toHaveBeenCalledWith({ type: "core.escalation" }));
+  });
+
+  it("si no se puede leer el opt-out, registra igual (solo un '0' explícito apaga el push)", async () => {
+    mockLeerAjuste.mockRejectedValue(new Error("no such table: ajuste_local"));
+    (solicitarPermisos as jest.Mock).mockResolvedValue(true);
+    (obtenerTokenExpo as jest.Mock).mockResolvedValue("ExponentPushToken[abc]");
+
+    await renderPush("t-opaco", "t-1");
+
+    await waitFor(() => expect(registrarPushToken).toHaveBeenCalled());
+  });
+
+  it("con el push apagado en Ajustes no pide permiso", async () => {
+    mockLeerAjuste.mockResolvedValue("0");
+
+    await renderPush("t-opaco", "t-1");
+    await act(async () => undefined);
+
+    expect(solicitarPermisos).not.toHaveBeenCalled();
+  });
 
   it("con sesión y permiso registra el token del dispositivo", async () => {
     (solicitarPermisos as jest.Mock).mockResolvedValue(true);
