@@ -12,7 +12,7 @@ jest.mock("@data/ajustes", () => ({
 import { Alert } from "react-native";
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
-import { guardarAjuste as mockGuardarAjuste, leerAjuste as mockLeerAjuste } from "@data/ajustes";
+import { guardarAjuste as mockGuardarAjuste } from "@data/ajustes";
 import { ConfiguracionScreen } from "./ConfiguracionScreen";
 
 const mockUseAdminApi = useAdminApi as jest.Mock;

@@ -91,7 +91,7 @@ export function DashboardScreen() {
           testID="dashboard-reintentar"
           onPress={() => {
             setCargando(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial: los setState ocurren después del await (no síncronos)
+     
             void cargar().finally(() => setCargando(false));
           }}
           style={({ pressed }) => [

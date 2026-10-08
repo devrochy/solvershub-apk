@@ -105,7 +105,7 @@ describe("PrestamoScreen", () => {
   });
 
   it("muestra la leyenda con los estados del canvas", async () => {
-    const { getByText, getAllByText } = await renderConEstado({
+    const { getAllByText } = await renderConEstado({
       obtenerEstadoCuentaPrestamo: jest.fn().mockResolvedValue(estadoCuenta),
     });
 

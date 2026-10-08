@@ -62,7 +62,7 @@ describe("CobranzaAdminScreen (HU-APP-18)", () => {
   });
 
   it("muestra el resumen con los KPIs del pack", async () => {
-    const { getByTestId, getByText } = await render(<CobranzaAdminScreen />);
+    const { getByText } = await render(<CobranzaAdminScreen />);
     await waitFor(() => expect(getByText("Caja actual")).toBeTruthy());
     expect(getByText("1.200.000")).toBeTruthy();
   });

@@ -12,7 +12,6 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@core/theme/theme-context";
 import type { ColoresTema } from "@core/theme/theme";
-import { conAlfa } from "@core/theme/alpha";
 import { shColor } from "@core/theme/tokens";
 
 export interface ModalConFooterProps {

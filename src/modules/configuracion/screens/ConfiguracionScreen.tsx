@@ -99,7 +99,7 @@ export function ConfiguracionScreen() {
         .then((v) => setPushOn(v !== "0"))
         .catch(() => undefined);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al entrar a la pestaña
+     
   }, [pestana, api]);
 
   const enviarInvitacion = async () => {

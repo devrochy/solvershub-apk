@@ -1,4 +1,4 @@
-import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef , useNavigation } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -7,7 +7,6 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { grupoVisible, seccionesPermitidas } from "@core/permisos";
 import { useTheme } from "@core/theme/theme-context";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SeccionEnConstruccion } from "./screens/SeccionEnConstruccion";
 import { DashboardScreen } from "../modules/dashboard";

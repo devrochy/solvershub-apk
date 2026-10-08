@@ -70,7 +70,7 @@ describe("cola offline sobre SQLite (HU-APP-07)", () => {
   });
 
   it("remueve eventos sincronizados", async () => {
-    const db = await baseSqlite();
+    await baseSqlite();
     const a = await encolar("pago", {});
     const b = await encolar("gasto", {});
     expect(await contarCola()).toBe(2);

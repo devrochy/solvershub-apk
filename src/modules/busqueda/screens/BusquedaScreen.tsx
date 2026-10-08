@@ -8,7 +8,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import NetInfo from "@react-native-community/netinfo";
 import { useNavigation } from "@react-navigation/native";
 import { emitirNavegacion } from "@shared/navegacion-evento";
 import { useTheme } from "@core/theme/theme-context";

@@ -120,7 +120,7 @@ describe("CalendarioScreen (HU-APP-11)", () => {
 
   it("crea un bloqueo desde el modal (HU-APP-20)", async () => {
     mockPost.mockResolvedValue(undefined);
-    const { getByTestId, getByText } = await render(<CalendarioScreen />);
+    const { getByTestId } = await render(<CalendarioScreen />);
     await waitFor(() => expect(getByTestId("calendario-lista-semana")).toBeTruthy());
 
     await fireEvent.press(getByTestId("calendario-bloqueos"));
