@@ -136,6 +136,52 @@ export async function guardarMemory(api: ClienteAdmin, values: MemorySettings): 
   await api.put<void>("/admin/settings/memory", values);
 }
 
+// --- Chat web y Avanzado (panel: /configuracion, pestañas "Chat web" y "Avanzado") ---
+
+export type WebChatSettings = components["schemas"]["WebChatSettings"];
+export type WebChatUpdate = components["schemas"]["WebChatUpdate"];
+export type AdvancedResponse = components["schemas"]["AdvancedResponse"];
+export type LlmUpdate = components["schemas"]["LlmUpdate"];
+export type GuardrailsSettings = components["schemas"]["GuardrailsSettings"];
+
+export async function cargarChatWeb(api: ClienteAdmin): Promise<WebChatSettings> {
+  return api.get<WebChatSettings>("/admin/settings/web-chat");
+}
+
+export async function guardarChatWeb(
+  api: ClienteAdmin,
+  values: WebChatUpdate,
+): Promise<WebChatSettings> {
+  return api.put<WebChatSettings>("/admin/settings/web-chat", values);
+}
+
+export async function cargarAvanzado(api: ClienteAdmin): Promise<AdvancedResponse> {
+  return api.get<AdvancedResponse>("/admin/settings/advanced");
+}
+
+export async function guardarLlm(api: ClienteAdmin, values: LlmUpdate): Promise<void> {
+  await api.put<void>("/admin/settings/advanced/llm", values);
+}
+
+/** Devuelve las líneas del DSL que el backend ignoró (el resto sí se guarda). */
+export async function guardarGuardrails(
+  api: ClienteAdmin,
+  guardrailsText: string,
+): Promise<GuardrailsSettings> {
+  return api.put<GuardrailsSettings>("/admin/settings/advanced/guardrails", {
+    guardrails_text: guardrailsText,
+  });
+}
+
+/** Reemplaza el AgentSpec completo; el backend crea versión solo si cambió. */
+export async function guardarSpec(api: ClienteAdmin, spec: Record<string, unknown>): Promise<void> {
+  await api.put<void>("/admin/settings/advanced/spec", { spec });
+}
+
+export async function activarVersionSpec(api: ClienteAdmin, versionId: string): Promise<void> {
+  await api.post<void>(`/admin/settings/advanced/versions/${encodeURIComponent(versionId)}/activate`);
+}
+
 // ---------------- Cierre de réplica: checklist de Meta ----------------
 
 export type ChecklistOut = components["schemas"]["ChecklistOut"];
