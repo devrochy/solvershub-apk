@@ -3247,6 +3247,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pack/pack_subscriptions/cargos/{charge_id}/avisos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Avisos Del Cargo
+         * @description Qué se le avisó al cliente por este cargo, cuándo y con qué resultado (HU-SUB-05).
+         */
+        get: operations["avisos_del_cargo_api_v1_pack_pack_subscriptions_cargos__charge_id__avisos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/pack_subscriptions/suscripciones": {
         parameters: {
             query?: never;
@@ -3579,6 +3599,30 @@ export interface components {
             motivo: string;
             /** Operacion */
             operacion: string;
+        };
+        /** AvisoOut */
+        AvisoOut: {
+            /**
+             * Creado
+             * Format: date-time
+             */
+            creado: string;
+            /** Enviado */
+            enviado?: string | null;
+            /** Error Evento */
+            error_evento?: string | null;
+            /** Estado Evento */
+            estado_evento: string;
+            /** Evento */
+            evento: string;
+            /** Intentos */
+            intentos: number;
+            /** Mensaje Error */
+            mensaje_error?: string | null;
+            /** Mensaje Estado */
+            mensaje_estado?: string | null;
+            /** Plantilla */
+            plantilla?: string | null;
         };
         /** BillingRequest */
         BillingRequest: {
@@ -13825,6 +13869,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    avisos_del_cargo_api_v1_pack_pack_subscriptions_cargos__charge_id__avisos_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                charge_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvisoOut"][];
+                };
             };
             /** @description Validation Error */
             422: {

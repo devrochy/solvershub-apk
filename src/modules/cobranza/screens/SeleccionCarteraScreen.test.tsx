@@ -1,4 +1,4 @@
-import { act, fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { Pressable, Text } from "react-native";
 import { SeleccionCarteraScreen } from "./SeleccionCarteraScreen";
 import { bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";

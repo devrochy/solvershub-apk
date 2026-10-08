@@ -81,7 +81,6 @@ import { shColor } from "@core/theme/tokens";
 
 import type {
   ClienteTarjetaPublic,
-  CuotaPublic,
   DetalleCuotaPublic,
   EstadoCuentaPrestamoPublic,
   PrestamoPublic,
@@ -276,11 +275,6 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     [prestamos, prestamoSeleccionadoId],
   );
 
-  const cuotaPorPagar = useMemo(
-    () =>
-      prestamoSeleccionado?.cuotas.find((c) => esPendienteOAtrasada(c.estatus)),
-    [prestamoSeleccionado],
-  );
 
   // Carga el estado de cuenta del préstamo seleccionado (canvas con abonos/saldo).
   const prestamoDetalleId = prestamoSeleccionado?.id ?? null;

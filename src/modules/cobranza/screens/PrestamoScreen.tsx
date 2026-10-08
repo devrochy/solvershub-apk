@@ -7,7 +7,6 @@ import { CargaError } from "../components/CargaError";
 import { HeaderApp } from "../components/HeaderApp";
 import {
   enlaceWhatsApp,
-  textoReportePrestamo,
 } from "../features/estado-cuenta/estado-cuenta";
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import type { RootStackParamList } from "../navigation/types";

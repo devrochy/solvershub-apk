@@ -83,7 +83,8 @@ export function TrayectoDiarioScreen() {
     quitar,
   } = useEvidencias();
   const trayectoria = useTrayectoria();
-  const posicion = usePosicion(api, carteraId, trayectoria.activa, trayectoria.puntos.length);
+  // Solo por sus efectos: reporta la posición mientras la trayectoria está activa.
+  usePosicion(api, carteraId, trayectoria.activa, trayectoria.puntos.length);
   const [trayectoriaMensaje, setTrayectoriaMensaje] = useState<string | null>(null);
   const [generandoTrayecto, setGenerandoTrayecto] = useState(false);
   const [trayectoriaEnviando, setTrayectoriaEnviando] = useState(false);
@@ -227,7 +228,7 @@ export function TrayectoDiarioScreen() {
       });
       await limpiarBorrador(`gasto:${carteraId}`);
     })().catch(() => undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar la cartera
+     
   }, [carteraId]);
 
   async function registrarGasto() {

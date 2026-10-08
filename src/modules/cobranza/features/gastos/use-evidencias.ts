@@ -46,7 +46,7 @@ async function aEvidencia(asset: {
  */
 export function evidenciasParaOffline(
   evidencias: EvidenciaSeleccionada[],
-): Array<{ nombre: string; mimetype: string; base64: string }> {
+): { nombre: string; mimetype: string; base64: string }[] {
   return evidencias
     .filter((e) => e.base64 != null)
     .map((e) => ({ nombre: e.name, mimetype: e.type, base64: e.base64 as string }));

@@ -6,12 +6,11 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+ Modal, ScrollView, TextInput , Linking } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { apiRoot } from "@core/config";
-import { Modal, ScrollView, TextInput } from "react-native";
 import {
   cargarBloqueos,
   cargarConfigPlugin,
@@ -26,7 +25,6 @@ import {
   type TypeOut,
   type WeekItem,
 } from "../api";
-import { Linking } from "react-native";
 
 const DIAS_SEMANA: { key: string; label: string }[] = [
   { key: "mon", label: "Lunes" },
@@ -139,7 +137,7 @@ export function CalendarioScreen() {
         })
         .catch(() => setError("No pudimos cargar el horario."));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al entrar a la pestaña
+     
   }, [pestana, api]);
 
   const setRango = (dia: string, inicio: string, fin: string) => {

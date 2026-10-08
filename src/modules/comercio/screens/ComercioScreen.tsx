@@ -7,11 +7,10 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+ Modal, TextInput } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import NetInfo from "@react-native-community/netinfo";
-import { Modal, TextInput } from "react-native";
 import { baseActual } from "@data/bootstrap";
 import { cambiarEstadoPedidoConOffline } from "../offline";
 import { crearCategoria, crearProducto, crearPromocion } from "../api";

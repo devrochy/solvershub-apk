@@ -123,7 +123,13 @@ function RootNavigator() {
   const { sesion: sesionAdmin, loading: loadingAdmin } = useAdminSession();
   const bio = useBloqueoBiometrico(sesionAdmin?.adminId ?? null);
   const [modoPanel, setModoPanel] = useState(false);
-  setModoPanelRef.current = setModoPanel;
+  // El setter es estable: se publica tras montar para los handlers de fuera del árbol.
+  useEffect(() => {
+    setModoPanelRef.current = setModoPanel;
+    return () => {
+      setModoPanelRef.current = null;
+    };
+  }, []);
 
   // Hidratación inicial: admin persistido sin sesión de campo (usuario de
   // panel) entra directo al panel; el login en curso no dispara este efecto.
@@ -132,6 +138,7 @@ function RootNavigator() {
     if (!loadingAdmin && !loading && !hidratado.current) {
       hidratado.current = true;
       if (sesionAdmin && !gestor) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación única al restaurar la sesión
         setModoPanel(true);
       }
     }

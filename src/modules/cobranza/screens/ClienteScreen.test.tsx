@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { conAlfa } from "@core/theme/alpha";
 import { shColor } from "@core/theme/tokens";
-import { Alert } from "react-native";
+import { Alert , Linking } from "react-native";
 import { ClienteScreen } from "./ClienteScreen";
 import { colorDeEstado } from "../components/ColorBadge";
 import { ApiError } from "@core/api/client";
@@ -50,7 +50,6 @@ jest.mock("expo-image-picker", () => ({
   }),
 }));
 
-import { Linking } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import { shareAsync } from "expo-sharing";
 import { enlaceWhatsApp } from "../features/estado-cuenta/estado-cuenta";
@@ -217,18 +216,6 @@ async function renderConApi(
 }
 
 describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota)", () => {
-  // Abre el préstamo, toca la cuota y despliega la acción indicada.
-  async function abrirModalConAccion(accion: "accion-pago" | "accion-no-pago") {
-    const { getByTestId } = await renderConApi({}, offlineValor, {
-      prestamoAutoSeleccionado: true,
-    });
-    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
-    await fireEvent.press(getByTestId("cuota-1"));
-    await waitFor(() => expect(getByTestId(accion)).toBeTruthy());
-    await fireEvent.press(getByTestId(accion));
-    return { getByTestId, getByText: getByTestId };
-  }
-
   const detalleCuotaFixture = (estatus = "pendiente") => ({
     cuotaId: "10",
     numeroCuota: 1,
@@ -860,7 +847,7 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
   it("no encola si no cambió ningún campo", async () => {
     const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
     const offlineConError: OfflineValue = { ...offlineValor, encolarSiNoExiste };
-    const { getByTestId, getByText } = await renderConApi({}, offlineConError);
+    const { getByTestId } = await renderConApi({}, offlineConError);
 
     await waitFor(() => expect(getByTestId("btn-editar-cliente")).toBeTruthy());
     await fireEvent.press(getByTestId("btn-editar-cliente"));

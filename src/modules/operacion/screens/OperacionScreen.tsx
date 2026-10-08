@@ -108,7 +108,7 @@ export function OperacionScreen() {
         .catch(() => setError("No pudimos cargar los clientes."))
         .finally(() => setCargando(false));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al cambiar de pestaña o búsqueda de leads
+     
   }, [pestana, busquedaLeads, api]);
 
   const abrirConversacion = (id: string, titulo: string) =>
@@ -128,7 +128,7 @@ export function OperacionScreen() {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- el setState ocurre tras el await de recargarPlayground
       void recargarPlayground().finally(() => setCargando(false));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al entrar a la pestaña
+     
   }, [pestana, recargarPlayground]);
 
   const colorEstado = (estadoConversacion: string) =>

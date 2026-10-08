@@ -50,7 +50,7 @@ export function dedupeKeyCambioCliente(clienteId: string): string {
   return `cambio_cliente-${clienteId}`;
 }
 
-const CAMBIABLES: Array<keyof CambioClienteInput> = [
+const CAMBIABLES: (keyof CambioClienteInput)[] = [
   "nombre",
   "apellido",
   "negocio",

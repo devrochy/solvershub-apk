@@ -43,11 +43,11 @@ export function enlaceGoogleMaps(latitud: number, longitud: number): string {
  * Devuelve null si no hay al menos una parada con coordenadas.
  */
 export function enlaceGoogleMapsCartera(
-  paradas: Array<{ latitud?: number; longitud?: number }>,
+  paradas: { latitud?: number; longitud?: number }[],
 ): string | null {
   const conCoords = paradas.filter(
     (p) => typeof p.latitud === "number" && typeof p.longitud === "number",
-  ) as Array<{ latitud: number; longitud: number }>;
+  ) as { latitud: number; longitud: number }[];
   if (conCoords.length === 0) {
     return null;
   }

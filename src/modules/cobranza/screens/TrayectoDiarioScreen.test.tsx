@@ -33,11 +33,9 @@ jest.mock("../components/TrayectosLista", () => {
       clientes,
       trayectos,
     }: {
-      clientes: Array<{ clienteId: string; nombre: string }>;
+      clientes: { clienteId: string; nombre: string }[];
       trayectos: {
-        ordenClientes: Array<
-          Array<{ clienteId: string; latitud?: number; longitud?: number }>
-        >;
+        ordenClientes: { clienteId: string; latitud?: number; longitud?: number }[][];
       };
     }) =>
       React.createElement(

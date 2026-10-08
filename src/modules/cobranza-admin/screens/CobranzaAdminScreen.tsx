@@ -141,7 +141,7 @@ export function CobranzaAdminScreen() {
 
   useEffect(() => {
     const temporizador = setTimeout(
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial: setState tras el await
+       
       () => void cargar().finally(() => setCargando(false)),
       0,
     );
