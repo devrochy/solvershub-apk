@@ -3,6 +3,7 @@ jest.mock("./push", () => ({
   solicitarPermisos: jest.fn(),
   obtenerTokenExpo: jest.fn(),
   addListener: jest.fn(() => ({ remove: jest.fn() })),
+  consumirRespuestaInicial: jest.fn(),
 }));
 const mockLeerAjuste = jest.fn();
 jest.mock("@data/ajustes", () => ({
@@ -19,7 +20,7 @@ import { act, render, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { darDeBajaPushToken, registrarPushToken } from "./api";
 import { PushProvider } from "./provider";
-import { addListener, obtenerTokenExpo, solicitarPermisos } from "./push";
+import { addListener, consumirRespuestaInicial, obtenerTokenExpo, solicitarPermisos } from "./push";
 
 function renderPush(adminToken: string | null, tenantId: string | null) {
   return render(
@@ -38,6 +39,19 @@ describe("PushProvider (HU-APP-05)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLeerAjuste.mockResolvedValue(null);
+  });
+
+  it("despacha el push que abrió la app estando cerrada (arranque en frío)", async () => {
+    (consumirRespuestaInicial as jest.Mock).mockReturnValue({ type: "core.escalation" });
+    const alTocar = jest.fn();
+
+    await render(
+      <PushProvider adminToken={null} tenantId={null} projectId="p" alTocarNotificacion={alTocar}>
+        <Text>hijo</Text>
+      </PushProvider>,
+    );
+
+    await waitFor(() => expect(alTocar).toHaveBeenCalledWith({ type: "core.escalation" }));
   });
 
   it("si no se puede leer el opt-out, registra igual (solo un '0' explícito apaga el push)", async () => {

@@ -93,3 +93,21 @@ export function addListener(
   });
   return sub;
 }
+
+/**
+ * Datos del push que abrió la app estando cerrada (arranque en frío): el listener
+ * de respuestas no lo recibe porque se registra después. Se limpia al leerlo para
+ * que un arranque normal posterior no vuelva a navegar.
+ */
+export function consumirRespuestaInicial(): Record<string, unknown> | undefined {
+  const Notifications = notificaciones();
+  if (!Notifications) {
+    return undefined;
+  }
+  const respuesta = Notifications.getLastNotificationResponse();
+  if (!respuesta) {
+    return undefined;
+  }
+  Notifications.clearLastNotificationResponse();
+  return respuesta.notification.request.content.data as Record<string, unknown> | undefined;
+}

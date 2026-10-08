@@ -8,6 +8,8 @@ jest.mock("expo-notifications", () => ({
   requestPermissionsAsync: jest.fn(),
   getExpoPushTokenAsync: jest.fn(),
   addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  getLastNotificationResponse: jest.fn(),
+  clearLastNotificationResponse: jest.fn(),
   AndroidImportance: { MAX: 5 },
 }));
 
@@ -15,6 +17,7 @@ import * as Notifications from "expo-notifications";
 import {
   addListener,
   configurarCanal,
+  consumirRespuestaInicial,
   enExpoGo,
   obtenerTokenExpo,
   solicitarPermisos,
@@ -34,6 +37,17 @@ describe("push (HU-APP-05)", () => {
     await configurarCanal();
     // En el resto de plataformas no se vuelve a llamar.
     expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it("devuelve una sola vez el push que abrió la app (arranque en frío)", () => {
+    (Notifications.getLastNotificationResponse as jest.Mock).mockReturnValue({
+      notification: { request: { content: { data: { type: "core.escalation" } } } },
+    });
+    expect(consumirRespuestaInicial()).toEqual({ type: "core.escalation" });
+    expect(Notifications.clearLastNotificationResponse).toHaveBeenCalled();
+
+    (Notifications.getLastNotificationResponse as jest.Mock).mockReturnValue(null);
+    expect(consumirRespuestaInicial()).toBeUndefined();
   });
 
   it("no pide permiso si ya está concedido", async () => {

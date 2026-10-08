@@ -1,6 +1,12 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { darDeBajaPushToken, registrarPushToken } from "./api";
-import { addListener, configurarCanal, obtenerTokenExpo, solicitarPermisos } from "./push";
+import {
+  addListener,
+  configurarCanal,
+  consumirRespuestaInicial,
+  obtenerTokenExpo,
+  solicitarPermisos,
+} from "./push";
 import { CLAVE_PUSH_HABILITADO, leerAjuste, suscribirAjustes } from "@data/ajustes";
 
 export interface PushDatos {
@@ -72,11 +78,14 @@ export function PushProvider({
   }, []);
 
   useEffect(() => {
-    const sub = addListener((datos) => {
+    const despachar = (datos: Record<string, unknown> | undefined) => {
       if (datos && Object.keys(datos).length > 0) {
         alTocarRef.current(datos as PushDatos);
       }
-    });
+    };
+    // Arranque en frío: el push que abrió la app llega antes que este listener.
+    despachar(consumirRespuestaInicial());
+    const sub = addListener(despachar);
     return () => sub.remove();
   }, []);
 
