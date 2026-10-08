@@ -10,7 +10,7 @@ jest.mock("@data/ajustes", () => ({
 }));
 
 import { Alert } from "react-native";
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { guardarAjuste as mockGuardarAjuste, leerAjuste as mockLeerAjuste } from "@data/ajustes";
 import { ConfiguracionScreen } from "./ConfiguracionScreen";
@@ -290,6 +290,8 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
       ),
     );
     await waitFor(() => expect(getByTestId("ajustes-mensaje")).toBeTruthy());
+    // La confirmación va junto al botón (abajo del formulario), no arriba fuera de pantalla.
+    expect(within(getByTestId("ajustes-pie")).getByTestId("ajustes-mensaje")).toBeTruthy();
   });
 
   it("muestra y guarda los requisitos de Meta (cierre de réplica)", async () => {

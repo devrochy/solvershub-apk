@@ -382,17 +382,6 @@ export function AjustesTab() {
             ))}
           </View>
 
-          {error ? (
-            <Text testID="ajustes-error" style={{ color: colores.peligro, marginBottom: 8 }}>
-              {error}
-            </Text>
-          ) : null}
-          {mensaje ? (
-            <Text testID="ajustes-mensaje" style={{ color: colores.acento, marginBottom: 8 }}>
-              {mensaje}
-            </Text>
-          ) : null}
-
           {sub === "identidad" ? (
             <View testID="ajustes-identidad">
               <Campo id="ajustes-nombre" label="Nombre del asistente">
@@ -720,16 +709,29 @@ export function AjustesTab() {
             </View>
           )}
 
-          <Pressable
-            testID="ajustes-guardar"
-            disabled={guardando}
-            onPress={() => void guardar()}
-            style={[styles.guardar, { backgroundColor: colores.primario }]}
-          >
-            <Text style={{ color: "#ffffff", fontWeight: "700" }}>
-              {guardando ? "Guardando…" : "Guardar"}
-            </Text>
-          </Pressable>
+          {/* Resultado junto al botón: el formulario es largo y arriba quedaría fuera de pantalla. */}
+          <View testID="ajustes-pie">
+            {error ? (
+              <Text testID="ajustes-error" style={[styles.resultado, { color: colores.peligro }]}>
+                {error}
+              </Text>
+            ) : null}
+            {mensaje ? (
+              <Text testID="ajustes-mensaje" style={[styles.resultado, { color: colores.acento }]}>
+                {mensaje}
+              </Text>
+            ) : null}
+            <Pressable
+              testID="ajustes-guardar"
+              disabled={guardando}
+              onPress={() => void guardar()}
+              style={[styles.guardar, { backgroundColor: colores.primario }]}
+            >
+              <Text style={{ color: "#ffffff", fontWeight: "700" }}>
+                {guardando ? "Guardando…" : "Guardar"}
+              </Text>
+            </Pressable>
+          </View>
         </>
       )}
     </ScrollView>
@@ -746,6 +748,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     fontSize: 13,
   },
+  resultado: { textAlign: "center", marginTop: 8 },
   guardar: {
     alignSelf: "center",
     paddingHorizontal: 28,

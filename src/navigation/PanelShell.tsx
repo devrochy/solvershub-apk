@@ -2,6 +2,7 @@ import { NavigationContainer, createNavigationContainerRef } from "@react-naviga
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { grupoVisible, seccionesPermitidas } from "@core/permisos";
 import { useTheme } from "@core/theme/theme-context";
@@ -202,6 +203,33 @@ function MasScreen() {
   );
 }
 
+/**
+ * Grupos que se montan dentro de un stack con header nativo (que ya reserva la
+ * barra de estado). El resto va sin header (`headerShown: false`) y con
+ * edge-to-edge (targetSdk 36) quedaría bajo la barra de estado.
+ */
+const GRUPOS_CON_STACK = new Set(["conversaciones", "cobranza"]);
+
+export function usaAreaSeguraSuperior(clave: string): boolean {
+  return !GRUPOS_CON_STACK.has(clave);
+}
+
+function ContenidoConAreaSegura({ grupo }: { grupo: GrupoSecciones }) {
+  const { colores } = useTheme();
+  if (!usaAreaSeguraSuperior(grupo.clave)) {
+    return <ContenidoDeGrupo grupo={grupo} />;
+  }
+  return (
+    <SafeAreaView
+      testID={`area-segura-${grupo.clave}`}
+      edges={["top"]}
+      style={{ flex: 1, backgroundColor: colores.fondo }}
+    >
+      <ContenidoDeGrupo grupo={grupo} />
+    </SafeAreaView>
+  );
+}
+
 function ContenidoDeGrupo({ grupo }: { grupo: GrupoSecciones }) {
   if (grupo.clave === "inicio") {
     return <DashboardScreen />;
@@ -268,7 +296,7 @@ export function PanelShell() {
               ),
             }}
           >
-            {() => <ContenidoDeGrupo grupo={grupo} />}
+            {() => <ContenidoConAreaSegura grupo={grupo} />}
           </Tab.Screen>
         ))}
         <Tab.Screen

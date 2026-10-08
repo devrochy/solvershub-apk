@@ -57,6 +57,23 @@ describe("SeleccionNegocioAdminScreen (HU-APP-03)", () => {
     expect(queryByTestId("negocio-t-3")).toBeNull();
   });
 
+  it("respeta el área segura (barra de estado y navegación del sistema)", async () => {
+    const { getByTestId } = await render(
+      <SeleccionNegocioAdminScreen
+        onAutenticado={jest.fn()}
+        onEntrarPanel={jest.fn()}
+        onCancelar={jest.fn()}
+      />,
+    );
+    await waitFor(() => expect(getByTestId("negocio-t-1")).toBeTruthy());
+    expect(getByTestId("selector-negocio-admin").props.edges).toEqual([
+      "top",
+      "left",
+      "right",
+      "bottom",
+    ]);
+  });
+
   it("al elegir un negocio intercambia tokens y aplica la sesión", async () => {
     const CAMPO = { accessToken: "a", refreshToken: "r", rol: "propietario" };
     mockExchange.mockResolvedValue(CAMPO);

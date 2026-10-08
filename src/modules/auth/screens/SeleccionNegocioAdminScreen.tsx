@@ -5,8 +5,8 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@core/theme/theme-context";
 import type { LoginResult } from "@shared/types/auth";
 import { useAdminSession } from "@core/session/admin-session-context";
@@ -82,7 +82,11 @@ export function SeleccionNegocioAdminScreen({
   );
 
   return (
-    <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
+    <SafeAreaView
+      testID="selector-negocio-admin"
+      edges={["top", "left", "right", "bottom"]}
+      style={[styles.contenedor, { backgroundColor: colores.fondo }]}
+    >
       <Text style={[styles.titulo, { color: colores.texto }]}>Elige tu negocio</Text>
 
       {negocios === null && !error ? (
@@ -126,7 +130,7 @@ export function SeleccionNegocioAdminScreen({
       >
         <Text style={[styles.cancelar, { color: colores.acento }]}>Cerrar sesión</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 

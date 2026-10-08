@@ -196,7 +196,12 @@ export function CobranzaAdminScreen() {
 
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pestanasScroll}>
+      <ScrollView
+        testID="cobranza-pestanas"
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.pestanasScroll}
+      >
         {visibles.map((p) => (
           <Pressable
             key={p.clave}
@@ -411,7 +416,8 @@ function CampoRegla({ etiqueta, valor, onChange }: { etiqueta: string; valor: nu
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, padding: 10 },
-  pestanasScroll: { marginBottom: 10 },
+  // flexGrow 0: un ScrollView horizontal en columna crece y deja un hueco bajo las pestañas.
+  pestanasScroll: { flexGrow: 0, marginBottom: 10 },
   pestana: { paddingVertical: 10, paddingHorizontal: 10, alignItems: "center" },
   campo: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10, fontSize: 14, marginBottom: 6 },
   fila: { borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 8, flexDirection: "row", alignItems: "center" },
