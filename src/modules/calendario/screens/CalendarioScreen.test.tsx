@@ -147,6 +147,7 @@ describe("CalendarioScreen (HU-APP-11)", () => {
         values: expect.objectContaining({ business_hours: expect.stringContaining('"mon":"09:00-17:00"') }),
       }),
     );
+    await waitFor(() => expect(getByTestId("horario-mensaje")).toBeTruthy());
   });
 
 

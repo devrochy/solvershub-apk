@@ -5,7 +5,7 @@ jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: () => ({ sesion: SESION_ESTABLE, loading: false }),
 }));
 
-import { Alert } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { CobranzaAdminScreen } from "./CobranzaAdminScreen";
@@ -65,6 +65,12 @@ describe("CobranzaAdminScreen (HU-APP-18)", () => {
     const { getByTestId, getByText } = await render(<CobranzaAdminScreen />);
     await waitFor(() => expect(getByText("Caja actual")).toBeTruthy());
     expect(getByText("1.200.000")).toBeTruthy();
+  });
+
+  it("la barra de pestañas no crece en vertical (sin hueco bajo las pestañas)", async () => {
+    const { getByTestId, getByText } = await render(<CobranzaAdminScreen />);
+    await waitFor(() => expect(getByText("Caja actual")).toBeTruthy());
+    expect(StyleSheet.flatten(getByTestId("cobranza-pestanas").props.style).flexGrow).toBe(0);
   });
 
   it("lista clientes con búsqueda", async () => {

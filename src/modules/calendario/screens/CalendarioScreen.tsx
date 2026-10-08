@@ -86,6 +86,7 @@ export function CalendarioScreen() {
   const [horario, setHorario] = useState<Record<string, string>>({});
   const [configPlugin, setConfigPlugin] = useState<Record<string, unknown> | null>(null);
   const [guardandoHorario, setGuardandoHorario] = useState(false);
+  const [horarioGuardado, setHorarioGuardado] = useState(false);
   const [conexion, setConexion] = useState<EstadoConexionCalendario | null>(null);
 
   const cargar = useCallback(async () => {
@@ -129,10 +130,12 @@ export function CalendarioScreen() {
 
   const setRango = (dia: string, inicio: string, fin: string) => {
     setHorario((previo) => ({ ...previo, [dia]: inicio && fin ? `${inicio}-${fin}` : "" }));
+    setHorarioGuardado(false);
   };
 
   const guardarHorario = async () => {
     setGuardandoHorario(true);
+    setHorarioGuardado(false);
     try {
       const limpio: Record<string, string> = {};
       for (const [k, v] of Object.entries(horario)) {
@@ -147,6 +150,7 @@ export function CalendarioScreen() {
       const res = await guardarConfigPlugin(api, "pack_calendar", valores);
       setConfigPlugin(res.values);
       setHorario(parsearHorario(res.values?.business_hours));
+      setHorarioGuardado(true);
     } catch {
       setError("No se pudo guardar el horario.");
     } finally {
@@ -405,6 +409,14 @@ export function CalendarioScreen() {
           >
             <Text style={{ color: "#ffffff", fontWeight: "700" }}>Guardar horario</Text>
           </Pressable>
+          {horarioGuardado ? (
+            <Text
+              testID="horario-mensaje"
+              style={{ color: colores.acento, textAlign: "center", marginTop: 8 }}
+            >
+              Horario guardado.
+            </Text>
+          ) : null}
         </ScrollView>
       ) : (
         <FlatList

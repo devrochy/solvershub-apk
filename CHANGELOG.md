@@ -33,3 +33,12 @@
 
 - Diario, clientes, visitas pago/no-pago, gastos con evidencias, trayectoria GPS,
   liquidación con PDF y cola offline idempotente — intactos, ahora sobre la base cifrada.
+
+### Corregido
+
+- Pantallas del panel sin encabezado propio (Inicio, Comercio, Calendario, Negocio,
+  Configuración) y el selector de negocio respetan el área segura: las pestañas ya no quedan
+  bajo la barra de estado (el toque se perdía en Android edge-to-edge).
+- Cobranza admin: la barra de pestañas ya no deja un hueco vacío antes del contenido.
+- Calendario · Horario confirma "Horario guardado."; Ajustes muestra el resultado junto al
+  botón Guardar (antes quedaba arriba, fuera de pantalla).

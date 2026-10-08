@@ -14,7 +14,7 @@ jest.mock("@core/session/admin-session-context", () => ({
 }));
 
 import { render, waitFor } from "@testing-library/react-native";
-import { PanelShell } from "./PanelShell";
+import { PanelShell, usaAreaSeguraSuperior } from "./PanelShell";
 
 describe("PanelShell (HU-APP-03)", () => {
   beforeEach(() => {
@@ -44,6 +44,28 @@ describe("PanelShell (HU-APP-03)", () => {
     // Calendario y Negocio sin permiso → no aparecen como tabs.
     expect(queryByText("Calendario")).toBeNull();
     expect(queryByText("Negocio")).toBeNull();
+  });
+
+  it("los grupos sin encabezado propio reservan el área segura superior", async () => {
+    mockSesionValue = {
+      token: "t",
+      adminId: "a-1",
+      role: "owner",
+      permissions: { dashboard: "read" },
+    };
+
+    const { getByTestId } = await render(<PanelShell />);
+    // Inicio no tiene stack con header: sin el inset su contenido queda bajo la barra de estado.
+    await waitFor(() => expect(getByTestId("area-segura-inicio")).toBeTruthy());
+    expect(getByTestId("area-segura-inicio").props.edges).toEqual(["top"]);
+  });
+
+  it("solo los grupos con stack propio (header nativo) omiten el área segura", () => {
+    expect(usaAreaSeguraSuperior("cobranza")).toBe(false);
+    expect(usaAreaSeguraSuperior("conversaciones")).toBe(false);
+    for (const clave of ["inicio", "comercio", "calendario", "negocio", "configuracion"]) {
+      expect(usaAreaSeguraSuperior(clave)).toBe(true);
+    }
   });
 
   it("colaborador sin permisos solo ve Más (sin grupos)", async () => {
