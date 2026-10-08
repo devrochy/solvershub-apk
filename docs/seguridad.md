@@ -23,11 +23,18 @@ Checklist OWASP MASVS v2 · nivel L1 aplicado a la app (evidencia de implementac
    Para probar un pin nuevo sin tocar código: `SOLVERSHUB_PINS` en el `env` del perfil de EAS (SPKI SHA-256 en base64, separados por coma).
 3. Release nueva (AAB/APK). El `network_security_config` es nativo: **un OTA (EAS Update) no lo cambia**; los dispositivos con el pin viejo necesitan instalar la build nueva antes de que el certificado deje de coincidir.
 
-## Verificación (pendiente de build)
+## Verificación en dispositivo (OPPO CPH2603, 2026-10-08)
 
-- Positivo: build `preview`/`development` conecta con la API en staging (pins OK).
-- Negativo: build de prueba con pin inválido → la conexión se rechaza (mitigación MITM).
-- Nota: Expo Go NO aplica NSC — la verificación exige build propia (EAS).
+Contra `https://test.solvershub.site`, con las mismas credenciales (`gestor@demo.test`) y la misma red:
+
+| Prueba | Build | Pins en el APK (`res/*.xml` compilado) | Resultado |
+|---|---|---|---|
+| Negativa | `preview-pin-negativo` (EAS `c9b35466`) | solo `AAAA…A=` (ajeno) | Login rechazado: "Sin conexión con el servidor" (fallo de red/TLS, no 401/403); no llega al selector de negocio |
+| Control positivo | `preview` (EAS `e005ae24`) | LE YE2 + ISRG Root X2 | Login OK → "Elige tu negocio" |
+
+Pins vigentes comprobados con `openssl` (cadena de `test.` y `app.solvershub.site`): YE2 = `s/tdAOmU…`, ISRG Root X2 = `diGVwiVY…`.
+
+Cómo repetirla en cada release: `eas build --profile preview-pin-negativo --platform android`, instalar limpio, intentar el login (debe fallar) y reinstalar el `preview` normal (debe entrar). Expo Go NO aplica NSC: la verificación exige build propia (EAS).
 
 ## Deuda
 
