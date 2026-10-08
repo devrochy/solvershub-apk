@@ -43,14 +43,16 @@ npx eas-cli env:set --name GOOGLE_SERVICES_JSON --type file --value ./google-ser
 
 ## 4. Backend de test: activar el envío
 
-En Coolify, en **`agent-core-test-worker`** (`wv6kycjeae0lmfj11dprkasq`):
+En Coolify, en el worker de test **`uqfcdd4a3cf5d4iqa0uosrp0`**, que es el que se despliega
+con `develop`:
 
 - `EXPO_PUSH_ENABLED=true`
 - `EXPO_PUSH_ACCESS_TOKEN=<token>`, solo si activas *Enhanced push security* en el proyecto de Expo.
 
-Redespliega el worker. Si el clon `clone-of-agent-core-test-work` (`uqfcdd4a3cf5d4iqa0uosrp0`)
-también consume la cola, ponle la misma variable: una tarea que caiga en él seguiría
-quedándose en `push_disabled`.
+Redespliega el worker. Ojo: al 2026-10-08 también sigue arriba un worker viejo,
+`wv6kycjeae0lmfj11dprkasq`, con la imagen del 2026-09-28. Si consume la misma cola, una tarea
+de push que caiga en él se queda en `push_disabled` y además corre con código atrasado. Lo
+mejor es detenerlo; si no, ponle la misma variable.
 
 ## 5. Build y verificación
 
