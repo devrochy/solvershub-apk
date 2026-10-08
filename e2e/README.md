@@ -14,8 +14,14 @@ Flujos de regresión de cobranza (HU-APP-07). Se corren contra el **APK preview*
 ## Corrida
 
 ```bash
-maestro test e2e/smoke-cobranza.yaml
+maestro test e2e/smoke-cobranza.yaml     # campo (gestor)
+maestro test e2e/smoke-panel-dueno.yaml  # panel (dueño)
 ```
+
+Cada flujo arranca sin sesión: entre corridas, `adb uninstall com.solvershub.apk` +
+`adb install <apk>` (`install -r` conserva la sesión y `pm clear` está bloqueado en
+OPPO). El dispositivo sigue aprobado porque el ANDROID_ID no cambia con la misma
+clave de firma.
 
 ## Casos cubiertos
 
@@ -25,6 +31,18 @@ maestro test e2e/smoke-cobranza.yaml
 4. Modo avión → segundo pago queda en la cola → reconectar → sincronización
    (contador "N sin subir" llega a 0, sin duplicados).
 5. Liquidación del día (flujo completo si el día tiene eventos).
+
+### Panel del dueño (`smoke-panel-dueno.yaml`)
+
+1. Login del dueño (`dueno-a@demo.test`) → selector de negocio → "Cobranza Demo".
+2. Cobranza → Gestores (modal con permisos finos, sin guardar) → Propietario.
+3. Comercio → Resumen con KPIs.
+4. Calendario → Horario (guarda los valores sin cambios → "Horario guardado.") → Conexión.
+5. Configuración → Ajustes → guarda Identidad sin cambios ("Identidad guardada.").
+6. Configuración → Conexiones → Meta → Producción → corre las comprobaciones.
+
+Las pestañas inferiores llevan la etiqueta truncada y se tocan por posición
+(`NN%,93%`); la barra de pestañas de Cobranza es angosta y se desliza sobre ella.
 
 ## Estado
 
@@ -42,6 +60,10 @@ Verificado en dispositivo real (OPPO CPH2603) el 2026-10-07:
 - **Certificate pinning (negativo)**: para probar el rechazo, editar el
   plugin `solvershub-nsc` con un pin de otra CA, reconstruir y verificar que
   el login falla con error de certificado (no con 401/403).
+
+APK preview v5 (EAS `04fbf0ed-3d3e-4479-ba14-f30d88f71533`, fix de área segura
+#134), mismo dispositivo, 2026-10-07: `smoke-cobranza.yaml` y
+`smoke-panel-dueno.yaml` completos en verde.
 
 ## Semilla requerida
 

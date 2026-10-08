@@ -1,0 +1,139 @@
+# Smoke del panel en la app oficial (dueño): secciones del cierre de réplica.
+# Contra el APK preview + API de test. Credenciales: demo12345.
+# Requiere instalación limpia (sin sesión previa). Las escrituras guardan los
+# valores tal como llegan (no cambian datos) y corren comprobaciones de Meta.
+appId: com.solvershub.apk
+---
+- launchApp
+- assertVisible: "SolversHub"
+# 1. Login del dueño → selector de negocio
+- tapOn:
+    id: "login-usuario"
+- inputText: "dueno-a@demo.test"
+- tapOn:
+    id: "login-password"
+- inputText: "demo12345"
+- tapOn:
+    id: "login-entrar"
+- assertVisible: "Elige tu negocio"
+# La lista de negocios llega por red (spinner mientras tanto).
+- extendedWaitUntil:
+    visible: "Cobranza Demo"
+    timeout: 30000
+- tapOn: "Cobranza Demo"
+- extendedWaitUntil:
+    visible: "Más"
+    timeout: 20000
+# 2. Cobranza → Gestores (solo lectura) y Propietario
+#    Las etiquetas de las pestañas inferiores van truncadas: se tocan por posición.
+- tapOn:
+    point: "31%,93%"
+- extendedWaitUntil:
+    visible:
+      id: "cobranza-pestanas"
+    timeout: 20000
+# La barra de pestañas es angosta: se desliza sobre ella (no por el centro de la pantalla).
+- repeat:
+    times: 4
+    while:
+      notVisible:
+        id: "cobranza-gestores"
+    commands:
+      - swipe:
+          start: "85%,13%"
+          end: "15%,13%"
+- tapOn:
+    id: "cobranza-gestores"
+- extendedWaitUntil:
+    visible:
+      id: "gestores-lista"
+    timeout: 20000
+- tapOn: "Gestor Demo"
+- assertVisible:
+    id: "permiso-generar_reporte"
+- tapOn: "Cancelar"
+- repeat:
+    times: 3
+    while:
+      notVisible:
+        id: "cobranza-propietario"
+    commands:
+      - swipe:
+          start: "85%,13%"
+          end: "15%,13%"
+- tapOn:
+    id: "cobranza-propietario"
+- extendedWaitUntil:
+    visible:
+      id: "propietario-contenedor"
+    timeout: 20000
+# 3. Comercio → Resumen (pestaña por defecto) con KPIs
+- tapOn:
+    point: "44%,93%"
+- extendedWaitUntil:
+    visible:
+      id: "comercio-kpi-.*"
+    timeout: 20000
+# 4. Calendario → Horario (guardar sin cambios) y Conexión
+- tapOn:
+    point: "56%,93%"
+- tapOn:
+    id: "calendario-horario"
+- extendedWaitUntil:
+    visible:
+      id: "horario-inicio-mon"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "horario-guardar"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "horario-guardar"
+- extendedWaitUntil:
+    visible:
+      id: "horario-mensaje"
+    timeout: 15000
+- tapOn:
+    id: "calendario-conexion"
+- extendedWaitUntil:
+    visible:
+      id: "conexion-tarjeta"
+    timeout: 20000
+# 5. Configuración → Ajustes (guardar identidad sin cambios)
+- tapOn:
+    point: "81%,93%"
+- tapOn:
+    id: "config-ajustes"
+- extendedWaitUntil:
+    visible:
+      id: "ajustes-identidad"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "ajustes-guardar"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: "ajustes-guardar"
+- extendedWaitUntil:
+    visible:
+      id: "ajustes-mensaje"
+    timeout: 15000
+# 6. Conexiones → Meta → Producción: correr comprobaciones
+- tapOn:
+    id: "config-conexiones"
+- tapOn:
+    id: "subconex-meta"
+- extendedWaitUntil:
+    visible:
+      id: "checklist-meta"
+    timeout: 20000
+- tapOn:
+    id: "checklist-sub-production"
+- tapOn:
+    id: "checklist-correr"
+- extendedWaitUntil:
+    visible:
+      id: "checklist-checks"
+    timeout: 30000

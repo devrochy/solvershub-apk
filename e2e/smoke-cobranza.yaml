@@ -20,8 +20,17 @@ appId: com.solvershub.apk
 # 3. Campo: el gestor con una sola cartera entra directo a su cartera
 - assertVisible: "Información de la cartera"
 # 4. Menú lateral → Diario del día
-- tapOn:
-    id: "btn-menu"
+#    Un toque mientras la pantalla termina de montar puede no abrir el menú:
+#    se reintenta hasta que aparezca la opción.
+- repeat:
+    times: 3
+    while:
+      notVisible: "Diario"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - tapOn:
+          id: "btn-menu"
 - tapOn: "Diario"
 - extendedWaitUntil:
     visible:
