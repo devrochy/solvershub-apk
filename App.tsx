@@ -36,7 +36,8 @@ import {
 import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/SeleccionNegocioAdminScreen";
 import { PanelShell } from "./src/navigation/PanelShell";
 import { campoNavRef } from "./src/navigation/refs";
-import { PushProvider, type PushDatos } from "./src/modules/notificaciones";
+import { PushProvider, tabDelPanelParaPush, type PushDatos } from "./src/modules/notificaciones";
+import { emitirNavegacion } from "@shared/navegacion-evento";
 import { ThemeProvider } from "@core/theme/theme-context";
 import { inicializarBase } from "./src/data/bootstrap";
 import { SincronizadorProvider } from "./src/data/SincronizadorProvider";
@@ -51,10 +52,15 @@ const PROYECTO_EAS =
 function PushRoot({ children }: { children: React.ReactNode }) {
   const { sesion } = useAdminSession();
   const alTocarPush = (datos: PushDatos) => {
-    // Deep link v1: la actividad de campo lleva al diario. Los tipos del panel
-    // se enrutan cuando existan sus pantallas (HU-APP-04/08+).
+    // Sesión de campo (gestor): la actividad de campo lleva al diario.
     if (datos?.type === "cobranza.sync" && campoNavRef.isReady()) {
       campoNavRef.navigate("Cartera", {});
+      return;
+    }
+    // Panel (dueño, destinatario de los push del backend): pestaña del evento.
+    const tab = tabDelPanelParaPush(datos);
+    if (tab) {
+      emitirNavegacion({ tab });
     }
   };
   return (
