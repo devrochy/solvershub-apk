@@ -13,7 +13,6 @@
     },
     "android": {
       "package": "com.solvershub.apk",
-      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#172f6c",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -78,6 +77,12 @@
       "eas": {
         "projectId": "3e8fed2f-1720-4cd7-ab2f-01fac56167ed"
       }
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3e8fed2f-1720-4cd7-ab2f-01fac56167ed"
     }
   }
 }
