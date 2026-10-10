@@ -7,6 +7,8 @@
 
 ### Nuevo
 
+- Logo definitivo de SolversHub en el ícono (iOS y adaptativo de Android, con capa
+  monocroma para íconos temáticos), el splash y la pantalla de login.
 - Login unificado (panel + campo vía intercambio de tokens), recuperación de contraseña con
   código de un solo uso y desbloqueo biométrico opt-in.
 - PanelShell por permisos: Dashboard con KPIs, Operación (conversaciones con acciones,
