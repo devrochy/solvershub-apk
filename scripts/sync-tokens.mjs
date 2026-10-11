@@ -18,7 +18,8 @@ const brandTokens = arg
   : join(ROOT, "..", "solvershub-panel", "brand", "tokens");
 
 const src = join(brandTokens, "dist", "theme.ts");
-const dest = join(ROOT, "src", "theme", "tokens.ts");
+// Desde HU-APP-01 el tema vive en src/core/theme (ADR-APP-01).
+const dest = join(ROOT, "src", "core", "theme", "tokens.ts");
 
 const BANNER = `// GENERADO — no editar a mano.
 // Copia de ../solvershub-panel/brand/tokens/dist/theme.ts (fuente: tokens.json, DTCG).
