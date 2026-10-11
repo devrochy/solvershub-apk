@@ -18,6 +18,7 @@ import { NegocioScreen } from "../modules/negocio";
 import { ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
+import { CatalogoScreen } from "@shared/ui/catalogo/CatalogoScreen";
 import { suscribirNavegacion } from "@shared/navegacion-evento";
 import { useEffect, useRef } from "react";
 
@@ -142,7 +143,14 @@ export type MasStackParamList = {
   Mas: undefined;
   Busqueda: undefined;
   Herramientas: undefined;
+  /** Catálogo del kit de UI (HU-DS-09): solo existe en builds de desarrollo. */
+  Catalogo: undefined;
 };
+
+/** El catálogo del kit solo se registra en builds de desarrollo (`__DEV__`). */
+export function catalogoDisponible(): boolean {
+  return __DEV__;
+}
 
 const MasStack = createNativeStackNavigator<MasStackParamList>();
 
@@ -160,6 +168,13 @@ function MasNavigator() {
         component={HerramientasScreen}
         options={{ title: "Herramientas y plataforma" }}
       />
+      {catalogoDisponible() ? (
+        <MasStack.Screen
+          name="Catalogo"
+          component={CatalogoScreen}
+          options={{ title: "Catálogo de UI" }}
+        />
+      ) : null}
     </MasStack.Navigator>
   );
 }
@@ -193,6 +208,18 @@ function MasScreen() {
           Fallos de envío{esMaster ? " · negocios" : ""}
         </Text>
       </Pressable>
+      {catalogoDisponible() ? (
+        <Pressable
+          testID="mas-catalogo"
+          onPress={() => navigation.navigate("Catalogo")}
+          style={[styles.item, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+        >
+          <Text style={[styles.itemSeccion, { color: colores.texto }]}>Catálogo de UI</Text>
+          <Text style={[styles.itemGrupo, { color: colores.textoSuave }]}>
+            Kit de componentes · solo desarrollo
+          </Text>
+        </Pressable>
+      ) : null}
       <FlatList
         testID="mas-lista"
         data={items}
