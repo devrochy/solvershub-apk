@@ -69,7 +69,7 @@ describe("EvidenciaPicker — tap targets", () => {
     );
 
     const quitar = getByTestId("evidencia-quitar-file:///a.jpg");
-    expect(quitar.props.hitSlop).toBe(12);
+    expect(quitar.props.hitSlop).toBe(14);
     expect(quitar.props.accessibilityLabel).toBe("Quitar evidencia");
   });
 });

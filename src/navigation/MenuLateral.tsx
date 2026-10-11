@@ -9,6 +9,8 @@ import { useMenuLateral, type MenuItem } from "../modules/cobranza/navigation/me
 import { useSession } from "../modules/cobranza/session/session-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
+import { useKit } from "@shared/ui";
 import type { RootStackParamList } from "../modules/cobranza/navigation/types";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
@@ -28,21 +30,27 @@ function MenuRow({
   nivel?: number;
   onEjecutar(accion?: () => void): void;
 }) {
-  const { colores, tema } = useTheme();
+  const { c, ripple } = useKit();
   const [expandido, setExpandido] = useState(false);
   const tieneSub = (item.subItems?.length ?? 0) > 0;
-  const colorActivo = tema === "claro" ? colores.primario : colores.texto;
-  const color = item.activo ? colorActivo : colores.texto;
+  // Indicador de activo del kit (como `ListItem`): barra `link` de 3 px y fondo
+  // `surfaceRaised`; el texto activo va en `textStrong`.
+  const colorActivo = c.link;
+  const color = item.activo ? c.textStrong : c.text;
 
   if (item.grupo) {
     return (
       <View
         testID={`menu-grupo-${item.key}`}
-        style={[styles.grupo, { backgroundColor: colores.fondo, borderColor: colores.borde }]}
+        style={[styles.grupo, { backgroundColor: c.bg, borderColor: c.border, boxShadow: c.elev1 }]}
       >
         <View style={styles.grupoTitulo}>
-          <MaterialIcons name={item.icon as Icono} size={16} color={colores.acento} />
-          <Text style={[styles.grupoTituloTexto, { color: colores.texto }]} numberOfLines={1}>
+          <MaterialIcons name={item.icon as Icono} size={16} color={c.link} />
+          <Text
+            accessibilityRole="header"
+            style={[styles.grupoTituloTexto, { color: c.text }]}
+            numberOfLines={1}
+          >
             {item.label}
           </Text>
         </View>
@@ -58,10 +66,12 @@ function MenuRow({
       <Pressable
         testID={`menu-item-${item.key}`}
         accessibilityRole="button"
+        accessibilityState={tieneSub ? { expanded: expandido, selected: item.activo } : { selected: item.activo }}
+        android_ripple={{ color: ripple.superficie }}
         style={[
           styles.item,
-          { paddingLeft: 8 + nivel * 16 },
-          item.activo && { backgroundColor: colores.activoSuave },
+          { paddingLeft: shSpace[2] + nivel * shSpace[4] },
+          item.activo && { backgroundColor: c.surfaceRaised },
         ]}
         onPress={() => (tieneSub ? setExpandido((v) => !v) : onEjecutar(item.onPress))}
       >
@@ -81,7 +91,7 @@ function MenuRow({
           <MaterialIcons
             name={expandido ? "expand-more" : "chevron-right"}
             size={20}
-            color={colores.textoSuave}
+            color={c.textSoft}
             style={styles.chevron}
           />
         ) : null}
@@ -106,7 +116,8 @@ export function MenuLateral() {
   const { abierto, cerrar, itemsExtra } = useMenuLateral();
   const { gestor, logout } = useSession();
   const { logout: logoutAdmin } = useAdminSession();
-  const { colores, tema, alternarTema } = useTheme();
+  const { tema, alternarTema } = useTheme();
+  const { c, banda, relleno, ripple } = useKit();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [progreso] = useState(() => new Animated.Value(0));
@@ -149,7 +160,7 @@ export function MenuLateral() {
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
       <Animated.View
         pointerEvents={abierto ? "auto" : "none"}
-        style={[styles.backdrop, { opacity: opacidad }]}
+        style={[styles.backdrop, { backgroundColor: c.overlay, opacity: opacidad }]}
       >
         <Pressable
           testID="menu-backdrop"
@@ -165,8 +176,8 @@ export function MenuLateral() {
         style={[
           styles.panel,
           {
-            backgroundColor: colores.tarjeta,
-            borderColor: colores.borde,
+            backgroundColor: c.surface,
+            borderColor: c.border,
             paddingTop: insets.top + 20,
             paddingBottom: insets.bottom,
             transform: [{ translateX }],
@@ -174,10 +185,10 @@ export function MenuLateral() {
         ]}
       >
         <View style={styles.marcaFila}>
-          <View style={[styles.marcaLogo, { backgroundColor: colores.primario }]}>
-            <MaterialIcons name="route" size={18} color={colores.sobrePrimario} />
+          <View style={[styles.marcaLogo, { backgroundColor: banda.fondo }]}>
+            <MaterialIcons name="route" size={18} color={banda.texto} />
           </View>
-          <Text style={[styles.marca, { color: colores.texto }]}>Solver</Text>
+          <Text style={[styles.marca, { color: c.text }]}>Solver</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -186,7 +197,7 @@ export function MenuLateral() {
               <Fragment key={item.key}>
                 <MenuRow item={item} onEjecutar={ejecutar} />
                 {indice === 0 ? (
-                  <View style={[styles.separador, { backgroundColor: colores.borde }]} />
+                  <View style={[styles.separador, { backgroundColor: c.border }]} />
                 ) : null}
               </Fragment>
             ))}
@@ -199,8 +210,9 @@ export function MenuLateral() {
                 style={[
                   styles.submenu,
                   {
-                    backgroundColor: colores.fondo,
-                    borderColor: colores.borde,
+                    backgroundColor: c.bg,
+                    borderColor: c.border,
+                    boxShadow: c.elev2,
                     opacity: animUsuario,
                     transform: [
                       {
@@ -215,45 +227,53 @@ export function MenuLateral() {
               >
                 <Pressable
                   testID="menu-item-perfil"
+                  accessibilityRole="button"
+                  android_ripple={{ color: ripple.superficie }}
                   style={styles.submenuItem}
                   onPress={() => ejecutar(() => navigation.navigate("Perfil"))}
                 >
-                  <MaterialIcons name="person" size={20} color={colores.texto} />
-                  <Text style={[styles.itemTexto, { color: colores.texto }]}>Perfil</Text>
+                  <MaterialIcons name="person" size={20} color={c.text} />
+                  <Text style={[styles.itemTexto, { color: c.text }]}>Perfil</Text>
                 </Pressable>
                 <Pressable
                   testID="menu-item-configuracion"
+                  accessibilityRole="button"
+                  android_ripple={{ color: ripple.superficie }}
                   style={styles.submenuItem}
                   onPress={() => ejecutar(() => navigation.navigate("Configuracion"))}
                 >
-                  <MaterialIcons name="settings" size={20} color={colores.texto} />
-                  <Text style={[styles.itemTexto, { color: colores.texto }]}>Configuración</Text>
+                  <MaterialIcons name="settings" size={20} color={c.text} />
+                  <Text style={[styles.itemTexto, { color: c.text }]}>Configuración</Text>
                 </Pressable>
                 <Pressable
                   testID="menu-item-modo"
+                  accessibilityRole="button"
+                  android_ripple={{ color: ripple.superficie }}
                   style={styles.submenuItem}
                   onPress={alternarTema}
                 >
                   <MaterialIcons
                     name={tema === "oscuro" ? "dark-mode" : "light-mode"}
                     size={20}
-                    color={colores.texto}
+                    color={c.text}
                   />
-                  <Text style={[styles.itemTexto, { color: colores.texto }]}>
+                  <Text style={[styles.itemTexto, { color: c.text }]}>
                     {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
                   </Text>
                 </Pressable>
-                <View style={[styles.submenuSeparador, { backgroundColor: colores.borde }]} />
+                <View style={[styles.submenuSeparador, { backgroundColor: c.border }]} />
                 <Pressable
                   testID="menu-logout"
+                  accessibilityRole="button"
+                  android_ripple={{ color: ripple.superficie }}
                   style={styles.submenuItem}
                   onPress={() => ejecutar(async () => {
                     await logout();
                     await logoutAdmin();
                   })}
                 >
-                  <MaterialIcons name="logout" size={20} color={colores.peligro} />
-                  <Text style={[styles.itemTexto, { color: colores.peligro }]}>Cerrar sesión</Text>
+                  <MaterialIcons name="logout" size={20} color={c.statusDangerFg} />
+                  <Text style={[styles.itemTexto, { color: c.statusDangerFg }]}>Cerrar sesión</Text>
                 </Pressable>
               </Animated.View>
             ) : null}
@@ -262,25 +282,27 @@ export function MenuLateral() {
               testID="menu-usuario"
               accessibilityRole="button"
               accessibilityLabel={`Cuenta de ${nombre}`}
-              style={[styles.usuarioCard, { backgroundColor: colores.primario }]}
+              accessibilityState={{ expanded: usuarioAbierto }}
+              android_ripple={{ color: ripple.relleno }}
+              style={[styles.usuarioCard, { backgroundColor: banda.fondo, boxShadow: c.elev2 }]}
               onPress={() => setUsuarioAbierto((v) => !v)}
             >
               <Avatar
                 nombre={nombre}
                 size={40}
-                fondo="rgba(255,255,255,0.18)"
-                colorIcono={colores.sobrePrimario}
-                bordeColor="rgba(255,255,255,0.35)"
+                fondo={banda.relleno}
+                colorIcono={relleno.sobrePrimario}
+                bordeColor={banda.borde}
               />
               <View style={styles.usuarioInfo}>
                 <Text
-                  style={[styles.usuarioNombre, { color: colores.sobrePrimario }]}
+                  style={[styles.usuarioNombre, { color: banda.texto }]}
                   numberOfLines={1}
                 >
                   {nombre}
                 </Text>
                 <Text
-                  style={[styles.usuarioHandle, { color: colores.sobrePrimario }]}
+                  style={[styles.usuarioHandle, { color: banda.textoSuave }]}
                   numberOfLines={1}
                 >
                   @{gestor?.usuario ?? ""}
@@ -289,7 +311,7 @@ export function MenuLateral() {
               <MaterialIcons
                 name={usuarioAbierto ? "expand-more" : "chevron-right"}
                 size={22}
-                color={colores.sobrePrimario}
+                color={banda.texto}
               />
             </Pressable>
           </View>
@@ -306,7 +328,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(15, 23, 42, 0.45)",
   },
   panel: {
     position: "absolute",
@@ -314,15 +335,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     width: ANCHO_PANEL,
-    paddingHorizontal: 16,
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingHorizontal: shSpace[4],
+    borderTopRightRadius: shRadius.lg,
+    borderBottomRightRadius: shRadius.lg,
     borderRightWidth: 1,
     borderCurve: "continuous",
     boxShadow: "8px 0 24px rgba(15, 23, 42, 0.22)",
   },
-  scroll: { paddingBottom: 24, flexGrow: 1, justifyContent: "space-between" },
-  marcaFila: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16 },
+  scroll: { paddingBottom: shSpace[6], flexGrow: 1, justifyContent: "space-between" },
+  marcaFila: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: shSpace[4] },
   marcaLogo: {
     width: 34,
     height: 34,
@@ -332,18 +353,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   marca: {
-    fontSize: 22,
-    fontWeight: "700",
-    fontFamily: "Montserrat_700Bold",
+    ...shType.h1,
+    fontFamily: shType.hero.fontFamily,
   },
   items: { gap: 2 },
   item: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 12,
+    gap: shSpace[3],
+    minHeight: shDensity.rowComfortable,
+    paddingVertical: shSpace[2],
+    paddingHorizontal: shSpace[2],
+    borderRadius: shRadius.md,
     borderCurve: "continuous",
     overflow: "hidden",
   },
@@ -353,15 +374,16 @@ const styles = StyleSheet.create({
     borderCurve: "continuous",
     padding: 6,
     marginBottom: 10,
-    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.10)",
   },
   submenuItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 10,
+    gap: shSpace[3],
+    minHeight: shDensity.rowComfortable,
+    paddingVertical: shSpace[2],
     paddingHorizontal: 10,
     borderRadius: 10,
+    overflow: "hidden",
     borderCurve: "continuous",
   },
   submenuSeparador: {
@@ -370,10 +392,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   itemTexto: {
+    ...shType.body,
     flex: 1,
-    fontSize: 15,
-    fontWeight: "600",
-    fontFamily: "Montserrat_600SemiBold",
+    fontFamily: shType.block.fontFamily,
   },
   chevron: { marginLeft: "auto" },
   dot: { width: 10, height: 10, borderRadius: 5, marginHorizontal: 5 },
@@ -383,7 +404,6 @@ const styles = StyleSheet.create({
     borderCurve: "continuous",
     padding: 6,
     marginVertical: 4,
-    boxShadow: "0 1px 3px rgba(15, 23, 42, 0.06)",
   },
   grupoTitulo: {
     flexDirection: "row",
@@ -393,10 +413,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   grupoTituloTexto: {
+    ...shType.label,
     flex: 1,
-    fontSize: 13,
-    fontWeight: "700",
-    fontFamily: "Montserrat_700Bold",
+    fontFamily: shType.hero.fontFamily,
   },
   itemAccent: {
     position: "absolute",
@@ -413,22 +432,20 @@ const styles = StyleSheet.create({
   usuarioCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    gap: shSpace[3],
+    minHeight: shDensity.controlLg,
+    paddingVertical: shSpace[3],
+    paddingHorizontal: shSpace[3],
+    overflow: "hidden",
     borderRadius: 16,
     borderCurve: "continuous",
-    boxShadow: "0 6px 16px rgba(15, 23, 42, 0.18)",
   },
   usuarioInfo: { flex: 1 },
   usuarioNombre: {
-    fontSize: 14,
-    fontWeight: "700",
-    fontFamily: "Montserrat_700Bold",
+    ...shType.label,
+    fontFamily: shType.hero.fontFamily,
   },
   usuarioHandle: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    opacity: 0.75,
+    ...shType.caption,
   },
 });

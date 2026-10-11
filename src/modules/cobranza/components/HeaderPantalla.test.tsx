@@ -2,7 +2,8 @@ import { render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { HeaderPantalla, estilosHeader } from "./HeaderPantalla";
 import { COLORES } from "@core/theme/theme";
-import { shColor } from "@core/theme/tokens";
+import { shType } from "@core/theme/tokens";
+import { kitDeTema } from "@shared/ui";
 
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: jest.fn(() => ({ top: 47, bottom: 0, left: 0, right: 0 })),
@@ -32,12 +33,13 @@ describe("HeaderPantalla", () => {
 });
 
 describe("estilosHeader — estándar de headers", () => {
-  it("el título usa el tamaño estándar 18, bold y blanco", () => {
+  it("el título usa la escala del kit (block en negrita) con el texto de la banda", () => {
+    // HU-DS-10: antes 18 px fijo; ahora `shType.block` (17/24) con Montserrat Bold.
     expect(estilosHeader.titulo).toEqual(
       expect.objectContaining({
-        fontSize: 18,
-        fontWeight: "700",
-        color: shColor.white,
+        fontSize: shType.block.fontSize,
+        lineHeight: shType.block.lineHeight,
+        color: kitDeTema("claro").banda.texto,
         fontFamily: "Montserrat_700Bold",
       }),
     );

@@ -1,36 +1,44 @@
 import { useEffect, useState } from "react";
 import { Animated, StyleSheet } from "react-native";
 
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
+import type { Tema } from "@core/theme/theme";
+import { kitDeTema, useKit, useReduceMotion, type Tono } from "@shared/ui";
 
 /**
- * Colores de estado del cliente derivados de los tokens de marca (SolversHub).
- * Los tonos suaves (fondo/borde) se componen con alfa sobre el color semántico,
- * así una sola fuente (tokens.json) gobierna sólidos y pasteles.
+ * Colores de estado del cliente (verde/rojo/azul/blanco) sobre los tonos del
+ * kit (HU-DS-10): verde → `success`, rojo → `danger`, azul → `info` y blanco o
+ * desconocido → `neutral`. Así sólidos y pasteles salen de los mismos tokens
+ * de estado que el panel (`statusXFg/Bg/Border`).
  */
-const COLORES: Record<string, string> = {
-  verde: shColor.success,
-  rojo: shColor.danger,
-  azul: shColor.navy["700"],
-  blanco: shColor.slate["400"],
+const TONOS: Record<string, Tono> = {
+  verde: "success",
+  rojo: "danger",
+  azul: "info",
+  blanco: "neutral",
 };
 
-const COLOR_POR_DEFECTO = shColor.slate["400"];
+/** Tono del kit para un estado del cliente. */
+export function tonoDeEstado(color: string): Tono {
+  return TONOS[color] ?? "neutral";
+}
 
-/** Color sólido de un estado (verde/rojo/azul/blanco). */
-export function colorDeEstado(color: string): string {
-  return COLORES[color] ?? COLOR_POR_DEFECTO;
+/**
+ * Color sólido de un estado. Por defecto, el del tema claro: es el que da AA
+ * con texto blanco encima (cabeceras de tarjeta). Para un punto o una barra
+ * sin texto encima se pasa el tema activo.
+ */
+export function colorDeEstado(color: string, tema: Tema = "claro"): string {
+  return kitDeTema(tema).tonos[tonoDeEstado(color)].fg;
 }
 
 /** Fondo suave (pastel) de tarjeta según el estado del cliente (N4). */
-export function fondoDeEstado(color: string): string {
-  return conAlfa(colorDeEstado(color), 0.12);
+export function fondoDeEstado(color: string, tema: Tema = "claro"): string {
+  return kitDeTema(tema).tonos[tonoDeEstado(color)].bg;
 }
 
 /** Borde suave (pastel) de tarjeta según el estado. */
-export function bordeDeEstado(color: string): string {
-  return conAlfa(colorDeEstado(color), 0.3);
+export function bordeDeEstado(color: string, tema: Tema = "claro"): string {
+  return kitDeTema(tema).tonos[tonoDeEstado(color)].border;
 }
 
 /**
@@ -47,10 +55,13 @@ export function ColorBadge({
   label?: string;
   animar?: boolean;
 }) {
+  const { tema } = useKit();
+  const reducir = useReduceMotion();
   const [opacidad] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
-    if (!animar) {
+    // Con "reducir movimiento" el punto queda fijo (DESIGN.md, motion).
+    if (!animar || reducir) {
       return undefined;
     }
     const animacion = Animated.loop(
@@ -69,14 +80,14 @@ export function ColorBadge({
     );
     animacion.start();
     return () => animacion.stop();
-  }, [animar, opacidad]);
+  }, [animar, reducir, opacidad]);
 
   return (
     <Animated.View
       testID={`color-badge-${color}`}
       style={[
         styles.punto,
-        { backgroundColor: colorDeEstado(color) },
+        { backgroundColor: colorDeEstado(color, tema) },
         animar ? { opacity: opacidad } : null,
       ]}
     />

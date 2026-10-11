@@ -9,7 +9,7 @@
  */
 import { useMemo } from "react";
 import { conAlfa } from "@core/theme/alpha";
-import type { Tema } from "@core/theme/theme";
+import { COLORES, type Tema } from "@core/theme/theme";
 import { useTheme } from "@core/theme/theme-context";
 import { shColor, shTheme } from "@core/theme/tokens";
 
@@ -47,6 +47,20 @@ export interface KitTema {
   /** Fondo del esqueleto de carga (visible sobre `bg` y `surface`). */
   esqueleto: string;
   tonos: Record<Tono, ColoresTono>;
+  /**
+   * Banda de marca del header de campo (HU-DS-10): navy en claro y superficie
+   * en oscuro, con lo que va encima (texto, subtítulo, bordes y rellenos
+   * translúcidos). Es la misma banda de siempre, ahora con roles del tema.
+   */
+  banda: {
+    fondo: string;
+    texto: string;
+    textoSuave: string;
+    /** Borde de una acción en píldora sobre la banda. */
+    borde: string;
+    /** Relleno translúcido (avatar, botón cerrar) sobre la banda. */
+    relleno: string;
+  };
 }
 
 function crearKit(tema: Tema): KitTema {
@@ -66,6 +80,13 @@ function crearKit(tema: Tema): KitTema {
       relleno: conAlfa(shColor.white, 0.24),
     },
     esqueleto: oscuro ? c.surfaceRaised : c.border,
+    banda: {
+      fondo: COLORES[tema].primario,
+      texto: COLORES[tema].sobrePrimario,
+      textoSuave: shColor.ice,
+      borde: conAlfa(shColor.white, 0.7),
+      relleno: conAlfa(shColor.white, 0.18),
+    },
     tonos: {
       neutral: { fg: c.textMuted, bg: c.surface2, border: c.border },
       info: { fg: c.statusInfoFg, bg: c.statusInfoBg, border: c.statusInfoBorder },
