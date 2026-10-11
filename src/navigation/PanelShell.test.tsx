@@ -14,7 +14,7 @@ jest.mock("@core/session/admin-session-context", () => ({
 }));
 
 import { render, waitFor } from "@testing-library/react-native";
-import { PanelShell, usaAreaSeguraSuperior } from "./PanelShell";
+import { catalogoDisponible, PanelShell, usaAreaSeguraSuperior } from "./PanelShell";
 
 describe("PanelShell (HU-APP-03)", () => {
   beforeEach(() => {
@@ -117,5 +117,28 @@ describe("PanelShell (HU-APP-03)", () => {
     await waitFor(() => expect(getByText("Más")).toBeTruthy());
     expect(queryByText("Inicio")).toBeNull();
     expect(queryByText("Cobranza")).toBeNull();
+  });
+
+  it("en desarrollo, Más ofrece la entrada al Catálogo de UI (HU-DS-09)", async () => {
+    mockSesionValue = { token: "t", adminId: "a-5", role: "colaborador", permissions: {} };
+
+    // `useNavigation` está mockeado en jest.setup: aquí solo se valida la entrada;
+    // la pantalla se prueba en CatalogoScreen.test.tsx.
+    const { findByTestId, getByText } = await render(<PanelShell />);
+    expect(await findByTestId("mas-catalogo")).toBeTruthy();
+    expect(getByText("Catálogo de UI")).toBeTruthy();
+  });
+
+  it("el catálogo solo existe en builds de desarrollo", () => {
+    const g = globalThis as { __DEV__?: boolean };
+    const original = g.__DEV__;
+    try {
+      g.__DEV__ = false;
+      expect(catalogoDisponible()).toBe(false);
+      g.__DEV__ = true;
+      expect(catalogoDisponible()).toBe(true);
+    } finally {
+      g.__DEV__ = original;
+    }
   });
 });
