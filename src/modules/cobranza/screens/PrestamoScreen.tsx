@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Button, useKit, type KitTema } from "@shared/ui";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { apiErrorStatus } from "@core/api/client";
@@ -11,21 +13,23 @@ import {
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
 import type { EstadoCuentaPrestamoPublic } from "@shared/types/gestor";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Prestamo">;
 
-const COLORES: Record<TipoCuotaCanvas, { fondo: string; borde: string }> = {
-  pagada: { fondo: conAlfa(shColor.success, 0.12), borde: shColor.success },
-  actual: { fondo: conAlfa(shColor.navy["700"], 0.12), borde: shColor.navy["700"] },
-  en_mora: { fondo: conAlfa(shColor.danger, 0.12), borde: shColor.danger },
-  futura: { fondo: shColor.frost, borde: shColor.slate["300"] },
-  abonada: { fondo: conAlfa(shColor.warning, 0.15), borde: shColor.warning },
-};
+/**
+ * Colores del canvas con los tonos de estado del tema activo (HU-DS-10).
+ * `borde` también colorea la etiqueta, así que son los `statusXFg` (AA).
+ */
+function coloresCanvas({ c, tonos }: KitTema): Record<TipoCuotaCanvas, { fondo: string; borde: string }> {
+  return {
+    pagada: { fondo: tonos.success.bg, borde: tonos.success.fg },
+    actual: { fondo: tonos.info.bg, borde: tonos.info.fg },
+    en_mora: { fondo: tonos.danger.bg, borde: tonos.danger.fg },
+    futura: { fondo: c.surface2, borde: c.textMuted },
+    abonada: { fondo: tonos.warning.bg, borde: tonos.warning.fg },
+  };
+}
 
 const ETIQUETA: Record<TipoCuotaCanvas, string> = {
   pagada: "Pagada",
@@ -46,8 +50,9 @@ export function PrestamoScreen({ route }: Props) {
   const { carteraId, prestamoId, clienteNombre, telefonoWhatsapp, valor, numCuotas } =
     route.params;
   const { api, logout } = useSession();
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
+  const COLORES = useMemo(() => coloresCanvas(kit), [kit]);
   const [estado, setEstado] = useState<EstadoCuentaPrestamoPublic | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +85,7 @@ export function PrestamoScreen({ route }: Props) {
       <HeaderApp titulo="Estado de cuenta" subtitulo={`Préstamo #${prestamoId}`} />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.contenido}>
         <View style={styles.tarjetaResumen}>
-          <Text style={styles.clienteNombre}>{clienteNombre}</Text>
+          <Text accessibilityRole="header" style={styles.clienteNombre}>{clienteNombre}</Text>
           <Text style={styles.clienteDetalle}>
             Préstamo: {valor} {estado.moneda} · {numCuotas} cuotas ·{" "}
             {estado.tipoInteres}% interés
@@ -130,9 +135,11 @@ export function PrestamoScreen({ route }: Props) {
           })}
         </View>
 
-        <Pressable
+        <Button
           testID="btn-whatsapp-canvas"
-          style={styles.botonWhatsApp}
+          size="lg"
+          iconLeft="chat"
+          fullWidth
           onPress={() => {
             const texto = [
               `Estado de cuenta de ${estado.nombreCliente}`,
@@ -147,63 +154,55 @@ export function PrestamoScreen({ route }: Props) {
             void Linking.openURL(enlaceWhatsApp(telefonoWhatsapp, texto));
           }}
         >
-          <Text style={styles.botonWhatsAppTexto}>Enviar por WhatsApp</Text>
-        </Pressable>
+          Enviar por WhatsApp
+        </Button>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c }: KitTema) {
   return StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: c.fondo },
-    scroll: { flex: 1, backgroundColor: c.fondo },
-    contenido: { padding: 16, gap: 14 },
+    contenedor: { flex: 1, backgroundColor: c.bg },
+    scroll: { flex: 1, backgroundColor: c.bg },
+    contenido: { padding: shSpace[4], gap: 14 },
     tarjetaResumen: {
-      backgroundColor: c.tarjeta,
-      borderRadius: 12,
-      padding: 16,
+      backgroundColor: c.surface,
+      borderRadius: shRadius.md,
+      padding: shSpace[4],
       borderWidth: 1,
-      borderColor: c.borde,
+      borderColor: c.border,
     },
-    clienteNombre: { fontSize: 18, fontWeight: "700", color: c.texto },
-    clienteDetalle: { color: c.textoSuave, fontSize: 13, marginTop: 4 },
-    filaResumen: { flexDirection: "row", justifyContent: "space-between", marginTop: 12 },
-    resumenValor: { fontSize: 14, fontWeight: "600", color: c.textoSuave },
-    resumenSaldo: { fontSize: 14, fontWeight: "700", color: c.acento },
-    leyenda: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+    clienteNombre: { ...shType.block, fontFamily: shType.hero.fontFamily, color: c.text },
+    clienteDetalle: { ...shType.dense, color: c.textMuted, marginTop: shSpace[1] },
+    filaResumen: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: shSpace[2], marginTop: shSpace[3] },
+    resumenValor: { ...shType.label, color: c.textMuted, fontVariant: ["tabular-nums"] },
+    resumenSaldo: { ...shType.label, fontFamily: shType.hero.fontFamily, color: c.link, fontVariant: ["tabular-nums"] },
+    leyenda: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[3] },
     leyendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-    leyendaColor: { width: 12, height: 12, borderRadius: 999 },
-    leyendaTexto: { color: c.textoSuave, fontSize: 12 },
+    leyendaColor: { width: 12, height: 12, borderRadius: shRadius.pill },
+    leyendaTexto: { ...shType.caption, color: c.textMuted },
     canvas: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
     cuadro: {
       width: "22%",
-      borderRadius: 8,
+      borderRadius: shRadius.sm,
       borderWidth: 1,
-      padding: 8,
+      padding: shSpace[2],
       alignItems: "center",
       gap: 2,
     },
-    cuadroNumero: { fontSize: 16, fontWeight: "700", color: c.texto },
-    cuadroValor: { fontSize: 11, color: c.textoSuave, fontWeight: "600" },
-    cuadroFecha: { fontSize: 9, color: c.textoSuave },
-    cuadroAbono: { fontSize: 9, color: shColor.success, fontWeight: "600" },
-    cuadroSaldo: { fontSize: 9, color: c.acento, fontWeight: "600" },
+    cuadroNumero: { ...shType.block, fontFamily: shType.hero.fontFamily, color: c.text },
+    cuadroValor: { ...shType.caption, fontFamily: shType.label.fontFamily, fontSize: 11, color: c.textMuted, fontVariant: ["tabular-nums"] },
+    cuadroFecha: { ...shType.caption, fontSize: 11, color: c.textMuted },
+    cuadroAbono: { ...shType.caption, fontFamily: shType.label.fontFamily, fontSize: 11, color: c.statusSuccessFg },
+    cuadroSaldo: { ...shType.caption, fontFamily: shType.label.fontFamily, fontSize: 11, color: c.link },
     cuadroEtiqueta: {
       borderWidth: 1,
-      borderRadius: 999,
+      borderRadius: shRadius.pill,
       paddingHorizontal: 6,
       paddingVertical: 1,
       marginTop: 2,
     },
-    cuadroEtiquetaTexto: { fontSize: 9, fontWeight: "600" },
-    botonWhatsApp: {
-      backgroundColor: shColor.success,
-      borderRadius: 8,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      alignItems: "center",
-    },
-    botonWhatsAppTexto: { color: shColor.white, fontSize: 15, fontWeight: "600" },
+    cuadroEtiquetaTexto: { ...shType.caption, fontFamily: shType.label.fontFamily, fontSize: 10, lineHeight: 14 },
   });
 }

@@ -41,10 +41,20 @@ import { filtrarPorTexto } from "@shared/domain/busqueda-clientes";
 import { enlaceWhatsApp } from "../features/estado-cuenta/estado-cuenta";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
+import {
+  Badge,
+  Button,
+  EmptyState,
+  IconButton,
+  ListItem,
+  TextField,
+  useKit,
+  type IconName,
+  type KitTema,
+  type TonoEstado,
+} from "@shared/ui";
+import { bordeDeEstado, colorDeEstado } from "../components/ColorBadge";
 
 import type { ClienteGestorPublic } from "@shared/types/gestor";
 
@@ -62,12 +72,18 @@ const FILTROS: { key: FiltroClientes; label: string }[] = [
   { key: "sin_prestamos", label: "Sin préstamos" },
 ];
 
-/** Color semántico de cada filtro (activo = sólido; inactivo = borde/texto). */
-const COLOR_FILTRO: Record<FiltroClientes, string> = {
-  todos: shColor.navy["700"],
-  al_dia: shColor.success,
-  en_mora: shColor.danger,
-  sin_prestamos: shColor.slate["400"],
+/**
+ * Estado del cliente en el kit (HU-DS-10): clave de color de `ColorBadge`
+ * (sólidos y pasteles) y el `Badge` de estado con ícono, para que el color
+ * nunca vaya solo.
+ */
+const ESTADO_CLIENTE: Record<
+  Exclude<FiltroClientes, "todos">,
+  { color: string; etiqueta: string; tono: TonoEstado | "neutral"; icono: IconName }
+> = {
+  al_dia: { color: "verde", etiqueta: "Al día", tono: "success", icono: "check-circle" },
+  en_mora: { color: "rojo", etiqueta: "En mora", tono: "danger", icono: "warning" },
+  sin_prestamos: { color: "blanco", etiqueta: "Sin préstamos", tono: "neutral", icono: "money-off" },
 };
 
 export function ClientesScreen({
@@ -108,8 +124,15 @@ export function ClientesScreen({
   const [fuenteAbierta, setFuenteAbierta] = useState(false);
   const [fuenteCampo, setFuenteCampo] = useState<CampoEvidenciaCliente>("foto_facial");
   const evidenciasCliente = useEvidenciasCliente();
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const { c } = kit;
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
+  /** Relleno del chip de filtro activo (sólido del tema claro: AA con texto blanco). */
+  const rellenoFiltro = (f: FiltroClientes) =>
+    f === "todos" ? kit.relleno.primario : colorDeEstado(ESTADO_CLIENTE[f].color);
+  /** Borde y texto del chip inactivo (tono de estado del tema activo). */
+  const tintaFiltro = (f: FiltroClientes) =>
+    f === "todos" ? c.link : colorDeEstado(ESTADO_CLIENTE[f].color, kit.tema);
 
   const esDomicilio = ubicacionCampo === "domicilio";
   const latActual = esDomicilio ? latitudDomicilio : latitud;
@@ -411,7 +434,17 @@ export function ClientesScreen({
   const nombreCompleto = (c: ClienteGestorPublic) =>
     `${c.nombre} ${c.apellido}`.trim();
 
-  const colorCliente = (c: ClienteGestorPublic) => COLOR_FILTRO[estadoCliente(c)];
+  const estadoDe = (cliente: ClienteGestorPublic) => ESTADO_CLIENTE[estadoCliente(cliente)];
+
+  function badgeEstado(cliente: ClienteGestorPublic) {
+    const { tono, icono, etiqueta } = estadoDe(cliente);
+    const testID = `cliente-estado-${cliente.id}`;
+    return tono === "neutral" ? (
+      <Badge testID={testID} tone="neutral" icon={icono} label={etiqueta} />
+    ) : (
+      <Badge testID={testID} tone={tono} icon={icono} label={etiqueta} />
+    );
+  }
 
   function llamarCliente(telefono: string) {
     void Linking.openURL(`tel:${telefono}`);
@@ -431,47 +464,56 @@ export function ClientesScreen({
       <Breadcrumb seccion="Clientes" />
 
       <View style={styles.busqueda}>
-        <MaterialIcons name="search" size={18} color={colores.textoSuave} />
+        <MaterialIcons name="search" size={20} color={c.textMuted} />
         <TextInput
           testID="busqueda-clientes"
+          accessibilityLabel="Buscar cliente"
           style={styles.busquedaInput}
           placeholder="Buscar cliente"
-          placeholderTextColor={colores.textoSuave}
+          placeholderTextColor={c.textSoft}
           value={busqueda}
           onChangeText={setBusqueda}
           autoCorrect={false}
           autoCapitalize="none"
         />
         {busqueda ? (
-          <Pressable
+          <IconButton
             testID="busqueda-limpiar"
-            accessibilityLabel="Limpiar búsqueda"
-            hitSlop={8}
+            icon="close"
+            label="Limpiar búsqueda"
+            size="sm"
             onPress={() => setBusqueda("")}
-          >
-            <MaterialIcons name="close" size={18} color={colores.textoSuave} />
-          </Pressable>
+          />
         ) : null}
       </View>
 
-      <View style={styles.chipsFiltro}>
+      <View style={styles.chipsFiltro} accessibilityRole="tablist">
         {FILTROS.map((f) => (
           <Pressable
             key={f.key}
             testID={`filtro-chip-${f.key}`}
+            accessibilityRole="tab"
+            accessibilityLabel={f.label}
+            accessibilityState={{ selected: filtro === f.key }}
+            android_ripple={{ color: filtro === f.key ? kit.ripple.relleno : kit.ripple.superficie }}
             style={[
               styles.chipFiltro,
-              { borderColor: COLOR_FILTRO[f.key] },
-              filtro === f.key && { backgroundColor: COLOR_FILTRO[f.key] },
+              { borderColor: tintaFiltro(f.key) },
+              filtro === f.key && {
+                backgroundColor: rellenoFiltro(f.key),
+                borderColor: rellenoFiltro(f.key),
+              },
             ]}
             onPress={() => onFiltroChange?.(f.key)}
           >
             <Text
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}
               style={
                 filtro === f.key
                   ? styles.chipFiltroTextoActivo
-                  : [styles.chipFiltroTexto, { color: COLOR_FILTRO[f.key] }]
+                  : [styles.chipFiltroTexto, { color: tintaFiltro(f.key) }]
               }
             >
               {f.label}
@@ -484,10 +526,23 @@ export function ClientesScreen({
         keyExtractor={(c) => String(c.id)}
         contentContainerStyle={styles.lista}
         refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} />
+          <RefreshControl refreshing={refrescando} onRefresh={refrescar} colors={[c.link]} tintColor={c.link} />
         }
         ListEmptyComponent={
-          <Text style={styles.vacio}>Esta cartera no tiene clientes.</Text>
+          busqueda ? (
+            <EmptyState
+              icon="search-off"
+              title="Esta cartera no tiene clientes."
+              description={`No hay clientes que coincidan con «${busqueda}».`}
+              action={{ label: "Limpiar búsqueda", onPress: () => setBusqueda("") }}
+            />
+          ) : (
+            <EmptyState
+              icon="people-outline"
+              title="Esta cartera no tiene clientes."
+              action={{ label: "Registrar cliente", onPress: () => void abrirNuevoCliente() }}
+            />
+          )
         }
         ListHeaderComponent={
           error ? (
@@ -497,9 +552,45 @@ export function ClientesScreen({
           ) : null
         }
         renderItem={({ item }) => (
-          <Pressable
+          <ListItem
             testID={`cliente-${item.id}`}
-            style={[styles.tarjeta, { borderColor: colorCliente(item) }]}
+            title={nombreCompleto(item)}
+            subtitle={item.negocio ?? undefined}
+            meta={item.telefonoWhatsapp}
+            accessibilityLabel={[nombreCompleto(item), item.negocio, estadoDe(item).etiqueta]
+              .filter(Boolean)
+              .join(", ")}
+            accessibilityHint="Abre la ficha del cliente"
+            showChevron={false}
+            leading={<Avatar nombre={nombreCompleto(item)} fotoUrl={item.fotoUrl} />}
+            badge={badgeEstado(item)}
+            trailing={
+              <View style={styles.accionesCliente}>
+                <IconButton
+                  testID={`cliente-llamar-${item.id}`}
+                  icon="call"
+                  label={`Llamar a ${nombreCompleto(item)}`}
+                  tone="accent"
+                  size="sm"
+                  onPress={() => llamarCliente(item.telefonoWhatsapp)}
+                />
+                <IconButton
+                  testID={`cliente-mensaje-${item.id}`}
+                  icon="chat"
+                  label={`Mensaje a ${nombreCompleto(item)}`}
+                  tone="accent"
+                  size="sm"
+                  onPress={() => mensajearCliente(nombreCompleto(item), item.telefonoWhatsapp)}
+                />
+              </View>
+            }
+            style={[
+              styles.tarjeta,
+              {
+                borderColor: bordeDeEstado(estadoDe(item).color, kit.tema),
+                borderLeftColor: colorDeEstado(estadoDe(item).color, kit.tema),
+              },
+            ]}
             onPress={() =>
               abrir({
                 tipo: "cliente",
@@ -512,46 +603,7 @@ export function ClientesScreen({
                 longitudDomicilio: item.longitudDomicilio ?? undefined,
               })
             }
-          >
-            <View
-              testID={`cliente-acento-${item.id}`}
-              style={[styles.acento, { backgroundColor: colorCliente(item) }]}
-            />
-            <View style={styles.tarjetaContenido}>
-              <Avatar nombre={nombreCompleto(item)} fotoUrl={item.fotoUrl} />
-              <View style={styles.tarjetaInfo}>
-                <Text style={styles.clienteNombre}>{nombreCompleto(item)}</Text>
-                {item.negocio ? (
-                  <Text style={styles.clienteDetalle}>{item.negocio}</Text>
-                ) : null}
-                <Text style={styles.clienteTelefono}>{item.telefonoWhatsapp}</Text>
-              </View>
-              <View style={styles.accionesCliente}>
-                <Pressable
-                  testID={`cliente-llamar-${item.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Llamar a ${nombreCompleto(item)}`}
-                  hitSlop={8}
-                  style={styles.accionBoton}
-                  onPress={() => llamarCliente(item.telefonoWhatsapp)}
-                >
-                  <MaterialIcons name="call" size={18} color={colores.acento} />
-                </Pressable>
-                <Pressable
-                  testID={`cliente-mensaje-${item.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Mensaje a ${nombreCompleto(item)}`}
-                  hitSlop={8}
-                  style={styles.accionBoton}
-                  onPress={() =>
-                    mensajearCliente(nombreCompleto(item), item.telefonoWhatsapp)
-                  }
-                >
-                  <MaterialIcons name="chat" size={18} color={colores.acento} />
-                </Pressable>
-              </View>
-            </View>
-          </Pressable>
+          />
         )}
       />
 
@@ -561,11 +613,11 @@ export function ClientesScreen({
         accessibilityLabel="Nuevo cliente"
         style={[
           styles.fab,
-          { backgroundColor: colores.primario, bottom: insets.bottom + 16 },
+          { backgroundColor: kit.relleno.primario, bottom: insets.bottom + shSpace[4], boxShadow: c.elev2 },
         ]}
         onPress={abrirNuevoCliente}
       >
-        <MaterialIcons name="add" size={30} color={shColor.white} />
+        <MaterialIcons name="add" size={30} color={kit.relleno.sobrePrimario} />
       </Pressable>
 
       <ModalConFooter
@@ -580,7 +632,7 @@ export function ClientesScreen({
       >
         {creadoOk ? (
           <View style={styles.exito} testID="cliente-creado-ok">
-            <MaterialIcons name="check-circle" size={48} color={shColor.success} />
+            <MaterialIcons name="check-circle" size={48} color={c.statusSuccessFg} />
             <Text style={styles.exitoTexto}>Cliente registrado correctamente</Text>
           </View>
         ) : (
@@ -621,37 +673,37 @@ export function ClientesScreen({
               <View style={styles.documentoNuevo}>
                 <Text style={styles.documentoNuevoTitulo}>Documento</Text>
                 <View style={styles.documentoNuevoFilas}>
-                  <Pressable
+                  <Button
                     testID="cliente-doc-frente"
+                    variant="secondary"
+                    size="sm"
+                    iconLeft="badge"
                     style={styles.botonDoc}
                     disabled={evidenciasCliente.cargando}
                     onPress={() => abrirFuente("documento_frente")}
                   >
-                    <MaterialIcons name="badge" size={16} color={colores.acento} />
-                    <Text style={styles.botonDocTexto}>
-                      {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
-                        ? "Frente ✓"
-                        : "Frente"}
-                    </Text>
-                  </Pressable>
-                  <Pressable
+                    {evidenciasCliente.evidencias.find((e) => e.campo === "documento_frente")
+                      ? "Frente ✓"
+                      : "Frente"}
+                  </Button>
+                  <Button
                     testID="cliente-doc-reverso"
+                    variant="secondary"
+                    size="sm"
+                    iconLeft="badge"
                     style={styles.botonDoc}
                     disabled={evidenciasCliente.cargando}
                     onPress={() => abrirFuente("documento_reverso")}
                   >
-                    <MaterialIcons name="badge" size={16} color={colores.acento} />
-                    <Text style={styles.botonDocTexto}>
-                      {evidenciasCliente.evidencias.find((e) => e.campo === "documento_reverso")
-                        ? "Reverso ✓"
-                        : "Reverso"}
-                    </Text>
-                  </Pressable>
+                    {evidenciasCliente.evidencias.find((e) => e.campo === "documento_reverso")
+                      ? "Reverso ✓"
+                      : "Reverso"}
+                  </Button>
                 </View>
               </View>
             </View>
             {evidenciasCliente.cargando ? (
-              <ActivityIndicator color={colores.acento} />
+              <ActivityIndicator color={c.link} />
             ) : null}
 
             <CampoModal
@@ -689,6 +741,9 @@ export function ClientesScreen({
                 <Pressable
                   key={tipo}
                   testID={`cliente-doc-tipo-${tipo}`}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: tipoDocumento === tipo }}
+                  hitSlop={4}
                   style={[styles.chip, tipoDocumento === tipo && styles.chipActivo]}
                   onPress={() => setTipoDocumento(tipo)}
                 >
@@ -717,6 +772,9 @@ export function ClientesScreen({
             <View style={styles.chips}>
               <Pressable
                 testID="cliente-ubicacion-negocio"
+                accessibilityRole="radio"
+                accessibilityState={{ selected: !esDomicilio }}
+                hitSlop={4}
                 style={[styles.chip, !esDomicilio && styles.chipActivo]}
                 onPress={() => setUbicacionCampo("negocio")}
               >
@@ -728,6 +786,9 @@ export function ClientesScreen({
               </Pressable>
               <Pressable
                 testID="cliente-ubicacion-domicilio"
+                accessibilityRole="radio"
+                accessibilityState={{ selected: esDomicilio }}
+                hitSlop={4}
                 style={[styles.chip, esDomicilio && styles.chipActivo]}
                 onPress={() => setUbicacionCampo("domicilio")}
               >
@@ -739,29 +800,34 @@ export function ClientesScreen({
               </Pressable>
             </View>
             <View style={styles.filaBusqueda}>
-              <TextInput
+              <TextField
                 testID="cliente-direccion"
-                style={[styles.input, styles.inputBusqueda]}
+                accessibilityLabel="Buscar por dirección"
+                style={styles.inputBusqueda}
                 placeholder="Buscar por dirección"
                 value={direccion}
                 onChangeText={setDireccion}
               />
               <Pressable
                 testID="cliente-buscar"
+                accessibilityRole="button"
+                accessibilityLabel="Buscar dirección"
+                accessibilityState={{ disabled: buscandoDireccion, busy: buscandoDireccion }}
+                android_ripple={{ color: kit.ripple.relleno }}
                 style={styles.botonBuscar}
                 disabled={buscandoDireccion}
                 onPress={() => void buscarDireccion()}
               >
                 {buscandoDireccion ? (
-                  <ActivityIndicator color={shColor.white} size="small" />
+                  <ActivityIndicator color={kit.relleno.sobrePrimario} size="small" />
                 ) : (
-                  <MaterialIcons name="search" size={18} color={shColor.white} />
+                  <MaterialIcons name="search" size={20} color={kit.relleno.sobrePrimario} />
                 )}
               </Pressable>
             </View>
             {ubicandoGps ? (
               <Text style={styles.gpsTexto}>
-                <ActivityIndicator size="small" color={colores.acento} /> Ubicando por GPS…
+                <ActivityIndicator size="small" color={c.link} /> Ubicando por GPS…
               </Text>
             ) : null}
             <MapaPin
@@ -774,17 +840,19 @@ export function ClientesScreen({
               testID="mapa-pin-cliente"
             />
             <View style={styles.filaCoordenadas}>
-              <TextInput
+              <TextField
                 testID="cliente-latitud"
-                style={[styles.input, styles.inputCoordenada]}
+                accessibilityLabel="Latitud"
+                style={styles.inputCoordenada}
                 placeholder="Latitud"
                 keyboardType="decimal-pad"
                 value={latActual}
                 onChangeText={setLatActual}
               />
-              <TextInput
+              <TextField
                 testID="cliente-longitud"
-                style={[styles.input, styles.inputCoordenada]}
+                accessibilityLabel="Longitud"
+                style={styles.inputCoordenada}
                 placeholder="Longitud"
                 keyboardType="decimal-pad"
                 value={lngActual}
@@ -821,25 +889,29 @@ export function ClientesScreen({
         onCancelar={() => setFuenteAbierta(false)}
         testID="fuente-modal"
       >
-        <Pressable
+        <Button
           testID="fuente-libreria"
-          style={styles.botonFuenteModal}
+          variant="secondary"
+          size="lg"
+          iconLeft="photo-library"
+          fullWidth
           disabled={evidenciasCliente.cargando}
           onPress={() => elegirEvidencia(fuenteCampo, "libreria")}
         >
-          <MaterialIcons name="photo-library" size={20} color={colores.acento} />
-          <Text style={styles.botonFuenteModalTexto}>Elegir de la galería</Text>
-        </Pressable>
-        <Pressable
+          Elegir de la galería
+        </Button>
+        <Button
           testID="fuente-camara"
-          style={styles.botonFuenteModal}
+          variant="secondary"
+          size="lg"
+          iconLeft="photo-camera"
+          fullWidth
           disabled={evidenciasCliente.cargando}
           onPress={() => elegirEvidencia(fuenteCampo, "camara")}
         >
-          <MaterialIcons name="photo-camera" size={20} color={colores.acento} />
-          <Text style={styles.botonFuenteModalTexto}>Tomar foto</Text>
-        </Pressable>
-        {evidenciasCliente.cargando ? <ActivityIndicator color={colores.acento} /> : null}
+          Tomar foto
+        </Button>
+        {evidenciasCliente.cargando ? <ActivityIndicator color={c.link} /> : null}
         {evidenciasCliente.error ? (
           <Text style={styles.mensajeError}>{evidenciasCliente.error}</Text>
         ) : null}
@@ -848,45 +920,49 @@ export function ClientesScreen({
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c, relleno }: KitTema) {
   return StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: c.fondo },
+    contenedor: { flex: 1, backgroundColor: c.bg },
     busqueda: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
-      marginHorizontal: 16,
-      marginTop: 12,
-      paddingHorizontal: 12,
-      borderRadius: 10,
+      gap: shSpace[2],
+      minHeight: shDensity.controlLg,
+      marginHorizontal: shSpace[4],
+      marginTop: shSpace[3],
+      paddingLeft: shSpace[3],
+      borderRadius: shRadius.sm,
       borderWidth: 1,
-      borderColor: c.borde,
-      backgroundColor: c.tarjeta,
+      borderColor: c.controlBorder,
+      backgroundColor: c.surface,
     },
     busquedaInput: {
+      ...shType.body,
       flex: 1,
-      paddingVertical: 10,
-      fontSize: 15,
-      color: c.texto,
+      minHeight: shDensity.controlLg,
+      paddingVertical: shSpace[2],
+      color: c.text,
     },
     chipsFiltro: {
       flexDirection: "row",
-      gap: 8,
-      paddingHorizontal: 16,
-      paddingTop: 12,
+      gap: shSpace[2],
+      paddingHorizontal: shSpace[4],
+      paddingTop: shSpace[3],
     },
     chipFiltro: {
       flex: 1,
       alignItems: "center",
-      backgroundColor: "transparent",
+      justifyContent: "center",
+      minHeight: shDensity.controlLg,
+      backgroundColor: c.surface,
       borderWidth: 1,
-      borderRadius: 999,
-      paddingHorizontal: 8,
-      paddingVertical: 8,
+      borderRadius: shRadius.pill,
+      paddingHorizontal: shSpace[1],
+      overflow: "hidden",
     },
-    chipFiltroTexto: { fontSize: 11, fontFamily: "Inter_500Medium" },
-    chipFiltroTextoActivo: { color: shColor.white, fontSize: 11, fontFamily: "Montserrat_600SemiBold" },
-    lista: { padding: 16, gap: 10 },
+    chipFiltroTexto: { ...shType.caption, fontFamily: shType.label.fontFamily },
+    chipFiltroTextoActivo: { ...shType.caption, fontFamily: shType.block.fontFamily, color: relleno.sobrePrimario },
+    lista: { padding: shSpace[4], gap: 10 },
     fab: {
       position: "absolute",
       right: 20,
@@ -895,110 +971,57 @@ function crearEstilos(c: ColoresTema) {
       borderRadius: 28,
       alignItems: "center",
       justifyContent: "center",
-      boxShadow: "0 4px 10px rgba(15, 23, 42, 0.25)",
     },
-    vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24 },
     tarjeta: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      backgroundColor: c.tarjeta,
       borderWidth: 1,
-      borderColor: c.borde,
-      borderRadius: 12,
+      borderLeftWidth: 4,
+      borderRadius: shRadius.md,
       borderCurve: "continuous",
       overflow: "hidden",
-      boxShadow: "0 1px 3px rgba(15, 23, 42, 0.08)",
+      boxShadow: c.elev1,
     },
-    acento: { width: 4 },
-    tarjetaContenido: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-      padding: 16,
-    },
-    tarjetaInfo: { flex: 1 },
-    accionesCliente: { flexDirection: "row", alignItems: "center", gap: 8 },
-    accionBoton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: c.activoSuave,
-    },
-    clienteNombre: { fontSize: 16, fontWeight: "600", color: c.texto },
-    clienteDetalle: { color: c.textoSuave, fontSize: 13, marginTop: 2 },
-    clienteTelefono: { color: c.textoSuave, fontSize: 12, marginTop: 2 },
-    form: { gap: 8, paddingBottom: 8 },
-    label: { fontSize: 13, color: c.textoSuave, fontWeight: "600", marginTop: 2 },
+    accionesCliente: { flexDirection: "row", alignItems: "center" },
+    form: { gap: shSpace[2], paddingBottom: shSpace[2] },
+    label: { ...shType.label, color: c.textMuted, marginTop: 2 },
     chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+    // 40 dp de alto + hitSlop del Pressable = blanco táctil de 48 dp.
     chip: {
-      backgroundColor: c.activoSuave,
-      borderWidth: 1,
-      borderColor: conAlfa(shColor.blue["500"], 0.35),
-      borderRadius: 999,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-    },
-    chipActivo: { backgroundColor: shColor.blue["600"], borderColor: shColor.blue["600"] },
-    chipTexto: { color: c.acento, fontSize: 13 },
-    chipTextoActivo: { color: shColor.white, fontSize: 13 },
-    input: {
-      backgroundColor: c.tarjeta,
-      borderWidth: 1,
-      borderColor: conAlfa(shColor.blue["500"], 0.2),
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      fontSize: 15,
-      color: c.texto,
-    },
-    filaCoordenadas: { flexDirection: "row", gap: 8 },
-    inputCoordenada: { flex: 1 },
-    filaSuperior: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
-    avatarEditable: { alignItems: "center", gap: 4 },
-    avatarImagen: { width: 72, height: 72, borderRadius: 36 },
-    avatarEtiqueta: { fontSize: 12, color: c.acento, fontWeight: "600" },
-    documentoNuevo: { flex: 1, gap: 6 },
-    documentoNuevoTitulo: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
-    documentoNuevoFilas: { flexDirection: "row", gap: 8 },
-    botonDoc: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
       justifyContent: "center",
-      gap: 4,
+      minHeight: shDensity.controlMd,
+      backgroundColor: c.surface,
       borderWidth: 1,
-      borderColor: c.primario,
-      borderRadius: 8,
-      paddingVertical: 8,
+      borderColor: c.controlBorder,
+      borderRadius: shRadius.pill,
+      paddingHorizontal: shSpace[3],
     },
-    botonDocTexto: { color: c.acento, fontWeight: "600", fontSize: 13 },
-    botonFuenteModal: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      borderWidth: 1,
-      borderColor: conAlfa(shColor.blue["500"], 0.35),
-      borderRadius: 10,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      backgroundColor: conAlfa(shColor.blue["500"], 0.1),
-    },
-    botonFuenteModalTexto: { color: c.acento, fontWeight: "600", fontSize: 15 },
-    filaBusqueda: { flexDirection: "row", gap: 8 },
+    chipActivo: { backgroundColor: relleno.primario, borderColor: relleno.primario },
+    chipTexto: { ...shType.label, color: c.link },
+    chipTextoActivo: { ...shType.label, color: relleno.sobrePrimario },
+    filaCoordenadas: { flexDirection: "row", gap: shSpace[2] },
+    inputCoordenada: { flex: 1 },
+    filaSuperior: { flexDirection: "row", gap: shSpace[3], alignItems: "flex-start" },
+    avatarEditable: { alignItems: "center", gap: shSpace[1] },
+    avatarImagen: { width: 72, height: 72, borderRadius: 36 },
+    avatarEtiqueta: { ...shType.caption, fontFamily: shType.label.fontFamily, color: c.link },
+    documentoNuevo: { flex: 1, gap: 6 },
+    documentoNuevoTitulo: { ...shType.label, color: c.textMuted },
+    documentoNuevoFilas: { flexDirection: "row", gap: shSpace[2] },
+    botonDoc: { flex: 1, alignSelf: "stretch" },
+    filaBusqueda: { flexDirection: "row", gap: shSpace[2] },
     inputBusqueda: { flex: 1 },
     botonBuscar: {
-      width: 44,
+      width: shDensity.controlLg,
+      minHeight: shDensity.controlLg,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: c.primario,
-      borderRadius: 8,
+      backgroundColor: relleno.primario,
+      borderRadius: shRadius.sm,
+      overflow: "hidden",
     },
-    gpsTexto: { color: c.textoSuave, fontSize: 12, flexDirection: "row", alignItems: "center", gap: 6 },
-    exito: { alignItems: "center", gap: 12, paddingVertical: 24 },
-    exitoTexto: { color: shColor.success, fontSize: 16, fontWeight: "700" },
-    mensajeError: { color: c.peligro, fontSize: 13 },
+    gpsTexto: { ...shType.caption, color: c.textMuted, flexDirection: "row", alignItems: "center", gap: 6 },
+    exito: { alignItems: "center", gap: shSpace[3], paddingVertical: shSpace[6] },
+    exitoTexto: { ...shType.block, color: c.statusSuccessFg },
+    mensajeError: { ...shType.dense, color: c.statusDangerFg },
+    vacio: { ...shType.body, color: c.textMuted, textAlign: "center", marginTop: shSpace[6] },
   });
 }

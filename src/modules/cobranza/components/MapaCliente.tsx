@@ -1,5 +1,6 @@
 import { StyleSheet, View } from "react-native";
-import { shColor } from "@core/theme/tokens";
+import { shRadius } from "@core/theme/tokens";
+import { useKit } from "@shared/ui";
 import { WebView } from "react-native-webview";
 
 export interface MapaClienteProps {
@@ -36,8 +37,9 @@ function htmlMapa(latitud: number, longitud: number, nombre: string): string {
  * en la pantalla Cliente.
  */
 export function MapaCliente({ latitud, longitud, nombre, alto = 220 }: MapaClienteProps) {
+  const { c } = useKit();
   return (
-    <View style={[styles.contenedor, { height: alto }]} testID="mapa-cliente">
+    <View style={[styles.contenedor, { height: alto, borderColor: c.border }]} testID="mapa-cliente">
       <WebView
         testID="mapa-cliente-webview"
         source={{ html: htmlMapa(latitud, longitud, nombre) }}
@@ -50,9 +52,8 @@ export function MapaCliente({ latitud, longitud, nombre, alto = 220 }: MapaClien
 
 const styles = StyleSheet.create({
   contenedor: {
-    borderRadius: 12,
+    borderRadius: shRadius.md,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: shColor.mist,
   },
 });

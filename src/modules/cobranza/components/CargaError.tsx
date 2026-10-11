@@ -1,8 +1,6 @@
-import { useMemo } from "react";
-import { shColor } from "@core/theme/tokens";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { shSpace, shType } from "@core/theme/tokens";
+import { Button, Icono, useKit } from "@shared/ui";
 
 export interface CargaErrorProps {
   cargando: boolean;
@@ -11,38 +9,32 @@ export interface CargaErrorProps {
 }
 
 export function CargaError({ cargando, error, onReintentar }: CargaErrorProps) {
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const { c } = useKit();
   if (!cargando && !error) {
     return null;
   }
   return (
     <View style={styles.centro}>
       {cargando ? (
-        <ActivityIndicator testID="carga-spinner" size="large" />
+        <ActivityIndicator testID="carga-spinner" size="large" color={c.link} />
       ) : (
         <View style={styles.errorBox}>
-          <Text style={styles.error}>{error}</Text>
-          <Pressable testID="reintentar" style={styles.boton} onPress={onReintentar}>
-            <Text style={styles.botonTexto}>Reintentar</Text>
-          </Pressable>
+          <View style={styles.fila} accessibilityLiveRegion="polite">
+            <Icono name="error-outline" size={18} color={c.statusDangerFg} />
+            <Text style={[shType.body, styles.error, { color: c.statusDangerFg }]}>{error}</Text>
+          </View>
+          <Button testID="reintentar" variant="secondary" iconLeft="refresh" onPress={onReintentar}>
+            Reintentar
+          </Button>
         </View>
       )}
     </View>
   );
 }
 
-function crearEstilos(c: ColoresTema) {
-  return StyleSheet.create({
-    centro: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-    errorBox: { alignItems: "center", gap: 8 },
-    error: { color: c.peligro, fontSize: 15 },
-    boton: {
-      backgroundColor: c.primario,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 8,
-    },
-    botonTexto: { color: shColor.white, fontWeight: "600" },
-  });
-}
+const styles = StyleSheet.create({
+  centro: { flex: 1, alignItems: "center", justifyContent: "center", gap: shSpace[3] },
+  errorBox: { alignItems: "center", gap: shSpace[2], paddingHorizontal: shSpace[4] },
+  fila: { flexDirection: "row", alignItems: "center", gap: shSpace[1] },
+  error: { flexShrink: 1, textAlign: "center" },
+});

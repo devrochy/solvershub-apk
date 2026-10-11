@@ -1,10 +1,9 @@
 import { useMemo } from "react";
-import { shColor } from "@core/theme/tokens";
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Button, useKit, type ColoresKit } from "@shared/ui";
 import { HeaderApp } from "./HeaderApp";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
 import type { ClienteTrayectoDiarioPublic, TrayectoPublic } from "@shared/types/gestor";
 import { enlaceGoogleMapsCartera } from "../features/navegacion/navegacion";
 
@@ -27,8 +26,8 @@ function nombreDeParada(
  * overlay en TrayectoDiarioScreen, que gestiona el cierre con swipe y el back físico.
  */
 export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const { c } = useKit();
+  const styles = useMemo(() => crearEstilos(c), [c]);
   return (
     <SafeAreaView testID="trayectos-lista" style={styles.contenedor} edges={["left", "right", "bottom"]}>
       <HeaderApp
@@ -60,15 +59,18 @@ export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
                 ))}
               </View>
               {enlace ? (
-                <Pressable
+                <Button
                   testID={`navegar-trayecto-${indice}`}
+                  variant="secondary"
+                  iconLeft="navigation"
+                  fullWidth
                   style={styles.botonNavegar}
                   onPress={() => {
                     void Linking.openURL(enlace);
                   }}
                 >
-                  <Text style={styles.botonNavegarTexto}>Navegar trayecto</Text>
-                </Pressable>
+                  Navegar trayecto
+                </Button>
               ) : null}
             </View>
           );
@@ -78,34 +80,27 @@ export function TrayectosLista({ clientes, trayectos }: TrayectosListaProps) {
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos(c: ColoresKit) {
   return StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: c.fondo },
-    scroll: { padding: 16, gap: 12 },
+    contenedor: { flex: 1, backgroundColor: c.bg },
+    scroll: { padding: shSpace[4], gap: shSpace[3] },
     trayecto: {
-      backgroundColor: c.tarjeta,
-      borderRadius: 12,
+      backgroundColor: c.surface,
+      borderRadius: shRadius.md,
       borderWidth: 1,
-      borderColor: c.borde,
-      padding: 16,
-      gap: 8,
+      borderColor: c.border,
+      padding: shSpace[4],
+      gap: shSpace[2],
     },
     trayectoFila: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
     },
-    trayectoTitulo: { fontSize: 15, fontWeight: "700", color: c.texto },
-    paradasContador: { color: c.textoSuave, fontSize: 13 },
-    paradas: { gap: 4 },
-    paradaNombre: { color: c.texto, fontSize: 14, flex: 1 },
-    botonNavegar: {
-      backgroundColor: shColor.blue["600"],
-      borderRadius: 8,
-      paddingVertical: 10,
-      alignItems: "center",
-      marginTop: 4,
-    },
-    botonNavegarTexto: { color: shColor.white, fontWeight: "600" },
+    trayectoTitulo: { ...shType.block, color: c.text },
+    paradasContador: { ...shType.dense, color: c.textMuted },
+    paradas: { gap: shSpace[1] },
+    paradaNombre: { ...shType.body, color: c.text, flex: 1 },
+    botonNavegar: { marginTop: shSpace[1] },
   });
 }

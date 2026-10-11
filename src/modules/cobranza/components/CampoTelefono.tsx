@@ -9,9 +9,8 @@ import {
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
-import { shColor } from "@core/theme/tokens";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
+import { useKit, type KitTema } from "@shared/ui";
 import {
   PAISES_TELEFONO,
   PAIS_DEFECTO_TELEFONO,
@@ -43,8 +42,9 @@ export function CampoTelefono({
   const [paisSeleccionado, setPaisSeleccionado] = useState<PaisTelefono | null>(
     null,
   );
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const { c } = kit;
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
   // Fuente de verdad: el país explícitamente elegido; si no se ha elegido uno,
   // se infiere del número (y ante prefijos compartidos +1 se resuelve al país
   // con el prefijo más largo que coincida, o al primero del catálogo).
@@ -72,12 +72,13 @@ export function CampoTelefono({
       >
         <Text style={styles.bandera}>{pais.bandera}</Text>
         <Text style={styles.prefijo}>{pais.prefijo}</Text>
-        <MaterialIcons name="arrow-drop-down" size={20} color={colores.textoSuave} />
+        <MaterialIcons name="arrow-drop-down" size={20} color={c.textMuted} />
       </Pressable>
       <TextInput
         testID={`${testID}-numero`}
         style={styles.input}
         placeholder={placeholder}
+        placeholderTextColor={c.textSoft}
         keyboardType="phone-pad"
         value={numeroLocal}
         onChangeText={(local) => onChange(`${pais.prefijo}${local}`)}
@@ -93,9 +94,10 @@ export function CampoTelefono({
                 accessibilityRole="button"
                 accessibilityLabel="Cerrar"
                 hitSlop={10}
+                style={styles.cerrar}
                 onPress={() => setListaAbierta(false)}
               >
-                <MaterialIcons name="close" size={22} color={shColor.white} />
+                <MaterialIcons name="close" size={22} color={kit.banda.texto} />
               </Pressable>
             </View>
             <FlatList
@@ -111,7 +113,7 @@ export function CampoTelefono({
                   <Text style={styles.nombrePais}>{item.nombre}</Text>
                   <Text style={styles.prefijoFila}>{item.prefijo}</Text>
                   {item.codigo === pais.codigo ? (
-                    <MaterialIcons name="check" size={18} color={shColor.success} />
+                    <MaterialIcons name="check" size={18} color={c.statusSuccessFg} />
                   ) : null}
                 </Pressable>
               )}
@@ -123,62 +125,74 @@ export function CampoTelefono({
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c, banda }: KitTema) {
   return StyleSheet.create({
-    contenedor: { flexDirection: "row", alignItems: "center", gap: 8 },
+    contenedor: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
     botonPais: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 4,
+      gap: shSpace[1],
+      minHeight: shDensity.controlLg,
       borderWidth: 1,
-      borderColor: c.textoSuave,
-      borderRadius: 8,
+      borderColor: c.controlBorder,
+      borderRadius: shRadius.sm,
       paddingHorizontal: 10,
-      paddingVertical: 10,
+      backgroundColor: c.surface,
     },
     bandera: { fontSize: 18 },
-    prefijo: { fontSize: 15, fontWeight: "600", color: c.texto },
+    prefijo: { ...shType.label, color: c.text },
     input: {
+      ...shType.body,
       flex: 1,
+      minHeight: shDensity.controlLg,
       borderWidth: 1,
-      borderColor: c.textoSuave,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      fontSize: 15,
+      borderColor: c.controlBorder,
+      borderRadius: shRadius.sm,
+      paddingHorizontal: shSpace[3],
+      paddingVertical: shSpace[2],
+      color: c.text,
+      backgroundColor: c.surface,
     },
     fondo: {
       flex: 1,
-      backgroundColor: "rgba(23, 47, 108, 0.25)",
+      backgroundColor: c.overlay,
       justifyContent: "flex-end",
     },
     carta: {
-      backgroundColor: shColor.frost,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
+      backgroundColor: c.surface,
+      borderTopLeftRadius: shRadius.lg,
+      borderTopRightRadius: shRadius.lg,
       overflow: "hidden",
       maxHeight: "70%",
-      paddingBottom: 24,
+      paddingBottom: shSpace[6],
     },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      backgroundColor: c.primario,
+      paddingLeft: shSpace[4],
+      paddingRight: shSpace[1],
+      paddingVertical: shSpace[1],
+      backgroundColor: banda.fondo,
     },
-    headerTitulo: { fontSize: 16, fontWeight: "700", color: shColor.white },
+    headerTitulo: { ...shType.block, color: banda.texto },
+    cerrar: {
+      minWidth: shDensity.controlLg,
+      minHeight: shDensity.controlLg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     filaPais: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      gap: shSpace[3],
+      minHeight: shDensity.rowComfortable,
+      paddingHorizontal: shSpace[4],
+      paddingVertical: shSpace[3],
       borderBottomWidth: 1,
-      borderBottomColor: c.fondo,
+      borderBottomColor: c.borderSoft,
     },
-    nombrePais: { flex: 1, fontSize: 15, color: c.texto },
-    prefijoFila: { fontSize: 15, color: c.textoSuave, fontWeight: "600" },
+    nombrePais: { ...shType.body, flex: 1, color: c.text },
+    prefijoFila: { ...shType.label, color: c.textMuted },
   });
 }

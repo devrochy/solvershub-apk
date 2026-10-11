@@ -1,26 +1,12 @@
-import { Pressable, StyleSheet } from "react-native";
-import { shColor } from "@core/theme/tokens";
-import { MaterialIcons } from "@expo/vector-icons";
+import { IconButton } from "@shared/ui";
 import { useMenuLateral } from "../navigation/menu-lateral-context";
 
-/** Botón hamburguesa que abre/cierra el menú lateral. Va en el header. */
+/**
+ * Botón hamburguesa que abre/cierra el menú lateral. Va en el header, sobre la
+ * banda de marca (`IconButton` del kit en tono `inverse`, blanco de 48 dp).
+ */
 export function BotonMenu() {
   const { alternar } = useMenuLateral();
 
-  return (
-    <Pressable
-      testID="btn-menu"
-      accessibilityRole="button"
-      accessibilityLabel="Abrir menú"
-      hitSlop={8}
-      onPress={alternar}
-      style={styles.boton}
-    >
-      <MaterialIcons name="menu" size={24} color={shColor.white} />
-    </Pressable>
-  );
+  return <IconButton testID="btn-menu" icon="menu" label="Abrir menú" tone="inverse" onPress={alternar} />;
 }
-
-const styles = StyleSheet.create({
-  boton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
-});

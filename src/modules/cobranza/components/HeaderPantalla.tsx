@@ -1,8 +1,14 @@
 import { ReactNode } from "react";
-import { shColor } from "@core/theme/tokens";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "@core/theme/theme-context";
+import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { kitDeTema, useKit } from "@shared/ui";
+
+/**
+ * Lo que va sobre la banda (texto, subtítulo, borde de píldora) es igual en
+ * claro y en oscuro, así que los estilos estáticos lo toman de un solo tema.
+ */
+const BANDA = kitDeTema("claro").banda;
 
 /**
  * Banda superior azul (primary) de las pantallas autenticadas. Se extiende
@@ -12,13 +18,13 @@ import { useTheme } from "@core/theme/theme-context";
  */
 export function HeaderPantalla({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
-  const { colores } = useTheme();
+  const { banda } = useKit();
   return (
     <View
       testID="banda-header"
       style={[
         styles.banda,
-        { backgroundColor: colores.primario, paddingTop: insets.top },
+        { backgroundColor: banda.fondo, paddingTop: insets.top },
       ]}
     >
       {children}
@@ -31,8 +37,8 @@ export function HeaderPantalla({ children }: { children: ReactNode }) {
  * autenticadas usan estos tokens para que el título, el padding y las acciones
  * sean idénticos en todas ellas:
  * - `fila`: fila del header (padding 16/12, gap 8).
- * - `titulo` + `subtitulo`: bloque de título a la izquierda (18 bold blanco;
- *   subtítulo 13 azul-claro).
+ * - `titulo` + `subtitulo`: bloque de título a la izquierda (`shType.block` en
+ *   negrita sobre la banda; subtítulo `shType.dense` en el tono suave).
  * - `columnaIzq`/`columnaDerecha`: ranuras laterales de ancho fijo (72) para
  *   back y acciones. Solo se usan en las vistas con back/acción lateral
  *   (ClienteScreen, CarteraDetalleScreen); el resto parte el título en x=16 y se
@@ -44,9 +50,9 @@ export const estilosHeader = StyleSheet.create({
   fila: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    gap: shSpace[2],
+    paddingHorizontal: shSpace[4],
+    paddingVertical: shSpace[3],
   },
   columnaIzq: {
     width: 72,
@@ -64,39 +70,35 @@ export const estilosHeader = StyleSheet.create({
   accionesDerecha: { flexDirection: "row", alignItems: "center", gap: 10 },
   bloqueTitulo: { flex: 1 },
   titulo: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: shColor.white,
-    fontFamily: "Montserrat_700Bold",
+    ...shType.block,
+    fontFamily: shType.hero.fontFamily,
+    color: BANDA.texto,
   },
   subtitulo: {
-    color: shColor.ice,
-    fontSize: 13,
+    ...shType.dense,
+    color: BANDA.textoSuave,
     marginTop: 2,
-    fontFamily: "Inter_400Regular",
   },
   accionTexto: {
-    color: shColor.white,
-    fontWeight: "600",
-    fontSize: 14,
-    fontFamily: "Montserrat_600SemiBold",
+    ...shType.label,
+    fontFamily: shType.h1.fontFamily,
+    color: BANDA.texto,
   },
   accionPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: shSpace[1],
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.7)",
+    borderColor: BANDA.borde,
     backgroundColor: "transparent",
-    borderRadius: 999,
-    paddingHorizontal: 12,
+    borderRadius: shRadius.pill,
+    paddingHorizontal: shSpace[3],
     paddingVertical: 6,
   },
   accionPillTexto: {
-    color: shColor.white,
-    fontWeight: "700",
-    fontSize: 13,
-    fontFamily: "Montserrat_700Bold",
+    ...shType.label,
+    fontFamily: shType.hero.fontFamily,
+    color: BANDA.texto,
   },
 });
 

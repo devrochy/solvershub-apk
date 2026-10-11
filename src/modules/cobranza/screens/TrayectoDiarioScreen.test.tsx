@@ -100,7 +100,7 @@ import { OverlaysActivos } from "../navigation/OverlaysActivos";
 import { TrayectosOverlayProvider } from "../navigation/trayectos-overlay-context";
 import { shareAsync } from "expo-sharing";
 import { File } from "expo-file-system";
-import { COLORES } from "@core/theme/theme";
+import { kitDeTema } from "@shared/ui";
 import { colorDeEstado } from "../components/ColorBadge";
 
 const offlineValor: OfflineValue = {
@@ -641,7 +641,8 @@ describe("TrayectoDiarioScreen — cobros del día", () => {
     expect(
       getByText("Ingresa descripción y un valor válido."),
     ).toBeTruthy();
-    expect(getByTestId("gasto-mensaje")).toHaveStyle({ color: COLORES.claro.peligro });
+    // HU-DS-10: el error es texto de estado, con `statusDangerFg` (AA en claro).
+    expect(getByTestId("gasto-mensaje")).toHaveStyle({ color: kitDeTema("claro").c.statusDangerFg });
     expect(registrarGasto).not.toHaveBeenCalled();
   });
 
@@ -869,6 +870,25 @@ describe("TrayectoDiarioScreen — liquidación del día", () => {
     expect(getAllByText(/Juan/).length).toBeGreaterThan(0);
     expect(getByText("Abonos del día")).toBeTruthy();
     expect(getByTestId("descargar-pdf")).toBeTruthy();
+  });
+
+  it("'Generar liquidación' es la CTA primary del kit y los demás botones son secundarios (HU-DS-10)", async () => {
+    const { getByTestId } = await renderConApi(
+      {
+        trayectoDiario: jest.fn().mockResolvedValue({ clientes: clientesConVisita, trayectos: null }),
+        listarLiquidaciones: jest.fn().mockResolvedValue([]),
+      },
+      offlineValor,
+      { generarReportesApk: true },
+    );
+    const { relleno, c } = kitDeTema("claro");
+
+    await waitFor(() => expect(getByTestId("btn-liquidacion")).toBeTruthy());
+    expect(getByTestId("btn-liquidacion")).toHaveStyle({ backgroundColor: c.surface, minHeight: 56 });
+    expect(getByTestId("btn-cliente-cercano")).toHaveStyle({ backgroundColor: c.surface });
+    await fireEvent.press(getByTestId("btn-liquidacion"));
+    await waitFor(() => expect(getByTestId("generar-liquidacion")).toBeTruthy());
+    expect(getByTestId("generar-liquidacion")).toHaveStyle({ backgroundColor: relleno.primario });
   });
 
   it("oculta caja, estimado, cobrado y cartera según la configuración de la cartera", async () => {

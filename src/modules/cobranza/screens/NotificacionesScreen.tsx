@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
-import { shColor } from "@core/theme/tokens";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
+import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Button, EmptyState, IconButton, Icono, ListItem, useKit, type ColoresKit } from "@shared/ui";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -10,8 +11,6 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { VentanaCerrarConSwipe } from "../navigation/VentanaCerrarConSwipe";
 import type { RootStackParamList } from "../navigation/types";
 import { useNotificaciones } from "../session/notificaciones-context";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
 import type { NotificacionTipo } from "@shared/types/gestor";
 
 const ICONO: Record<NotificacionTipo, keyof typeof MaterialIcons.glyphMap> = {
@@ -27,8 +26,8 @@ export function NotificacionesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { items, cargando, cargar, marcarVistas, descartar } = useNotificaciones();
 
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const { c } = useKit();
+  const styles = useMemo(() => crearEstilos(c), [c]);
 
   useEffect(() => {
     void cargar();
@@ -56,72 +55,64 @@ export function NotificacionesScreen() {
         refreshing={cargando}
         onRefresh={() => void cargar()}
         ListEmptyComponent={
-          <Text style={styles.vacio}>
-            {cargando ? "Cargando…" : "Sin notificaciones."}
-          </Text>
+          cargando ? (
+            <Text style={styles.vacio}>Cargando…</Text>
+          ) : (
+            <EmptyState
+              icon="notifications-none"
+              title="Sin notificaciones."
+              action={{ label: "Actualizar", onPress: () => void cargar() }}
+            />
+          )
         }
         renderItem={({ item }) => (
-          <View testID={`notif-${item.id}`} style={styles.item}>
-            <MaterialIcons name={ICONO[item.tipo]} size={22} color={colores.acento} />
-            <View style={styles.info}>
-              <Text style={styles.mensaje}>{item.mensaje}</Text>
-              <Text style={styles.meta}>
-                {item.carteraNombre} · {new Date(item.fecha).toLocaleString("es-BO")}
-              </Text>
-            </View>
-            <Pressable
-              testID={`notif-cerrar-${item.id}`}
-              accessibilityRole="button"
-              accessibilityLabel="Descartar notificación"
-              hitSlop={8}
-              style={styles.cerrar}
-              onPress={() => void descartar(item.id)}
-            >
-              <MaterialIcons name="close" size={18} color={colores.textoSuave} />
-            </Pressable>
-          </View>
+          <ListItem
+            testID={`notif-${item.id}`}
+            title={item.mensaje}
+            subtitle={`${item.carteraNombre} · ${new Date(item.fecha).toLocaleString("es-BO")}`}
+            leading={<Icono name={ICONO[item.tipo]} size={22} color={c.link} />}
+            trailing={
+              <IconButton
+                testID={`notif-cerrar-${item.id}`}
+                icon="close"
+                label="Descartar notificación"
+                size="sm"
+                onPress={() => void descartar(item.id)}
+              />
+            }
+            style={styles.item}
+          />
         )}
       />
 
-      <Pressable
-        testID="btn-marcar-vistas"
-        style={styles.marcar}
-        onPress={() => void marcarVistas()}
-      >
-        <Text style={styles.marcarTexto}>Marcar como vistas</Text>
-      </Pressable>
+      <View style={styles.pie}>
+        <Button
+          testID="btn-marcar-vistas"
+          size="lg"
+          iconLeft="done-all"
+          fullWidth
+          onPress={() => void marcarVistas()}
+        >
+          Marcar como vistas
+        </Button>
+      </View>
       </SafeAreaView>
     </VentanaCerrarConSwipe>
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos(c: ColoresKit) {
   return StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: c.fondo },
+    contenedor: { flex: 1, backgroundColor: c.bg },
     fill: { flex: 1 },
-    lista: { padding: 16, gap: 10 },
-    vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24 },
+    lista: { padding: shSpace[4], gap: 10 },
+    vacio: { ...shType.body, color: c.textMuted, textAlign: "center", marginTop: shSpace[6] },
     item: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-      backgroundColor: c.tarjeta,
-      borderRadius: 12,
+      borderRadius: shRadius.md,
       borderWidth: 1,
-      borderColor: c.borde,
-      padding: 14,
+      borderColor: c.border,
+      overflow: "hidden",
     },
-    info: { flex: 1, gap: 2 },
-    mensaje: { fontSize: 14, fontWeight: "600", color: c.texto },
-    meta: { fontSize: 12, color: c.textoSuave },
-    cerrar: { padding: 4 },
-    marcar: {
-      margin: 16,
-      paddingVertical: 12,
-      borderRadius: 10,
-      backgroundColor: c.primario,
-      alignItems: "center",
-    },
-    marcarTexto: { color: shColor.white, fontWeight: "700" },
+    pie: { padding: shSpace[4], borderTopWidth: 1, borderTopColor: c.borderSoft, backgroundColor: c.surface },
   });
 }

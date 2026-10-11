@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { shColor } from "@core/theme/tokens";
 import {
   ActivityIndicator,
   Image,
@@ -8,8 +7,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
+import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Button, Icono, useKit, type KitTema } from "@shared/ui";
 import type { EvidenciaSeleccionada } from "../features/gastos/use-evidencias";
 
 export interface EvidenciaPickerProps {
@@ -31,34 +30,41 @@ export function EvidenciaPicker({
   onQuitar,
   max,
 }: EvidenciaPickerProps) {
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
   const lleno = evidencias.length >= max;
 
   return (
     <View style={styles.contenedor}>
       <View style={styles.filaBotones}>
-        <Pressable
+        <Button
           testID="evidencia-libreria"
-          style={[styles.boton, lleno && styles.botonDeshabilitado]}
+          variant="secondary"
+          size="sm"
+          iconLeft="photo-library"
           disabled={cargando || lleno}
           onPress={onAgregarLibreria}
         >
-          <Text style={styles.botonTexto}>Librería</Text>
-        </Pressable>
-        <Pressable
+          Librería
+        </Button>
+        <Button
           testID="evidencia-camara"
-          style={[styles.boton, lleno && styles.botonDeshabilitado]}
+          variant="secondary"
+          size="sm"
+          iconLeft="photo-camera"
           disabled={cargando || lleno}
           onPress={onAgregarCamara}
         >
-          <Text style={styles.botonTexto}>Cámara</Text>
-        </Pressable>
-        {cargando ? <ActivityIndicator /> : null}
+          Cámara
+        </Button>
+        {cargando ? <ActivityIndicator color={kit.c.link} /> : null}
       </View>
 
       {error ? (
-        <Text style={styles.error}>{error}</Text>
+        <View style={styles.filaError} accessibilityLiveRegion="polite">
+          <Icono name="error-outline" size={16} color={kit.c.statusDangerFg} />
+          <Text style={styles.error}>{error}</Text>
+        </View>
       ) : null}
 
       <View style={styles.miniaturas}>
@@ -72,7 +78,8 @@ export function EvidenciaPicker({
             <Pressable
               testID={`evidencia-quitar-${evidencia.uri}`}
               style={styles.quitar}
-              hitSlop={12}
+              hitSlop={14}
+              accessibilityRole="button"
               accessibilityLabel="Quitar evidencia"
               onPress={() => onQuitar(evidencia.uri)}
             >
@@ -89,35 +96,28 @@ export function EvidenciaPicker({
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c, relleno }: KitTema) {
   return StyleSheet.create({
-    contenedor: { gap: 8 },
-    filaBotones: { flexDirection: "row", gap: 8, alignItems: "center" },
-    boton: {
-      borderWidth: 1,
-      borderColor: c.primario,
-      borderRadius: 8,
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-    },
-    botonDeshabilitado: { opacity: 0.4 },
-    botonTexto: { color: c.acento, fontWeight: "600" },
-    error: { color: c.peligro, fontSize: 13 },
-    miniaturas: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    contenedor: { gap: shSpace[2] },
+    filaBotones: { flexDirection: "row", gap: shSpace[2], alignItems: "center" },
+    filaError: { flexDirection: "row", alignItems: "center", gap: shSpace[1] },
+    error: { ...shType.dense, color: c.statusDangerFg, flexShrink: 1 },
+    miniaturas: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[2] },
     miniaturaContenedor: { position: "relative" },
-    miniatura: { width: 64, height: 64, borderRadius: 8 },
+    miniatura: { width: 64, height: 64, borderRadius: shRadius.sm },
+    // 20 dp visibles + hitSlop de 14 por lado = blanco táctil de 48 dp.
     quitar: {
       position: "absolute",
       top: -6,
       right: -6,
-      backgroundColor: c.peligro,
-      borderRadius: 10,
+      backgroundColor: relleno.peligro,
+      borderRadius: shRadius.pill,
       width: 20,
       height: 20,
       alignItems: "center",
       justifyContent: "center",
     },
-    quitarTexto: { color: shColor.white, fontWeight: "700", fontSize: 14 },
-    contador: { color: c.textoSuave, fontSize: 12 },
+    quitarTexto: { ...shType.label, fontFamily: shType.hero.fontFamily, color: relleno.sobrePeligro, lineHeight: 18 },
+    contador: { ...shType.caption, color: c.textMuted },
   });
 }

@@ -1,14 +1,24 @@
 import { render } from "@testing-library/react-native";
 import { Animated } from "react-native";
-import { ColorBadge } from "./ColorBadge";
-import { shColor } from "@core/theme/tokens";
+import { ColorBadge, colorDeEstado } from "./ColorBadge";
+import { kitDeTema } from "@shared/ui";
 
 describe("ColorBadge", () => {
   it("renderiza un punto circular con el color semántico", async () => {
     const { getByTestId } = await render(<ColorBadge color="rojo" />);
     const punto = getByTestId("color-badge-rojo");
     expect(punto).toBeTruthy();
-    expect(punto).toHaveStyle({ backgroundColor: shColor.danger });
+    expect(punto).toHaveStyle({ backgroundColor: kitDeTema("claro").tonos.danger.fg });
+  });
+
+  it("los estados del cliente salen de los tonos del kit (HU-DS-10)", () => {
+    const { tonos } = kitDeTema("claro");
+    expect(colorDeEstado("verde")).toBe(tonos.success.fg);
+    expect(colorDeEstado("rojo")).toBe(tonos.danger.fg);
+    expect(colorDeEstado("azul")).toBe(tonos.info.fg);
+    expect(colorDeEstado("blanco")).toBe(tonos.neutral.fg);
+    expect(colorDeEstado("otro")).toBe(tonos.neutral.fg);
+    expect(colorDeEstado("rojo", "oscuro")).toBe(kitDeTema("oscuro").tonos.danger.fg);
   });
 
   it("no muestra texto del color", async () => {

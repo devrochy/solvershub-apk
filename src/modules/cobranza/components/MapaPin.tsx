@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
-import { shColor } from "@core/theme/tokens";
+import { shRadius } from "@core/theme/tokens";
+import { useKit } from "@shared/ui";
 import { StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -54,6 +55,7 @@ export function MapaPin({
   alto = 180,
   testID = "mapa-pin",
 }: MapaPinProps) {
+  const { c } = useKit();
   const html = useMemo(() => htmlMapaPin(latitud, longitud), [latitud, longitud]);
   const webviewRef = useRef<WebView | null>(null);
   const primerRender = useRef(true);
@@ -70,7 +72,7 @@ export function MapaPin({
   }, [latitud, longitud]);
 
   return (
-    <View style={[styles.contenedor, { height: alto }]} testID={testID}>
+    <View style={[styles.contenedor, { height: alto, borderColor: c.border }]} testID={testID}>
       <WebView
         ref={webviewRef}
         testID={`${testID}-webview`}
@@ -100,9 +102,8 @@ export function MapaPin({
 
 const styles = StyleSheet.create({
   contenedor: {
-    borderRadius: 12,
+    borderRadius: shRadius.md,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: shColor.mist,
   },
 });

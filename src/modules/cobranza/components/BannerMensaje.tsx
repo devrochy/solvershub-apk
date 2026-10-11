@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
+import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Icono, useKit } from "@shared/ui";
 
 export interface BannerMensajeProps {
   texto: string;
@@ -8,33 +8,35 @@ export interface BannerMensajeProps {
 }
 
 /**
- * Banner de mensaje no bloqueante. Verde para éxito, rojo para error, de modo
- * que el gestor distinga un "guardado" de un fallo de un vistazo.
+ * Banner de mensaje no bloqueante. Tono `success` para éxito y `danger` para
+ * error, siempre con ícono (el color nunca va solo), de modo que el gestor
+ * distinga un "guardado" de un fallo de un vistazo.
  */
 export function BannerMensaje({ texto, tipo }: BannerMensajeProps) {
+  const { c, tonos } = useKit();
   const esExito = tipo === "exito";
+  const t = esExito ? tonos.success : tonos.danger;
   return (
     <View
       testID="banner-mensaje"
-      style={[styles.banner, esExito ? styles.exito : styles.error]}
+      accessibilityLiveRegion="polite"
+      style={[styles.banner, { backgroundColor: t.bg, borderColor: t.border }]}
     >
-      <Text style={[styles.texto, esExito ? styles.textoExito : styles.textoError]}>
-        {texto}
-      </Text>
+      <Icono name={esExito ? "check-circle" : "error-outline"} size={18} color={t.fg} />
+      <Text style={[shType.dense, styles.texto, { color: c.text }]}>{texto}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   banner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: shSpace[2],
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderRadius: shRadius.md,
+    paddingHorizontal: shSpace[3],
     paddingVertical: 10,
   },
-  exito: { backgroundColor: conAlfa(shColor.success, 0.12), borderColor: conAlfa(shColor.success, 0.3) },
-  error: { backgroundColor: conAlfa(shColor.danger, 0.12), borderColor: conAlfa(shColor.danger, 0.3) },
-  texto: { fontSize: 13, fontWeight: "500" },
-  textoExito: { color: shColor.navy["900"] },
-  textoError: { color: shColor.navy["900"] },
+  texto: { flex: 1 },
 });

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { shColor } from "@core/theme/tokens";
 import { BackHandler, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useKit } from "@shared/ui";
 import { OverlaysActivos } from "./OverlaysActivos";
 import { usePantallaActiva } from "./pantalla-activa-context";
 import { useTrayectosOverlay } from "./trayectos-overlay-context";
@@ -40,6 +40,7 @@ export function CarteraFlujo({ route, navigation }: Props) {
   const { setItemsExtra } = useMenuLateral();
   const { pantalla, cerrar } = usePantallaActiva();
   const { contenido: trayectosAbiertos, cerrar: cerrarTrayectos } = useTrayectosOverlay();
+  const { tonos } = useKit();
 
   useEffect(() => {
     let activo = true;
@@ -84,7 +85,7 @@ export function CarteraFlujo({ route, navigation }: Props) {
           key: `car-${c.id}`,
           label: c.nombre,
           icon: "circle",
-          color: c.estatus === "activo" ? shColor.success : shColor.danger,
+          color: c.estatus === "activo" ? tonos.success.fg : tonos.danger.fg,
           activo: c.id === carteraActiva?.carteraId,
           onPress: () => {
             setCarteraActiva(aCarteraActiva(c));
@@ -129,7 +130,7 @@ export function CarteraFlujo({ route, navigation }: Props) {
 
     setItemsExtra(items);
     return () => setItemsExtra([]);
-  }, [seccion, filtro, carteras, carteraActiva, setCarteraActiva, setItemsExtra, navigation]);
+  }, [seccion, filtro, carteras, carteraActiva, setCarteraActiva, setItemsExtra, navigation, tonos]);
 
   const volver = useCallback(() => navigation.navigate("Main"), [navigation]);
 

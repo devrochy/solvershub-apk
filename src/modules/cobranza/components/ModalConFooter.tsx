@@ -10,9 +10,8 @@ import {
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
-import { shColor } from "@core/theme/tokens";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Button, useKit, type KitTema } from "@shared/ui";
 
 export interface ModalConFooterProps {
   visible: boolean;
@@ -26,6 +25,12 @@ export interface ModalConFooterProps {
   confirmando?: boolean;
   labelCancelar?: string;
   labelConfirmar?: string;
+  /**
+   * Aviso flotante sobre el pie de la hoja (p. ej. el `Toast` del kit al
+   * confirmar un pago). Va dentro del `Modal` porque un toast de la raíz
+   * quedaría tapado por él.
+   */
+  aviso?: ReactNode;
   testID?: string;
   cerrarTestID?: string;
   cancelarTestID?: string;
@@ -34,10 +39,15 @@ export interface ModalConFooterProps {
 
 /**
  * Modal reutilizable con header (título + botón cerrar/back), cuerpo (children)
- * y footer con botones (ej. Cancelar/Confirmar). El header usa el azul principal
- * (navy-700 del tema) y el resto del modal tonos pastel suaves para que la interfaz no
- * sea brusca. Se usa en: editar cliente, nuevo préstamo, avatar, detalle de
- * cuota, registrar pago/no pago, nuevo cliente, nuevo gasto y nueva nota.
+ * y footer con botones (ej. Cancelar/Confirmar). El header usa la banda de
+ * marca del tema y el footer los `Button` del kit (`secondary` + `primary`, 48
+ * dp, en la zona del pulgar). Se usa en: editar cliente, nuevo préstamo,
+ * avatar, detalle de cuota, registrar pago/no pago, nuevo cliente, nuevo gasto
+ * y nueva nota.
+ *
+ * HU-DS-10 conserva el comportamiento (D-SPEC-29-6): solo cierra con la X, el
+ * back de Android o Cancelar; no con el fondo ni con un gesto, para que un pago
+ * a medio escribir no se pierda por un toque accidental (ver la tarea).
  */
 export function ModalConFooter({
   visible,
@@ -50,13 +60,14 @@ export function ModalConFooter({
   confirmando = false,
   labelCancelar = "Cancelar",
   labelConfirmar = "Guardar",
+  aviso,
   testID,
   cerrarTestID = "modal-cerrar",
   cancelarTestID = "modal-cancelar",
   confirmarTestID = "modal-confirmar",
 }: ModalConFooterProps) {
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
   const tieneFooter = Boolean(onCancelar || onConfirmar);
 
   return (
@@ -68,7 +79,9 @@ export function ModalConFooter({
         <View style={styles.carta} testID={testID}>
           <View style={styles.header} testID="modal-header">
             <View style={styles.headerTexto}>
-              <Text style={styles.titulo}>{titulo}</Text>
+              <Text accessibilityRole="header" style={styles.titulo}>
+                {titulo}
+              </Text>
               {subtitulo ? (
                 <Text style={styles.subtitulo}>{subtitulo}</Text>
               ) : null}
@@ -81,7 +94,7 @@ export function ModalConFooter({
               hitSlop={10}
               onPress={onCerrar}
             >
-              <MaterialIcons name="close" size={22} color={shColor.white} />
+              <MaterialIcons name="close" size={24} color={kit.banda.texto} />
             </Pressable>
           </View>
 
@@ -96,34 +109,37 @@ export function ModalConFooter({
           {tieneFooter ? (
             <View style={styles.footer}>
               {onCancelar ? (
-                <Pressable
+                <Button
                   testID={cancelarTestID}
-                  style={[styles.boton, styles.botonCancelar]}
+                  variant="secondary"
+                  fullWidth
+                  style={styles.boton}
                   onPress={onCancelar}
                 >
-                  <Text style={styles.botonCancelarTexto}>{labelCancelar}</Text>
-                </Pressable>
+                  {labelCancelar}
+                </Button>
               ) : (
                 <View style={styles.boton} />
               )}
               {onConfirmar ? (
-                <Pressable
+                <Button
                   testID={confirmarTestID}
-                  style={[
-                    styles.boton,
-                    styles.botonConfirmar,
-                    confirmando && styles.botonDeshabilitado,
-                  ]}
+                  variant="primary"
+                  fullWidth
+                  style={styles.boton}
                   disabled={confirmando}
                   onPress={onConfirmar}
                 >
-                  <Text style={styles.botonConfirmarTexto}>
-                    {confirmando ? "Guardando…" : labelConfirmar}
-                  </Text>
-                </Pressable>
+                  {confirmando ? "Guardando…" : labelConfirmar}
+                </Button>
               ) : (
                 <View style={styles.boton} />
               )}
+            </View>
+          ) : null}
+          {aviso ? (
+            <View pointerEvents="box-none" accessibilityLiveRegion="polite" style={styles.aviso}>
+              {aviso}
             </View>
           ) : null}
         </View>
@@ -132,67 +148,59 @@ export function ModalConFooter({
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c, banda }: KitTema) {
   return StyleSheet.create({
     fondo: {
       flex: 1,
-      backgroundColor: "rgba(23, 47, 108, 0.25)",
+      backgroundColor: c.overlay,
       justifyContent: "flex-end",
     },
     carta: {
-      backgroundColor: shColor.frost,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
+      backgroundColor: c.surface,
+      borderTopLeftRadius: shRadius.lg,
+      borderTopRightRadius: shRadius.lg,
       overflow: "hidden",
-      paddingBottom: 24,
+      paddingBottom: shSpace[6],
       maxHeight: "88%",
+      boxShadow: c.elev3,
     },
     header: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: c.primario,
+      paddingLeft: shSpace[4],
+      paddingRight: shSpace[2],
+      paddingVertical: shSpace[1],
+      backgroundColor: banda.fondo,
     },
-    headerTexto: { flex: 1 },
+    headerTexto: { flex: 1, paddingVertical: shSpace[2] },
     botonCerrar: {
-      width: 44,
-      height: 44,
+      width: shDensity.controlLg,
+      height: shDensity.controlLg,
       alignItems: "flex-end",
       justifyContent: "center",
     },
     titulo: {
+      ...shType.block,
       textAlign: "left",
-      fontSize: 16,
-      fontWeight: "700",
-      color: shColor.white,
-      fontFamily: "Montserrat_700Bold",
+      color: banda.texto,
     },
     subtitulo: {
-      color: shColor.ice,
-      fontSize: 13,
+      ...shType.dense,
+      color: banda.textoSuave,
       marginTop: 2,
-      fontFamily: "Inter_400Regular",
     },
     cuerpoScroll: { flexShrink: 1 },
-    cuerpo: { padding: 16, gap: 10 },
-    footer: { flexDirection: "row", gap: 12, paddingHorizontal: 16, marginTop: 4 },
+    cuerpo: { padding: shSpace[4], gap: shSpace[3] },
+    footer: {
+      flexDirection: "row",
+      gap: shSpace[3],
+      paddingHorizontal: shSpace[4],
+      paddingTop: shSpace[3],
+      borderTopWidth: 1,
+      borderTopColor: c.borderSoft,
+    },
     boton: { flex: 1 },
-    botonCancelar: {
-      backgroundColor: c.activoSuave,
-      borderRadius: 10,
-      paddingVertical: 12,
-      alignItems: "center",
-    },
-    botonCancelarTexto: { color: c.acento, fontWeight: "600" },
-    botonConfirmar: {
-      backgroundColor: shColor.blue["600"],
-      borderRadius: 10,
-      paddingVertical: 12,
-      alignItems: "center",
-    },
-    botonConfirmarTexto: { color: shColor.white, fontWeight: "600" },
-    botonDeshabilitado: { opacity: 0.5 },
+    aviso: { position: "absolute", left: shSpace[4], right: shSpace[4], bottom: shSpace[6] },
   });
 }

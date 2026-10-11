@@ -1,48 +1,34 @@
-import { useMemo } from "react";
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
-import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
+import { StyleSheet, Text, View } from "react-native";
+import { shSpace, shType } from "@core/theme/tokens";
+import { TextField, useKit, type TextFieldProps } from "@shared/ui";
 
-export interface CampoModalProps extends TextInputProps {
+export interface CampoModalProps extends TextFieldProps {
   /** Etiqueta superior del campo (opcional). */
   label?: string;
+  /** Igual que en `TextInput`: `false` lo deja de solo lectura (`disabled` del kit). */
+  editable?: boolean;
 }
 
 /**
- * Campo estándar de los modales: etiqueta + `TextInput` con estilos pastel
- * (fondo blanco, borde azul claro, texto slate). Se usa dentro de
- * `ModalConFooter` para que todos los formularios internos se vean igual.
+ * Campo estándar de los modales: etiqueta + `TextField` del kit (48 dp, borde
+ * `controlBorder` y foco con `focus`). Se usa dentro de `ModalConFooter` para
+ * que todos los formularios internos se vean igual. La etiqueta sigue siendo
+ * un texto visible y además nombra al control para el lector de pantalla.
  */
-export function CampoModal({ label, style, ...props }: CampoModalProps) {
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+export function CampoModal({ label, accessibilityLabel, editable, disabled, ...props }: CampoModalProps) {
+  const { c } = useKit();
   return (
     <View style={styles.contenedor}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
-      <TextInput
-        style={[styles.input, style]}
-        placeholderTextColor={colores.textoSuave}
+      {label ? <Text style={[shType.label, { color: c.textMuted }]}>{label}</Text> : null}
+      <TextField
+        accessibilityLabel={accessibilityLabel ?? label}
+        disabled={disabled ?? editable === false}
         {...props}
       />
     </View>
   );
 }
 
-function crearEstilos(c: ColoresTema) {
-  return StyleSheet.create({
-    contenedor: { gap: 4 },
-    label: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
-    input: {
-      backgroundColor: c.tarjeta,
-      borderWidth: 1,
-      borderColor: conAlfa(shColor.blue["500"], 0.2),
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      fontSize: 15,
-      color: c.texto,
-    },
-  });
-}
+const styles = StyleSheet.create({
+  contenedor: { gap: shSpace[1] },
+});
