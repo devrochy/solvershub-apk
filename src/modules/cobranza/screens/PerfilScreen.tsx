@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { shColor } from "@core/theme/tokens";
+import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { useKit, type ColoresKit } from "@shared/ui";
 import {
   Pressable,
   ScrollView,
@@ -20,8 +21,6 @@ import { CampoModal } from "../components/CampoModal";
 import { estilosHeader } from "../components/HeaderPantalla";
 import { ModalConFooter } from "../components/ModalConFooter";
 import { useSession } from "../session/session-context";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
 
 const ROL_LABEL: Record<string, string> = {
   gestor: "Gestor",
@@ -38,8 +37,8 @@ function Dato({
   valor: string;
   testID?: string;
 }) {
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const { c } = useKit();
+  const styles = useMemo(() => crearEstilos(c), [c]);
   return (
     <View style={styles.datoFila}>
       <Text style={styles.datoEtiqueta}>{etiqueta}</Text>
@@ -63,8 +62,8 @@ export function PerfilScreen() {
   const [apellido, setApellido] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const { c, banda } = useKit();
+  const styles = useMemo(() => crearEstilos(c), [c]);
 
   const nombreCompleto =
     `${gestor?.nombre ?? ""} ${gestor?.apellido ?? ""}`.trim() || "Usuario";
@@ -109,10 +108,13 @@ export function PerfilScreen() {
         acciones={
           <Pressable
             testID="btn-editar-perfil"
+            accessibilityRole="button"
+            accessibilityLabel="Editar perfil"
+            hitSlop={8}
             style={estilosHeader.accionPill}
             onPress={abrirEdicion}
           >
-            <MaterialIcons name="edit" size={16} color={shColor.white} />
+            <MaterialIcons name="edit" size={16} color={banda.texto} />
             <Text style={estilosHeader.accionPillTexto}>Editar</Text>
           </Pressable>
         }
@@ -125,7 +127,7 @@ export function PerfilScreen() {
           <View style={styles.avatarFila}>
             <Avatar nombre={nombreCompleto} size={72} />
             <View style={styles.datosBasicos}>
-              <Text testID="perfil-nombre" style={styles.nombre}>
+              <Text testID="perfil-nombre" accessibilityRole="header" style={styles.nombre}>
                 {nombreCompleto}
               </Text>
               <Text style={styles.usuario}>@{gestor?.usuario ?? "—"}</Text>
@@ -178,35 +180,36 @@ export function PerfilScreen() {
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos(c: ColoresKit) {
   return StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: c.fondo },
+    contenedor: { flex: 1, backgroundColor: c.bg },
     fill: { flex: 1 },
-    scroll: { padding: 16 },
+    scroll: { padding: shSpace[4] },
     tarjeta: {
-      backgroundColor: c.tarjeta,
-      borderRadius: 14,
+      backgroundColor: c.surface,
+      borderRadius: shRadius.md,
       borderCurve: "continuous",
       borderWidth: 1,
-      borderColor: c.borde,
-      padding: 16,
-      gap: 16,
+      borderColor: c.border,
+      padding: shSpace[4],
+      gap: shSpace[4],
     },
     avatarFila: { flexDirection: "row", alignItems: "center", gap: 14 },
     datosBasicos: { flex: 1, gap: 2 },
-    nombre: { fontSize: 18, fontWeight: "700", color: c.texto },
-    usuario: { fontSize: 14, color: c.textoSuave },
+    nombre: { ...shType.h1, color: c.text },
+    usuario: { ...shType.dense, color: c.textMuted },
     lista: { gap: 10 },
     datoFila: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
+      minHeight: shSpace[8],
       borderTopWidth: 1,
-      borderTopColor: c.fondo,
+      borderTopColor: c.borderSoft,
       paddingTop: 10,
     },
-    datoEtiqueta: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
-    datoValor: { fontSize: 14, color: c.texto, fontWeight: "600" },
-    error: { color: c.peligro, fontSize: 13, fontWeight: "500" },
+    datoEtiqueta: { ...shType.label, color: c.textMuted },
+    datoValor: { ...shType.label, fontFamily: shType.block.fontFamily, color: c.text },
+    error: { ...shType.dense, color: c.statusDangerFg },
   });
 }
