@@ -9,7 +9,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -57,6 +56,7 @@ import {
 import { validarPrestamo } from "../features/prestamo/registrar-prestamo";
 import { clasificarCuotas, TipoCuotaCanvas } from "../features/prestamo/canvas-cuotas";
 import {
+  CANVAS,
   COLORES_CANVAS,
   ETIQUETA_CANVAS,
   esPendienteOAtrasada,
@@ -74,10 +74,9 @@ import { guardarCliente, leerCliente } from "../offline/cache";
 import { guardarBorrador, leerBorrador, limpiarBorrador } from "../offline/borrador";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
+import { usePagosPendientes } from "../offline/pagos-pendientes";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Badge, Button, IconButton, TextField, Toast, TOAST_DURACION_EXITO, useKit, type KitTema } from "@shared/ui";
 
 import type {
   ClienteTarjetaPublic,
@@ -118,8 +117,19 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const { api, logout } = useSession();
   const offline = useOffline();
   const { carteraActiva } = useCarteraActiva();
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const { c } = kit;
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
+  // Toast de éxito del kit al confirmar un pago (HU-DS-10). Se muestra dentro de
+  // la modal de cuota (un toast de la raíz quedaría debajo del Modal).
+  const [toastPago, setToastPago] = useState<{ id: number; mensaje: string } | null>(null);
+  useEffect(() => {
+    if (!toastPago) return undefined;
+    const timer = setTimeout(() => setToastPago(null), TOAST_DURACION_EXITO);
+    return () => clearTimeout(timer);
+  }, [toastPago]);
+  // Pagos guardados sin conexión que esperan su ack (badge "Pendiente").
+  const pagosPendientes = usePagosPendientes(String(clienteId), offline.sinSubir);
 
   const [tarjeta, setTarjeta] = useState<ClienteTarjetaPublic | null>(null);
   const [prestamos, setPrestamos] = useState<PrestamoPublic[]>([]);
@@ -370,6 +380,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         setAccionCuota("ninguno");
         setValor("");
         mensajeExito("Pago registrado.");
+        // Confirmación del kit (HU-DS-10): sin animación con "reducir movimiento".
+        // El háptico queda para la próxima release nativa (fingerprint de la OTA).
+        setToastPago((previo) => ({ id: (previo?.id ?? 0) + 1, mensaje: "Pago registrado." }));
         await recargarDetalleCuota();
         await recargarEstadoPrestamo();
         await cargar();
@@ -1075,18 +1088,30 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             testID="header-tarjeta-cliente"
             style={[styles.tarjetaHeader, { backgroundColor: colorDeEstado(tarjeta.color) }]}
           >
-            <Text style={styles.tarjetaHeaderNombre} numberOfLines={1}>
+            <Text accessibilityRole="header" style={styles.tarjetaHeaderNombre} numberOfLines={1}>
               {tarjeta.nombre}
             </Text>
-            <Pressable testID="btn-editar-cliente" style={styles.tarjetaHeaderEditar} onPress={abrirEditar}>
-              <MaterialIcons name="edit" size={16} color={shColor.white} />
+            <Pressable
+              testID="btn-editar-cliente"
+              accessibilityRole="button"
+              accessibilityLabel="Editar cliente"
+              android_ripple={{ color: kit.ripple.relleno }}
+              style={styles.tarjetaHeaderEditar}
+              onPress={abrirEditar}
+            >
+              <MaterialIcons name="edit" size={18} color={kit.relleno.sobrePrimario} />
               <Text style={styles.tarjetaHeaderEditarTexto}>Editar</Text>
             </Pressable>
           </View>
 
           {/* Foto grande a la izquierda + datos a la derecha */}
           <View style={styles.filaCedula}>
-            <Pressable testID="btn-avatar" onPress={() => setModal("avatar")}>
+            <Pressable
+              testID="btn-avatar"
+              accessibilityRole="button"
+              accessibilityLabel={`Foto de ${tarjeta.nombre}`}
+              onPress={() => setModal("avatar")}
+            >
               <Avatar nombre={tarjeta.nombre} fotoUrl={tarjeta.fotoUrl} size={92} />
             </Pressable>
             <View style={styles.datosCedula}>
@@ -1133,6 +1158,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           <View style={styles.documentosFila}>
             <Pressable
               testID="doc-frente"
+              accessibilityRole="button"
+              accessibilityLabel={`Documento, frente: ${docFrenteUrl ? "verificado" : "pendiente"}`}
               style={styles.miniatura}
               onPress={() => {
                 setModalDocumento("frente");
@@ -1151,31 +1178,20 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 <MaterialIcons
                   name="badge"
                   size={40}
-                  color={docFrenteUrl ? shColor.success : shColor.slate["400"]}
+                  color={docFrenteUrl ? c.statusSuccessFg : c.textSoft}
                 />
               </View>
-              <View
-                testID="doc-frente-badge"
-                style={[
-                  styles.badgeDoc,
-                  docFrenteUrl ? styles.badgeVerificado : styles.badgePendiente,
-                ]}
-              >
-                {docFrenteUrl ? (
-                  <MaterialIcons name="check" size={11} color={shColor.success} />
-                ) : null}
-                <Text
-                  style={[
-                    docFrenteUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
-                  ]}
-                >
-                  {docFrenteUrl ? "Verificado" : "Pendiente"}
-                </Text>
-              </View>
+              {docFrenteUrl ? (
+                <Badge testID="doc-frente-badge" tone="success" icon="check" label="Verificado" />
+              ) : (
+                <Badge testID="doc-frente-badge" tone="warning" icon="schedule" label="Pendiente" />
+              )}
               <Text style={styles.miniaturaEtiqueta}>Frente</Text>
             </Pressable>
             <Pressable
               testID="doc-reverso"
+              accessibilityRole="button"
+              accessibilityLabel={`Documento, reverso: ${docReversoUrl ? "verificado" : "pendiente"}`}
               style={styles.miniatura}
               onPress={() => {
                 setModalDocumento("reverso");
@@ -1194,27 +1210,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 <MaterialIcons
                   name="credit-card"
                   size={40}
-                  color={docReversoUrl ? shColor.success : shColor.slate["400"]}
+                  color={docReversoUrl ? c.statusSuccessFg : c.textSoft}
                 />
               </View>
-              <View
-                testID="doc-reverso-badge"
-                style={[
-                  styles.badgeDoc,
-                  docReversoUrl ? styles.badgeVerificado : styles.badgePendiente,
-                ]}
-              >
-                {docReversoUrl ? (
-                  <MaterialIcons name="check" size={11} color={shColor.success} />
-                ) : null}
-                <Text
-                  style={[
-                    docReversoUrl ? styles.badgeVerificadoTexto : styles.badgePendienteTexto,
-                  ]}
-                >
-                  {docReversoUrl ? "Verificado" : "Pendiente"}
-                </Text>
-              </View>
+              {docReversoUrl ? (
+                <Badge testID="doc-reverso-badge" tone="success" icon="check" label="Verificado" />
+              ) : (
+                <Badge testID="doc-reverso-badge" tone="warning" icon="schedule" label="Pendiente" />
+              )}
               <Text style={styles.miniaturaEtiqueta}>Reverso</Text>
             </Pressable>
           </View>
@@ -1222,27 +1225,25 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           {/* Fila de acciones: cómo llegar + editar ubicación */}
           {tieneCoordenadas ? (
             <View style={styles.footerTarjeta}>
-              <Pressable
+              <Button
                 testID="btn-como-llegar"
-                style={[styles.comoLlegar, mapaAbierto && styles.comoLlegarActivo]}
+                variant="secondary"
+                size="sm"
+                iconLeft="directions"
+                iconRight={mapaAbierto ? "expand-less" : "expand-more"}
                 onPress={() => setMapaAbierto((abierto) => !abierto)}
               >
-                <MaterialIcons name="directions" size={16} color={shColor.blue["600"]} />
-                <Text style={styles.comoLlegarTexto}>Cómo llegar</Text>
-                <MaterialIcons
-                  name={mapaAbierto ? "expand-less" : "expand-more"}
-                  size={18}
-                  color={shColor.blue["600"]}
-                />
-              </Pressable>
-              <Pressable
+                Cómo llegar
+              </Button>
+              <Button
                 testID="btn-editar-ubicacion"
-                style={styles.editarUbicacion}
+                variant="secondary"
+                size="sm"
+                iconLeft="edit-location"
                 onPress={abrirEditarUbicacion}
               >
-                <MaterialIcons name="edit-location" size={16} color={colores.acento} />
-                <Text style={styles.editarUbicacionTexto}>Editar ubicación</Text>
-              </Pressable>
+                Editar ubicación
+              </Button>
             </View>
           ) : null}
         </View>
@@ -1251,22 +1252,26 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           <View style={styles.seccionMapa}>
             <MapaCliente latitud={latNegocio} longitud={lngNegocio} nombre={tarjeta.nombre} />
             <View style={styles.navegacion}>
-              <Pressable
+              <Button
                 testID="navegar-maps"
-                style={[styles.botonNavegar]}
+                variant="secondary"
+                iconLeft="map"
+                fullWidth
+                style={styles.botonNavegar}
                 onPress={() => abrirNavegacion(latNegocio, lngNegocio, "maps")}
               >
-                <MaterialIcons name="map" size={16} color={shColor.white} />
-                <Text style={styles.botonNavegarTexto}>Google Maps</Text>
-              </Pressable>
-              <Pressable
+                Google Maps
+              </Button>
+              <Button
                 testID="navegar-waze"
-                style={[styles.botonNavegar, styles.botonWaze]}
+                variant="secondary"
+                iconLeft="navigation"
+                fullWidth
+                style={styles.botonNavegar}
                 onPress={() => abrirNavegacion(latNegocio, lngNegocio, "waze")}
               >
-                <MaterialIcons name="navigation" size={16} color={shColor.white} />
-                <Text style={styles.botonNavegarTexto}>Waze</Text>
-              </Pressable>
+                Waze
+              </Button>
             </View>
           </View>
         ) : null}
@@ -1274,7 +1279,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {/* Notificación de próximo cobro */}
         {proximoCobro.total > 0 ? (
           <View testID="notif-proximo-cobro" style={styles.notificacion}>
-            <MaterialIcons name="notifications-active" size={20} color={colores.acento} />
+            <MaterialIcons name="notifications-active" size={20} color={c.statusInfoFg} />
             <View style={styles.notificacionContenido}>
               <Text style={styles.notificacionTitulo}>Próximo cobro</Text>
               <Text style={styles.notificacionDetalle}>
@@ -1289,21 +1294,26 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         {/* Sección de préstamos (acordeón) */}
         <View style={styles.seccion}>
           <View style={styles.seccionHeader}>
-            <Text style={styles.seccionTitulo}>Préstamos</Text>
-            <Pressable
+            <Text accessibilityRole="header" style={styles.seccionTitulo}>Préstamos</Text>
+            <Button
               testID="btn-nuevo-prestamo"
-              style={[styles.botonNuevo, !offline.isOnline && styles.deshabilitado]}
+              variant="ghost"
+              size="sm"
+              accessibilityHint="Registra un préstamo nuevo para el cliente"
               disabled={!offline.isOnline}
               onPress={abrirNuevoPrestamo}
             >
-              <Text style={styles.botonNuevoTexto}>+ Nuevo</Text>
-            </Pressable>
+              + Nuevo
+            </Button>
           </View>
 
           {!offline.isOnline ? (
-            <Text testID="prestamos-requiere-conexion" style={styles.requiereConexion}>
-              Requiere conexión para registrar préstamos.
-            </Text>
+            <View style={styles.filaAviso}>
+              <MaterialIcons name="cloud-off" size={16} color={c.statusWarningFg} />
+              <Text testID="prestamos-requiere-conexion" style={styles.requiereConexion}>
+                Requiere conexión para registrar préstamos.
+              </Text>
+            </View>
           ) : null}
 
           {prestamosVisibles.length === 0 ? (
@@ -1315,6 +1325,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 <Pressable
                   key={p.id}
                   testID={`prestamo-item-${p.id}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: seleccionado }}
+                  android_ripple={{ color: kit.ripple.superficie }}
                   style={[styles.prestamoItem, seleccionado && styles.prestamoItemSeleccionado]}
                   onPress={() => onPrestamoPress(p.id)}
                 >
@@ -1326,10 +1339,20 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       {p.tipoInteres}% interés · cada {p.diasEntreCuotas} días
                     </Text>
                     <Text style={styles.prestamoEstatus}>{etiquetaEstatus(p.estatus)}</Text>
+                    {pagosPendientes.prestamos.has(String(p.id)) ? (
+                      <View style={styles.badgePendiente}>
+                        <Badge
+                          testID={`pendiente-prestamo-${p.id}`}
+                          tone="warning"
+                          icon="cloud-upload"
+                          label="Pendiente"
+                        />
+                      </View>
+                    ) : null}
                   </View>
                   {seleccionado ? (
                     <View testID={`check-prestamo-${p.id}`}>
-                      <MaterialIcons name="check-circle" size={22} color={shColor.success} />
+                      <MaterialIcons name="check-circle" size={22} color={c.statusSuccessFg} />
                     </View>
                   ) : null}
                   <ColorBadge
@@ -1351,20 +1374,26 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             <View style={styles.detalleTituloFila}>
               <Pressable
                 testID="btn-whatsapp"
+                accessibilityRole="button"
+                accessibilityLabel="Compartir estado del préstamo por WhatsApp"
+                accessibilityState={{ disabled: compartiendo, busy: compartiendo }}
+                android_ripple={{ color: kit.ripple.superficie, borderless: true, radius: shDensity.controlLg / 2 }}
                 style={styles.iconoWhatsApp}
                 disabled={compartiendo}
                 onPress={() => void compartirDetalle()}
               >
                 {compartiendo ? (
-                  <ActivityIndicator size="small" color={shColor.success} />
+                  <ActivityIndicator size="small" color={c.statusSuccessFg} />
                 ) : (
-                  <MaterialIcons name="chat" size={18} color={shColor.success} />
+                  <MaterialIcons name="chat" size={20} color={c.statusSuccessFg} />
                 )}
               </Pressable>
-              <Text style={styles.detalleTitulo}>Préstamo #{prestamoSeleccionado.id}</Text>
+              <Text accessibilityRole="header" style={styles.detalleTitulo}>
+                Préstamo #{prestamoSeleccionado.id}
+              </Text>
             </View>
             {estadoPrestamoCargando ? (
-              <ActivityIndicator style={styles.detalleCarga} />
+              <ActivityIndicator style={styles.detalleCarga} color={c.link} />
             ) : estadoPrestamo ? (
               <View
                 ref={refCanvas}
@@ -1413,6 +1442,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                         onPress={() => void abrirDetalleCuota(cuota.cuotaId)}
                       >
                         <Text style={styles.cuadroNumero}>{cuota.numeroCuota}</Text>
+                        {pagosPendientes.cuotas.has(String(cuota.cuotaId)) ? (
+                          <Badge
+                            testID={`pendiente-cuota-${cuota.numeroCuota}`}
+                            tone="warning"
+                            icon="cloud-upload"
+                            label="Pendiente"
+                          />
+                        ) : null}
                         <Text style={styles.cuadroValor}>
                           {cuota.valorEsperado} {estadoPrestamo.moneda}
                         </Text>
@@ -1492,6 +1529,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             <Pressable
               key={tipo}
               testID={`editar-doc-tipo-${tipo}`}
+              hitSlop={4}
+              accessibilityRole="radio"
               style={[
                 styles.chip,
                 edicion.tipoDocumento === tipo && styles.chipActivo,
@@ -1549,6 +1588,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         <View style={styles.chips}>
           <Pressable
             testID="ubicacion-negocio"
+            hitSlop={4}
+            accessibilityRole="radio"
             style={[styles.chip, ubicacionCampo === "negocio" && styles.chipActivo]}
             onPress={() => {
               setUbicacionCampo("negocio");
@@ -1561,6 +1602,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           </Pressable>
           <Pressable
             testID="ubicacion-domicilio"
+            hitSlop={4}
+            accessibilityRole="radio"
             style={[styles.chip, ubicacionCampo === "domicilio" && styles.chipActivo]}
             onPress={() => {
               setUbicacionCampo("domicilio");
@@ -1574,23 +1617,28 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         </View>
 
         <View style={styles.filaBusqueda}>
-          <TextInput
+          <TextField
             testID="ubicacion-direccion"
-            style={[styles.input, styles.inputBusqueda]}
+            accessibilityLabel="Buscar por dirección"
+            style={styles.inputBusqueda}
             placeholder="Buscar por dirección"
             value={ubicacionDireccion}
             onChangeText={setUbicacionDireccion}
           />
           <Pressable
             testID="ubicacion-buscar"
+            accessibilityRole="button"
+            accessibilityLabel="Buscar dirección"
+            accessibilityState={{ disabled: ubicacionBuscando, busy: ubicacionBuscando }}
+            android_ripple={{ color: kit.ripple.relleno }}
             style={styles.botonBuscar}
             disabled={ubicacionBuscando}
             onPress={() => void buscarUbicacionDireccion()}
           >
             {ubicacionBuscando ? (
-              <ActivityIndicator color={shColor.white} size="small" />
+              <ActivityIndicator color={kit.relleno.sobrePrimario} size="small" />
             ) : (
-              <MaterialIcons name="search" size={18} color={shColor.white} />
+              <MaterialIcons name="search" size={20} color={kit.relleno.sobrePrimario} />
             )}
           </Pressable>
         </View>
@@ -1750,9 +1798,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         titulo="Detalle de cuota"
         onCerrar={cerrarCuota}
         testID="cuota-dialog"
+        aviso={
+          toastPago ? (
+            <Toast key={toastPago.id} tone="success" message={toastPago.mensaje} testID="toast-pago" />
+          ) : null
+        }
       >
         {detalleCuotaCargando ? (
-          <ActivityIndicator />
+          <ActivityIndicator color={c.link} />
         ) : detalleCuota ? (
           (() => {
             const cuotaAccionable = esPendienteOAtrasada(detalleCuota.estatus);
@@ -1769,6 +1822,14 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     <Text style={styles.cuotaFecha}>
                       Vence {detalleCuota.fechaVencimiento}
                     </Text>
+                    {pagosPendientes.cuotas.has(String(detalleCuota.cuotaId)) ? (
+                      <Badge
+                        testID="pendiente-detalle-cuota"
+                        tone="warning"
+                        icon="cloud-upload"
+                        label="Pendiente"
+                      />
+                    ) : null}
                   </View>
 
                   <Text style={styles.cuotaSubtitulo}>Pagos</Text>
@@ -1787,14 +1848,15 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                           </Text>
                         </View>
                         {!pago.liquidado && puedeEliminarPago ? (
-                          <Pressable
+                          <IconButton
                             testID={`borrar-pago-${pago.id}`}
-                            style={[styles.botonBorrar, !offline.isOnline && styles.deshabilitado]}
+                            icon="delete-outline"
+                            label={`Eliminar pago de $${pago.valor}`}
+                            tone="danger"
+                            size="sm"
                             disabled={!offline.isOnline}
                             onPress={() => iniciarBorrarPago(pago)}
-                          >
-                            <MaterialIcons name="delete-outline" size={16} color={shColor.danger} />
-                          </Pressable>
+                          />
                         ) : null}
                       </View>
                     ))
@@ -1814,14 +1876,15 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                           </Text>
                         </View>
                         {!abono.liquidado && puedeEliminarAbono ? (
-                          <Pressable
+                          <IconButton
                             testID={`borrar-abono-${abono.id}`}
-                            style={[styles.botonBorrar, !offline.isOnline && styles.deshabilitado]}
+                            icon="delete-outline"
+                            label={`Eliminar abono de $${abono.valor}`}
+                            tone="danger"
+                            size="sm"
                             disabled={!offline.isOnline}
                             onPress={() => iniciarBorrarAbono(abono)}
-                          >
-                            <MaterialIcons name="delete-outline" size={16} color={shColor.danger} />
-                          </Pressable>
+                          />
                         ) : null}
                       </View>
                     ))
@@ -1855,38 +1918,37 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                 {/* Acciones en la parte inferior (solo cuota no paga) */}
                 {cuotaAccionable ? (
                   <View style={styles.cuotaAcciones}>
-                    <Pressable
+                    <Button
                       testID="accion-pago"
-                      style={[
-                        styles.cuotaAccion,
-                        accionCuota === "pago" && styles.cuotaAccionActiva,
-                      ]}
+                      variant={accionCuota === "pago" ? "primary" : "secondary"}
+                      iconLeft="payments"
+                      fullWidth
+                      style={styles.cuotaAccion}
                       onPress={() => toggleAccionCuota("pago")}
                     >
-                      <MaterialIcons name="payments" size={16} color={shColor.white} />
-                      <Text style={styles.cuotaAccionTexto}>Registrar pago</Text>
-                    </Pressable>
-                    <Pressable
+                      Registrar pago
+                    </Button>
+                    <Button
                       testID="accion-no-pago"
-                      style={[
-                        styles.cuotaAccion,
-                        styles.cuotaAccionNoPago,
-                        accionCuota === "no_pago" && styles.cuotaAccionActiva,
-                      ]}
+                      variant={accionCuota === "no_pago" ? "primary" : "secondary"}
+                      iconLeft="block"
+                      fullWidth
+                      style={styles.cuotaAccion}
                       onPress={() => toggleAccionCuota("no_pago")}
                     >
-                      <MaterialIcons name="block" size={16} color={shColor.white} />
-                      <Text style={styles.cuotaAccionTexto}>No pago</Text>
-                    </Pressable>
+                      No pago
+                    </Button>
                     {carteraActiva?.pagoQrActivo ? (
-                      <Pressable
+                      <Button
                         testID="accion-qr"
-                        style={[styles.cuotaAccion, styles.cuotaAccionQr]}
+                        variant="secondary"
+                        iconLeft="qr-code"
+                        fullWidth
+                        style={styles.cuotaAccion}
                         onPress={() => void abrirCobroQr()}
                       >
-                        <MaterialIcons name="qr-code" size={16} color={shColor.white} />
-                        <Text style={styles.cuotaAccionTexto}>Cobro con QR</Text>
-                      </Pressable>
+                        Cobro con QR
+                      </Button>
                     ) : null}
                   </View>
                 ) : null}
@@ -1899,18 +1961,18 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       requiere tu contraseña y un motivo.
                     </Text>
                     <Text style={styles.label}>Password</Text>
-                    <TextInput
+                    <TextField
                       testID="borrar-password"
-                      style={styles.input}
+                      accessibilityLabel="Password"
                       placeholder="Tu contraseña"
                       secureTextEntry
                       value={borrarPassword}
                       onChangeText={setBorrarPassword}
                     />
                     <Text style={styles.label}>Motivo</Text>
-                    <TextInput
+                    <TextField
                       testID="borrar-motivo"
-                      style={styles.input}
+                      accessibilityLabel="Motivo"
                       placeholder="Motivo de la eliminación"
                       value={borrarMotivo}
                       onChangeText={setBorrarMotivo}
@@ -1919,26 +1981,26 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       <Text style={styles.mensajeModal}>{borrarMensaje}</Text>
                     ) : null}
                     <View style={styles.borrarAcciones}>
-                      <Pressable
+                      <Button
                         testID="borrar-cancelar"
-                        style={styles.botonCancelarLinea}
+                        variant="secondary"
+                        fullWidth
+                        style={styles.botonLinea}
                         disabled={borrando}
                         onPress={cancelarBorrar}
                       >
-                        <Text style={styles.botonCancelarLineaTexto}>Cancelar</Text>
-                      </Pressable>
-                      <Pressable
+                        Cancelar
+                      </Button>
+                      <Button
                         testID="borrar-confirmar"
-                        style={[styles.botonConfirmarLinea, borrando && styles.deshabilitado]}
-                        disabled={borrando}
+                        variant="danger"
+                        fullWidth
+                        style={styles.botonLinea}
+                        loading={borrando}
                         onPress={() => void confirmarBorrar()}
                       >
-                        {borrando ? (
-                          <ActivityIndicator color={shColor.white} />
-                        ) : (
-                          <Text style={styles.botonConfirmarLineaTexto}>Eliminar</Text>
-                        )}
-                      </Pressable>
+                        Eliminar
+                      </Button>
                     </View>
                   </View>
                 ) : null}
@@ -1950,6 +2012,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     <View style={styles.chips}>
                       <Pressable
                         testID="tipo-cuota"
+                        hitSlop={4}
+                        accessibilityRole="radio"
                         style={[styles.chip, tipoPago === "cuota" && styles.chipActivo]}
                         onPress={() => setTipoPago("cuota")}
                       >
@@ -1961,6 +2025,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       </Pressable>
                       <Pressable
                         testID="tipo-abono"
+                        hitSlop={4}
+                        accessibilityRole="radio"
                         style={[styles.chip, tipoPago === "abono" && styles.chipActivo]}
                         onPress={() => setTipoPago("abono")}
                       >
@@ -1972,9 +2038,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       </Pressable>
                     </View>
                     <Text style={styles.label}>Valor</Text>
-                    <TextInput
+                    <TextField
                       testID="pago-valor"
-                      style={styles.input}
+                      accessibilityLabel="Valor"
                       placeholder="Valor"
                       keyboardType="decimal-pad"
                       value={valor}
@@ -1985,6 +2051,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       {metodosDisponibles.map((metodo) => (
                         <Pressable
                           key={metodo}
+                          hitSlop={4}
+                          accessibilityRole="radio"
                           style={[styles.chip, metodoPago === metodo && styles.chipActivo]}
                           onPress={() => setMetodoPago(metodo)}
                         >
@@ -1996,20 +2064,16 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                         </Pressable>
                       ))}
                     </View>
-                    <Pressable
+                    <Button
                       testID="guardar-pago-cuota"
-                      style={[styles.botonConfirmarLinea, enviando && styles.deshabilitado]}
-                      disabled={enviando}
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      loading={enviando}
                       onPress={() => void enviarAccionCuota()}
                     >
-                      {enviando ? (
-                        <ActivityIndicator color={shColor.white} />
-                      ) : (
-                        <Text style={styles.botonConfirmarLineaTexto}>
-                          {tipoPago === "cuota" ? "Registrar pago" : "Registrar abono"}
-                        </Text>
-                      )}
-                    </Pressable>
+                      {tipoPago === "cuota" ? "Registrar pago" : "Registrar abono"}
+                    </Button>
                   </View>
                 ) : null}
 
@@ -2021,6 +2085,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       {MOTIVOS_NO_PAGO.map((motivo) => (
                         <Pressable
                           key={motivo}
+                          hitSlop={4}
+                          accessibilityRole="radio"
                           style={[styles.chip, motivoNoPago === motivo && styles.chipActivo]}
                           onPress={() => setMotivoNoPago(motivo)}
                         >
@@ -2037,18 +2103,18 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     {motivoNoPago === "compromiso_de_pago" ? (
                       <>
                         <Text style={styles.label}>Fecha prometida</Text>
-                        <TextInput
+                        <TextField
                           testID="fecha-prometida"
-                          style={styles.input}
+                          accessibilityLabel="Fecha prometida"
                           placeholder="AAAA-MM-DD"
                           autoCapitalize="none"
                           value={fechaPrometida}
                           onChangeText={setFechaPrometida}
                         />
                         <Text style={styles.label}>Valor prometido</Text>
-                        <TextInput
+                        <TextField
                           testID="valor-prometido"
-                          style={styles.input}
+                          accessibilityLabel="Valor prometido"
                           placeholder="Valor prometido"
                           keyboardType="decimal-pad"
                           value={valorPrometido}
@@ -2060,18 +2126,16 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                         Cambia el motivo a compromiso_de_pago para registrar una promesa.
                       </Text>
                     )}
-                    <Pressable
+                    <Button
                       testID="guardar-no-pago"
-                      style={[styles.botonConfirmarLinea, enviando && styles.deshabilitado]}
-                      disabled={enviando}
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      loading={enviando}
                       onPress={() => void enviarAccionCuota()}
                     >
-                      {enviando ? (
-                        <ActivityIndicator color={shColor.white} />
-                      ) : (
-                        <Text style={styles.botonConfirmarLineaTexto}>Registrar visita</Text>
-                      )}
-                    </Pressable>
+                      Registrar visita
+                    </Button>
                   </View>
                 ) : null}
 
@@ -2096,7 +2160,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         testID="cobro-qr"
       >
         {qrCargando ? (
-          <ActivityIndicator />
+          <ActivityIndicator color={c.link} />
         ) : qrMensaje ? (
           <Text testID="qr-mensaje" style={styles.mensajeModal}>
             {qrMensaje}
@@ -2134,415 +2198,272 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c, relleno }: KitTema) {
+  // El canvas de cuotas se comparte como imagen: siempre en el tema claro.
+  const lienzo = CANVAS.c;
   return StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: c.fondo },
-  scroll: { padding: 16, gap: 12 },
+  contenedor: { flex: 1, backgroundColor: c.bg },
+  scroll: { padding: shSpace[4], gap: shSpace[3] },
   tarjetaHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    margin: -16,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    margin: -shSpace[4],
+    marginBottom: shSpace[4],
+    paddingLeft: shSpace[4],
+    paddingRight: shSpace[2],
+    paddingVertical: shSpace[1],
+    borderTopLeftRadius: shRadius.lg,
+    borderTopRightRadius: shRadius.lg,
   },
-  tarjetaHeaderNombre: { fontSize: 16, fontWeight: "700", color: shColor.white, flex: 1 },
-  tarjetaHeaderEditar: { flexDirection: "row", alignItems: "center", gap: 4 },
-  tarjetaHeaderEditarTexto: { color: shColor.white, fontSize: 14, fontWeight: "600" },
-  filaCedula: { flexDirection: "row", gap: 16, alignItems: "flex-start" },
+  tarjetaHeaderNombre: { ...shType.block, color: relleno.sobrePrimario, flex: 1 },
+  tarjetaHeaderEditar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: shSpace[1],
+    minHeight: shDensity.controlLg,
+    paddingHorizontal: shSpace[2],
+    borderRadius: shRadius.sm,
+    overflow: "hidden",
+  },
+  tarjetaHeaderEditarTexto: { ...shType.label, fontFamily: shType.block.fontFamily, color: relleno.sobrePrimario },
+  filaCedula: { flexDirection: "row", gap: shSpace[4], alignItems: "flex-start" },
   datosCedula: { flex: 1, gap: 6 },
-  datoCedulaLineal: { fontSize: 14, color: shColor.navy["900"], flexWrap: "wrap" },
-  datoCedulaEtiqueta: { fontWeight: "700", color: c.textoSuave },
-  datoCedulaValor: { fontWeight: "600", color: shColor.navy["900"] },
-  documentosFila: { flexDirection: "row", gap: 14, marginTop: 16 },
+  datoCedulaLineal: { ...shType.dense, color: c.text, flexWrap: "wrap" },
+  datoCedulaEtiqueta: { fontFamily: shType.label.fontFamily, color: c.textMuted },
+  datoCedulaValor: { fontFamily: shType.block.fontFamily, color: c.text },
+  documentosFila: { flexDirection: "row", gap: 14, marginTop: shSpace[4] },
   miniaturaIconoMarco: {
     width: 96,
     height: 64,
-    borderRadius: 8,
+    borderRadius: shRadius.sm,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   miniaturaIconoVerificado: {
-    borderColor: conAlfa(shColor.success, 0.3),
-    backgroundColor: conAlfa(shColor.success, 0.12),
+    borderColor: c.statusSuccessBorder,
+    backgroundColor: c.statusSuccessBg,
   },
   miniaturaIconoPendiente: {
-    borderColor: c.borde,
+    borderColor: c.border,
     borderStyle: "dashed",
-    backgroundColor: c.fondo,
+    backgroundColor: c.bg,
   },
-  mensajeModal: { color: c.peligro, fontSize: 13, fontWeight: "500", marginTop: 8 },
+  mensajeModal: { ...shType.dense, color: c.statusDangerFg, marginTop: shSpace[2] },
   tarjeta: {
-    backgroundColor: c.tarjeta,
-    borderRadius: 16,
+    backgroundColor: c.surface,
+    borderRadius: shRadius.lg,
     borderCurve: "continuous",
-    padding: 16,
+    padding: shSpace[4],
     overflow: "hidden",
-    boxShadow: "0 4px 10px rgba(15, 23, 42, 0.08)",
+    boxShadow: c.elev1,
+    borderWidth: 1,
+    borderColor: c.borderSoft,
     gap: 6,
   },
-  filaSuperior: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 14,
-  },
-  documento: { flex: 1 },
-  documentoFilaTitulo: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  documentoTitulo: { fontSize: 12, fontWeight: "700", color: c.textoSuave },
-  documentoMiniaturas: { flexDirection: "row", gap: 10, marginTop: 6 },
-  miniatura: { alignItems: "center", gap: 4, flex: 1 },
-  miniaturaImagen: {
-    width: 72,
-    height: 48,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: c.borde,
-  },
-  miniaturaPlaceholder: {
-    width: 72,
-    height: 48,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: c.borde,
-    borderStyle: "dashed",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: c.fondo,
-  },
-  miniaturaEtiqueta: { fontSize: 10, color: c.textoSuave, fontWeight: "600" },
-  badgeDoc: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    borderRadius: 999,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  badgeVerificado: { backgroundColor: conAlfa(shColor.success, 0.12) },
-  badgePendiente: { backgroundColor: conAlfa(shColor.warning, 0.18) },
-  badgeVerificadoTexto: { color: shColor.success, fontSize: 10, fontWeight: "700" },
-  badgePendienteTexto: { color: shColor.navy["900"], fontSize: 10, fontWeight: "700" },
-  detalle: { color: c.textoSuave, fontSize: 14 },
+  miniatura: { alignItems: "center", gap: shSpace[1], flex: 1, minHeight: shDensity.controlLg },
+  miniaturaEtiqueta: { ...shType.caption, fontFamily: shType.label.fontFamily, color: c.textMuted },
+  badgePendiente: { marginTop: shSpace[1] },
   footerTarjeta: {
     marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: c.fondo,
+    borderTopColor: c.borderSoft,
     paddingTop: 10,
     flexDirection: "row",
-    gap: 8,
+    flexWrap: "wrap",
+    gap: shSpace[2],
   },
-  comoLlegar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: conAlfa(shColor.cyan["400"], 0.35),
-    backgroundColor: conAlfa(shColor.cyan["400"], 0.12),
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  comoLlegarActivo: { borderColor: conAlfa(shColor.cyan["400"], 0.5) },
-  comoLlegarTexto: { color: shColor.blue["600"], fontWeight: "600", fontSize: 13 },
-  editarUbicacion: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: conAlfa(shColor.blue["500"], 0.35),
-    backgroundColor: conAlfa(shColor.blue["500"], 0.1),
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  editarUbicacionTexto: { color: c.acento, fontWeight: "600", fontSize: 13 },
-  seccionMapa: { gap: 8 },
+  seccionMapa: { gap: shSpace[2] },
   navegacion: { flexDirection: "row", gap: 10 },
-  botonNavegar: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    backgroundColor: shColor.blue["600"],
-    borderRadius: 10,
-    paddingVertical: 10,
-  },
-  botonWaze: { backgroundColor: shColor.blue["600"] },
-  botonNavegarTexto: { color: shColor.white, fontWeight: "600", fontSize: 13 },
+  botonNavegar: { flex: 1 },
   notificacion: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: conAlfa(shColor.blue["500"], 0.1),
+    backgroundColor: c.statusInfoBg,
     borderWidth: 1,
-    borderColor: conAlfa(shColor.blue["500"], 0.35),
-    borderRadius: 14,
+    borderColor: c.statusInfoBorder,
+    borderRadius: shRadius.md,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: shSpace[3],
   },
   notificacionContenido: { flex: 1 },
-  notificacionTitulo: { fontSize: 13, fontWeight: "700", color: shColor.navy["600"] },
-  notificacionDetalle: { fontSize: 12, color: shColor.blue["500"], marginTop: 2 },
+  notificacionTitulo: { ...shType.label, fontFamily: shType.hero.fontFamily, color: c.statusInfoFg },
+  notificacionDetalle: { ...shType.dense, color: c.text, marginTop: 2, fontVariant: ["tabular-nums"] },
   seccion: {
-    marginTop: 12,
-    backgroundColor: c.tarjeta,
-    borderRadius: 12,
+    marginTop: shSpace[3],
+    backgroundColor: c.surface,
+    borderRadius: shRadius.md,
     borderWidth: 1,
-    borderColor: c.borde,
+    borderColor: c.border,
     padding: 14,
-    gap: 8,
+    gap: shSpace[2],
   },
   seccionHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  botonNuevo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-  },
-  botonNuevoTexto: { color: c.acento, fontSize: 14, fontWeight: "600" },
-  seccionTitulo: { fontSize: 15, fontWeight: "700", color: c.texto },
-  sinPrestamos: { color: c.textoSuave, fontSize: 13, marginTop: 10 },
-  requiereConexion: { color: shColor.navy["900"], fontSize: 12, marginTop: 6 },
+  seccionTitulo: { ...shType.block, color: c.text },
+  sinPrestamos: { ...shType.dense, color: c.textMuted, marginTop: 10 },
+  filaAviso: { flexDirection: "row", alignItems: "center", gap: shSpace[1], marginTop: 6 },
+  requiereConexion: { ...shType.caption, flex: 1, color: c.statusWarningFg },
   prestamoItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 8,
-    backgroundColor: c.tarjeta,
-    borderRadius: 12,
+    gap: shSpace[2],
+    minHeight: shDensity.controlLg,
+    backgroundColor: c.surface,
+    borderRadius: shRadius.md,
     borderWidth: 1,
-    borderColor: c.borde,
-    paddingHorizontal: 12,
+    borderColor: c.border,
+    paddingHorizontal: shSpace[3],
     paddingVertical: 10,
-    marginTop: 8,
+    marginTop: shSpace[2],
+    overflow: "hidden",
   },
   prestamoItemSeleccionado: {
-    borderColor: conAlfa(shColor.success, 0.45),
+    borderColor: c.statusSuccessBorder,
     borderWidth: 2,
-    backgroundColor: conAlfa(shColor.success, 0.1),
+    backgroundColor: c.statusSuccessBg,
   },
-  prestamoInfo: { flex: 1, marginRight: 8 },
-  prestamoValor: { fontSize: 14, fontWeight: "700", color: shColor.navy["900"] },
-  prestamoDetalle: { color: c.textoSuave, fontSize: 12, marginTop: 2 },
-  prestamoEstatus: { color: c.textoSuave, fontSize: 12, marginTop: 2, fontWeight: "600" },
+  prestamoInfo: { flex: 1, marginRight: shSpace[2] },
+  prestamoValor: { ...shType.label, fontFamily: shType.hero.fontFamily, color: c.text, fontVariant: ["tabular-nums"] },
+  prestamoDetalle: { ...shType.caption, color: c.textMuted, marginTop: 2 },
+  prestamoEstatus: { ...shType.caption, fontFamily: shType.label.fontFamily, color: c.textMuted, marginTop: 2 },
+  // Fondo blanco fijo: la captura se comparte por WhatsApp (tema claro siempre).
   canvasScreenshot: {
-    backgroundColor: shColor.white,
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: lienzo.surface,
+    borderRadius: shRadius.md,
+    padding: shSpace[3],
   },
   detallePrestamo: {
-    backgroundColor: c.tarjeta,
-    borderRadius: 16,
+    backgroundColor: c.surface,
+    borderRadius: shRadius.lg,
     borderCurve: "continuous",
-    padding: 16,
-    boxShadow: "0 4px 10px rgba(15, 23, 42, 0.08)",
-    gap: 8,
-    marginTop: 4,
+    padding: shSpace[4],
+    boxShadow: c.elev1,
+    borderWidth: 1,
+    borderColor: c.borderSoft,
+    gap: shSpace[2],
+    marginTop: shSpace[1],
   },
-  detalleTitulo: { fontSize: 15, fontWeight: "700", color: shColor.navy["900"] },
-  detalleTituloFila: { flexDirection: "row", alignItems: "center", gap: 8 },
+  detalleTitulo: { ...shType.block, color: c.text },
+  detalleTituloFila: { flexDirection: "row", alignItems: "center", gap: shSpace[1] },
   iconoWhatsApp: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: shDensity.controlLg,
+    height: shDensity.controlLg,
+    borderRadius: shRadius.pill,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: conAlfa(shColor.success, 0.08),
+    backgroundColor: c.statusSuccessBg,
   },
-  detalleLinea: { color: c.textoSuave, fontSize: 13 },
-  detalleCarga: { marginVertical: 16 },
-  detalleError: { color: c.peligro, fontSize: 13 },
-  leyenda: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  detalleLinea: { ...shType.dense, color: lienzo.textMuted, fontVariant: ["tabular-nums"] },
+  detalleCarga: { marginVertical: shSpace[4] },
+  detalleError: { ...shType.dense, color: c.statusDangerFg },
+  leyenda: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[3] },
   leyendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  leyendaColor: { width: 12, height: 12, borderRadius: 999 },
-  leyendaTexto: { color: c.textoSuave, fontSize: 11 },
+  leyendaColor: { width: 12, height: 12, borderRadius: shRadius.pill },
+  leyendaTexto: { ...shType.caption, color: lienzo.textMuted },
   canvas: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   cuadro: {
     width: "22%",
-    borderRadius: 8,
+    borderRadius: shRadius.sm,
     borderWidth: 1,
-    padding: 8,
+    padding: shSpace[2],
     alignItems: "center",
     gap: 2,
   },
-  cuadroNumero: { fontSize: 16, fontWeight: "700", color: c.texto },
-  cuadroValor: { fontSize: 11, color: c.textoSuave, fontWeight: "600" },
-  cuadroFecha: { fontSize: 11, color: c.textoSuave },
-  cuadroAbono: { fontSize: 11, color: shColor.success, fontWeight: "600" },
-  cuadroSaldo: { fontSize: 11, color: c.acento, fontWeight: "600" },
+  cuadroNumero: { ...shType.block, fontFamily: shType.hero.fontFamily, color: lienzo.text },
+  cuadroValor: { ...shType.caption, fontFamily: shType.label.fontFamily, fontSize: 11, color: lienzo.textMuted, fontVariant: ["tabular-nums"] },
+  cuadroFecha: { ...shType.caption, fontSize: 11, color: lienzo.textMuted },
+  cuadroAbono: { ...shType.caption, fontFamily: shType.label.fontFamily, fontSize: 11, color: lienzo.statusSuccessFg },
+  cuadroSaldo: { ...shType.caption, fontFamily: shType.label.fontFamily, fontSize: 11, color: lienzo.link },
   cuadroEtiqueta: {
     borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: shRadius.pill,
     paddingHorizontal: 6,
     paddingVertical: 1,
     marginTop: 2,
   },
-  cuadroEtiquetaTexto: { fontSize: 9, fontWeight: "600" },
-  botonWhatsApp: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    backgroundColor: shColor.success,
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginTop: 6,
-  },
-  botonWhatsAppTexto: { color: shColor.white, fontSize: 14, fontWeight: "600" },
-  acciones: { flexDirection: "row", gap: 10, marginTop: 2 },
-  botonAccion: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    borderRadius: 10,
-    paddingVertical: 12,
-  },
-  botonPago: { backgroundColor: shColor.success },
-  botonNoPago: { backgroundColor: shColor.warning },
-  botonAccionTexto: { color: shColor.white, fontWeight: "600" },
-  deshabilitado: { opacity: 0.5 },
-  label: { fontSize: 13, color: c.textoSuave, marginTop: 2 },
-  input: {
-    backgroundColor: c.tarjeta,
-    borderWidth: 1,
-    borderColor: conAlfa(shColor.blue["500"], 0.2),
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: c.texto,
-  },
-  filaCoordenadas: { flexDirection: "row", gap: 8 },
-  inputCoordenada: { flex: 1 },
-  filaBusqueda: { flexDirection: "row", gap: 8 },
+  cuadroEtiquetaTexto: { ...shType.caption, fontFamily: shType.label.fontFamily, fontSize: 10, lineHeight: 14 },
+  label: { ...shType.label, color: c.textMuted, marginTop: 2 },
+  filaBusqueda: { flexDirection: "row", gap: shSpace[2] },
   inputBusqueda: { flex: 1 },
   botonBuscar: {
-    width: 44,
+    width: shDensity.controlLg,
+    minHeight: shDensity.controlLg,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: c.primario,
-    borderRadius: 8,
+    backgroundColor: relleno.primario,
+    borderRadius: shRadius.sm,
+    overflow: "hidden",
   },
-  notaUbicacion: { color: c.textoSuave, fontSize: 12, marginTop: 4 },
+  notaUbicacion: { ...shType.caption, color: c.textMuted, marginTop: shSpace[1] },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  // 40 dp de alto + hitSlop de 4 = blanco táctil de 48 dp.
   chip: {
-    backgroundColor: c.activoSuave,
+    justifyContent: "center",
+    minHeight: shDensity.controlMd,
+    backgroundColor: c.surface,
     borderWidth: 1,
-    borderColor: conAlfa(shColor.blue["500"], 0.35),
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderColor: c.controlBorder,
+    borderRadius: shRadius.pill,
+    paddingHorizontal: shSpace[3],
   },
-  chipActivo: { backgroundColor: shColor.blue["600"], borderColor: shColor.blue["600"] },
-  chipTexto: { color: c.acento, fontSize: 13 },
-  chipTextoActivo: { color: shColor.white, fontSize: 13 },
-  promesaNota: { color: c.textoSuave, fontSize: 13 },
-  mensaje: { color: shColor.success, fontSize: 14, marginTop: 2 },
-  errorTexto: { color: c.peligro, fontSize: 13, marginTop: 2 },
+  chipActivo: { backgroundColor: relleno.primario, borderColor: relleno.primario },
+  chipTexto: { ...shType.label, color: c.link },
+  chipTextoActivo: { ...shType.label, color: relleno.sobrePrimario },
+  promesaNota: { ...shType.dense, color: c.textMuted },
+  mensaje: { ...shType.dense, color: c.statusSuccessFg, marginTop: 2 },
+  errorTexto: { ...shType.dense, color: c.statusDangerFg, marginTop: 2 },
   cuotaResumen: {
-    backgroundColor: c.fondo,
-    borderRadius: 10,
+    backgroundColor: c.bg,
+    borderRadius: shRadius.sm,
     padding: 10,
     gap: 2,
   },
-  cuotaLinea: { color: c.texto, fontSize: 14, fontWeight: "600" },
-  cuotaFecha: { color: c.textoSuave, fontSize: 12 },
-  cuotaSubtitulo: { fontSize: 13, fontWeight: "700", color: c.textoSuave, marginTop: 4 },
-  cuotaVacio: { color: c.textoSuave, fontSize: 13 },
-  pagoItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: c.borde,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  pagoTexto: { color: c.texto, fontSize: 13, fontWeight: "600" },
-  pagoFecha: { color: c.textoSuave, fontSize: 12 },
+  cuotaLinea: { ...shType.label, color: c.text, fontVariant: ["tabular-nums"] },
+  cuotaFecha: { ...shType.caption, color: c.textMuted },
+  cuotaSubtitulo: { ...shType.label, fontFamily: shType.block.fontFamily, color: c.textMuted, marginTop: shSpace[1] },
+  cuotaVacio: { ...shType.dense, color: c.textMuted },
+  pagoTexto: { ...shType.label, color: c.text, fontVariant: ["tabular-nums"] },
+  pagoFecha: { ...shType.caption, color: c.textMuted },
   cuotaScroll: { flexGrow: 1 },
   filaItemBorrable: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: c.borde,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    gap: 8,
+    borderColor: c.border,
+    borderRadius: shRadius.sm,
+    paddingLeft: 10,
+    paddingVertical: 2,
+    gap: shSpace[2],
+    minHeight: shDensity.controlLg,
   },
   filaItemTexto: { flex: 1 },
-  botonBorrar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: conAlfa(shColor.danger, 0.1),
-  },
   borrarPanel: {
     borderWidth: 1,
-    borderColor: conAlfa(shColor.danger, 0.3),
-    borderRadius: 10,
+    borderColor: c.statusDangerBorder,
+    borderRadius: shRadius.sm,
     padding: 10,
-    backgroundColor: conAlfa(shColor.danger, 0.06),
+    backgroundColor: c.statusDangerBg,
     gap: 6,
   },
-  borrarAcciones: { flexDirection: "row", gap: 10, marginTop: 4 },
-  botonCancelarLinea: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: c.textoSuave,
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  botonCancelarLineaTexto: { color: c.textoSuave, fontWeight: "600" },
-  botonConfirmarLinea: {
-    flex: 1,
-    backgroundColor: c.primario,
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  botonConfirmarLineaTexto: { color: shColor.white, fontWeight: "600" },
+  borrarAcciones: { flexDirection: "row", gap: 10, marginTop: shSpace[1] },
+  botonLinea: { flex: 1 },
   formPanel: {
     borderWidth: 1,
-    borderColor: conAlfa(shColor.blue["500"], 0.35),
-    borderRadius: 10,
+    borderColor: c.border,
+    borderRadius: shRadius.sm,
     padding: 10,
-    backgroundColor: conAlfa(shColor.blue["500"], 0.1),
+    backgroundColor: c.surface2,
     gap: 6,
   },
-  cuotaAcciones: { flexDirection: "row", gap: 10, marginTop: 4 },
-  cuotaAccion: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    backgroundColor: shColor.success,
-    borderRadius: 10,
-    paddingVertical: 11,
-  },
-  cuotaAccionNoPago: { backgroundColor: c.peligro },
-  cuotaAccionQr: { backgroundColor: shColor.blue["600"] },
-  qrImagen: { width: 220, height: 220, alignSelf: "center", marginVertical: 8 },
-  cuotaAccionActiva: { opacity: 0.85 },
-  cuotaAccionTexto: { color: shColor.white, fontWeight: "700" },
+  cuotaAcciones: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: shSpace[1] },
+  cuotaAccion: { flex: 1, minWidth: 120 },
+  qrImagen: { width: 220, height: 220, alignSelf: "center", marginVertical: shSpace[2] },
 });
 }

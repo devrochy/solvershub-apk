@@ -1,5 +1,4 @@
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
+import { kitDeTema } from "@shared/ui";
 import type { TipoCuotaCanvas } from "../prestamo/canvas-cuotas";
 
 /**
@@ -8,12 +7,22 @@ import type { TipoCuotaCanvas } from "../prestamo/canvas-cuotas";
  * lógica pura tenga pruebas propias).
  */
 
+/**
+ * El canvas de cuotas se comparte como imagen por WhatsApp y siempre es claro
+ * (fondo blanco), así que sus colores salen del tema claro del kit en los dos
+ * temas de la app (HU-DS-10). `borde` también es el color del texto de la
+ * etiqueta: son los `statusXFg`, que dan AA sobre el fondo pastel.
+ */
+export const CANVAS = kitDeTema("claro");
+
+const { tonos } = CANVAS;
+
 export const COLORES_CANVAS: Record<TipoCuotaCanvas, { fondo: string; borde: string }> = {
-  pagada: { fondo: conAlfa(shColor.success, 0.12), borde: shColor.success },
-  actual: { fondo: conAlfa(shColor.blue["500"], 0.2), borde: shColor.navy["700"] },
-  en_mora: { fondo: conAlfa(shColor.danger, 0.12), borde: shColor.danger },
-  futura: { fondo: shColor.frost, borde: shColor.slate["300"] },
-  abonada: { fondo: conAlfa(shColor.warning, 0.15), borde: shColor.warning },
+  pagada: { fondo: tonos.success.bg, borde: tonos.success.fg },
+  actual: { fondo: tonos.info.bg, borde: tonos.info.fg },
+  en_mora: { fondo: tonos.danger.bg, borde: tonos.danger.fg },
+  futura: { fondo: CANVAS.c.surface2, borde: CANVAS.c.textMuted },
+  abonada: { fondo: tonos.warning.bg, borde: tonos.warning.fg },
 };
 
 export const ETIQUETA_CANVAS: Record<TipoCuotaCanvas, string> = {

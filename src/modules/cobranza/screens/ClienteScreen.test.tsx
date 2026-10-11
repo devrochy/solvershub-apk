@@ -1,7 +1,9 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { conAlfa } from "@core/theme/alpha";
 import { shColor } from "@core/theme/tokens";
-import { Alert , Linking } from "react-native";
+import { AccessibilityInfo, Alert, Animated, Linking } from "react-native";
+import { TOAST_DURACION_EXITO } from "@shared/ui";
+import * as cola from "../offline/cola";
 import { ClienteScreen } from "./ClienteScreen";
 import { colorDeEstado } from "../components/ColorBadge";
 import { ApiError } from "@core/api/client";
@@ -426,6 +428,111 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
         "pago-1-2-10",
       ),
     );
+  });
+
+  it("al confirmar un pago muestra el toast de éxito del kit (HU-DS-10)", async () => {
+    const registrarVisitaPago = jest.fn().mockResolvedValue({ id: "1" });
+    const { getByTestId } = await renderConApi(
+      { registrarVisitaPago, detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()) },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "300");
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
+
+    // El toast va dentro de la modal de cuota (encima de ella) y se va solo.
+    await waitFor(() => expect(getByTestId("toast-pago")).toBeTruthy());
+    expect(within(getByTestId("toast-pago")).getByText("Pago registrado.")).toBeTruthy();
+    expect(within(getByTestId("cuota-dialog")).getByTestId("toast-pago")).toBeTruthy();
+    expect(TOAST_DURACION_EXITO).toBe(5000);
+  });
+
+  it("con 'reducir movimiento' el toast del pago aparece sin animación (HU-DS-10)", async () => {
+    const reducir = jest
+      .spyOn(AccessibilityInfo, "isReduceMotionEnabled")
+      .mockImplementation(() => Promise.resolve(true));
+    const timing = jest.spyOn(Animated, "timing");
+    const registrarVisitaPago = jest.fn().mockResolvedValue({ id: "1" });
+    const { getByTestId } = await renderConApi(
+      { registrarVisitaPago, detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()) },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "300");
+    timing.mockClear();
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
+
+    await waitFor(() => expect(getByTestId("toast-pago")).toBeTruthy());
+    await waitFor(() =>
+      expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ duration: 0 })),
+    );
+    // El mock de RN es un jest.fn: se deja como estaba (sin reducir movimiento).
+    reducir.mockImplementation(() => Promise.resolve(false));
+    timing.mockRestore();
+  });
+
+  it("sin conexión el pago sigue los mismos pasos y queda con el badge 'Pendiente' hasta el ack (HU-DS-10)", async () => {
+    const errorRed = new Error("Network request failed");
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const listarCola = jest.spyOn(cola, "listarCola").mockResolvedValue([
+      {
+        eventoIdCliente: "test-evento-1",
+        tipoEvento: "visita",
+        payload: { prestamoId: "1", clienteId: "2", resultado: "pago", tipoPago: "cuota", cuotaId: "10", valor: 300 },
+        creadoEn: "2026-10-11T10:00:00.000Z",
+        dedupeKey: "pago-1-2-10",
+      },
+    ]);
+    const sinConexion: OfflineValue = { ...offlineValor, isOnline: false, sinSubir: 1, encolarSiNoExiste };
+    const { getByTestId, getByText } = await renderConApi(
+      {
+        registrarVisitaPago: jest.fn().mockRejectedValue(errorRed),
+        detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()),
+      },
+      sinConexion,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    // Mismos pasos de siempre: cuota → Registrar pago → valor → guardar.
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("accion-pago")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "300");
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
+
+    await waitFor(() => expect(encolarSiNoExiste).toHaveBeenCalled());
+    expect(getByText("Guardado sin conexión (se sincronizará).")).toBeTruthy();
+    // La cola tiene el pago: badge en la cuota, en el detalle y en el préstamo.
+    await waitFor(() => expect(getByTestId("pendiente-detalle-cuota")).toBeTruthy());
+    expect(within(getByTestId("pendiente-cuota-1")).getByText("Pendiente")).toBeTruthy();
+    expect(getByTestId("pendiente-prestamo-1")).toBeTruthy();
+    listarCola.mockRestore();
+  });
+
+  it("sin cambios por enviar no hay badge 'Pendiente' (ya llegó el ack) (HU-DS-10)", async () => {
+    const listarCola = jest.spyOn(cola, "listarCola");
+    const { getByTestId, queryByTestId } = await renderConApi(
+      { detalleCuota: jest.fn().mockResolvedValue(detalleCuotaFixture()) },
+      { ...offlineValor, sinSubir: 0 },
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    expect(queryByTestId("pendiente-cuota-1")).toBeNull();
+    expect(queryByTestId("pendiente-prestamo-1")).toBeNull();
+    expect(listarCola).not.toHaveBeenCalled();
+    listarCola.mockRestore();
   });
 
   it("no encola un pago duplicado pendiente (dedupe) y avisa", async () => {

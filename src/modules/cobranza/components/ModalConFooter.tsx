@@ -25,6 +25,12 @@ export interface ModalConFooterProps {
   confirmando?: boolean;
   labelCancelar?: string;
   labelConfirmar?: string;
+  /**
+   * Aviso flotante sobre el pie de la hoja (p. ej. el `Toast` del kit al
+   * confirmar un pago). Va dentro del `Modal` porque un toast de la raíz
+   * quedaría tapado por él.
+   */
+  aviso?: ReactNode;
   testID?: string;
   cerrarTestID?: string;
   cancelarTestID?: string;
@@ -54,6 +60,7 @@ export function ModalConFooter({
   confirmando = false,
   labelCancelar = "Cancelar",
   labelConfirmar = "Guardar",
+  aviso,
   testID,
   cerrarTestID = "modal-cerrar",
   cancelarTestID = "modal-cancelar",
@@ -130,6 +137,11 @@ export function ModalConFooter({
               )}
             </View>
           ) : null}
+          {aviso ? (
+            <View pointerEvents="box-none" accessibilityLiveRegion="polite" style={styles.aviso}>
+              {aviso}
+            </View>
+          ) : null}
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -189,5 +201,6 @@ function crearEstilos({ c, banda }: KitTema) {
       borderTopColor: c.borderSoft,
     },
     boton: { flex: 1 },
+    aviso: { position: "absolute", left: shSpace[4], right: shSpace[4], bottom: shSpace[6] },
   });
 }
