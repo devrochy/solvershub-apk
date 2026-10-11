@@ -39,10 +39,8 @@ import { guardarBorrador, leerBorrador, limpiarBorrador } from "../offline/borra
 import { clientesAprecargar } from "../offline/precarga";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Badge, Button, Icono, useKit, type KitTema } from "@shared/ui";
 
 import type { ClienteTrayectoDiarioPublic, LiquidacionPublic, TrayectoPublic } from "@shared/types/gestor";
 
@@ -50,8 +48,9 @@ import type { ClienteTrayectoDiarioPublic, LiquidacionPublic, TrayectoPublic } f
 const PRECARGA_TTL_MS = 5 * 60 * 1000;
 
 export function TrayectoDiarioScreen() {
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const { c } = kit;
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
   const { carteraActiva } = useCarteraActiva();
   const carteraId = carteraActiva?.carteraId ?? "";
   const { abrir: abrirPantallaActiva } = usePantallaActiva();
@@ -505,6 +504,9 @@ export function TrayectoDiarioScreen() {
         acciones={
           <Pressable
             testID="nuevo-gasto"
+            accessibilityRole="button"
+            accessibilityLabel="Agregar gasto"
+            hitSlop={8}
             style={estilosHeader.accionPill}
             onPress={() => {
               setGastoAbierto(true);
@@ -521,47 +523,46 @@ export function TrayectoDiarioScreen() {
         keyExtractor={(cliente) => String(cliente.clienteId)}
         contentContainerStyle={styles.lista}
         refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} />
+          <RefreshControl refreshing={refrescando} onRefresh={refrescar} colors={[c.link]} tintColor={c.link} />
         }
         ListHeaderComponent={
           <View style={styles.acciones}>
             {offlineCache ? (
-              <Text testID="aviso-offline" style={styles.avisoOffline}>
-                Datos sin conexión
-              </Text>
+              <Badge testID="aviso-offline" tone="warning" icon="cloud-off" size="md" label="Datos sin conexión" />
             ) : null}
             {error ? (
-              <Text testID="aviso-refresco" style={styles.avisoOffline}>
-                {error}
-              </Text>
+              <View testID="aviso-refresco" style={styles.avisoFila} accessibilityLiveRegion="polite">
+                <Icono name="error-outline" size={18} color={c.statusWarningFg} />
+                <Text style={styles.avisoOffline}>{error}</Text>
+              </View>
             ) : null}
             {trayectoria.activa ? (
-              <View style={styles.trayectoriaActiva}>
+              <View style={styles.trayectoriaActiva} accessibilityLiveRegion="polite">
                 <View style={styles.puntoRojo} />
                 <Text style={styles.trayectoriaTexto}>
                   Grabando · {trayectoria.puntos.length} puntos
                 </Text>
-                <Pressable
+                <Button
                   testID="detener-trayectoria"
-                  style={[styles.botonPrimario, trayectoriaEnviando && styles.deshabilitado]}
-                  disabled={trayectoriaEnviando}
+                  variant="secondary"
+                  iconLeft="stop"
+                  loading={trayectoriaEnviando}
                   onPress={detenerYEnviarTrayectoria}
                 >
-                  {trayectoriaEnviando ? (
-                    <ActivityIndicator color={shColor.white} />
-                  ) : (
-                    <Text style={styles.botonPrimarioTexto}>Detener y enviar</Text>
-                  )}
-                </Pressable>
+                  Detener y enviar
+                </Button>
               </View>
             ) : (
-              <Pressable
+              <Button
                 testID="iniciar-trayectoria"
-                style={styles.botonSecundario}
+                variant="secondary"
+                size="lg"
+                iconLeft="my-location"
+                fullWidth
                 onPress={trayectoria.iniciar}
               >
-                <Text style={styles.botonSecundarioTexto}>Iniciar GPS</Text>
-              </Pressable>
+                Iniciar GPS
+              </Button>
             )}
             {trayectoria.error || trayectoriaMensaje ? (
               <Text style={styles.mensajeTrayectoria}>
@@ -570,77 +571,96 @@ export function TrayectoDiarioScreen() {
             ) : null}
             {!trayectos ? (
               <View style={styles.gating}>
-                <Text style={styles.gatingTexto}>
-                  Genera el trayecto óptimo para habilitar los cobros del día.
-                </Text>
-                <Pressable
+                <View style={styles.avisoFila}>
+                  <Icono name="info-outline" size={18} color={c.statusWarningFg} />
+                  <Text style={styles.gatingTexto}>
+                    Genera el trayecto óptimo para habilitar los cobros del día.
+                  </Text>
+                </View>
+                <Button
                   testID="generar-trayecto"
-                  style={[styles.botonPrimario, generandoTrayecto && styles.deshabilitado]}
-                  disabled={generandoTrayecto}
+                  variant="primary"
+                  size="lg"
+                  iconLeft="alt-route"
+                  fullWidth
+                  loading={generandoTrayecto}
                   onPress={generarTrayecto}
                 >
-                  {generandoTrayecto ? (
-                    <ActivityIndicator color={shColor.white} />
-                  ) : (
-                    <Text style={styles.botonPrimarioTexto}>Generar trayecto</Text>
-                  )}
-                </Pressable>
+                  Generar trayecto
+                </Button>
               </View>
             ) : !trayectoria.activa ? (
               <View style={styles.gating}>
-                <Text style={styles.gatingTexto}>
-                  Activa el GPS para habilitar la lista de cobros.
-                </Text>
+                <View style={styles.avisoFila}>
+                  <Icono name="info-outline" size={18} color={c.statusWarningFg} />
+                  <Text style={styles.gatingTexto}>
+                    Activa el GPS para habilitar la lista de cobros.
+                  </Text>
+                </View>
               </View>
             ) : null}
             {trayectos ? (
-              <Pressable
+              <Button
                 testID="ver-trayectos"
-                style={styles.botonTrayectos}
+                variant="secondary"
+                size="lg"
+                iconLeft="alt-route"
+                fullWidth
                 onPress={() => {
                   if (clientes && trayectos) {
                     abrirTrayectosOverlay({ clientes, trayectos });
                   }
                 }}
               >
-                <Text style={styles.botonTrayectosTexto}>Ver trayectos</Text>
-              </Pressable>
+                Ver trayectos
+              </Button>
             ) : null}
-            <Pressable
+            <Button
               testID="btn-cliente-cercano"
-              style={styles.botonTrayectos}
+              variant="secondary"
+              size="lg"
+              iconLeft="near-me"
+              fullWidth
               onPress={() => void irAlClienteCercano()}
             >
-              <Text style={styles.botonTrayectosTexto}>Cliente cercano</Text>
-            </Pressable>
+              Cliente cercano
+            </Button>
             {mensajeCercano ? (
               <Text testID="cliente-cercano-mensaje" style={styles.mensajeTrayectoria}>
                 {mensajeCercano}
               </Text>
             ) : null}
             {liquidacionVisible ? (
-              <Pressable
+              <Button
                 testID="btn-liquidacion"
-                style={[
-                  styles.botonLiquidacion,
-                  !puedeLiquidarHoy && styles.botonLiquidacionBloqueado,
-                ]}
+                variant="secondary"
+                size="lg"
+                iconLeft="receipt-long"
+                fullWidth
                 disabled={!puedeLiquidarHoy}
                 onPress={() => void abrirLiquidacion()}
               >
-                <Text style={styles.botonLiquidacionTexto}>Liquidación del día</Text>
-              </Pressable>
+                Liquidación del día
+              </Button>
             ) : null}
           </View>
         }
         ListEmptyComponent={
-          <Text style={styles.vacio}>Sin clientes para hoy.</Text>
+          <View style={styles.vacioCaja}>
+            <Icono name="event-available" size={28} color={c.textMuted} />
+            <Text style={styles.vacio}>Sin clientes para hoy.</Text>
+          </View>
         }
         renderItem={({ item }) => {
           const coords = coordenadaDeCliente(trayectos, item.clienteId);
           return (
             <Pressable
               testID={`cliente-${item.clienteId}`}
+              accessibilityRole="button"
+              accessibilityLabel={item.nombre}
+              accessibilityHint="Abre la ficha del cliente"
+              accessibilityState={{ disabled: !listaHabilitada }}
+              android_ripple={{ color: kit.ripple.superficie }}
               style={[
                 styles.tarjeta,
                 !listaHabilitada && styles.tarjetaBloqueada,
@@ -661,44 +681,39 @@ export function TrayectoDiarioScreen() {
                 testID={`acento-${item.clienteId}`}
                 style={[
                   styles.acento,
-                  { backgroundColor: colorDeEstado(item.color) },
+                  { backgroundColor: colorDeEstado(item.color, kit.tema) },
                 ]}
               />
               <View style={styles.tarjetaInfo}>
                 <Text style={styles.clienteNombre}>{item.nombre}</Text>
                 {item.diasMora > 0 ? (
-                  <View
+                  <Badge
                     testID={`mora-${item.clienteId}`}
-                    style={[styles.chip, styles.chipMora]}
-                  >
-                    <Text style={styles.chipMoraTexto}>
-                      {item.diasMora} {item.diasMora === 1 ? "día" : "días"} de mora
-                    </Text>
-                  </View>
+                    tone="danger"
+                    icon="warning"
+                    label={`${item.diasMora} ${item.diasMora === 1 ? "día" : "días"} de mora`}
+                  />
                 ) : null}
                 {item.compromisoValor != null ? (
-                  <View
+                  <Badge
                     testID={`compromiso-${item.clienteId}`}
-                    style={[styles.chip, styles.chipCompromiso]}
-                  >
-                    <Text style={styles.chipCompromisoTexto}>
-                      Compromiso de pago hoy: ${item.compromisoValor}
-                    </Text>
-                  </View>
+                    tone="warning"
+                    icon="event"
+                    label={`Compromiso de pago hoy: $${item.compromisoValor}`}
+                  />
                 ) : null}
-                {item.enTrayecto ? (
-                  <View style={[styles.chip, styles.chipTrayecto]}>
-                    <Text style={styles.chipTrayectoTexto}>En trayecto</Text>
-                  </View>
-                ) : null}
+                {item.enTrayecto ? <Badge tone="info" icon="route" label="En trayecto" /> : null}
                 {coords ? (
-                  <Pressable
+                  <Button
                     testID={`llegar-${item.clienteId}`}
+                    variant="link"
+                    size="sm"
+                    iconLeft="directions"
                     style={styles.llegar}
                     onPress={() => abrirNavegacion(coords.latitud, coords.longitud, "maps")}
                   >
-                    <Text style={styles.llegarTexto}>Cómo llegar</Text>
-                  </Pressable>
+                    Cómo llegar
+                  </Button>
                 ) : null}
               </View>
             </Pressable>
@@ -761,20 +776,30 @@ export function TrayectoDiarioScreen() {
       >
         <SafeAreaView style={styles.liquidacionContenedor} edges={["top", "left", "right", "bottom"]}>
           <View style={styles.liquidacionHeader}>
-            <Text style={styles.liquidacionTitulo}>Liquidación del día</Text>
-            <Pressable testID="cerrar-liquidacion" style={styles.liquidacionCerrar} onPress={cerrarLiquidacion}>
-              <Text style={styles.liquidacionCerrarTexto}>✕</Text>
+            <Text accessibilityRole="header" style={styles.liquidacionTitulo}>Liquidación del día</Text>
+            <Pressable
+              testID="cerrar-liquidacion"
+              accessibilityRole="button"
+              accessibilityLabel="Cerrar liquidación"
+              android_ripple={{ color: kit.ripple.relleno, borderless: true, radius: shDensity.controlLg / 2 }}
+              style={styles.liquidacionCerrar}
+              onPress={cerrarLiquidacion}
+            >
+              <Icono name="close" size={24} color={kit.banda.texto} />
             </Pressable>
           </View>
 
           {liquidacionCargando ? (
-            <ActivityIndicator style={styles.liquidacionCarga} />
+            <ActivityIndicator style={styles.liquidacionCarga} color={c.link} />
           ) : (
             <ScrollView contentContainerStyle={styles.liquidacionScroll}>
               {!puedeLiquidarHoy ? (
-                <Text style={styles.liquidacionAviso}>
-                  Registra la visita de todos los clientes del día para habilitar la liquidación.
-                </Text>
+                <View style={styles.avisoFila}>
+                  <Icono name="info-outline" size={18} color={c.statusWarningFg} />
+                  <Text style={styles.liquidacionAviso}>
+                    Registra la visita de todos los clientes del día para habilitar la liquidación.
+                  </Text>
+                </View>
               ) : null}
 
               {liquidacion ? (
@@ -866,18 +891,18 @@ export function TrayectoDiarioScreen() {
                     ))
                   )}
 
-                  <Pressable
+                  <Button
                     testID="descargar-pdf"
-                    style={[styles.botonLiquidacion, (descargandoPdf || !offline.isOnline) && styles.deshabilitado]}
-                    disabled={descargandoPdf || !offline.isOnline}
+                    variant="secondary"
+                    size="lg"
+                    iconLeft="picture-as-pdf"
+                    fullWidth
+                    loading={descargandoPdf}
+                    disabled={!offline.isOnline}
                     onPress={() => void descargarPdf()}
                   >
-                    {descargandoPdf ? (
-                      <ActivityIndicator color={shColor.white} />
-                    ) : (
-                      <Text style={styles.botonLiquidacionTexto}>Descargar PDF</Text>
-                    )}
-                  </Pressable>
+                    Descargar PDF
+                  </Button>
                   {!offline.isOnline ? (
                     <Text testID="pdf-requiere-conexion" style={styles.liquidacionAviso}>
                       Requiere conexión para descargar el PDF.
@@ -907,18 +932,18 @@ export function TrayectoDiarioScreen() {
               ) : null}
 
               {!liquidacion ? (
-                <Pressable
+                <Button
                   testID="generar-liquidacion"
-                  style={[styles.botonLiquidacion, generandoLiquidacion && styles.deshabilitado]}
-                  disabled={generandoLiquidacion || !puedeLiquidarHoy}
+                  variant="primary"
+                  size="lg"
+                  iconLeft="receipt-long"
+                  fullWidth
+                  loading={generandoLiquidacion}
+                  disabled={!puedeLiquidarHoy}
                   onPress={() => void generarLiquidacion()}
                 >
-                  {generandoLiquidacion ? (
-                    <ActivityIndicator color={shColor.white} />
-                  ) : (
-                    <Text style={styles.botonLiquidacionTexto}>Generar liquidación</Text>
-                  )}
-                </Pressable>
+                  Generar liquidación
+                </Button>
               ) : null}
             </ScrollView>
           )}
@@ -928,159 +953,104 @@ export function TrayectoDiarioScreen() {
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c, banda }: KitTema) {
   return StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: c.fondo },
-  lista: { padding: 16, gap: 12 },
-  vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24, fontSize: 14 },
-  acciones: { marginBottom: 8, gap: 10 },
-  avisoOffline: { color: shColor.warning, fontWeight: "600", fontSize: 13 },
-  botonPrimario: {
-    backgroundColor: c.primario,
-    borderRadius: 12,
-    borderCurve: "continuous",
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    alignItems: "center",
-  },
-  botonPrimarioTexto: { color: shColor.white, fontWeight: "700", fontSize: 15 },
-  botonSecundario: {
-    backgroundColor: c.peligro,
-    borderRadius: 12,
-    borderCurve: "continuous",
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    alignItems: "center",
-  },
-  botonTrayectos: {
-    backgroundColor: shColor.blue["600"],
-    borderRadius: 12,
-    borderCurve: "continuous",
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    alignItems: "center",
-  },
-  botonTrayectosTexto: { color: shColor.white, fontWeight: "700", fontSize: 15 },
-  botonLiquidacion: {
-    backgroundColor: c.primario,
-    borderRadius: 12,
-    borderCurve: "continuous",
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    alignItems: "center",
-  },
-  botonLiquidacionBloqueado: { opacity: 0.4 },
-  botonLiquidacionTexto: { color: shColor.white, fontWeight: "700", fontSize: 15 },
-  liquidacionContenedor: { flex: 1, backgroundColor: c.fondo },
+  contenedor: { flex: 1, backgroundColor: c.bg },
+  lista: { padding: shSpace[4], gap: shSpace[3] },
+  vacioCaja: { alignItems: "center", gap: shSpace[2], marginTop: shSpace[6] },
+  vacio: { ...shType.body, color: c.textMuted, textAlign: "center" },
+  acciones: { marginBottom: shSpace[2], gap: 10 },
+  avisoFila: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
+  avisoOffline: { ...shType.label, flex: 1, color: c.statusWarningFg },
+  liquidacionContenedor: { flex: 1, backgroundColor: c.bg },
   liquidacionHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: c.primario,
+    paddingLeft: shSpace[4],
+    paddingRight: shSpace[2],
+    paddingVertical: shSpace[1],
+    backgroundColor: banda.fondo,
   },
-  liquidacionTitulo: { fontSize: 16, fontWeight: "700", color: shColor.white },
+  liquidacionTitulo: { ...shType.block, color: banda.texto },
   liquidacionCerrar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: shDensity.controlLg,
+    height: shDensity.controlLg,
+    borderRadius: shRadius.pill,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: banda.relleno,
   },
-  liquidacionCerrarTexto: { color: shColor.white, fontSize: 16 },
   liquidacionCarga: { marginTop: 40 },
-  liquidacionScroll: { padding: 16, gap: 10 },
-  liquidacionAviso: { color: shColor.navy["900"], fontSize: 13, fontWeight: "600" },
+  liquidacionScroll: { padding: shSpace[4], gap: 10 },
+  liquidacionAviso: { ...shType.label, flex: 1, color: c.statusWarningFg },
   liquidacionResumen: {
-    backgroundColor: c.tarjeta,
-    borderRadius: 10,
-    padding: 12,
-    gap: 3,
+    backgroundColor: c.surface,
+    borderRadius: shRadius.md,
+    padding: shSpace[3],
+    gap: shSpace[1],
     borderWidth: 1,
-    borderColor: c.borde,
+    borderColor: c.border,
   },
-  liquidacionLinea: { color: c.texto, fontSize: 13, fontWeight: "500" },
-  liquidacionSubtitulo: { fontSize: 13, fontWeight: "700", color: c.textoSuave, marginTop: 4 },
-  liquidacionVacio: { color: c.textoSuave, fontSize: 13 },
+  liquidacionLinea: { ...shType.dense, color: c.text, fontVariant: ["tabular-nums"] },
+  liquidacionSubtitulo: { ...shType.label, fontFamily: shType.block.fontFamily, color: c.textMuted, marginTop: shSpace[1] },
+  liquidacionVacio: { ...shType.dense, color: c.textMuted },
   liquidacionItem: {
     borderWidth: 1,
-    borderColor: c.borde,
-    borderRadius: 8,
+    borderColor: c.border,
+    borderRadius: shRadius.sm,
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: c.tarjeta,
+    paddingVertical: shSpace[2],
+    backgroundColor: c.surface,
   },
-  liquidacionItemTexto: { color: c.texto, fontSize: 13 },
-  liquidacionMensaje: { color: c.peligro, fontSize: 13, fontWeight: "500" },
-  liquidacionMensajeOk: { color: shColor.success, fontSize: 13, fontWeight: "500" },
-  botonSecundarioTexto: { color: shColor.white, fontWeight: "700", fontSize: 15 },
+  liquidacionItemTexto: { ...shType.dense, color: c.text, fontVariant: ["tabular-nums"] },
+  liquidacionMensaje: { ...shType.dense, color: c.statusDangerFg },
+  liquidacionMensajeOk: { ...shType.dense, color: c.statusSuccessFg },
   trayectoriaActiva: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: conAlfa(shColor.danger, 0.12),
-    borderRadius: 8,
+    gap: shSpace[2],
+    backgroundColor: c.statusDangerBg,
+    borderWidth: 1,
+    borderColor: c.statusDangerBorder,
+    borderRadius: shRadius.sm,
     padding: 10,
   },
   puntoRojo: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: c.peligro,
+    backgroundColor: c.statusDangerFg,
   },
-  trayectoriaTexto: { color: shColor.navy["900"], fontWeight: "600", flex: 1 },
-  mensajeTrayectoria: { color: c.textoSuave, fontSize: 13 },
+  trayectoriaTexto: { ...shType.label, color: c.text, flex: 1 },
+  mensajeTrayectoria: { ...shType.dense, color: c.textMuted },
   gating: {
-    backgroundColor: conAlfa(shColor.warning, 0.15),
+    backgroundColor: c.statusWarningBg,
     borderWidth: 1,
-    borderColor: conAlfa(shColor.warning, 0.35),
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderColor: c.statusWarningBorder,
+    borderRadius: shRadius.sm,
+    paddingHorizontal: shSpace[3],
     paddingVertical: 10,
-    gap: 8,
+    gap: shSpace[2],
   },
-  gatingTexto: { color: shColor.navy["900"], fontSize: 13, fontWeight: "600" },
+  gatingTexto: { ...shType.label, flex: 1, color: c.text },
   tarjetaBloqueada: { opacity: 0.5 },
-  deshabilitado: { backgroundColor: shColor.slate["500"] },
   tarjeta: {
     flexDirection: "row",
     alignItems: "stretch",
-    backgroundColor: c.tarjeta,
-    borderRadius: 14,
+    backgroundColor: c.surface,
+    borderWidth: 1,
+    borderColor: c.borderSoft,
+    borderRadius: shRadius.md,
     borderCurve: "continuous",
     overflow: "hidden",
-    boxShadow: "0 1px 3px rgba(15, 23, 42, 0.08)",
+    boxShadow: c.elev1,
   },
   acento: { width: 4 },
   tarjetaInfo: { flex: 1, padding: 14, gap: 6 },
-  clienteNombre: { fontSize: 16, fontWeight: "700", color: c.texto },
-  chip: {
-    alignSelf: "flex-start",
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  chipMora: { backgroundColor: conAlfa(shColor.danger, 0.12) },
-  chipMoraTexto: {
-    color: c.peligro,
-    fontSize: 12,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
-  chipCompromiso: { backgroundColor: conAlfa(shColor.warning, 0.18) },
-  chipCompromisoTexto: {
-    color: shColor.navy["900"],
-    fontSize: 12,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
-  chipTrayecto: { backgroundColor: conAlfa(shColor.blue["500"], 0.2) },
-  chipTrayectoTexto: { color: shColor.blue["600"], fontSize: 12, fontWeight: "700" },
-  llegar: { marginTop: 2, alignSelf: "flex-start", paddingVertical: 2 },
-  llegarTexto: { color: shColor.blue["600"], fontWeight: "700", fontSize: 13 },
-  gastoMensaje: { color: shColor.success, fontSize: 13 },
-  gastoMensajeError: { color: c.peligro },
+  clienteNombre: { ...shType.block, color: c.text },
+  llegar: { marginLeft: -shSpace[2] },
+  gastoMensaje: { ...shType.dense, color: c.statusSuccessFg },
+  gastoMensajeError: { color: c.statusDangerFg },
 });
 }

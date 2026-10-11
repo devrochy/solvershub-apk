@@ -16,7 +16,6 @@
   "src/modules/cobranza/screens/PerfilScreen.tsx": 1,
   "src/modules/cobranza/screens/PrestamoScreen.tsx": 13,
   "src/modules/cobranza/screens/SeleccionNegocioScreen.tsx": 3,
-  "src/modules/cobranza/screens/TrayectoDiarioScreen.tsx": 28,
   "src/modules/cobranza/screens/VincularDispositivoScreen.tsx": 3,
   "src/modules/comercio/screens/ComercioScreen.tsx": 3,
   "src/modules/configuracion/components/AjustesTab.tsx": 3,
