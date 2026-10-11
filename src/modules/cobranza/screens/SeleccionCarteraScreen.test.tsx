@@ -199,9 +199,11 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
     });
 
     await waitFor(() => expect(getByTestId("kpi-clientes-6")).toBeTruthy());
-    expect(getByTestId("kpi-clientes-6").props.children).toBe(5);
-    expect(getByTestId("kpi-trayectoDiario-6").props.children).toBe(3);
-    expect(getByTestId("kpi-mora-6").props.children).toBe(2);
+    // HU-DS-10: cada KPI es un KpiTile del kit (el testID va en la tarjeta).
+    expect(within(getByTestId("kpi-clientes-6")).getByText("5")).toBeTruthy();
+    expect(within(getByTestId("kpi-trayectoDiario-6")).getByText("3")).toBeTruthy();
+    expect(within(getByTestId("kpi-mora-6")).getByText("2")).toBeTruthy();
+    expect(getByTestId("kpi-mora-6")).toHaveProp("accessibilityLabel", "En mora: 2");
   });
 
   it("al tocar una cartera fija la cartera activa y abre la capa de pestañas", async () => {
@@ -264,6 +266,23 @@ describe("SeleccionCarteraScreen — selección de cartera", () => {
     await waitFor(() =>
       expect(getByText("No tienes carteras asignadas.")).toBeTruthy(),
     );
+  });
+
+  it("el estado vacío ofrece la acción Actualizar, que vuelve a pedir las carteras (HU-DS-10)", async () => {
+    const misCarteras = jest.fn().mockResolvedValue([]);
+    const { getByText } = await renderConCarteras({ misCarteras });
+
+    await waitFor(() => expect(getByText("Actualizar")).toBeTruthy());
+    await fireEvent.press(getByText("Actualizar"));
+    await waitFor(() => expect(misCarteras).toHaveBeenCalledTimes(2));
+  });
+
+  it("mientras carga muestra el esqueleto de las tarjetas (HU-DS-10)", async () => {
+    const { getByTestId } = await renderConCarteras({
+      misCarteras: jest.fn(() => new Promise(() => undefined)),
+    });
+
+    expect(getByTestId("carteras-cargando")).toHaveProp("accessibilityState", { busy: true });
   });
 
   it("muestra error y permite reintentar cuando falla la carga", async () => {

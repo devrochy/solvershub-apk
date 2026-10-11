@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { CarteraDetalleScreen } from "./CarteraDetalleScreen";
 import { SessionContext, SessionValue } from "../session/session-context";
 import { CarteraActivaContext } from "../session/cartera-activa-context";
@@ -204,9 +204,10 @@ describe("CarteraDetalleScreen", () => {
     const { getByTestId, getByText } = await renderDetalle();
 
     await waitFor(() => expect(getByText("Cartera Centro")).toBeTruthy());
-    expect(getByTestId("kpi-total-clientes").props.children).toBe(5);
-    expect(getByTestId("kpi-clientes-trayectoDiario").props.children).toBe(3);
-    expect(getByTestId("kpi-en-mora").props.children).toBe(2);
+    // HU-DS-10: los KPIs son KpiTile del kit (el testID va en la tarjeta).
+    expect(within(getByTestId("kpi-total-clientes")).getByText("5")).toBeTruthy();
+    expect(within(getByTestId("kpi-clientes-trayectoDiario")).getByText("3")).toBeTruthy();
+    expect(within(getByTestId("kpi-en-mora")).getByText("2")).toBeTruthy();
     expect(getByText("Activo")).toBeTruthy();
   });
 
@@ -438,7 +439,7 @@ describe("CarteraDetalleScreen — estadísticas", () => {
     });
 
     await waitFor(() => expect(getByTestId("kpi-total-clientes")).toBeTruthy());
-    expect(getByTestId("kpi-total-clientes").props.children).toBe(5);
+    expect(within(getByTestId("kpi-total-clientes")).getByText("5")).toBeTruthy();
     expect(queryByTestId("seccion-estadisticas")).toBeNull();
   });
 });

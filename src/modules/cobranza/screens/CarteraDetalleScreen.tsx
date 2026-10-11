@@ -23,10 +23,8 @@ import { guardarEstadisticasCartera, leerEstadisticasCartera } from "../offline/
 import type { RootStackParamList } from "../navigation/types";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Badge, Button, Icono, KpiTile, useKit, type KitTema } from "@shared/ui";
 import type {
   ClienteGestorPublic,
   TrayectoDiarioApkPublic,
@@ -104,8 +102,9 @@ export function CarteraDetalleScreen({
   const [editEnviando, setEditEnviando] = useState(false);
   const [editMensaje, setEditMensaje] = useState<string | null>(null);
 
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const { c } = kit;
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- el título editado debe reflejar la cartera activa al cambiarla
@@ -257,10 +256,13 @@ export function CarteraDetalleScreen({
       <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
         <HeaderApp titulo="Inicio" />
         <View style={styles.sinCartera}>
+          <View style={styles.sinCarteraIcono}>
+            <Icono name="account-balance-wallet" size={28} color={c.textMuted} />
+          </View>
           <Text style={styles.sinCarteraTexto}>Selecciona una cartera para ver su información.</Text>
-          <Pressable testID="btn-ir-seleccion" style={styles.botonSinCartera} onPress={cerrar}>
-            <Text style={styles.botonSinCarteraTexto}>Seleccionar cartera</Text>
-          </Pressable>
+          <Button testID="btn-ir-seleccion" onPress={cerrar}>
+            Seleccionar cartera
+          </Button>
         </View>
       </SafeAreaView>
     );
@@ -287,17 +289,21 @@ export function CarteraDetalleScreen({
           acciones={
             <Pressable
               testID="btn-editar-cartera"
+              accessibilityRole="button"
+              accessibilityLabel="Editar cartera"
+              hitSlop={8}
               style={estilosHeader.accionPill}
               onPress={() => (puedeEditar ? abrirEdicion() : setAvisoEdicion(true))}
             >
-              <MaterialIcons name="edit" size={18} color={shColor.white} />
+              <MaterialIcons name="edit" size={18} color={kit.banda.texto} />
               <Text style={estilosHeader.accionPillTexto}>Editar</Text>
             </Pressable>
           }
         />
 
       {avisoEdicion ? (
-        <View style={styles.aviso}>
+        <View style={styles.aviso} accessibilityLiveRegion="polite">
+          <Icono name="info-outline" size={18} color={c.statusWarningFg} />
           <Text style={styles.avisoTexto}>
             La edición de cartera se realiza desde el panel.
           </Text>
@@ -306,28 +312,20 @@ export function CarteraDetalleScreen({
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContenido}>
         <View style={styles.seccion}>
-          <Text style={styles.seccionTitulo}>Información de la cartera</Text>
+          <Text accessibilityRole="header" style={styles.seccionTitulo}>Información de la cartera</Text>
           <View style={styles.kpis}>
             <View style={styles.kpi}>
-              <MaterialIcons name="people" size={22} color={colores.acento} />
-              <Text style={styles.kpiValor} testID="kpi-total-clientes">
-                {clientes.length}
-              </Text>
-              <Text style={styles.kpiEtiqueta}>Clientes</Text>
+              <KpiTile testID="kpi-total-clientes" label="Clientes" value={String(clientes.length)} />
             </View>
             <View style={styles.kpi}>
-              <MaterialIcons name="today" size={22} color={shColor.cyan["400"]} />
-              <Text style={styles.kpiValor} testID="kpi-clientes-trayectoDiario">
-                {trayectoDiario.clientes.length}
-              </Text>
-              <Text style={styles.kpiEtiqueta}>Del día</Text>
+              <KpiTile
+                testID="kpi-clientes-trayectoDiario"
+                label="Del día"
+                value={String(trayectoDiario.clientes.length)}
+              />
             </View>
             <View style={styles.kpi}>
-              <MaterialIcons name="warning" size={22} color={shColor.danger} />
-              <Text style={styles.kpiValor} testID="kpi-en-mora">
-                {enMora}
-              </Text>
-              <Text style={styles.kpiEtiqueta}>En mora</Text>
+              <KpiTile testID="kpi-en-mora" label="En mora" value={String(enMora)} />
             </View>
           </View>
           <View style={styles.estadoFila}>
@@ -338,18 +336,16 @@ export function CarteraDetalleScreen({
 
         {estadisticas ? (
           <View style={styles.seccion} testID="seccion-estadisticas">
-            <Text style={styles.seccionTitulo}>Estadísticas</Text>
+            <Text accessibilityRole="header" style={styles.seccionTitulo}>Estadísticas</Text>
             {estadisticasOffline ? (
-              <Text testID="aviso-offline-estadisticas" style={styles.avisoOffline}>
-                Datos sin conexión
-              </Text>
+              <Badge testID="aviso-offline-estadisticas" tone="warning" icon="cloud-off" label="Datos sin conexión" />
             ) : null}
             <View style={styles.pares}>
               {PARES_ESTADISTICA.map(({ campo, label }) => {
                 const delta = estadisticas.deltas[campo] ?? null;
                 return (
                   <View key={campo} style={styles.par}>
-                    <Text style={styles.parValor} testID={`estadistica-${campo}`}>
+                    <Text style={styles.parValor} maxFontSizeMultiplier={1.6} testID={`estadistica-${campo}`}>
                       {estadisticas.actual[campo]}
                     </Text>
                     <Text style={styles.parEtiqueta}>{label}</Text>
@@ -360,6 +356,7 @@ export function CarteraDetalleScreen({
                     </Text>
                     <Text
                       testID={`estadistica-delta-${campo}`}
+                      maxFontSizeMultiplier={1.6}
                       style={[
                         styles.parDelta,
                         delta !== null && delta > 0 && styles.parDeltaSube,
@@ -377,18 +374,20 @@ export function CarteraDetalleScreen({
 
         <View style={styles.seccion}>
           <View style={styles.seccionFila}>
-            <Text style={styles.seccionTitulo}>Notas</Text>
-            <Pressable
+            <Text accessibilityRole="header" style={styles.seccionTitulo}>Notas</Text>
+            <Button
               testID="btn-agregar-nota"
-              style={styles.botonNota}
+              variant="secondary"
+              size="sm"
+              iconLeft="add"
+              accessibilityHint="Agrega una nota a la cartera"
               onPress={() => {
                 setNotaAbierta(true);
                 setNotaMensaje(null);
               }}
             >
-              <MaterialIcons name="add" size={16} color={shColor.white} />
-              <Text style={styles.botonNotaTexto}>Nota</Text>
-            </Pressable>
+              Nota
+            </Button>
           </View>
           {notas.length === 0 ? (
             <Text style={styles.vacio}>Esta cartera no tiene notas.</Text>
@@ -426,7 +425,7 @@ export function CarteraDetalleScreen({
         {notaMensaje ? (
           <Text style={styles.notaMensaje}>{notaMensaje}</Text>
         ) : null}
-        {notaEnviando ? <ActivityIndicator color={colores.acento} /> : null}
+        {notaEnviando ? <ActivityIndicator color={c.link} /> : null}
       </ModalConFooter>
 
       <ModalConFooter
@@ -462,82 +461,79 @@ export function CarteraDetalleScreen({
           onChangeText={setEditNumCuotas}
         />
         {editMensaje ? <Text style={styles.notaMensaje}>{editMensaje}</Text> : null}
-        {editEnviando ? <ActivityIndicator color={colores.acento} /> : null}
+        {editEnviando ? <ActivityIndicator color={c.link} /> : null}
       </ModalConFooter>
       </SafeAreaView>
     </View>
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c }: KitTema) {
   return StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: c.fondo },
-    sinCartera: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
-    sinCarteraTexto: { color: c.textoSuave, fontSize: 15, textAlign: "center" },
-    botonSinCartera: {
-      backgroundColor: c.primario,
-      borderRadius: 8,
-      paddingHorizontal: 20,
-      paddingVertical: 10,
+    contenedor: { flex: 1, backgroundColor: c.bg },
+    sinCartera: { flex: 1, alignItems: "center", justifyContent: "center", gap: shSpace[3], padding: shSpace[6] },
+    sinCarteraIcono: {
+      width: 56,
+      height: 56,
+      borderRadius: shRadius.pill,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: c.surface2,
     },
-    botonSinCarteraTexto: { color: shColor.white, fontWeight: "600" },
+    sinCarteraTexto: { ...shType.body, color: c.textMuted, textAlign: "center" },
     aviso: {
-      backgroundColor: conAlfa(shColor.warning, 0.15),
-      borderBottomWidth: 1,
-      borderBottomColor: conAlfa(shColor.warning, 0.35),
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-    },
-    avisoTexto: { color: shColor.navy["900"], fontSize: 13, fontWeight: "600" },
-    scroll: { flex: 1 },
-    scrollContenido: { padding: 16, gap: 12 },
-    seccion: {
-      backgroundColor: c.tarjeta,
-      borderRadius: 12,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: c.borde,
-      gap: 12,
-    },
-    seccionFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-    seccionTitulo: { fontSize: 14, fontWeight: "700", color: c.texto },
-    kpis: { flexDirection: "row", gap: 10 },
-    kpi: { flex: 1, alignItems: "center", gap: 2 },
-    kpiValor: { fontSize: 22, fontWeight: "800", color: c.texto },
-    kpiEtiqueta: { fontSize: 12, color: c.textoSuave, fontWeight: "600" },
-    estadoFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-    estadoEtiqueta: { fontSize: 13, color: c.textoSuave, fontWeight: "600" },
-    estadoValor: { fontSize: 14, fontWeight: "700", color: c.acento },
-    avisoOffline: { fontSize: 12, color: shColor.navy["900"], fontWeight: "600" },
-    pares: { flexDirection: "row", gap: 8 },
-    par: { flex: 1, alignItems: "center", gap: 1 },
-    parValor: { fontSize: 20, fontWeight: "800", color: c.texto },
-    parEtiqueta: { fontSize: 12, color: c.textoSuave, fontWeight: "600", textAlign: "center" },
-    parAnterior: { fontSize: 11, color: c.textoSuave },
-    parDelta: { fontSize: 12, fontWeight: "700", color: c.textoSuave },
-    parDeltaSube: { color: c.peligro },
-    parDeltaBaja: { color: shColor.success },
-    botonNota: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 4,
-      backgroundColor: c.primario,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      gap: shSpace[2],
+      backgroundColor: c.statusWarningBg,
+      borderBottomWidth: 1,
+      borderBottomColor: c.statusWarningBorder,
+      paddingHorizontal: shSpace[4],
+      paddingVertical: shSpace[2],
     },
-    botonNotaTexto: { color: shColor.white, fontWeight: "600", fontSize: 13 },
-    vacio: { color: c.textoSuave, fontSize: 13 },
+    avisoTexto: { ...shType.dense, flex: 1, color: c.text },
+    scroll: { flex: 1 },
+    scrollContenido: { padding: shSpace[4], gap: shSpace[3] },
+    seccion: {
+      backgroundColor: c.surface,
+      borderRadius: shRadius.md,
+      padding: shSpace[4],
+      borderWidth: 1,
+      borderColor: c.border,
+      gap: shSpace[3],
+    },
+    seccionFila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    seccionTitulo: { ...shType.block, color: c.text },
+    kpis: { flexDirection: "row", gap: shSpace[2] },
+    kpi: { flex: 1 },
+    estadoFila: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      minHeight: shDensity.rowCompact,
+    },
+    estadoEtiqueta: { ...shType.label, color: c.textMuted },
+    estadoValor: { ...shType.label, fontFamily: shType.hero.fontFamily, color: c.link },
+    pares: { flexDirection: "row", gap: shSpace[2] },
+    par: { flex: 1, alignItems: "center", gap: 1 },
+    parValor: { ...shType.h1, fontFamily: shType.hero.fontFamily, fontVariant: ["tabular-nums"], color: c.textStrong },
+    parEtiqueta: { ...shType.caption, fontFamily: shType.label.fontFamily, color: c.textMuted, textAlign: "center" },
+    parAnterior: { ...shType.caption, color: c.textMuted },
+    parDelta: { ...shType.caption, fontFamily: shType.hero.fontFamily, fontVariant: ["tabular-nums"], color: c.textMuted },
+    // Subir es malo (más atrasados o sin visita); bajar es bueno. Con texto (+/−), nunca solo color.
+    parDeltaSube: { color: c.statusDangerFg },
+    parDeltaBaja: { color: c.statusSuccessFg },
+    vacio: { ...shType.dense, color: c.textMuted },
     nota: {
       borderWidth: 1,
-      borderColor: c.borde,
-      borderRadius: 8,
-      padding: 10,
-      gap: 4,
+      borderColor: c.border,
+      borderRadius: shRadius.sm,
+      padding: shSpace[3],
+      gap: shSpace[1],
     },
-    notaTexto: { fontSize: 14, color: c.texto },
-    notaMeta: { fontSize: 12, color: c.textoSuave },
+    notaTexto: { ...shType.body, color: c.text },
+    notaMeta: { ...shType.caption, color: c.textMuted },
     textarea: { minHeight: 96, textAlignVertical: "top" },
-    notaMensaje: { color: c.peligro, fontSize: 13 },
+    notaMensaje: { ...shType.dense, color: c.statusDangerFg },
   });
 }

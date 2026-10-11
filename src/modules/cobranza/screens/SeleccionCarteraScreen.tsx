@@ -10,6 +10,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { apiErrorStatus } from "@core/api/client";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Badge, Button, EmptyState, Icono, KpiTile, Skeleton, useKit, type KitTema } from "@shared/ui";
 import { CargaError } from "../components/CargaError";
 import { ColorBadge, bordeDeEstado, fondoDeEstado } from "../components/ColorBadge";
 import { contarEnMora } from "@shared/domain/contar-en-mora";
@@ -21,10 +23,6 @@ import { useOffline } from "../offline/offline-context";
 import { useSession } from "../session/session-context";
 import { useCarteraActiva, aCarteraActiva } from "../session/cartera-activa-context";
 import { useMenuLateral, type MenuItem } from "../navigation/menu-lateral-context";
-import { useTheme } from "@core/theme/theme-context";
-import type { ColoresTema } from "@core/theme/theme";
-import { conAlfa } from "@core/theme/alpha";
-import { shColor } from "@core/theme/tokens";
 
 import type { CarteraApkPublic } from "@shared/types/gestor";
 
@@ -59,8 +57,9 @@ export function SeleccionCarteraScreen({
   const [filtroEstatus, setFiltroEstatus] = useState<"activo" | "inactivo">("activo");
   const [reintentandoSync, setReintentandoSync] = useState(false);
 
-  const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const kit = useKit();
+  const { c } = kit;
+  const styles = useMemo(() => crearEstilos(kit), [kit]);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -166,17 +165,37 @@ export function SeleccionCarteraScreen({
           key: `car-${c.id}`,
           label: c.nombre,
           icon: "circle",
-          color: c.estatus === "activo" ? shColor.success : shColor.danger,
+          color: c.estatus === "activo" ? kit.tonos.success.fg : kit.tonos.danger.fg,
           onPress: () => seleccionRef.current(c),
         })),
       });
     }
     setItemsExtra(items);
     return () => setItemsExtra([]);
-  }, [carteras, setItemsExtra]);
+  }, [carteras, setItemsExtra, kit]);
 
   if (!carteras) {
-    return <CargaError cargando={!error} error={error} onReintentar={cargar} />;
+    if (!error) {
+      // Carga inicial: esqueleto con la forma de las tarjetas (HU-DS-10).
+      return (
+        <SafeAreaView style={styles.contenedor} edges={["left", "right", "bottom"]}>
+          <HeaderApp titulo={`Hola, ${gestor?.nombre ?? "gestor"}`} subtitulo="Selecciona una cartera" />
+          <View testID="carteras-cargando" accessibilityState={{ busy: true }} accessibilityLabel="Cargando carteras" style={styles.lista}>
+            {[0, 1].map((i) => (
+              <View key={i} style={[styles.tarjeta, styles.tarjetaEsqueleto]}>
+                <Skeleton shape="text" width="50%" height={16} />
+                <View style={styles.kpis}>
+                  <Skeleton shape="rect" height={88} width="31%" />
+                  <Skeleton shape="rect" height={88} width="31%" />
+                  <Skeleton shape="rect" height={88} width="31%" />
+                </View>
+              </View>
+            ))}
+          </View>
+        </SafeAreaView>
+      );
+    }
+    return <CargaError cargando={false} error={error} onReintentar={cargar} />;
   }
 
   const carterasFiltradas = carteras.filter((cartera) =>
@@ -193,7 +212,7 @@ export function SeleccionCarteraScreen({
         acciones={
           offline.sinSubir > 0 ? (
             <View testID="badge-sin-subir" style={styles.badge}>
-              <Text style={styles.badgeTexto}>{offline.sinSubir} sin subir</Text>
+              <Badge tone="warning" icon="cloud-upload" label={`${offline.sinSubir} sin subir`} />
             </View>
           ) : null
         }
@@ -203,40 +222,53 @@ export function SeleccionCarteraScreen({
         <CargaError cargando error={null} onReintentar={cargar} />
       ) : (
         <>
-      <View style={styles.tabs}>
-        {(["activo", "inactivo"] as const).map((est) => (
-          <Pressable
-            key={est}
-            testID={`filtro-carteras-${est}`}
-            style={[styles.tab, filtroEstatus === est && styles.tabActivo]}
-            onPress={() => setFiltroEstatus(est)}
-          >
-            <Text style={filtroEstatus === est ? styles.tabTextoActivo : styles.tabTexto}>
-              {est === "activo" ? "Activas" : "Inactivas"}
-            </Text>
-          </Pressable>
-        ))}
+      <View style={styles.tabs} accessibilityRole="tablist">
+        {(["activo", "inactivo"] as const).map((est) => {
+          const elegido = filtroEstatus === est;
+          return (
+            <Pressable
+              key={est}
+              testID={`filtro-carteras-${est}`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: elegido }}
+              android_ripple={{ color: elegido ? kit.ripple.relleno : kit.ripple.superficie }}
+              style={[styles.tab, elegido && styles.tabActivo]}
+              onPress={() => setFiltroEstatus(est)}
+            >
+              <Text style={elegido ? styles.tabTextoActivo : styles.tabTexto}>
+                {est === "activo" ? "Activas" : "Inactivas"}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       {offline.errorSync ? (
-        <View testID="aviso-error-sync" style={styles.avisoErrorSync}>
-          <Text style={styles.avisoErrorSyncTexto}>{offline.errorSync}</Text>
-          <Pressable
+        <View testID="aviso-error-sync" style={styles.avisoErrorSync} accessibilityLiveRegion="polite">
+          <View style={styles.avisoFila}>
+            <Icono name="sync-problem" size={18} color={c.statusDangerFg} />
+            <Text style={styles.avisoErrorSyncTexto}>{offline.errorSync}</Text>
+          </View>
+          <Button
             testID="btn-reintentar-sync"
-            style={styles.reintentar}
+            variant="secondary"
+            size="sm"
+            iconLeft="refresh"
             disabled={reintentandoSync}
+            style={styles.reintentar}
             onPress={() => void reintentarSync()}
           >
-            <Text style={styles.reintentarTexto}>
-              {reintentandoSync ? "Reintentando…" : "Reintentar"}
-            </Text>
-          </Pressable>
+            {reintentandoSync ? "Reintentando…" : "Reintentar"}
+          </Button>
         </View>
       ) : null}
 
       {error && carteras ? (
-        <View testID="aviso-error-refresh" style={styles.avisoErrorSync}>
-          <Text style={styles.avisoErrorSyncTexto}>{error}</Text>
+        <View testID="aviso-error-refresh" style={styles.avisoErrorSync} accessibilityLiveRegion="polite">
+          <View style={styles.avisoFila}>
+            <Icono name="error-outline" size={18} color={c.statusDangerFg} />
+            <Text style={styles.avisoErrorSyncTexto}>{error}</Text>
+          </View>
         </View>
       ) : null}
 
@@ -246,10 +278,15 @@ export function SeleccionCarteraScreen({
         keyExtractor={(cartera) => String(cartera.id)}
         contentContainerStyle={styles.lista}
         refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} />
+          <RefreshControl refreshing={refrescando} onRefresh={refrescar} colors={[c.link]} tintColor={c.link} />
         }
         ListEmptyComponent={
-          <Text style={styles.vacio}>No tienes carteras asignadas.</Text>
+          <EmptyState
+            icon="account-balance-wallet"
+            title="No tienes carteras asignadas."
+            description="Cuando el administrador te asigne una cartera, aparecerá aquí."
+            action={{ label: "Actualizar", onPress: () => void refrescar() }}
+          />
         }
         renderItem={({ item }) => {
           const kpi = kpis[item.id] ?? {
@@ -262,9 +299,13 @@ export function SeleccionCarteraScreen({
           return (
             <Pressable
               testID={`cartera-${item.id}`}
+              accessibilityRole="button"
+              accessibilityLabel={`${item.nombre}, ${activa ? "activa" : "inactiva"}`}
+              accessibilityHint="Abre la cartera"
+              android_ripple={{ color: kit.ripple.superficie }}
               style={[
                 styles.tarjeta,
-                { borderColor: bordeDeEstado(claveEstado) },
+                { borderColor: bordeDeEstado(claveEstado, kit.tema) },
                 !activa && styles.tarjetaInactiva,
               ]}
               onPress={() => seleccionarCartera(item)}
@@ -273,46 +314,23 @@ export function SeleccionCarteraScreen({
                 testID={`cartera-header-${item.id}`}
                 style={[
                   styles.tarjetaHeader,
-                  { backgroundColor: fondoDeEstado(claveEstado) },
+                  { backgroundColor: fondoDeEstado(claveEstado, kit.tema) },
                 ]}
               >
                 <ColorBadge color={claveEstado} animar />
-                <Text
-                  style={[
-                    styles.tarjetaHeaderTexto,
-                    { color: activa ? shColor.navy["900"] : shColor.navy["900"] },
-                  ]}
-                >
-                  {item.nombre}
-                </Text>
+                <Text style={styles.tarjetaHeaderTexto}>{item.nombre}</Text>
+                <MaterialIcons name="chevron-right" size={28} color={c.textSoft} />
               </View>
-              <View style={styles.tarjetaCuerpo}>
-                <View style={styles.kpis}>
-                  <View style={styles.kpi}>
-                    <MaterialIcons name="people" size={26} color={colores.acento} />
-                    <Text style={styles.kpiValor} testID={`kpi-clientes-${item.id}`}>
-                      {kpi.totalClientes}
-                    </Text>
-                    <Text style={styles.kpiEtiqueta}>clientes</Text>
-                  </View>
-                  <View style={styles.kpi}>
-                    <MaterialIcons name="today" size={26} color={shColor.cyan["400"]} />
-                    <Text style={styles.kpiValor} testID={`kpi-trayectoDiario-${item.id}`}>
-                      {kpi.clientesDia}
-                    </Text>
-                    <Text style={styles.kpiEtiqueta}>del día</Text>
-                  </View>
-                  <View style={styles.kpi}>
-                    <MaterialIcons name="warning" size={26} color={shColor.danger} />
-                    <Text style={styles.kpiValor} testID={`kpi-mora-${item.id}`}>
-                      {kpi.enMora}
-                    </Text>
-                    <Text style={styles.kpiEtiqueta}>en mora</Text>
-                  </View>
+              <View style={styles.kpis}>
+                <View style={styles.kpi}>
+                  <KpiTile testID={`kpi-clientes-${item.id}`} label="Clientes" value={String(kpi.totalClientes)} />
                 </View>
-              </View>
-              <View style={styles.chevron}>
-                <MaterialIcons name="chevron-right" size={28} color={shColor.slate["400"]} />
+                <View style={styles.kpi}>
+                  <KpiTile testID={`kpi-trayectoDiario-${item.id}`} label="Del día" value={String(kpi.clientesDia)} />
+                </View>
+                <View style={styles.kpi}>
+                  <KpiTile testID={`kpi-mora-${item.id}`} label="En mora" value={String(kpi.enMora)} />
+                </View>
               </View>
             </Pressable>
           );
@@ -324,75 +342,66 @@ export function SeleccionCarteraScreen({
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos({ c, relleno }: KitTema) {
   return StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: c.fondo },
+    contenedor: { flex: 1, backgroundColor: c.bg },
     tabs: {
       flexDirection: "row",
-      gap: 8,
-      paddingHorizontal: 16,
-      paddingTop: 12,
+      gap: shSpace[2],
+      paddingHorizontal: shSpace[4],
+      paddingTop: shSpace[3],
     },
     tab: {
       flex: 1,
       alignItems: "center",
-      paddingVertical: 8,
-      borderRadius: 999,
-      backgroundColor: c.borde,
-    },
-    tabActivo: { backgroundColor: c.primario },
-    tabTexto: { color: c.texto, fontWeight: "600", fontFamily: "Montserrat_600SemiBold" },
-    tabTextoActivo: { color: shColor.white, fontWeight: "700", fontFamily: "Montserrat_700Bold" },
-    badge: {
-      backgroundColor: shColor.warning,
-      borderRadius: 999,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-    },
-    badgeTexto: { color: shColor.white, fontSize: 12, fontWeight: "600", fontFamily: "Montserrat_600SemiBold" },
-    avisoErrorSync: {
-      backgroundColor: conAlfa(shColor.danger, 0.12),
+      justifyContent: "center",
+      minHeight: shDensity.controlLg,
+      borderRadius: shRadius.pill,
+      backgroundColor: c.surface2,
       borderWidth: 1,
-      borderColor: conAlfa(shColor.danger, 0.35),
-      marginHorizontal: 16,
-      marginTop: 12,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    reintentar: { marginTop: 6, alignSelf: "flex-start" },
-    reintentarTexto: { color: c.peligro, fontWeight: "700", fontSize: 13 },
-    avisoErrorSyncTexto: { color: c.peligro, fontSize: 13, fontWeight: "600" },
-    lista: { padding: 16, gap: 12, paddingBottom: 72 },
-    vacio: { color: c.textoSuave, textAlign: "center", marginTop: 24 },
-    tarjeta: {
-      backgroundColor: c.tarjeta,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: c.borde,
+      borderColor: c.border,
       overflow: "hidden",
     },
+    tabActivo: { backgroundColor: relleno.primario, borderColor: relleno.primario },
+    tabTexto: { ...shType.label, fontFamily: shType.block.fontFamily, color: c.text },
+    tabTextoActivo: { ...shType.label, fontFamily: shType.hero.fontFamily, color: relleno.sobrePrimario },
+    // El badge del kit va sobre una pastilla de superficie para leerse sobre la banda.
+    badge: { backgroundColor: c.surface, borderRadius: shRadius.sm },
+    avisoErrorSync: {
+      backgroundColor: c.statusDangerBg,
+      borderWidth: 1,
+      borderColor: c.statusDangerBorder,
+      marginHorizontal: shSpace[4],
+      marginTop: shSpace[3],
+      borderRadius: shRadius.sm,
+      paddingHorizontal: shSpace[3],
+      paddingVertical: shSpace[2],
+      gap: shSpace[2],
+    },
+    avisoFila: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
+    reintentar: { alignSelf: "flex-start" },
+    avisoErrorSyncTexto: { ...shType.dense, flex: 1, color: c.statusDangerFg },
+    lista: { padding: shSpace[4], gap: shSpace[3], paddingBottom: 72 },
+    tarjeta: {
+      backgroundColor: c.surface,
+      borderRadius: shRadius.md,
+      borderWidth: 1,
+      borderColor: c.border,
+      overflow: "hidden",
+    },
+    tarjetaEsqueleto: { padding: shSpace[4], gap: shSpace[3] },
     tarjetaHeader: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
+      gap: shSpace[2],
+      minHeight: shDensity.controlLg,
+      paddingLeft: shSpace[4],
+      paddingRight: shSpace[2],
+      paddingVertical: shSpace[1],
     },
-    tarjetaHeaderTexto: { fontWeight: "700", fontSize: 14 },
+    tarjetaHeaderTexto: { ...shType.block, flex: 1, color: c.text },
     tarjetaInactiva: { opacity: 0.75 },
-    tarjetaCuerpo: { padding: 16 },
-    kpis: { flexDirection: "row", gap: 10 },
-    kpi: { flex: 1, alignItems: "center", gap: 2 },
-    kpiValor: { fontSize: 18, fontWeight: "800", color: c.texto },
-    kpiEtiqueta: { fontSize: 11, color: c.textoSuave, fontWeight: "600" },
-    chevron: {
-      position: "absolute",
-      right: 12,
-      top: 0,
-      bottom: 0,
-      justifyContent: "center",
-    },
+    kpis: { flexDirection: "row", gap: shSpace[2], padding: shSpace[3], justifyContent: "space-between" },
+    kpi: { flex: 1 },
   });
 }
-
