@@ -1,5 +1,5 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { shColor } from "@core/theme/tokens";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import { bordeDeEstado, colorDeEstado } from "../components/ColorBadge";
 import { Linking } from "react-native";
 import { ClientesScreen } from "./ClientesScreen";
 import { ApiError } from "@core/api/client";
@@ -124,6 +124,8 @@ describe("ClientesScreen", () => {
     expect(getByTestId("breadcrumb-clientes")).toBeTruthy();
   });
 
+  // HU-DS-10: la barra de acento es el borde izquierdo de la fila (ListItem del kit),
+  // el borde es el pastel del mismo estado y el estado se escribe en un Badge con ícono.
   it("colorea barra y borde de la tarjeta según el estado (al día = verde)", async () => {
     const { getByTestId } = await renderConCarteraActiva({
       listarClientesDeCartera: jest
@@ -132,8 +134,11 @@ describe("ClientesScreen", () => {
     });
 
     await waitFor(() => expect(getByTestId("cliente-11")).toBeTruthy());
-    expect(getByTestId("cliente-acento-11")).toHaveStyle({ backgroundColor: shColor.success });
-    expect(getByTestId("cliente-11")).toHaveStyle({ borderColor: shColor.success });
+    expect(getByTestId("cliente-11")).toHaveStyle({
+      borderLeftColor: colorDeEstado("verde"),
+      borderColor: bordeDeEstado("verde"),
+    });
+    expect(within(getByTestId("cliente-estado-11")).getByText("Al día")).toBeTruthy();
   });
 
   it("colorea en mora en rojo (barra y borde)", async () => {
@@ -143,9 +148,12 @@ describe("ClientesScreen", () => {
         .mockResolvedValue([{ ...cliente, id: 21, numPrestamos: 2, diasMora: 5 }]),
     });
 
-    await waitFor(() => expect(getByTestId("cliente-acento-21")).toBeTruthy());
-    expect(getByTestId("cliente-acento-21")).toHaveStyle({ backgroundColor: shColor.danger });
-    expect(getByTestId("cliente-21")).toHaveStyle({ borderColor: shColor.danger });
+    await waitFor(() => expect(getByTestId("cliente-21")).toBeTruthy());
+    expect(getByTestId("cliente-21")).toHaveStyle({
+      borderLeftColor: colorDeEstado("rojo"),
+      borderColor: bordeDeEstado("rojo"),
+    });
+    expect(within(getByTestId("cliente-estado-21")).getByText("En mora")).toBeTruthy();
   });
 
   it("colorea sin préstamos en gris (barra y borde)", async () => {
@@ -155,9 +163,32 @@ describe("ClientesScreen", () => {
         .mockResolvedValue([{ ...cliente, id: 22, numPrestamos: 0, diasMora: 0 }]),
     });
 
-    await waitFor(() => expect(getByTestId("cliente-acento-22")).toBeTruthy());
-    expect(getByTestId("cliente-acento-22")).toHaveStyle({ backgroundColor: shColor.slate["400"] });
-    expect(getByTestId("cliente-22")).toHaveStyle({ borderColor: shColor.slate["400"] });
+    await waitFor(() => expect(getByTestId("cliente-22")).toBeTruthy());
+    expect(getByTestId("cliente-22")).toHaveStyle({
+      borderLeftColor: colorDeEstado("blanco"),
+      borderColor: bordeDeEstado("blanco"),
+    });
+    expect(within(getByTestId("cliente-estado-22")).getByText("Sin préstamos")).toBeTruthy();
+  });
+
+  it("sin clientes muestra el EmptyState con 'Registrar cliente', que abre el mismo alta del FAB (HU-DS-10)", async () => {
+    const { getByText, getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([]),
+    });
+
+    await waitFor(() => expect(getByText("Esta cartera no tiene clientes.")).toBeTruthy());
+    await fireEvent.press(getByText("Registrar cliente"));
+    await waitFor(() => expect(getByTestId("nuevo-cliente-modal")).toBeTruthy());
+  });
+
+  it("los botones de llamar y mensaje miden 48 dp (IconButton del kit)", async () => {
+    const { getByTestId } = await renderConCarteraActiva({
+      listarClientesDeCartera: jest.fn().mockResolvedValue([cliente]),
+    });
+
+    await waitFor(() => expect(getByTestId("cliente-llamar-11")).toBeTruthy());
+    expect(getByTestId("cliente-llamar-11")).toHaveStyle({ minWidth: 48, minHeight: 48 });
+    expect(getByTestId("cliente-mensaje-11")).toHaveStyle({ minWidth: 48, minHeight: 48 });
   });
 
   it("muestra avatar con iniciales si el cliente no tiene foto", async () => {
@@ -406,8 +437,9 @@ describe("ClientesScreen", () => {
 
     await waitFor(() => expect(getByTestId("filtro-chip-en_mora")).toBeTruthy());
     expect(getByTestId("filtro-chip-en_mora")).toHaveStyle({
-      backgroundColor: shColor.danger,
+      backgroundColor: colorDeEstado("rojo"),
     });
+    expect(getByTestId("filtro-chip-en_mora")).toHaveProp("accessibilityState", { selected: true });
   });
 
   it("colorea 'Al día' en verde", async () => {
@@ -419,7 +451,7 @@ describe("ClientesScreen", () => {
 
     await waitFor(() => expect(getByTestId("filtro-chip-al_dia")).toBeTruthy());
     expect(getByTestId("filtro-chip-al_dia")).toHaveStyle({
-      backgroundColor: shColor.success,
+      backgroundColor: colorDeEstado("verde"),
     });
   });
 
