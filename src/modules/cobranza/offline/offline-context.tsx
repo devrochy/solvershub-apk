@@ -35,7 +35,7 @@ export interface OfflineValue {
   ultimaSincronizacion: number | null;
   /** Eventos que el backend rechazó (REQ-APK-010). */
   eventosError: EventoError[];
-  /** Se incrementa al "sincronizar general" para que las pantallas re-consulten. */
+  /** Se incrementa al enviar la cola o al "sincronizar general" para que las pantallas re-consulten. */
   versionRecarga: number;
   /** Devuelve `false` si la cola está llena (para que la UI avise). */
   encolar(tipoEvento: string, payload: Record<string, unknown>): Promise<boolean>;
@@ -188,6 +188,9 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
           setEventosError(fusionados);
           await guardarErroresSync(fusionados);
         }
+        // Se envió algo: las pantallas abiertas vuelven a consultar para mostrar lo
+        // que quedó en el servidor (la ficha seguía con la cuota sin pagar).
+        setVersionRecarga((v) => v + 1);
       }
       setErrorSync(null);
       const ts = Date.now();

@@ -1,9 +1,31 @@
 import {
   COLORES_CANVAS,
   ETIQUETA_CANVAS,
+  detalleDesdeEstadoCuenta,
   esPendienteOAtrasada,
+  fechaCortaCuota,
   formatearFechaHora,
 } from "./presentacion";
+import type { EstadoCuentaPrestamoPublic } from "@shared/types/gestor";
+
+const ESTADO: EstadoCuentaPrestamoPublic = {
+  prestamoId: "p1",
+  carteraId: "c1",
+  clienteId: "k1",
+  nombreCliente: "Juana Perez",
+  valor: 1000,
+  numCuotas: 2,
+  tipoInteres: 10,
+  estatus: "vigente",
+  moneda: "COP",
+  cuotas: [
+    { cuotaId: "q1", numeroCuota: 1, valorEsperado: 550, fechaVencimiento: "2026-10-13", estatus: "pendiente", abonosAcumulados: 100, saldoPendiente: 450 },
+    { cuotaId: "q2", numeroCuota: 2, valorEsperado: 550, fechaVencimiento: "2026-10-14", estatus: "pendiente", abonosAcumulados: 0, saldoPendiente: 550 },
+  ],
+  totalAbonos: 100,
+  saldoPendiente: 1000,
+  proximoVencimiento: "2026-10-13",
+};
 
 describe("presentacion de cliente (HU-APP-07)", () => {
   it("etiqueta y color existen para cada tipo del canvas", () => {
@@ -27,5 +49,28 @@ describe("presentacion de cliente (HU-APP-07)", () => {
     const texto = formatearFechaHora(fija.toISOString());
     expect(texto).toMatch(/^2026-10-06 \d{2}:30$/);
     expect(formatearFechaHora("no-es-fecha")).toBe("no-es-fecha");
+  });
+
+  it("sin señal arma el detalle de la cuota desde el estado de cuenta", () => {
+    expect(detalleDesdeEstadoCuenta(ESTADO, "q1")).toEqual({
+      cuotaId: "q1",
+      numeroCuota: 1,
+      valorEsperado: 550,
+      fechaVencimiento: "2026-10-13",
+      estatus: "pendiente",
+      abonosAcumulados: 100,
+      saldoPendiente: 450,
+      pagos: [],
+      abonos: [],
+      ultimaVisita: null,
+    });
+    expect(detalleDesdeEstadoCuenta(ESTADO, "otra")).toBeNull();
+    expect(detalleDesdeEstadoCuenta(null, "q1")).toBeNull();
+  });
+
+  it("la fecha de la casilla del canvas va corta", () => {
+    expect(fechaCortaCuota("2026-10-13")).toBe("13/10");
+    expect(fechaCortaCuota("2026-10-13T00:00:00Z")).toBe("13/10");
+    expect(fechaCortaCuota("mañana")).toBe("mañana");
   });
 });

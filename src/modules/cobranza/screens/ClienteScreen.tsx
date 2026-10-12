@@ -59,7 +59,9 @@ import {
   CANVAS,
   COLORES_CANVAS,
   ETIQUETA_CANVAS,
+  detalleDesdeEstadoCuenta,
   esPendienteOAtrasada,
+  fechaCortaCuota,
   formatearFechaHora,
 } from "../features/cliente/presentacion";
 import {
@@ -110,6 +112,17 @@ type ModalActivo =
 
 const COORD_DEFAULT = { lat: -17.78, lng: -63.18 };
 
+/**
+ * Textos de la casilla del canvas (un cuarto del ancho): una sola línea que se achica
+ * antes de partir una palabra ("Abon / ado"), con tope para la fuente grande del sistema.
+ */
+const UNA_LINEA = {
+  numberOfLines: 1,
+  adjustsFontSizeToFit: true,
+  minimumFontScale: 0.7,
+  maxFontSizeMultiplier: 1.3,
+} as const;
+
 export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const params =
     "route" in props ? props.route.params : (props as ClienteScreenDirectProps);
@@ -147,6 +160,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   // Detalle de cuota.
   const [detalleCuota, setDetalleCuota] = useState<DetalleCuotaPublic | null>(null);
   const [detalleCuotaCargando, setDetalleCuotaCargando] = useState(false);
+  // El detalle se armó con el estado de cuenta porque no había señal.
+  const [detalleSinConexion, setDetalleSinConexion] = useState(false);
   // Acción desplegada dentro de la modal de cuota (registrar pago/no pago).
   const [accionCuota, setAccionCuota] = useState<"ninguno" | "pago" | "no_pago">("ninguno");
   // Borrar pago/abono desde la modal de cuota.
@@ -187,14 +202,19 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   const [valorPrometido, setValorPrometido] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
-  const [mensajeEsExito, setMensajeEsExito] = useState(false);
+  const [mensajeTono, setMensajeTono] = useState<"exito" | "error" | "aviso">("error");
   const mensajeError = (texto: string | null) => {
     setMensaje(texto);
-    setMensajeEsExito(false);
+    setMensajeTono("error");
   };
   const mensajeExito = (texto: string) => {
     setMensaje(texto);
-    setMensajeEsExito(true);
+    setMensajeTono("exito");
+  };
+  // Guardado sin conexión: no es un fallo, pero todavía falta enviarlo.
+  const mensajeAviso = (texto: string) => {
+    setMensaje(texto);
+    setMensajeTono("aviso");
   };
 
   // Formulario editar cliente.
@@ -278,7 +298,8 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount (async; no setState síncrono)
     cargar();
-  }, [cargar]);
+    // `versionRecarga` sube cuando se envía la cola: la ficha muestra lo que quedó en el servidor.
+  }, [cargar, offline.versionRecarga]);
 
   const prestamoSeleccionado = useMemo(
     () => prestamos.find((p) => p.id === prestamoSeleccionadoId) ?? null,
@@ -317,7 +338,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     return () => {
       activo = false;
     };
-  }, [api, carteraId, logout, prestamoDetalleId]);
+  }, [api, carteraId, logout, prestamoDetalleId, offline.versionRecarga]);
 
   const proximoCobro = useMemo(() => {
     const activos = prestamos.filter((p) => p.estatus === "vigente");
@@ -404,7 +425,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           if (encolado) {
             setAccionCuota("ninguno");
             setValor("");
-            mensajeExito("Guardado sin conexión (se sincronizará).");
+            mensajeAviso("Guardado sin conexión. Se enviará al volver la señal.");
           } else {
             mensajeError(
               "Ya hay un pago pendiente por sincronizar para este préstamo.",
@@ -474,7 +495,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
             setAccionCuota("ninguno");
             setFechaPrometida("");
             setValorPrometido("");
-            mensajeExito("Guardado sin conexión (se sincronizará).");
+            mensajeAviso("Guardado sin conexión. Se enviará al volver la señal.");
           } else {
             mensajeError(
               "Ya hay una visita de no pago pendiente por sincronizar para este préstamo.",
@@ -863,7 +884,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           };
         });
         setModal("ninguno");
-        mensajeExito("Cambio enviado (se sincronizará).");
+        mensajeAviso("Cambio guardado sin conexión. Se enviará al volver la señal.");
       } else {
         mensajeError("Ya hay un cambio pendiente por sincronizar.");
       }
@@ -937,14 +958,18 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
     setAccionCuota("ninguno");
     setBorrarTarget(null);
     setDetalleCuota(null);
+    setDetalleSinConexion(false);
     setDetalleCuotaCargando(true);
     setModal("cuota");
     try {
       setDetalleCuota(
         await api.detalleCuota(carteraId, prestamoSeleccionado.id, cuotaId),
       );
-    } catch {
-      setDetalleCuota(null);
+    } catch (err) {
+      // Sin señal se puede cobrar igual: el detalle sale del canvas y el pago se encola.
+      const desdeCanvas = esErrorDeRed(err) ? detalleDesdeEstadoCuenta(estadoPrestamo, cuotaId) : null;
+      setDetalleCuota(desdeCanvas);
+      setDetalleSinConexion(desdeCanvas != null);
     } finally {
       setDetalleCuotaCargando(false);
     }
@@ -1078,7 +1103,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
         <HeaderApp titulo="Información del cliente" />
         <ScrollView contentContainerStyle={styles.scroll}>
         {mensaje && modal === "ninguno" ? (
-          <BannerMensaje texto={mensaje} tipo={mensajeEsExito ? "exito" : "error"} />
+          <BannerMensaje texto={mensaje} tipo={mensajeTono} />
         ) : null}
 
         {/* Tarjeta cédula/pasaporte: header con fondo por clasificación, foto grande
@@ -1450,22 +1475,22 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                             label="Pendiente"
                           />
                         ) : null}
-                        <Text style={styles.cuadroValor}>
+                        <Text style={styles.cuadroValor} {...UNA_LINEA}>
                           {cuota.valorEsperado} {estadoPrestamo.moneda}
                         </Text>
-                        <Text style={styles.cuadroFecha}>{cuota.fechaVencimiento}</Text>
+                        <Text style={styles.cuadroFecha} {...UNA_LINEA}>{fechaCortaCuota(cuota.fechaVencimiento)}</Text>
                         {cuota.saldoPendiente > 0 && cuota.saldoPendiente < cuota.valorEsperado ? (
-                          <Text style={styles.cuadroSaldo}>
+                          <Text style={styles.cuadroSaldo} {...UNA_LINEA}>
                             Falta: {cuota.saldoPendiente}
                           </Text>
                         ) : null}
                         {cuota.abonosAcumulados > 0 ? (
-                          <Text style={styles.cuadroAbono}>
+                          <Text style={styles.cuadroAbono} {...UNA_LINEA}>
                             Abonado: {cuota.abonosAcumulados}
                           </Text>
                         ) : null}
                         <View style={[styles.cuadroEtiqueta, { borderColor: color.borde }]}>
-                          <Text style={[styles.cuadroEtiquetaTexto, { color: color.borde }]}>
+                          <Text style={[styles.cuadroEtiquetaTexto, { color: color.borde }]} {...UNA_LINEA}>
                             {ETIQUETA_CANVAS[cuota.tipo]}
                           </Text>
                         </View>
@@ -1562,9 +1587,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
           cliente (opción Editar ubicación).
         </Text>
         {mensaje && modal === "editar" ? (
-          <Text testID="mensaje-editar" style={styles.mensajeModal}>
-            {mensaje}
-          </Text>
+          <View testID="mensaje-editar" style={styles.mensajeCuota}>
+            <BannerMensaje texto={mensaje} tipo={mensajeTono} />
+          </View>
         ) : null}
       </ModalConFooter>
 
@@ -1832,6 +1857,15 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                     ) : null}
                   </View>
 
+                  {detalleSinConexion ? (
+                    <View testID="cuota-sin-conexion" style={styles.mensajeCuota}>
+                      <BannerMensaje
+                        tipo="aviso"
+                        texto="Sin señal: estos son los datos de la última carga. El pago se guarda en el teléfono y se envía al volver la señal."
+                      />
+                    </View>
+                  ) : null}
+
                   <Text style={styles.cuotaSubtitulo}>Pagos</Text>
                   {detalleCuota.pagos.length === 0 ? (
                     <Text style={styles.cuotaVacio}>Sin pagos registrados.</Text>
@@ -1910,9 +1944,9 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                   ) : null}
 
                 {mensaje ? (
-                  <Text testID="cuota-mensaje" style={styles.mensajeModal}>
-                    {mensaje}
-                  </Text>
+                  <View testID="cuota-mensaje" style={styles.mensajeCuota}>
+                    <BannerMensaje texto={mensaje} tipo={mensajeTono} />
+                  </View>
                 ) : null}
 
                 {/* Acciones en la parte inferior (solo cuota no paga) */}
@@ -2251,6 +2285,7 @@ function crearEstilos({ c, relleno }: KitTema) {
     backgroundColor: c.bg,
   },
   mensajeModal: { ...shType.dense, color: c.statusDangerFg, marginTop: shSpace[2] },
+  mensajeCuota: { marginTop: shSpace[2] },
   tarjeta: {
     backgroundColor: c.surface,
     borderRadius: shRadius.lg,

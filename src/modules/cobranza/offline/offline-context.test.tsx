@@ -204,4 +204,27 @@ describe("OfflineProvider — visibilidad de sincronización", () => {
 
     expect(ref.current!.versionRecarga).toBe(inicial + 1);
   });
+
+  it("enviar la cola incrementa versionRecarga para que la ficha muestre lo sincronizado", async () => {
+    (cola.listarCola as jest.Mock).mockResolvedValue([]);
+    (cola.contarCola as jest.Mock).mockResolvedValue(0);
+    const { ref } = await renderConProvider();
+    await waitFor(() => expect(ref.current).toBeTruthy());
+    const sinCola = ref.current!.versionRecarga;
+
+    // Sin eventos no hay nada que refrescar.
+    await act(async () => {
+      await ref.current!.sincronizar();
+    });
+    expect(ref.current!.versionRecarga).toBe(sinCola);
+
+    (cola.listarCola as jest.Mock).mockResolvedValue([
+      { eventoIdCliente: "p1", tipoEvento: "visita", payload: {}, creadoEn: "" },
+    ]);
+    (sincronizarCola as jest.Mock).mockResolvedValue([{ eventoIdCliente: "p1", estado: "sincronizado" }]);
+    await act(async () => {
+      await ref.current!.sincronizar();
+    });
+    expect(ref.current!.versionRecarga).toBe(sinCola + 1);
+  });
 });

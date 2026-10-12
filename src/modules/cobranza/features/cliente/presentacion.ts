@@ -1,4 +1,5 @@
 import { kitDeTema } from "@shared/ui";
+import type { DetalleCuotaPublic, EstadoCuentaPrestamoPublic } from "@shared/types/gestor";
 import type { TipoCuotaCanvas } from "../prestamo/canvas-cuotas";
 
 /**
@@ -46,4 +47,30 @@ export function formatearFechaHora(iso: string): string {
   }
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/**
+ * Detalle de una cuota armado con lo que ya trajo el estado de cuenta (el canvas),
+ * para cuando no hay señal: sin esto el gestor no llegaba al formulario de pago y no
+ * podía cobrar en la calle. Los pagos, abonos y la última visita no vienen en el
+ * estado de cuenta, así que quedan vacíos. `null` si la cuota no está.
+ */
+export function detalleDesdeEstadoCuenta(
+  estado: EstadoCuentaPrestamoPublic | null,
+  cuotaId: string,
+): DetalleCuotaPublic | null {
+  const cuota = estado?.cuotas.find((c) => c.cuotaId === cuotaId);
+  if (!cuota) {
+    return null;
+  }
+  return { ...cuota, pagos: [], abonos: [], ultimaVisita: null };
+}
+
+/**
+ * `2026-10-13` → `13/10`: la casilla del canvas mide un cuarto del ancho y la fecha
+ * completa se partía en dos renglones. Otro formato → texto tal cual.
+ */
+export function fechaCortaCuota(fecha: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
+  return m ? `${m[3]}/${m[2]}` : fecha;
 }

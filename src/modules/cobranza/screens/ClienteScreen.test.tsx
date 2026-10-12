@@ -430,6 +430,50 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     );
   });
 
+  it("sin señal desde el inicio, la cuota abre con los datos del canvas y el pago se encola con aviso", async () => {
+    const errorRed = new Error("Network request failed");
+    const encolarSiNoExiste = jest.fn().mockResolvedValue(true);
+    const { getByTestId } = await renderConApi(
+      {
+        registrarVisitaPago: jest.fn().mockRejectedValue(errorRed),
+        detalleCuota: jest.fn().mockRejectedValue(errorRed),
+      },
+      { ...offlineValor, isOnline: false, encolarSiNoExiste },
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByTestId("cuota-sin-conexion")).toBeTruthy());
+    await fireEvent.press(getByTestId("accion-pago"));
+    await fireEvent.changeText(getByTestId("pago-valor"), "300");
+    await fireEvent.press(getByTestId("guardar-pago-cuota"));
+
+    await waitFor(() =>
+      expect(encolarSiNoExiste).toHaveBeenCalledWith(
+        "visita",
+        expect.objectContaining({ cuotaId: "10", valor: 300, tipoPago: "cuota" }),
+        "pago-1-2-10",
+      ),
+    );
+    await waitFor(() =>
+      expect(getByTestId("cuota-mensaje")).toHaveTextContent(/se enviará al volver la señal/i),
+    );
+  });
+
+  it("si el servidor responde con error (no es falta de señal) sigue avisando que no cargó", async () => {
+    const { getByTestId, getByText, queryByTestId } = await renderConApi(
+      { detalleCuota: jest.fn().mockRejectedValue(new ApiError(500, "falla")) },
+      offlineValor,
+      { prestamoAutoSeleccionado: true },
+    );
+
+    await waitFor(() => expect(getByTestId("cuota-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("cuota-1"));
+    await waitFor(() => expect(getByText("No se pudo cargar el detalle de la cuota.")).toBeTruthy());
+    expect(queryByTestId("accion-pago")).toBeNull();
+  });
+
   it("al confirmar un pago muestra el toast de éxito del kit (HU-DS-10)", async () => {
     const registrarVisitaPago = jest.fn().mockResolvedValue({ id: "1" });
     const { getByTestId } = await renderConApi(
@@ -512,7 +556,7 @@ describe("ClienteScreen — modales de pago/no pago (dentro de la modal de cuota
     await fireEvent.press(getByTestId("guardar-pago-cuota"));
 
     await waitFor(() => expect(encolarSiNoExiste).toHaveBeenCalled());
-    expect(getByText("Guardado sin conexión (se sincronizará).")).toBeTruthy();
+    expect(getByText("Guardado sin conexión. Se enviará al volver la señal.")).toBeTruthy();
     // La cola tiene el pago: badge en la cuota, en el detalle y en el préstamo.
     await waitFor(() => expect(getByTestId("pendiente-detalle-cuota")).toBeTruthy());
     expect(within(getByTestId("pendiente-cuota-1")).getByText("Pendiente")).toBeTruthy();
@@ -831,7 +875,7 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
         "cambio_cliente-2",
       ),
     );
-    expect(getByText(/se sincronizará/)).toBeTruthy();
+    expect(getByText(/se enviará al volver la señal/i)).toBeTruthy();
   });
 
   it("permite editar nombre/negocio cuando el cliente no tiene documento", async () => {
@@ -963,9 +1007,8 @@ describe("ClienteScreen — edición de cliente en modal (offline)", () => {
     expect(encolarSiNoExiste).not.toHaveBeenCalled();
     // El error de validación se muestra DENTRO del modal (visible al usuario),
     // no solo en el banner global detrás del backdrop.
-    expect(getByTestId("mensaje-editar")).toHaveTextContent(
-      "No hay cambios para guardar.",
-    );
+    // El banner lleva ícono además del texto (el color nunca va solo).
+    expect(getByTestId("mensaje-editar")).toHaveTextContent(/No hay cambios para guardar\./);
     expect(getByTestId("editar-cliente-form")).toBeTruthy();
   });
 });
