@@ -119,4 +119,8 @@ describe("ComercioScreen (HU-APP-10)", () => {
     expect(getByTestId("comercio-kpi-pedidos").props.children).toBe(8);
   });
 
+  it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
+    const { getByTestId } = await render(<ComercioScreen pestanaInicial={{ pestana: "pedidos", n: 1 }} />);
+    await waitFor(() => expect(getByTestId("comercio-pedidos")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
 });

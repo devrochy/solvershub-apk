@@ -55,4 +55,8 @@ describe("NegocioScreen (HU-APP-09)", () => {
     const { getByTestId } = await render(<NegocioScreen />);
     await waitFor(() => expect(getByTestId("negocio-error")).toBeTruthy());
   });
+  it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
+    const { getByTestId } = await render(<NegocioScreen pestanaInicial={{ pestana: "costos", n: 1 }} />);
+    await waitFor(() => expect(getByTestId("negocio-costos")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
 });

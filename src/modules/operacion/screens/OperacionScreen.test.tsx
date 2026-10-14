@@ -134,4 +134,8 @@ describe("OperacionScreen (HU-APP-08)", () => {
     await waitFor(() => expect(mockPost).toHaveBeenCalledWith("/admin/playground/reset"));
   });
 
+  it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
+    const { getByTestId } = await render(<OperacionScreen pestanaInicial={{ pestana: "escalaciones", n: 1 }} />);
+    await waitFor(() => expect(getByTestId("pestana-escalaciones")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
 });

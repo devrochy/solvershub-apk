@@ -28,6 +28,7 @@ describe("kit shared/ui", () => {
       "useToast",
       "Sheet",
       "ListItem",
+      "NavGroup",
       "RecordRow",
       "KpiTile",
       "PageHeader",

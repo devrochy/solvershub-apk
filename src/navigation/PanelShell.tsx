@@ -1,15 +1,14 @@
-import { NavigationContainer, createNavigationContainerRef , useNavigation } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAdminSession } from "@core/session/admin-session-context";
-import { grupoVisible, seccionesPermitidas } from "@core/permisos";
 import { useTheme } from "@core/theme/theme-context";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { SeccionEnConstruccion } from "./screens/SeccionEnConstruccion";
+import { EmptyState } from "@shared/ui";
+import { suscribirNavegacion } from "@shared/navegacion-evento";
+import type { SolicitudPestana } from "@shared/pestana-inicial";
+import { CatalogoScreen } from "@shared/ui/catalogo/CatalogoScreen";
 import { DashboardScreen } from "../modules/dashboard";
 import { OperacionNavigator } from "../modules/operacion";
 import { CobranzaAdminNavigator } from "../modules/cobranza-admin";
@@ -19,361 +18,193 @@ import { NegocioScreen } from "../modules/negocio";
 import { ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
-import { CatalogoScreen } from "@shared/ui/catalogo/CatalogoScreen";
-import { suscribirNavegacion } from "@shared/navegacion-evento";
-import { useEffect, useRef } from "react";
+import { CajonPanel } from "./CajonPanel";
+import { HeaderPanel } from "./HeaderPanel";
+import { MODULOS_PANEL, modulosVisibles, type ModuloPanel } from "./menu-panel";
+import { MenuPanelProvider, type DestinoPanel } from "./menu-panel-context";
+
+export { catalogoDisponible, seccionesDeMenu } from "./menu-panel";
 
 /**
- * Shell del panel (ADR-APP-02): tabs + lista "Más" armados SOLO con las
- * secciones que los permisos del usuario permiten ver (MeResponse.permissions,
- * ADR-0047). Cada tab es un placeholder hasta que llega el módulo real
- * (HU-APP-04/08+).
+ * Shell del panel dentro de la app (ADR-APP-02, ADR-APP-07 enmendado, D-34):
+ * header con hamburguesa + cajón lateral con la misma lista agrupada que el
+ * sidebar del panel web, armada SOLO con las secciones que los permisos del
+ * usuario permiten ver (MeResponse.permissions, ADR-0047).
+ *
+ * Por debajo sigue un `Tab.Navigator` sin barra: conserva el montaje perezoso,
+ * el estado por módulo y el `navRef` que usan el push y la Búsqueda (bus de
+ * `@shared/navegacion-evento`). Cada ítem del cajón abre su módulo en la
+ * pestaña interna pedida (`pestanaInicial`).
  */
-
-export interface GrupoSecciones {
-  clave: string;
-  label: string;
-  /** Ícono de la pestaña: las etiquetas van truncadas con 8 pestañas. */
-  icono: keyof typeof MaterialIcons.glyphMap;
-  secciones: string[];
-  detalleHU: string;
-}
-
-export const GRUPOS_PANEL: GrupoSecciones[] = [
-  { clave: "inicio", label: "Inicio", icono: "dashboard", secciones: ["dashboard"], detalleHU: "HU-APP-04" },
-  {
-    clave: "conversaciones",
-    label: "Conversaciones",
-    icono: "chat",
-    secciones: ["conversations", "escalations", "leads"],
-    detalleHU: "HU-APP-08",
-  },
-  {
-    clave: "cobranza",
-    label: "Cobranza",
-    icono: "payments",
-    secciones: [
-      "pack_cobranza:resumen",
-      "pack_cobranza:gestores",
-      "pack_cobranza:carteras",
-      "pack_cobranza:clientes",
-      "pack_cobranza:cobros",
-      "pack_cobranza:propietario",
-      "pack_cobranza:promesas",
-      "pack_cobranza:reportes",
-      "pack_cobranza:reglas",
-      "pack_cobranza:monitoreo",
-      "pack_cobranza:dispositivos",
-      "pack_cobranza:alertas",
-      "pack_cobranza:auditoria",
-    ],
-    detalleHU: "HU-APP-07 (campo) / HU-APP-08+ (admin)",
-  },
-  {
-    clave: "comercio",
-    label: "Comercio",
-    icono: "storefront",
-    secciones: ["pack_commerce"],
-    detalleHU: "HU-APP-10",
-  },
-  {
-    clave: "calendario",
-    label: "Calendario",
-    icono: "event",
-    secciones: [
-      "pack_calendar:citas",
-      "pack_calendar:tipos",
-      "pack_calendar:bloqueos",
-      "pack_calendar:conexion",
-      "pack_calendar:configuracion",
-    ],
-    detalleHU: "HU-APP-11",
-  },
-  { clave: "negocio", label: "Negocio", icono: "business-center", secciones: ["plan", "costs"], detalleHU: "HU-APP-09" },
-  {
-    clave: "configuracion",
-    label: "Configuración",
-    icono: "settings",
-    secciones: ["collaborators", "connections", "plugins", "settings"],
-    detalleHU: "HU-APP-12",
-  },
-];
-
-/** Secciones que solo el master de plataforma ve (ADR-0047 GLOBAL_ONLY). */
-export const GRUPO_PLATAFORMA: GrupoSecciones = {
-  clave: "plataforma",
-  label: "Plataforma",
-  icono: "admin-panel-settings",
-  secciones: ["tenants"],
-  detalleHU: "HU-APP-13",
-};
 
 const Tab = createBottomTabNavigator();
 
-export interface ItemMenuPanel {
-  seccion: string;
-  grupo: string;
-  detalleHU: string;
-}
+type ParamsModulo = { pestanaInicial?: SolicitudPestana } | undefined;
 
-/** Ítems del menú "Más" según permisos (lógica pura, testeable). */
-export function seccionesDeMenu(
-  permisos: Record<string, string | null>,
-  esMaster: boolean,
-): ItemMenuPanel[] {
-  const grupos = GRUPOS_PANEL.filter((g) => grupoVisible(permisos, g.secciones, esMaster));
-  return [
-    ...grupos.flatMap((g) =>
-      seccionesPermitidas(permisos, g.secciones, esMaster).map((s) => ({
-        seccion: s,
-        grupo: g.label,
-        detalleHU: g.detalleHU,
-      })),
-    ),
-    ...(esMaster
-      ? GRUPO_PLATAFORMA.secciones.map((s) => ({
-          seccion: s,
-          grupo: GRUPO_PLATAFORMA.label,
-          detalleHU: GRUPO_PLATAFORMA.detalleHU,
-        }))
-      : []),
-  ];
-}
-
-export type MasStackParamList = {
-  Mas: undefined;
-  Busqueda: undefined;
-  Herramientas: undefined;
-  /** Catálogo del kit de UI (HU-DS-09): solo existe en builds de desarrollo. */
-  Catalogo: undefined;
-};
-
-/** El catálogo del kit solo se registra en builds de desarrollo (`__DEV__`). */
-export function catalogoDisponible(): boolean {
-  return __DEV__;
-}
-
-const MasStack = createNativeStackNavigator<MasStackParamList>();
-
-function MasNavigator() {
-  return (
-    <MasStack.Navigator>
-      <MasStack.Screen name="Mas" component={MasScreen} options={{ title: "Más" }} />
-      <MasStack.Screen
-        name="Busqueda"
-        component={BusquedaScreen}
-        options={{ title: "Búsqueda global" }}
-      />
-      <MasStack.Screen
-        name="Herramientas"
-        component={HerramientasScreen}
-        options={{ title: "Herramientas y plataforma" }}
-      />
-      {catalogoDisponible() ? (
-        <MasStack.Screen
-          name="Catalogo"
-          component={CatalogoScreen}
-          options={{ title: "Catálogo de UI" }}
-        />
-      ) : null}
-    </MasStack.Navigator>
-  );
-}
-
-function MasScreen() {
+function ConHeader({ modulo, children }: { modulo: ModuloPanel; children: ReactNode }) {
   const { colores } = useTheme();
-  const { sesion } = useAdminSession();
-  const navigation = useNavigation<NativeStackNavigationProp<MasStackParamList>>();
-  const esMaster = sesion?.role === "master";
-  const items = seccionesDeMenu(sesion?.permissions ?? {}, esMaster);
-
   return (
-    <View style={[styles.mas, { backgroundColor: colores.fondo }]}>
-      <Pressable
-        testID="mas-buscar"
-        onPress={() => navigation.navigate("Busqueda")}
-        style={[styles.item, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
-      >
-        <Text style={[styles.itemSeccion, { color: colores.texto }]}>Buscar en todo el negocio</Text>
-        <Text style={[styles.itemGrupo, { color: colores.textoSuave }]}>Búsqueda global</Text>
-      </Pressable>
-      <Pressable
-        testID="mas-herramientas"
-        onPress={() => navigation.navigate("Herramientas")}
-        style={[styles.item, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
-      >
-        <Text style={[styles.itemSeccion, { color: colores.texto }]}>
-          Herramientas y plataforma
-        </Text>
-        <Text style={[styles.itemGrupo, { color: colores.textoSuave }]}>
-          Fallos de envío{esMaster ? " · negocios" : ""}
-        </Text>
-      </Pressable>
-      {catalogoDisponible() ? (
-        <Pressable
-          testID="mas-catalogo"
-          onPress={() => navigation.navigate("Catalogo")}
-          style={[styles.item, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
-        >
-          <Text style={[styles.itemSeccion, { color: colores.texto }]}>Catálogo de UI</Text>
-          <Text style={[styles.itemGrupo, { color: colores.textoSuave }]}>
-            Kit de componentes · solo desarrollo
-          </Text>
-        </Pressable>
-      ) : null}
-      <FlatList
-        testID="mas-lista"
-        data={items}
-        keyExtractor={(i) => i.seccion}
-        renderItem={({ item }) => (
-          <View
-            style={[styles.item, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
-          >
-            <Text style={[styles.itemSeccion, { color: colores.texto }]}>{item.seccion}</Text>
-            <Text style={[styles.itemGrupo, { color: colores.textoSuave }]}>{item.grupo}</Text>
-          </View>
-        )}
-      />
+    <View style={[styles.modulo, { backgroundColor: colores.fondo }]}>
+      <HeaderPanel titulo={MODULOS_PANEL[modulo].label} />
+      {children}
     </View>
   );
 }
 
-/**
- * Grupos que se montan dentro de un stack con header nativo (que ya reserva la
- * barra de estado). El resto va sin header (`headerShown: false`) y con
- * edge-to-edge (targetSdk 36) quedaría bajo la barra de estado.
- */
-const GRUPOS_CON_STACK = new Set(["conversaciones", "cobranza"]);
-
-export function usaAreaSeguraSuperior(clave: string): boolean {
-  return !GRUPOS_CON_STACK.has(clave);
-}
-
-function ContenidoConAreaSegura({ grupo }: { grupo: GrupoSecciones }) {
-  const { colores } = useTheme();
-  if (!usaAreaSeguraSuperior(grupo.clave)) {
-    return <ContenidoDeGrupo grupo={grupo} />;
+function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: ParamsModulo }) {
+  const pestanaInicial = params?.pestanaInicial;
+  switch (modulo) {
+    case "conversaciones":
+      return <OperacionNavigator encabezadoRaiz={<HeaderPanel titulo={MODULOS_PANEL.conversaciones.label} />} />;
+    case "cobranza":
+      return <CobranzaAdminNavigator encabezadoRaiz={<HeaderPanel titulo={MODULOS_PANEL.cobranza.label} />} />;
+    case "inicio":
+      return (
+        <ConHeader modulo={modulo}>
+          <DashboardScreen />
+        </ConHeader>
+      );
+    case "comercio":
+      return (
+        <ConHeader modulo={modulo}>
+          <ComercioScreen pestanaInicial={pestanaInicial} />
+        </ConHeader>
+      );
+    case "calendario":
+      return (
+        <ConHeader modulo={modulo}>
+          <CalendarioScreen pestanaInicial={pestanaInicial} />
+        </ConHeader>
+      );
+    case "negocio":
+      return (
+        <ConHeader modulo={modulo}>
+          <NegocioScreen pestanaInicial={pestanaInicial} />
+        </ConHeader>
+      );
+    case "configuracion":
+      return (
+        <ConHeader modulo={modulo}>
+          <ConfiguracionScreen pestanaInicial={pestanaInicial} />
+        </ConHeader>
+      );
+    case "herramientas":
+      return (
+        <ConHeader modulo={modulo}>
+          <HerramientasScreen pestanaInicial={pestanaInicial} />
+        </ConHeader>
+      );
+    case "busqueda":
+      return (
+        <ConHeader modulo={modulo}>
+          <BusquedaScreen />
+        </ConHeader>
+      );
+    case "catalogo":
+      return (
+        <ConHeader modulo={modulo}>
+          <CatalogoScreen />
+        </ConHeader>
+      );
   }
-  return (
-    <SafeAreaView
-      testID={`area-segura-${grupo.clave}`}
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: colores.fondo }}
-    >
-      <ContenidoDeGrupo grupo={grupo} />
-    </SafeAreaView>
-  );
-}
-
-function ContenidoDeGrupo({ grupo }: { grupo: GrupoSecciones }) {
-  if (grupo.clave === "inicio") {
-    return <DashboardScreen />;
-  }
-  if (grupo.clave === "conversaciones") {
-    return <OperacionNavigator />;
-  }
-  if (grupo.clave === "cobranza") {
-    return <CobranzaAdminNavigator />;
-  }
-  if (grupo.clave === "comercio") {
-    return <ComercioScreen />;
-  }
-  if (grupo.clave === "calendario") {
-    return <CalendarioScreen />;
-  }
-  if (grupo.clave === "negocio") {
-    return <NegocioScreen />;
-  }
-  if (grupo.clave === "configuracion") {
-    return <ConfiguracionScreen />;
-  }
-  return <SeccionEnConstruccion titulo={grupo.label} detalle={grupo.detalleHU} />;
 }
 
 export function PanelShell() {
   const { colores, tema } = useTheme();
   const { sesion } = useAdminSession();
   const esMaster = sesion?.role === "master";
-  const permisos = sesion?.permissions ?? {};
-  const navRef = useRef(createNavigationContainerRef());
+  const permisos = useMemo(() => sesion?.permissions ?? {}, [sesion?.permissions]);
+  const modulos = useMemo(() => modulosVisibles(permisos, esMaster), [permisos, esMaster]);
 
-  const gruposVisibles = GRUPOS_PANEL.filter((g) =>
-    grupoVisible(permisos, g.secciones, esMaster),
+  const navRef = useRef(createNavigationContainerRef());
+  const contador = useRef(0);
+  const [activo, setActivo] = useState<DestinoPanel | null>(() => (modulos[0] ? { modulo: modulos[0] } : null));
+  // Destino que llegó antes de que la navegación estuviera lista (push en frío).
+  const destinoPendiente = useRef<DestinoPanel | null>(null);
+
+  const navegar = useCallback(
+    (destino: DestinoPanel) => {
+      if (!modulos.includes(destino.modulo)) return;
+      if (!navRef.current?.isReady()) {
+        destinoPendiente.current = destino;
+        return;
+      }
+      const n = ++contador.current;
+      const params = destino.pestana ? { pestanaInicial: { pestana: destino.pestana, n } } : undefined;
+      const raiz = MODULOS_PANEL[destino.modulo].raizStack;
+      // Con stack propio, el `screen` anidado además vuelve a la raíz del módulo.
+      const navegarA = navRef.current.navigate as (nombre: string, params?: object) => void;
+      navegarA(destino.modulo, raiz ? { screen: raiz, params } : params);
+      setActivo(destino);
+    },
+    [modulos],
   );
 
-  // Destino que llegó antes de que la navegación estuviera lista (push en frío).
-  const destinoPendiente = useRef<string | null>(null);
-
   useEffect(() => {
-    // Deep link desde módulos anidados (HU-APP-21) y push tocados: cambia de tab.
-    return suscribirNavegacion((destino) => {
-      if (navRef.current?.isReady()) {
-        navRef.current.navigate(destino.tab as never);
-      } else {
-        destinoPendiente.current = destino.tab;
-      }
-    });
-  }, []);
+    // Deep link desde módulos anidados (HU-APP-21) y push tocados.
+    return suscribirNavegacion((destino) =>
+      navegar({ modulo: destino.tab as ModuloPanel, pestana: destino.pestana }),
+    );
+  }, [navegar]);
+
+  const barra = <StatusBar style={tema === "oscuro" ? "light" : "dark"} />;
+
+  if (modulos.length === 0) {
+    return (
+      <MenuPanelProvider activo={null} alNavegar={navegar}>
+        {barra}
+        <View style={[styles.modulo, { backgroundColor: colores.fondo }]}>
+          <HeaderPanel titulo="SolversHub" />
+          <EmptyState
+            testID="panel-sin-secciones"
+            icon="lock-outline"
+            title="Sin secciones asignadas"
+            description="Pide al dueño del negocio que te dé acceso a alguna sección."
+            secondaryAction={{ label: "Entendido", onPress: () => undefined }}
+          />
+        </View>
+        <CajonPanel />
+      </MenuPanelProvider>
+    );
+  }
 
   return (
-    <NavigationContainer
-      ref={navRef}
-      onReady={() => {
-        if (destinoPendiente.current) {
-          navRef.current?.navigate(destinoPendiente.current as never);
-          destinoPendiente.current = null;
-        }
-      }}
-    >
+    <MenuPanelProvider activo={activo} alNavegar={navegar}>
       {/* El panel no tiene banda navy: la barra de estado sigue al tema. Al
           desmontar, RN restaura el `light` de App.tsx (login y campo). */}
-      <StatusBar style={tema === "oscuro" ? "light" : "dark"} />
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: colores.acento,
-          tabBarInactiveTintColor: colores.textoSuave,
-          tabBarStyle: { backgroundColor: colores.tarjeta },
+      {barra}
+      <NavigationContainer
+        ref={navRef}
+        onReady={() => {
+          if (destinoPendiente.current) {
+            const destino = destinoPendiente.current;
+            destinoPendiente.current = null;
+            navegar(destino);
+          }
+        }}
+        onStateChange={() => {
+          // Back del sistema u otro cambio fuera del cajón: el header y el
+          // ítem resaltado siguen al módulo que quedó en pantalla.
+          const estado = navRef.current?.getRootState();
+          const nombre = estado?.routes[estado.index]?.name as ModuloPanel | undefined;
+          if (nombre) {
+            setActivo((actual) => (actual?.modulo === nombre ? actual : { modulo: nombre }));
+          }
         }}
       >
-        {gruposVisibles.map((grupo) => (
-          <Tab.Screen
-            key={grupo.clave}
-            name={grupo.clave}
-            options={{
-              tabBarLabel: grupo.label,
-              tabBarIcon: ({ color, size }) => (
-                <MaterialIcons name={grupo.icono} size={size} color={color} />
-              ),
-            }}
-          >
-            {() => <ContenidoConAreaSegura grupo={grupo} />}
-          </Tab.Screen>
-        ))}
-        <Tab.Screen
-          name="mas"
-          options={{
-            tabBarLabel: "Más",
-            tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="menu" size={size} color={color} />
-            ),
-          }}
-        >
-          {() => <MasNavigator />}
-        </Tab.Screen>
-      </Tab.Navigator>
-    </NavigationContainer>
+        <Tab.Navigator tabBar={() => null} screenOptions={{ headerShown: false }}>
+          {modulos.map((modulo) => (
+            <Tab.Screen key={modulo} name={modulo}>
+              {({ route }) => <ContenidoDeModulo modulo={modulo} params={route.params as ParamsModulo} />}
+            </Tab.Screen>
+          ))}
+        </Tab.Navigator>
+      </NavigationContainer>
+      <CajonPanel />
+    </MenuPanelProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  mas: { flex: 1, padding: 16 },
-  item: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-  },
-  itemSeccion: { fontSize: 15, fontWeight: "600" },
-  itemGrupo: { fontSize: 13, marginTop: 2 },
+  modulo: { flex: 1 },
 });

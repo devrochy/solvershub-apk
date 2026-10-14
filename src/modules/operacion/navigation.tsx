@@ -1,23 +1,33 @@
+import type { ReactNode } from "react";
+import { StyleSheet, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import type { SolicitudPestana } from "@shared/pestana-inicial";
 import { OperacionScreen } from "./screens/OperacionScreen";
 import { ConversacionDetalleScreen } from "./screens/ConversacionDetalleScreen";
 
 export type OperacionStackParamList = {
-  Operacion: undefined;
+  Operacion: { pestanaInicial?: SolicitudPestana } | undefined;
   ConversacionDetalle: { id: string; titulo: string };
 };
 
 const Stack = createNativeStackNavigator<OperacionStackParamList>();
 
-/** Navigator del grupo Operación (se anida en el tab del PanelShell). */
-export function OperacionNavigator() {
+/**
+ * Navigator del grupo Operación (se anida en el PanelShell). Con
+ * `encabezadoRaiz` (el header del panel con la hamburguesa) la raíz no muestra
+ * el header nativo; los detalles sí, con la flecha atrás.
+ */
+export function OperacionNavigator({ encabezadoRaiz }: { encabezadoRaiz?: ReactNode } = {}) {
   return (
     <Stack.Navigator>
-      <Stack.Screen
-        name="Operacion"
-        component={OperacionScreen}
-        options={{ title: "Operación" }}
-      />
+      <Stack.Screen name="Operacion" options={{ title: "Operación", headerShown: !encabezadoRaiz }}>
+        {({ route }) => (
+          <View style={styles.raiz}>
+            {encabezadoRaiz}
+            <OperacionScreen pestanaInicial={route.params?.pestanaInicial} />
+          </View>
+        )}
+      </Stack.Screen>
       <Stack.Screen
         name="ConversacionDetalle"
         component={ConversacionDetalleScreen}
@@ -26,3 +36,5 @@ export function OperacionNavigator() {
     </Stack.Navigator>
   );
 }
+
+const styles = StyleSheet.create({ raiz: { flex: 1 } });
