@@ -72,6 +72,19 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "none");
   });
 
+  it("una sección de un módulo con stack (Cobranza) llega a su pestaña por los params anidados", async () => {
+    mockSesionValue = { token: "t", adminId: "a-6", role: "master", permissions: {} };
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-grupo-pack_cobranza"));
+    await fireEvent.press(getByTestId("cajon-item-cobranza-alertas"));
+
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Cobranza"));
+    await waitFor(() => expect(getByTestId("cobranza-alertas")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
+
   it("el bus de navegación (push, Búsqueda) lleva al módulo y a la pestaña pedida", async () => {
     mockSesionValue = DUENO;
     const { findByTestId, getByTestId } = await renderShell();

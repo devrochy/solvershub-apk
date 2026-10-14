@@ -8,9 +8,14 @@ import { SessionContext } from "../modules/cobranza/session/session-context";
 import { claveDeDestino, gruposDeMenu, type ItemMenuPanel } from "./menu-panel";
 import { useMenuPanel, type DestinoPanel } from "./menu-panel-context";
 
+/** Fila resaltada: solo con módulo y pestaña exactos (un destino sin pestaña no resalta ninguna). */
 function esActivo(item: ItemMenuPanel, activo: DestinoPanel | null): boolean {
-  if (!activo || activo.modulo !== item.modulo) return false;
-  return item.pestana === undefined || activo.pestana === undefined || activo.pestana === item.pestana;
+  return activo !== null && activo.modulo === item.modulo && activo.pestana === item.pestana;
+}
+
+/** El grupo del módulo activo se mantiene desplegado aunque no haya fila exacta. */
+function contieneModuloActivo(items: ItemMenuPanel[], activo: DestinoPanel | null): boolean {
+  return activo !== null && items.some((item) => item.modulo === activo.modulo);
 }
 
 /**
@@ -44,7 +49,7 @@ export function CajonPanel() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.grupos}>
           {grupos.map((grupo) => {
-            const contieneActivo = grupo.items.some((item) => esActivo(item, activo));
+            const contieneActivo = contieneModuloActivo(grupo.items, activo);
             return (
               <NavGroup
                 key={grupo.id}

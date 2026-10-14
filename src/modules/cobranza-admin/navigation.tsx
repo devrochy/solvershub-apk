@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { SolicitudPestana } from "@shared/pestana-inicial";
+import { useKit } from "@shared/ui";
 import { CobranzaAdminScreen } from "./screens/CobranzaAdminScreen";
 import { ClienteDetalleScreen } from "./screens/ClienteDetalleScreen";
 import { CarteraDetalleScreen } from "./screens/CarteraDetalleScreen";
@@ -20,8 +21,18 @@ const Stack = createNativeStackNavigator<CobranzaAdminStackParamList>();
  * el header nativo; los detalles sí, con la flecha atrás.
  */
 export function CobranzaAdminNavigator({ encabezadoRaiz }: { encabezadoRaiz?: ReactNode } = {}) {
+  const { c } = useKit();
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        // Los detalles conservan el header nativo: con el tema, no el blanco por defecto.
+        headerStyle: { backgroundColor: c.surface },
+        headerTintColor: c.text,
+        headerTitleStyle: { color: c.text },
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: c.bg },
+      }}
+    >
       <Stack.Screen name="CobranzaAdmin" options={{ title: "Cobranza", headerShown: !encabezadoRaiz }}>
         {({ route }) => (
           <View style={styles.raiz}>

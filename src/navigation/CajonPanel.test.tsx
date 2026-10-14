@@ -95,6 +95,18 @@ describe("CajonPanel (HU-DS-11, D-34)", () => {
     });
   });
 
+  it("un destino sin pestaña (push, back) abre el grupo pero no resalta ninguna fila", async () => {
+    const { getByTestId } = await renderCajon({ modulo: "cobranza" });
+    expect(getByTestId("cajon-item-cobranza-resumen")).toHaveProp("accessibilityState", {
+      selected: false,
+      disabled: false,
+    });
+    expect(getByTestId("cajon-item-cobranza-gestores")).toHaveProp("accessibilityState", {
+      selected: false,
+      disabled: false,
+    });
+  });
+
   it("master ve Plataforma y, en desarrollo, el Catálogo de UI", async () => {
     mockSesionValue = { ...DUENO, role: "master", permissions: {} };
     const { getByTestId } = await renderCajon();

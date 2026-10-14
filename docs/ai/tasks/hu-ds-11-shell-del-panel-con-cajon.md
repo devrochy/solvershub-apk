@@ -75,7 +75,7 @@ tags: [diseno, navegacion, panel, tema, accesibilidad]
 ## Resultado real
 
 - `npm run lint` ✓ · `npm run typecheck` ✓ · `node scripts/check-module-boundaries.mjs`: OK.
-- `npx jest`: **135 suites, 834 tests ✓** (base de `develop`: 130 suites, 805 tests).
+- `npx jest`: **135 suites, 836 tests ✓** (base de `develop`: 130 suites, 805 tests).
 - `src/core/api/schema.d.ts` sin tocar (`check.sh` se detiene en `api:types` por el desfase
   conocido frente al backend). Sin dependencias ni permisos nuevos.
 

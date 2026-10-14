@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { SolicitudPestana } from "@shared/pestana-inicial";
+import { useKit } from "@shared/ui";
 import { OperacionScreen } from "./screens/OperacionScreen";
 import { ConversacionDetalleScreen } from "./screens/ConversacionDetalleScreen";
 
@@ -18,8 +19,18 @@ const Stack = createNativeStackNavigator<OperacionStackParamList>();
  * el header nativo; los detalles sí, con la flecha atrás.
  */
 export function OperacionNavigator({ encabezadoRaiz }: { encabezadoRaiz?: ReactNode } = {}) {
+  const { c } = useKit();
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        // Los detalles conservan el header nativo: con el tema, no el blanco por defecto.
+        headerStyle: { backgroundColor: c.surface },
+        headerTintColor: c.text,
+        headerTitleStyle: { color: c.text },
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: c.bg },
+      }}
+    >
       <Stack.Screen name="Operacion" options={{ title: "Operación", headerShown: !encabezadoRaiz }}>
         {({ route }) => (
           <View style={styles.raiz}>
