@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
+import { useKit } from "@shared/ui";
 import type { LoginResult } from "@shared/types/auth";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { ApiAuthError, apiGestorToken } from "@core/api/auth-admin";
@@ -34,6 +35,7 @@ export function LoginUnificadoScreen({
   irARecuperarContrasena,
 }: LoginUnificadoProps) {
   const { colores } = useTheme();
+  const { relleno } = useKit();
   const { login: loginAdmin } = useAdminSession();
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
@@ -145,14 +147,14 @@ export function LoginUnificadoScreen({
         onPress={() => void entrar()}
         style={({ pressed }) => [
           styles.boton,
-          { backgroundColor: colores.primario },
+          { backgroundColor: relleno.primario },
           pressed && styles.presionado,
         ]}
       >
         {cargando ? (
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={relleno.sobrePrimario} />
         ) : (
-          <Text style={styles.botonTexto}>Entrar</Text>
+          <Text style={[styles.botonTexto, { color: relleno.sobrePrimario }]}>Entrar</Text>
         )}
       </Pressable>
 
@@ -189,7 +191,7 @@ const styles = StyleSheet.create({
   },
   error: { fontSize: 13 },
   boton: { borderRadius: 12, paddingVertical: 14, alignItems: "center" },
-  botonTexto: { color: "#ffffff", fontWeight: "700", fontSize: 16 },
+  botonTexto: { fontWeight: "700", fontSize: 16 },
   presionado: { opacity: 0.85 },
   recuperar: { textAlign: "center", fontSize: 14 },
   biometria: {

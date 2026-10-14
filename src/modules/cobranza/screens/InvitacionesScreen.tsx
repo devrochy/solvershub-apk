@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSession } from "../session/session-context";
 import { useTheme } from "@core/theme/theme-context";
 import type { ColoresTema } from "@core/theme/theme";
-import { shColor } from "@core/theme/tokens";
+import { useKit, type KitTema } from "@shared/ui";
 
 const ROL_LABEL: Record<string, string> = {
   colaborador: "Colaborador",
@@ -18,7 +18,8 @@ const ROL_LABEL: Record<string, string> = {
 export function InvitacionesScreen() {
   const { invitaciones, resolverInvitacion, logout } = useSession();
   const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const { relleno } = useKit();
+  const styles = useMemo(() => crearEstilos(colores, relleno), [colores, relleno]);
   const [enviando, setEnviando] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,7 +58,7 @@ export function InvitacionesScreen() {
                   onPress={() => void resolver(inv.id, "aceptar")}
                 >
                   {enviando === inv.id ? (
-                    <ActivityIndicator color={shColor.paper} />
+                    <ActivityIndicator color={relleno.sobrePrimario} />
                   ) : (
                     <Text style={styles.botonTexto}>Aceptar</Text>
                   )}
@@ -89,12 +90,12 @@ export function InvitacionesScreen() {
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos(c: ColoresTema, relleno: KitTema["relleno"]) {
   return StyleSheet.create({
     contenedor: { flex: 1, backgroundColor: c.primario },
     scroll: { flexGrow: 1, justifyContent: "center", padding: 24, gap: 12 },
-    titulo: { color: shColor.white, fontSize: 24, fontWeight: "700", fontFamily: "Montserrat_700Bold" },
-    subtitulo: { color: "rgba(255,255,255,0.8)", fontSize: 15, marginBottom: 12 },
+    titulo: { color: c.sobrePrimario, fontSize: 24, fontWeight: "700", fontFamily: "Montserrat_700Bold" },
+    subtitulo: { color: c.sobrePrimarioSuave, fontSize: 15, marginBottom: 12 },
     lista: { gap: 10 },
     tarjeta: {
       backgroundColor: c.tarjeta,
@@ -107,13 +108,13 @@ function crearEstilos(c: ColoresTema) {
     negocioRol: { color: c.textoSuave, fontSize: 13 },
     acciones: { flexDirection: "row", gap: 8 },
     boton: {
-      backgroundColor: c.acento,
+      backgroundColor: relleno.primario,
       borderRadius: 8,
       paddingVertical: 10,
       paddingHorizontal: 16,
       alignItems: "center",
     },
-    botonTexto: { color: shColor.paper, fontSize: 15, fontWeight: "700" },
+    botonTexto: { color: relleno.sobrePrimario, fontSize: 15, fontWeight: "700" },
     botonFantasma: {
       borderRadius: 8,
       paddingVertical: 10,
@@ -121,8 +122,8 @@ function crearEstilos(c: ColoresTema) {
       alignItems: "center",
     },
     botonFantasmaTexto: { color: c.textoSuave, fontSize: 15, fontWeight: "600" },
-    error: { color: shColor.danger, fontSize: 14 },
+    error: { color: c.peligro, fontSize: 14 },
     salir: { marginTop: 16, alignItems: "center", paddingVertical: 12 },
-    salirTexto: { color: "rgba(255,255,255,0.85)", fontSize: 14, fontWeight: "600" },
+    salirTexto: { color: c.sobrePrimarioSuave, fontSize: 14, fontWeight: "600" },
   });
 }

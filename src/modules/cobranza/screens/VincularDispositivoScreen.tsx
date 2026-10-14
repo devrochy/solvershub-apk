@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { shColor } from "@core/theme/tokens";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -20,6 +19,7 @@ import {
 import { useSession } from "../session/session-context";
 import { useTheme } from "@core/theme/theme-context";
 import type { ColoresTema } from "@core/theme/theme";
+import { useKit, type KitTema } from "@shared/ui";
 
 /**
  * HU-39/43: vincula este equipo al gestor. El equipo queda **pendiente** de
@@ -28,7 +28,8 @@ import type { ColoresTema } from "@core/theme/theme";
 export function VincularDispositivoScreen() {
   const { api, marcarDispositivoVinculado, logout, gestor } = useSession();
   const { colores } = useTheme();
-  const styles = useMemo(() => crearEstilos(colores), [colores]);
+  const { relleno } = useKit();
+  const styles = useMemo(() => crearEstilos(colores, relleno), [colores, relleno]);
   const [imei, setImei] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [estado, setEstado] = useState<"form" | "enviando" | "pendiente">("form");
@@ -120,7 +121,7 @@ export function VincularDispositivoScreen() {
                 onPress={() => void vincular()}
               >
                 {estado === "enviando" ? (
-                  <ActivityIndicator color={shColor.white} />
+                  <ActivityIndicator color={relleno.sobrePrimario} />
                 ) : (
                   <Text style={styles.botonTexto}>Enviar solicitud</Text>
                 )}
@@ -137,7 +138,7 @@ export function VincularDispositivoScreen() {
   );
 }
 
-function crearEstilos(c: ColoresTema) {
+function crearEstilos(c: ColoresTema, relleno: KitTema["relleno"]) {
   return StyleSheet.create({
     contenedor: { flex: 1, backgroundColor: c.fondo },
     flex: { flex: 1 },
@@ -157,9 +158,9 @@ function crearEstilos(c: ColoresTema) {
       backgroundColor: c.tarjeta,
     },
     error: { color: c.peligro, fontSize: 13 },
-    ok: { color: shColor.success, fontSize: 14, marginVertical: 8 },
+    ok: { color: c.exito, fontSize: 14, marginVertical: 8 },
     boton: {
-      backgroundColor: c.primario,
+      backgroundColor: relleno.primario,
       borderRadius: 10,
       paddingVertical: 14,
       alignItems: "center",
@@ -167,7 +168,7 @@ function crearEstilos(c: ColoresTema) {
       minHeight: 44,
       justifyContent: "center",
     },
-    botonTexto: { color: shColor.white, fontWeight: "700" },
+    botonTexto: { color: relleno.sobrePrimario, fontWeight: "700" },
     deshabilitado: { opacity: 0.6 },
     salir: { color: c.acento, textAlign: "center", marginTop: 16, fontWeight: "600" },
   });

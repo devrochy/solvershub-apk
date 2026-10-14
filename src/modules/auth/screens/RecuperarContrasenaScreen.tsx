@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
+import { useKit } from "@shared/ui";
 import { ApiAuthError, apiOlvidarContrasena, apiRestablecerContrasena } from "@core/api/auth-admin";
 
 export interface RecuperarContrasenaProps {
@@ -157,15 +158,15 @@ function BotonPrincipal({
   cargando: boolean;
   testID: string;
 }) {
-  const { colores } = useTheme();
+  const { relleno } = useKit();
   return (
     <Pressable
       testID={testID}
       disabled={cargando}
       onPress={onPress}
-      style={({ pressed }) => [styles.boton, { backgroundColor: colores.primario }, pressed && styles.presionado]}
+      style={({ pressed }) => [styles.boton, { backgroundColor: relleno.primario }, pressed && styles.presionado]}
     >
-      {cargando ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.botonTexto}>{texto}</Text>}
+      {cargando ? <ActivityIndicator color={relleno.sobrePrimario} /> : <Text style={[styles.botonTexto, { color: relleno.sobrePrimario }]}>{texto}</Text>}
     </Pressable>
   );
 }
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   error: { fontSize: 13 },
   exito: { fontSize: 15, textAlign: "center", fontWeight: "600" },
   boton: { borderRadius: 12, paddingVertical: 14, alignItems: "center" },
-  botonTexto: { color: "#ffffff", fontWeight: "700", fontSize: 16 },
+  botonTexto: { fontWeight: "700", fontSize: 16 },
   presionado: { opacity: 0.85 },
   volver: { textAlign: "center", fontSize: 14 },
 });
