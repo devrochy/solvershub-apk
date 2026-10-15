@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { grupoVisible, seccionesPermitidas } from "@core/permisos";
 import { useTheme } from "@core/theme/theme-context";
@@ -290,7 +291,7 @@ function ContenidoDeGrupo({ grupo }: { grupo: GrupoSecciones }) {
 }
 
 export function PanelShell() {
-  const { colores } = useTheme();
+  const { colores, tema } = useTheme();
   const { sesion } = useAdminSession();
   const esMaster = sesion?.role === "master";
   const permisos = sesion?.permissions ?? {};
@@ -324,6 +325,9 @@ export function PanelShell() {
         }
       }}
     >
+      {/* El panel no tiene banda navy: la barra de estado sigue al tema. Al
+          desmontar, RN restaura el `light` de App.tsx (login y campo). */}
+      <StatusBar style={tema === "oscuro" ? "light" : "dark"} />
       <Tab.Navigator
         screenOptions={{
           headerShown: false,

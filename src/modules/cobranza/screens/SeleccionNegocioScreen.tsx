@@ -4,7 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSession } from "../session/session-context";
 import { useTheme } from "@core/theme/theme-context";
 import type { ColoresTema } from "@core/theme/theme";
-import { shColor } from "@core/theme/tokens";
 
 const ROL_LABEL: Record<string, string> = {
   gestor: "Gestor",
@@ -70,8 +69,8 @@ function crearEstilos(c: ColoresTema) {
   return StyleSheet.create({
     contenedor: { flex: 1, backgroundColor: c.primario },
     scroll: { flexGrow: 1, justifyContent: "center", padding: 24, gap: 12 },
-    titulo: { color: shColor.white, fontSize: 24, fontWeight: "700", fontFamily: "Montserrat_700Bold" },
-    subtitulo: { color: "rgba(255,255,255,0.8)", fontSize: 15, marginBottom: 12 },
+    titulo: { color: c.sobrePrimario, fontSize: 24, fontWeight: "700", fontFamily: "Montserrat_700Bold" },
+    subtitulo: { color: c.sobrePrimarioSuave, fontSize: 15, marginBottom: 12 },
     lista: { gap: 10 },
     tarjeta: {
       flexDirection: "row",
@@ -87,6 +86,6 @@ function crearEstilos(c: ColoresTema) {
     negocioRol: { color: c.textoSuave, fontSize: 13 },
     flecha: { color: c.textoSuave, fontSize: 24, fontWeight: "700" },
     salir: { marginTop: 16, alignItems: "center", paddingVertical: 12 },
-    salirTexto: { color: "rgba(255,255,255,0.85)", fontSize: 14, fontWeight: "600" },
+    salirTexto: { color: c.sobrePrimarioSuave, fontSize: 14, fontWeight: "600" },
   });
 }

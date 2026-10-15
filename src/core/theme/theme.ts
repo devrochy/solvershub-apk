@@ -26,6 +26,10 @@ export interface ColoresTema {
   /** Fondo de un ítem activo. */
   activoSuave: string;
   peligro: string;
+  /** Texto secundario sobre la banda (subtítulos, enlaces sobre `primario`). */
+  sobrePrimarioSuave: string;
+  /** Texto de éxito (AA sobre `fondo` en ambos modos). */
+  exito: string;
 }
 
 export const COLORES: Record<Tema, ColoresTema> = {
@@ -40,6 +44,8 @@ export const COLORES: Record<Tema, ColoresTema> = {
     acento: shTheme.light.link,
     activoSuave: shTheme.light.surfaceRaised,
     peligro: shColor.danger,
+    sobrePrimarioSuave: shColor.ice,
+    exito: shTheme.light.statusSuccessFg,
   },
   oscuro: {
     fondo: shTheme.dark.bg,
@@ -52,8 +58,8 @@ export const COLORES: Record<Tema, ColoresTema> = {
     acento: shTheme.dark.link,
     activoSuave: shTheme.dark.surface2,
     peligro: shColor.danger,
+    sobrePrimarioSuave: shColor.ice,
+    exito: shTheme.dark.statusSuccessFg,
   },
 };
 
-// Tipografías de marca (Montserrat/Inter, manual §6): pendientes de instalar
-// (@expo-google-fonts) junto con el pase de estilos. Hoy la APK usa Roboto.

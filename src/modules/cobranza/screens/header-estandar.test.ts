@@ -8,7 +8,6 @@ import { join } from "path";
  * invitaciones) tienen diseño propio y quedan excluidas (ADR-0081).
  */
 const EXCLUIDAS = new Set([
-  "LoginScreen.tsx",
   "VincularDispositivoScreen.tsx",
   "SeleccionNegocioScreen.tsx",
   "InvitacionesScreen.tsx",

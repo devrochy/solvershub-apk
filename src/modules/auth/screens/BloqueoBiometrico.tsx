@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
+import { useKit } from "@shared/ui";
 import { autenticarBiometria, biometriaHabilitada } from "../biometria";
 
 export interface BloqueoBiometricoProps {
@@ -36,6 +37,7 @@ export function useBloqueoBiometrico(bloqueoKey: string | null) {
 
 export function BloqueoBiometrico({ onDesbloqueado }: BloqueoBiometricoProps) {
   const { colores } = useTheme();
+  const { relleno } = useKit();
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,12 +67,12 @@ export function BloqueoBiometrico({ onDesbloqueado }: BloqueoBiometricoProps) {
       <Pressable
         testID="bloqueo-desbloquear"
         onPress={() => void intentar()}
-        style={({ pressed }) => [styles.boton, { backgroundColor: colores.primario }, pressed && styles.presionado]}
+        style={({ pressed }) => [styles.boton, { backgroundColor: relleno.primario }, pressed && styles.presionado]}
       >
         {cargando ? (
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={relleno.sobrePrimario} />
         ) : (
-          <Text style={styles.botonTexto}>Desbloquear</Text>
+          <Text style={[styles.botonTexto, { color: relleno.sobrePrimario }]}>Desbloquear</Text>
         )}
       </Pressable>
       {error ? (
@@ -87,7 +89,7 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 28, fontWeight: "700" },
   explicacion: { fontSize: 14 },
   boton: { borderRadius: 12, paddingVertical: 14, paddingHorizontal: 40, alignItems: "center" },
-  botonTexto: { color: "#ffffff", fontWeight: "700", fontSize: 16 },
+  botonTexto: { fontWeight: "700", fontSize: 16 },
   presionado: { opacity: 0.85 },
   error: { fontSize: 13 },
 });
