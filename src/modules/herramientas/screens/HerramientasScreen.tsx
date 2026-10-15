@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
@@ -24,13 +25,17 @@ import {
 
 type Pestana = "fallos" | "negocios";
 
-export function HerramientasScreen() {
+export function HerramientasScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const { sesion } = useAdminSession();
   const esMaster = sesion?.role === "master";
 
-  const [pestana, setPestana] = useState<Pestana>("fallos");
+  const [pestana, setPestana] = usePestanaInicial<Pestana>(
+    "fallos",
+    esMaster ? ["fallos", "negocios"] : ["fallos"],
+    pestanaInicial,
+  );
   const [entradas, setEntradas] = useState<DlqEntry[]>([]);
   const [negocios, setNegocios] = useState<PlatformTenant[]>([]);
   const [cargando, setCargando] = useState(true);

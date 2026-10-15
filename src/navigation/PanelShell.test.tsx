@@ -1,132 +1,159 @@
 jest.mock("expo-secure-store");
-jest.mock("@expo/vector-icons", () => {
+jest.mock("expo-status-bar", () => {
   const React = require("react");
   const { Text } = require("react-native");
-  return {
-    MaterialIcons: (props: { name: string }) =>
-      React.createElement(Text, { testID: `icono-${props.name}` }, props.name),
-  };
+  return { StatusBar: (props: { style: string }) => React.createElement(Text, { testID: "status-bar" }, props.style) };
 });
 
 let mockSesionValue: unknown = null;
 jest.mock("@core/session/admin-session-context", () => ({
-  useAdminSession: () => ({ sesion: mockSesionValue, loading: false }),
+  useAdminSession: () => ({ sesion: mockSesionValue, loading: false, logout: jest.fn() }),
 }));
 
-import { render, waitFor } from "@testing-library/react-native";
-import { catalogoDisponible, PanelShell, usaAreaSeguraSuperior } from "./PanelShell";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
+import { ThemeProvider } from "@core/theme/theme-context";
+import { emitirNavegacion } from "@shared/navegacion-evento";
+import { catalogoDisponible, PanelShell } from "./PanelShell";
 
-describe("PanelShell (HU-APP-03)", () => {
+async function renderShell() {
+  return render(
+    <ThemeProvider>
+      <PanelShell />
+    </ThemeProvider>,
+  );
+}
+
+const DUENO = {
+  token: "t",
+  adminId: "a-1",
+  role: "owner",
+  tenantName: "Cobranza Demo",
+  permissions: {
+    dashboard: "read",
+    conversations: "read",
+    "pack_cobranza:resumen": "read",
+    "pack_cobranza:clientes": "read",
+    pack_commerce: "read",
+  },
+};
+
+describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSesionValue = null;
   });
 
-  it("dueño con cobranza y comercio ve solo los tabs de sus permisos", async () => {
-    mockSesionValue = {
-      token: "t",
-      adminId: "a-1",
-      role: "owner",
-      permissions: {
-        dashboard: "read",
-        conversations: "read",
-        "pack_cobranza:resumen": "read",
-        "pack_cobranza:clientes": "read",
-        pack_commerce: "read",
-      },
-    };
+  it("dueño con cobranza y comercio: header del módulo y cajón solo con sus secciones", async () => {
+    mockSesionValue = DUENO;
+    const { findByTestId, getByTestId, queryByTestId } = await renderShell();
 
-    const { getAllByText, getByText, queryByText } = await render(<PanelShell />);
-    await waitFor(() => expect(getAllByText("Inicio").length).toBeGreaterThan(0));
-    expect(getByText("Conversaciones")).toBeTruthy();
-    expect(getByText("Cobranza")).toBeTruthy();
-    expect(getByText("Comercio")).toBeTruthy();
-    // Calendario y Negocio sin permiso → no aparecen como tabs.
-    expect(queryByText("Calendario")).toBeNull();
-    expect(queryByText("Negocio")).toBeNull();
+    expect((await findByTestId("panel-titulo")).props.children).toBe("Resumen");
+    await fireEvent.press(getByTestId("panel-menu"));
+    expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "auto");
+    expect(getByTestId("cajon-grupo-operacion")).toBeTruthy();
+    expect(getByTestId("cajon-grupo-pack_cobranza")).toBeTruthy();
+    expect(getByTestId("cajon-grupo-pack_commerce")).toBeTruthy();
+    // Calendario y Negocio sin permiso → no aparecen.
+    expect(queryByTestId("cajon-grupo-pack_calendar")).toBeNull();
+    expect(queryByTestId("cajon-grupo-negocio")).toBeNull();
   });
 
-  it("cada pestaña tiene su propio ícono (las etiquetas van truncadas)", async () => {
-    mockSesionValue = {
-      token: "t",
-      adminId: "a-1",
-      role: "owner",
-      permissions: {
-        dashboard: "read",
-        conversations: "read",
-        "pack_cobranza:resumen": "read",
-        pack_commerce: "read",
-        "pack_calendar:citas": "read",
-        plan: "read",
-        settings: "read",
-      },
-    };
+  it("una sección del cajón abre el módulo en su pestaña interna", async () => {
+    mockSesionValue = DUENO;
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
 
-    // El tab bar pinta cada ícono dos veces (activo/inactivo) para la transición.
-    const { getAllByTestId, queryByTestId } = await render(<PanelShell />);
-    await waitFor(() => expect(getAllByTestId("icono-dashboard").length).toBeGreaterThan(0));
-    for (const icono of ["chat", "payments", "storefront", "event", "business-center", "settings", "menu"]) {
-      expect(getAllByTestId(`icono-${icono}`).length).toBeGreaterThan(0);
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-grupo-pack_commerce"));
+    await fireEvent.press(getByTestId("cajon-item-comercio-pedidos"));
+
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Comercio"));
+    await waitFor(() => expect(getByTestId("comercio-pedidos")).toHaveStyle({ borderBottomWidth: 2 }));
+    expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "none");
+  });
+
+  it("una sección de un módulo con stack (Cobranza) llega a su pestaña por los params anidados", async () => {
+    mockSesionValue = { token: "t", adminId: "a-6", role: "master", permissions: {} };
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-grupo-pack_cobranza"));
+    await fireEvent.press(getByTestId("cajon-item-cobranza-alertas"));
+
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Cobranza"));
+    await waitFor(() => expect(getByTestId("cobranza-alertas")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
+
+  it("el bus de navegación (push, Búsqueda) lleva al módulo y a la pestaña pedida", async () => {
+    mockSesionValue = DUENO;
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await act(async () => {
+      emitirNavegacion({ tab: "comercio", pestana: "productos" });
+    });
+
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Comercio"));
+    await waitFor(() => expect(getByTestId("comercio-productos")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
+
+  it("la raíz de Cobranza lleva el header del panel (sin header nativo encima)", async () => {
+    mockSesionValue = { ...DUENO, permissions: { "pack_cobranza:resumen": "read" } };
+    const { findByTestId, getByTestId } = await renderShell();
+    expect((await findByTestId("panel-titulo")).props.children).toBe("Cobranza");
+    expect(getByTestId("panel-menu")).toBeTruthy();
+    await waitFor(() => expect(getByTestId("cobranza-pestanas")).toBeTruthy());
+  });
+
+  it("la barra de estado sigue al tema (oscuro por defecto → íconos claros)", async () => {
+    mockSesionValue = DUENO;
+    const { findByTestId, getByTestId } = await renderShell();
+    expect((await findByTestId("status-bar")).props.children).toBe("light");
+    await fireEvent.press(getByTestId("panel-tema"));
+    expect(getByTestId("status-bar").props.children).toBe("dark");
+  });
+
+  it("colaborador sin permisos ve el estado vacío y el cajón sin secciones", async () => {
+    // Como en una build de producción: sin la entrada de desarrollo (Catálogo).
+    const g = globalThis as { __DEV__?: boolean };
+    const original = g.__DEV__;
+    g.__DEV__ = false;
+    try {
+      mockSesionValue = { token: "t", adminId: "a-2", role: "colaborador", permissions: {} };
+      const { findByTestId, getByTestId, queryByTestId } = await renderShell();
+      expect(await findByTestId("panel-sin-secciones")).toBeTruthy();
+      await fireEvent.press(getByTestId("panel-menu"));
+      expect(queryByTestId("cajon-grupo-operacion")).toBeNull();
+      expect(queryByTestId("cajon-grupo-desarrollo")).toBeNull();
+    } finally {
+      g.__DEV__ = original;
     }
-    expect(queryByTestId("icono-home")).toBeNull();
   });
 
-  it("los grupos sin encabezado propio reservan el área segura superior", async () => {
-    mockSesionValue = {
-      token: "t",
-      adminId: "a-1",
-      role: "owner",
-      permissions: { dashboard: "read" },
-    };
-
-    const { getByTestId } = await render(<PanelShell />);
-    // Inicio no tiene stack con header: sin el inset su contenido queda bajo la barra de estado.
-    await waitFor(() => expect(getByTestId("area-segura-inicio")).toBeTruthy());
-    expect(getByTestId("area-segura-inicio").props.edges).toEqual(["top"]);
-  });
-
-  it("solo los grupos con stack propio (header nativo) omiten el área segura", () => {
-    expect(usaAreaSeguraSuperior("cobranza")).toBe(false);
-    expect(usaAreaSeguraSuperior("conversaciones")).toBe(false);
-    for (const clave of ["inicio", "comercio", "calendario", "negocio", "configuracion"]) {
-      expect(usaAreaSeguraSuperior(clave)).toBe(true);
-    }
-  });
-
-  it("colaborador sin permisos solo ve Más (sin grupos)", async () => {
-    mockSesionValue = { token: "t", adminId: "a-2", role: "colaborador", permissions: {} };
-
-    const { getByText, queryByText } = await render(<PanelShell />);
-    await waitFor(() => expect(getByText("Más")).toBeTruthy());
-    expect(queryByText("Inicio")).toBeNull();
-  });
-
-  it("master ve la sección de plataforma en Más", async () => {
+  it("master ve Plataforma en el cajón; un no-master nunca ve Negocios", async () => {
     mockSesionValue = { token: "t", adminId: "a-3", role: "master", permissions: {} };
+    const { findByTestId, getByTestId, unmount } = await renderShell();
+    await findByTestId("panel-menu");
+    await fireEvent.press(getByTestId("panel-menu"));
+    expect(getByTestId("cajon-grupo-plataforma")).toBeTruthy();
+    expect(getByTestId("cajon-item-herramientas-negocios")).toBeTruthy();
+    unmount();
 
-    const { getByText } = await render(<PanelShell />);
-    await waitFor(() => expect(getByText("Más")).toBeTruthy());
-    // El master atraviesa el RBAC: ve el tab de Cobranza aunque no tenga permisos.
-    expect(getByText("Cobranza")).toBeTruthy();
+    mockSesionValue = { token: "t", adminId: "a-4", role: "owner", permissions: { tenants: "write", dashboard: "read" } };
+    const segundo = await renderShell();
+    await segundo.findByTestId("panel-menu");
+    await fireEvent.press(segundo.getByTestId("panel-menu"));
+    expect(segundo.queryByTestId("cajon-grupo-plataforma")).toBeNull();
   });
 
-  it("un no-master nunca ve tenants", async () => {
-    mockSesionValue = { token: "t", adminId: "a-4", role: "owner", permissions: {} };
-
-    const { getByText, queryByText } = await render(<PanelShell />);
-    await waitFor(() => expect(getByText("Más")).toBeTruthy());
-    expect(queryByText("Inicio")).toBeNull();
-    expect(queryByText("Cobranza")).toBeNull();
-  });
-
-  it("en desarrollo, Más ofrece la entrada al Catálogo de UI (HU-DS-09)", async () => {
-    mockSesionValue = { token: "t", adminId: "a-5", role: "colaborador", permissions: {} };
-
-    // `useNavigation` está mockeado en jest.setup: aquí solo se valida la entrada;
-    // la pantalla se prueba en CatalogoScreen.test.tsx.
-    const { findByTestId, getByText } = await render(<PanelShell />);
-    expect(await findByTestId("mas-catalogo")).toBeTruthy();
-    expect(getByText("Catálogo de UI")).toBeTruthy();
+  it("en desarrollo el cajón ofrece el Catálogo de UI (HU-DS-09)", async () => {
+    mockSesionValue = DUENO;
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+    await fireEvent.press(getByTestId("panel-menu"));
+    expect(getByTestId("cajon-grupo-desarrollo")).toBeTruthy();
+    expect(getByTestId("cajon-item-catalogo")).toBeTruthy();
   });
 
   it("el catálogo solo existe en builds de desarrollo", () => {

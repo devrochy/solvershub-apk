@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import {
@@ -28,6 +29,7 @@ import type { OperacionStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<OperacionStackParamList>;
 type Pestana = "conversaciones" | "escalaciones" | "leads" | "playground";
+const PESTANAS: readonly Pestana[] = ["conversaciones", "escalaciones", "leads", "playground"];
 
 const ESTADOS_CONVERSACION = [
   { clave: undefined, label: "Todas" },
@@ -41,12 +43,12 @@ function Vacio({ texto }: { texto: string }) {
   return <Text style={[styles.vacio, { color: colores.textoSuave }]}>{texto}</Text>;
 }
 
-export function OperacionScreen() {
+export function OperacionScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const navigation = useNavigation<Nav>();
 
-  const [pestana, setPestana] = useState<Pestana>("conversaciones");
+  const [pestana, setPestana] = usePestanaInicial<Pestana>("conversaciones", PESTANAS, pestanaInicial);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

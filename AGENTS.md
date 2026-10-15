@@ -27,7 +27,7 @@ Si falta información (flujo de auth, contrato de un endpoint, formato de un cam
 ## 4. Anti-alucinación
 
 - Antes de usar un endpoint, verifícalo en el backend (repo `app-cobranza` o una llamada real). No asumas.
-- Los tipos de `src/types/` deben espejar los `*Public` del backend (NestJS), no inventarse.
+- Los tipos de API son generados (`src/core/api/schema.d.ts`, `npm run api:types`); no se inventan campos ni endpoints.
 - No inventes datos de negocio; usa fixtures marcados `test-`.
 
 ## 5. Seguridad y secretos
@@ -63,5 +63,5 @@ El backend NestJS debe estar corriendo en `http://localhost:3000` (o la IP de tu
 - Tipos de API: `src/core/api/schema.d.ts` es GENERADO (`npm run api:types`, ADR-APP-06); no
   editar a mano.
 - Decisiones de arquitectura: `docs/adr/adr-app-0X-*.md` (SPEC-25).
-- Carpetas legacy (screens, components, features, offline, session, api, types) migran a
-  `src/modules/cobranza/` en HU-APP-07; hasta entonces están exentas del check de fronteras.
+- UI: seguir `DESIGN.md` (kit en `src/shared/ui`, tokens, nada de colores sueltos). La skill
+  `.opencode/skill/ui-consistency` remite a ese documento.

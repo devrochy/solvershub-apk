@@ -8,6 +8,7 @@ import {
   Text,
   View,
  Modal, TextInput } from "react-native";
+import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import NetInfo from "@react-native-community/netinfo";
@@ -30,11 +31,12 @@ import {
 } from "../api";
 
 type Pestana = "resumen" | "pedidos" | "productos" | "promociones" | "categorias";
+const PESTANAS: readonly Pestana[] = ["resumen", "pedidos", "productos", "promociones", "categorias"];
 
-export function ComercioScreen() {
+export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
-  const [pestana, setPestana] = useState<Pestana>("resumen");
+  const [pestana, setPestana] = usePestanaInicial<Pestana>("resumen", PESTANAS, pestanaInicial);
   const [kpis, setKpis] = useState<KpiComercio | null>(null);
   const [pedidos, setPedidos] = useState<OrderOut[]>([]);
   const [productos, setProductos] = useState<ProductOut[]>([]);

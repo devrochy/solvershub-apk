@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
@@ -44,11 +45,12 @@ type Pestana =
   | "ajustes"
   | "plan"
   | "notificaciones";
+const PESTANAS: readonly Pestana[] = ["colaboradores", "habilidades", "conexiones", "ajustes", "plan", "notificaciones"];
 
-export function ConfiguracionScreen() {
+export function ConfiguracionScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
-  const [pestana, setPestana] = useState<Pestana>("colaboradores");
+  const [pestana, setPestana] = usePestanaInicial<Pestana>("colaboradores", PESTANAS, pestanaInicial);
   const [colaboradores, setColaboradores] = useState<CollaboratorItem[]>([]);
   const [habilidades, setHabilidades] = useState<PluginSummary[]>([]);
   const [conexiones, setConexiones] = useState<ConnectionItem[]>([]);

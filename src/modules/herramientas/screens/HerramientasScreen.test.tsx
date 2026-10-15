@@ -84,4 +84,9 @@ describe("HerramientasScreen (HU-APP-13)", () => {
     );
     alertSpy.mockRestore();
   });
+  it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
+    mockSesion = { token: "t", role: "master", permissions: {} };
+    const { getByTestId } = await render(<HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />);
+    await waitFor(() => expect(getByTestId("herramientas-negocios")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
 });

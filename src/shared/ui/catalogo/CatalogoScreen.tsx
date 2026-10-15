@@ -7,11 +7,14 @@ import {
   Avatar,
   Badge,
   Button,
+  Drawer,
   EmptyState,
   Field,
   IconButton,
+  Icono,
   KpiTile,
   ListItem,
+  NavGroup,
   PageHeader,
   RecordRow,
   Sheet,
@@ -45,6 +48,8 @@ function Catalogo() {
   const toast = useToast();
   const insets = useSafeAreaInsets();
   const [hojaAbierta, setHojaAbierta] = useState(false);
+  const [cajonAbierto, setCajonAbierto] = useState(false);
+  const [grupoAbierto, setGrupoAbierto] = useState(true);
   const [nombre, setNombre] = useState("");
   const [cargando, setCargando] = useState(false);
 
@@ -230,6 +235,22 @@ function Catalogo() {
         </View>
       </Seccion>
 
+      <Seccion titulo="Drawer / NavGroup">
+        <NavGroup label="Cobranza" icon="payments" abierto={grupoAbierto} onToggle={() => setGrupoAbierto((v) => !v)}>
+          <ListItem title="Gestores" leading={<Icono name="manage-accounts" size={20} color={c.textMuted} />} selected showChevron={false} onPress={() => undefined} />
+          <ListItem title="Carteras" leading={<Icono name="account-balance-wallet" size={20} color={c.textMuted} />} showChevron={false} onPress={() => undefined} />
+        </NavGroup>
+        <NavGroup label="Comercio (pack apagado)" icon="storefront" abierto bloqueado onToggle={() => undefined} />
+        <Button variant="secondary" onPress={() => setCajonAbierto(true)}>
+          Abrir Drawer
+        </Button>
+        <Drawer abierto={cajonAbierto} onCerrar={() => setCajonAbierto(false)} testID="catalogo-drawer" cerrarConBack>
+          <Text accessibilityRole="header" style={[shType.h1, { color: c.text }]}>
+            Cajón de ejemplo
+          </Text>
+          <ListItem title="Cerrar" showChevron={false} onPress={() => setCajonAbierto(false)} />
+        </Drawer>
+      </Seccion>
       <Seccion titulo="Toast y Sheet">
         <Fila>
           <Button variant="secondary" onPress={() => toast.success("Pago registrado")}>

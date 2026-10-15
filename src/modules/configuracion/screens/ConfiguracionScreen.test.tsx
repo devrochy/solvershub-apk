@@ -353,4 +353,8 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
     expect(getByText("Los tests corren en CI")).toBeTruthy();
   });
 
+  it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
+    const { getByTestId } = await render(<ConfiguracionScreen pestanaInicial={{ pestana: "habilidades", n: 1 }} />);
+    await waitFor(() => expect(getByTestId("config-habilidades")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
 });

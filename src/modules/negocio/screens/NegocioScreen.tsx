@@ -7,11 +7,13 @@ import {
   Text,
   View,
 } from "react-native";
+import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { cargarCostos, cargarPlan, type CostsResponse, type PlanResponse } from "../api";
 
 type Pestana = "plan" | "costos";
+const PESTANAS: readonly Pestana[] = ["plan", "costos"];
 
 function Barra({ porcentaje }: { porcentaje: number }) {
   const { colores } = useTheme();
@@ -30,10 +32,10 @@ function Barra({ porcentaje }: { porcentaje: number }) {
   );
 }
 
-export function NegocioScreen() {
+export function NegocioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
-  const [pestana, setPestana] = useState<Pestana>("plan");
+  const [pestana, setPestana] = usePestanaInicial<Pestana>("plan", PESTANAS, pestanaInicial);
   const [plan, setPlan] = useState<PlanResponse | null>(null);
   const [costos, setCostos] = useState<CostsResponse | null>(null);
   const [cargando, setCargando] = useState(true);

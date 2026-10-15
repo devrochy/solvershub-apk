@@ -7,6 +7,7 @@ import {
   Text,
   View,
  Modal, ScrollView, TextInput , Linking } from "react-native";
+import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
@@ -57,6 +58,7 @@ function parsearHorario(raw: unknown): Record<string, string> {
 }
 
 type Pestana = "semana" | "tipos" | "bloqueos" | "horario" | "conexion";
+const PESTANAS: readonly Pestana[] = ["semana", "tipos", "bloqueos", "horario", "conexion"];
 
 function fechaCorta(iso: string): string {
   const d = new Date(iso);
@@ -78,11 +80,11 @@ export function urlConectarGoogle(tenantId: string | null): string {
   return tenantId ? `${base}?tenant=${encodeURIComponent(tenantId)}` : base;
 }
 
-export function CalendarioScreen() {
+export function CalendarioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const { sesion } = useAdminSession();
-  const [pestana, setPestana] = useState<Pestana>("semana");
+  const [pestana, setPestana] = usePestanaInicial<Pestana>("semana", PESTANAS, pestanaInicial);
   const [items, setItems] = useState<WeekItem[]>([]);
   const [inicio, setInicio] = useState<string>("");
   const [tipos, setTipos] = useState<TypeOut[]>([]);

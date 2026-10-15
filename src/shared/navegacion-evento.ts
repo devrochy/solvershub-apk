@@ -2,7 +2,10 @@
  * anidada (p. ej. Búsqueda) pida al shell cambiar de tab sin acoplarse a
  * React Navigation directamente. */
 export interface DestinoNavegacion {
+  /** Módulo del panel (`ModuloPanel` del shell). */
   tab: string;
+  /** Pestaña interna del módulo, si se quiere abrir una concreta. */
+  pestana?: string;
 }
 
 type Oyente = (destino: DestinoNavegacion) => void;

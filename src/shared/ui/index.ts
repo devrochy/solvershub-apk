@@ -12,6 +12,7 @@ export { IconButton, type IconButtonProps, type IconButtonSize, type IconButtonT
 export { Icono, type IconName } from "./icono";
 export { formatearDelta, KpiTile, type KpiPolarity, type KpiTileProps } from "./KpiTile";
 export { ListItem, RecordRow, type ListItemProps, type RecordRowProps } from "./ListItem";
+export { NavGroup, type NavGroupProps } from "./NavGroup";
 export { curva, duracion, useReduceMotion, type CurvaMotion, type DuracionMotion } from "./motion";
 export { PageHeader, type PageHeaderProps } from "./PageHeader";
 export { Sheet, type SheetProps } from "./Sheet";
