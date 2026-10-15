@@ -3,14 +3,13 @@ import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../modules/cobranza/components/Avatar";
 import { useMenuLateral, type MenuItem } from "../modules/cobranza/navigation/menu-lateral-context";
 import { useSession } from "../modules/cobranza/session/session-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
-import { useKit } from "@shared/ui";
+import { Drawer, useKit } from "@shared/ui";
 import type { RootStackParamList } from "../modules/cobranza/navigation/types";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
@@ -107,10 +106,11 @@ function MenuRow({
 }
 
 /**
- * Menú lateral tipo hamburguesa: panel que se desliza desde la izquierda con
- * backdrop. Arriba los ítems contextuales de la pantalla activa (con submenús
- * desplegables) y al fondo la tarjeta de usuario (avatar + nombre) que despliega
- * Perfil / Configuración / Modo oscuro / Cerrar sesión.
+ * Menú lateral de campo (D-SPEC-29-6): un `Drawer` del kit con, arriba, los
+ * ítems contextuales de la pantalla activa (con submenús desplegables) y al
+ * fondo la tarjeta de usuario (avatar + nombre) que despliega Perfil /
+ * Configuración / Modo oscuro / Cerrar sesión. No cierra con el botón atrás:
+ * de eso se encarga `CarteraFlujo`.
  */
 export function MenuLateral() {
   const { abierto, cerrar, itemsExtra } = useMenuLateral();
@@ -118,19 +118,9 @@ export function MenuLateral() {
   const { logout: logoutAdmin } = useAdminSession();
   const { tema, alternarTema } = useTheme();
   const { c, banda, relleno, ripple } = useKit();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [progreso] = useState(() => new Animated.Value(0));
   const [usuarioAbierto, setUsuarioAbierto] = useState(false);
   const [animUsuario] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    Animated.timing(progreso, {
-      toValue: abierto ? 1 : 0,
-      duration: 220,
-      useNativeDriver: true,
-    }).start();
-  }, [abierto, progreso]);
 
   useEffect(() => {
     Animated.timing(animUsuario, {
@@ -140,15 +130,6 @@ export function MenuLateral() {
     }).start();
   }, [usuarioAbierto, animUsuario]);
 
-  const translateX = progreso.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-ANCHO_PANEL, 0],
-  });
-  const opacidad = progreso.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
-
   function ejecutar(accion?: () => void) {
     cerrar();
     accion?.();
@@ -157,33 +138,14 @@ export function MenuLateral() {
   const nombre = `${gestor?.nombre ?? ""} ${gestor?.apellido ?? ""}`.trim() || "Usuario";
 
   return (
-    <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
-      <Animated.View
-        pointerEvents={abierto ? "auto" : "none"}
-        style={[styles.backdrop, { backgroundColor: c.overlay, opacity: opacidad }]}
-      >
-        <Pressable
-          testID="menu-backdrop"
-          accessibilityLabel="Cerrar menú"
-          style={StyleSheet.absoluteFill}
-          onPress={cerrar}
-        />
-      </Animated.View>
-
-      <Animated.View
-        testID="menu-lateral"
-        pointerEvents={abierto ? "auto" : "none"}
-        style={[
-          styles.panel,
-          {
-            backgroundColor: c.surface,
-            borderColor: c.border,
-            paddingTop: insets.top + 20,
-            paddingBottom: insets.bottom,
-            transform: [{ translateX }],
-          },
-        ]}
-      >
+    <Drawer
+      abierto={abierto}
+      onCerrar={cerrar}
+      ancho={ANCHO_PANEL}
+      testID="menu-lateral"
+      testIDFondo="menu-backdrop"
+      style={styles.panel}
+    >
         <View style={styles.marcaFila}>
           <View style={[styles.marcaLogo, { backgroundColor: banda.fondo }]}>
             <MaterialIcons name="route" size={18} color={banda.texto} />
@@ -316,30 +278,13 @@ export function MenuLateral() {
             </Pressable>
           </View>
         </ScrollView>
-      </Animated.View>
-    </View>
+    </Drawer>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
+  // Sombra propia del campo (la del kit es `elev3`); sin cambio visual.
   panel: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: ANCHO_PANEL,
-    paddingHorizontal: shSpace[4],
-    borderTopRightRadius: shRadius.lg,
-    borderBottomRightRadius: shRadius.lg,
-    borderRightWidth: 1,
-    borderCurve: "continuous",
     boxShadow: "8px 0 24px rgba(15, 23, 42, 0.22)",
   },
   scroll: { paddingBottom: shSpace[6], flexGrow: 1, justifyContent: "space-between" },
