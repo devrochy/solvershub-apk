@@ -24,8 +24,9 @@ nuevas usan el kit.
 
 Todo lo reutilizable vive en `src/shared/ui` (HU-DS-09): `Button`, `IconButton`, `Field`,
 `TextField`, `Badge`, `Avatar`, `Skeleton`, `EmptyState`, `Toast`, `Sheet`, `ListItem`/
-`RecordRow`, `KpiTile`, `PageHeader` y `SyncStatus`. El catálogo se ve en builds de
-desarrollo desde «Más» → «Catálogo de UI». Antes de crear un componente en un módulo,
+`RecordRow`, `KpiTile`, `PageHeader`, `SyncStatus`, `Drawer` y `NavGroup`. El catálogo se ve
+en builds de desarrollo desde el cajón del panel → «Desarrollo» → «Catálogo de UI». Antes de
+crear un componente en un módulo,
 revisa si ya existe en el kit; si se usa en 2 módulos o más, sube al kit.
 
 ## Color
@@ -56,6 +57,15 @@ Se respeta la fuente del sistema hasta 200 %; las cifras densas usan
   de estado.
 - Back del sistema y cierre por gesto en overlays y sheets. Ninguna acción vive solo en
   una pulsación larga.
+
+## Panel en la app (D-34)
+
+Header con hamburguesa + cajón lateral (`src/navigation/HeaderPanel.tsx`, `CajonPanel.tsx`) con la
+misma lista agrupada que el sidebar del panel web, definida en `src/navigation/menu-panel.ts`
+(claves estables `modulo`, `pestana` y `seccion`; los labels son reemplazables). Los packs
+arrancan plegados. Una sección nueva del panel se agrega ahí y en la pantalla del módulo como
+pestaña con `usePestanaInicial`. El tema arranca en oscuro en toda la app, como el panel web; el
+toggle está en el header y en el cajón (y en el menú lateral del campo).
 
 ## Campo de cobranza (D-SPEC-29-6)
 

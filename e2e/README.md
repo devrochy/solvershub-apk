@@ -40,9 +40,14 @@ clave de firma.
 4. Calendario → Horario (guarda los valores sin cambios → "Horario guardado.") → Conexión.
 5. Configuración → Ajustes → guarda Identidad sin cambios ("Identidad guardada.").
 6. Configuración → Conexiones → Meta → Producción → corre las comprobaciones.
+7. El toggle de tema del header alterna y vuelve.
 
-Las pestañas inferiores llevan la etiqueta truncada y se tocan por posición
-(`NN%,93%`); la barra de pestañas de Cobranza es angosta y se desliza sobre ella.
+Desde HU-DS-11 (D-34) el panel en la app navega con el header (`panel-menu`,
+`panel-tema`) y el cajón lateral: grupos `cajon-grupo-<id>` (`pack_cobranza`,
+`pack_commerce`, `pack_calendar`, `configuracion`, …) e ítems
+`cajon-item-<modulo>-<pestana>` (p. ej. `cajon-item-cobranza-gestores`). Los
+packs arrancan plegados: primero se toca el grupo. Cada ítem abre el módulo en
+su pestaña, así que ya no hace falta deslizar la barra de pestañas de Cobranza.
 
 ## Estado
 

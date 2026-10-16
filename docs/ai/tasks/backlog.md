@@ -37,6 +37,21 @@
 - Descripción: relevar el flujo del cobrador de la referencia (reporte diario, lista de clientes, registro de pago) y cerrar brechas reales en la APK.
 - Tarea derivada: `apk-foco-cobrador.md` (esfuerzo medio).
 
+## Candado por pack no habilitado en el cajón del panel
+- Detectado en: HU-DS-11 (2026-10-14)
+- Descripción: el panel web atenúa con candado los grupos de un pack apagado (`/admin/plugins`, `enabled_for_tenant`). La app solo consulta `/admin/plugins` dentro de Configuración; `gruposDeMenu` ya acepta `opciones.packs` y `NavGroup` ya pinta el candado, pero nadie los alimenta desde el shell.
+- Prioridad sugerida: baja
+
+## Resaltar en el cajón la pestaña real del módulo
+- Detectado en: HU-DS-11 (2026-10-14)
+- Descripción: el ítem resaltado del cajón es el último destino navegado (toque en el cajón, push o Búsqueda). Si el usuario cambia de pestaña a mano dentro del módulo, el cajón no se entera hasta el siguiente toque. Haría falta un `alCambiarPestana` en `usePestanaInicial` que avise al `MenuPanelProvider`.
+- Prioridad sugerida: baja
+
+## Pantallas del panel en la app con el kit
+- Detectado en: HU-DS-11 (2026-10-14)
+- Descripción: las 9 pantallas del panel (dashboard, operación, cobranza admin, comercio, calendario, negocio, configuración, herramientas, búsqueda) siguen con `useTheme().colores` y estilos propios; `colores-pendientes.json` conserva 12 archivos / 41 usos, todos de ahí. Migrarlas a `ListItem`, `Badge`, `KpiTile`, `TextField`, etc. El Resumen por rol es HU-DS-13 (depende de HU-DS-07 del panel).
+- Prioridad sugerida: media
+
 ---
 
 ## Resueltos (historial)

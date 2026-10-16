@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
@@ -68,7 +69,7 @@ const PESTANAS: { clave: Pestana; label: string; seccion: string }[] = [
   { clave: "propietario", label: "Propietario", seccion: "pack_cobranza:propietario" },
 ];
 
-export function CobranzaAdminScreen() {
+export function CobranzaAdminScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const navigation = useNavigation<Nav>();
@@ -77,7 +78,11 @@ export function CobranzaAdminScreen() {
   const permisos = sesion?.permissions ?? {};
 
   const visibles = PESTANAS.filter((p) => esMaster || puedeVerSeccion(permisos, p.seccion, false));
-  const [pestana, setPestana] = useState<Pestana>("resumen");
+  const [pestana, setPestana] = usePestanaInicial<Pestana>(
+    "resumen",
+    visibles.map((p) => p.clave),
+    pestanaInicial,
+  );
   const [kpis, setKpis] = useState<Kpi[]>([]);
   const [carteras, setCarteras] = useState<PortfolioRow[]>([]);
   const [clientes, setClientes] = useState<ClientRow[]>([]);

@@ -1,9 +1,17 @@
-# ADR-APP-07 — Kit de UI en `shared/ui`, panel con 4 destinos + Más y campo de cobranza con sus vistas
+# ADR-APP-07 — Kit de UI en `shared/ui`, panel con header + cajón lateral y campo de cobranza con sus vistas
 
-- **Estado:** aceptado
+- **Estado:** aceptado (enmendado el 2026-10-14)
 - **Fecha:** 2026-10-10
 - **Contexto:** SPEC-29 (solvershub-docs), decisiones D-SPEC-29-5 y D-SPEC-29-6 (Diseño aprobado,
   D-32). HU-DS-09 (kit), HU-DS-10 (campo con el kit) y HU-DS-11 (shell del panel en la app).
+
+> **Enmienda 2026-10-14 (D-34, solvershub-docs).** El dueño reemplazó D-SPEC-29-5: el panel dentro de
+> la app ya no lleva 4 destinos + Más sino **header con hamburguesa y cajón lateral** con la misma
+> lista agrupada que el sidebar del panel web (lo que ese panel hace por debajo de 768 px). Razones:
+> paridad exacta con el panel, ~40 secciones que no caben en 4 destinos y cero dependencias nuevas
+> (el cajón de campo ya era `Animated` + `Pressable`). Además, la app arranca en **tema oscuro**,
+> como el panel web, campo incluido; D-SPEC-29-6 se mantiene para vistas y flujo del campo. La
+> decisión 2 y la tabla de alternativas quedan reescritas abajo.
 
 ## Contexto
 
@@ -40,10 +48,14 @@ muscular.
    - Pantalla **Catálogo** (`shared/ui/catalogo/CatalogoScreen.tsx`) con cada componente, variante y
      estado en el tema activo. Solo existe en builds de desarrollo: el shell la registra en "Más"
      detrás de `__DEV__`.
-2. **D-SPEC-29-5 · Panel en la app con 4 destinos + Más**: Inicio, Atención, el pack principal del
-   negocio (Cobranza, Comercio o Agenda, el primero habilitado) y Buscar. El resto va en "Más". Se
-   implementa en HU-DS-11 sobre este kit; hasta entonces `PanelShell` conserva sus pestañas por
-   permisos (ADR-APP-02).
+2. **D-34 · Panel en la app con header + cajón lateral** (reemplaza a D-SPEC-29-5). `PanelShell`
+   monta un `HeaderPanel` (hamburguesa, título del módulo, negocio, toggle de tema) en la raíz de
+   cada módulo y un `CajonPanel` (`Drawer` del kit) con la lista de `src/navigation/menu-panel.ts`:
+   los mismos grupos y secciones que `nav.ts` del panel web, filtrados por `MeResponse.permissions`,
+   con los packs plegados al arrancar; cada sección abre su módulo en la pestaña interna pedida
+   (`pestanaInicial` con nonce, `@shared/pestana-inicial`). Por debajo sigue un `Tab.Navigator`
+   sin barra (montaje perezoso, estado por módulo y el `navRef` del bus de navegación). Sin
+   `@react-navigation/drawer`: sale por EAS Update.
 3. **D-SPEC-29-6 · El campo de cobranza conserva sus vistas**: cajón lateral, selección de cartera,
    inicio de la cartera, clientes con filtros, diario, ficha del cliente como overlay, préstamo,
    perfil, configuración y notificaciones mantienen flujo, rutas y lógica. HU-DS-10 solo cambia los
@@ -57,7 +69,8 @@ muscular.
 | Subir los componentes de `modules/cobranza/components` tal cual a `shared` | Traen dominio y estilos propios (colores sueltos, `urlArchivo` del backend en `Avatar`); el kit nuevo los reemplaza en HU-DS-10 sin mover pantallas ahora |
 | Una librería de UI (React Native Paper, Tamagui, gluestack) | Otra fuente de estilos frente a los tokens de la marca y dependencias nuevas; el panel no la usa, así que se pierde la paridad de nombres |
 | `react-native-reanimated` + `gesture-handler` para `Sheet` y `Toast` | Dependencias nativas nuevas para dos animaciones cortas; `Animated` y `PanResponder` alcanzan |
-| Panel con cajón lateral como el campo (D-SPEC-29-5 B) | Esconde las secciones más usadas detrás de un gesto |
+| Panel con 4 destinos + Más (D-SPEC-29-5 A, elegida el 2026-10-10) | Reemplazada por D-34: ~40 secciones no caben en 4 destinos y el dueño quiere la misma lista del panel web |
+| `@react-navigation/drawer` para el cajón del panel | Arrastra gesture-handler + reanimated: cambia el fingerprint y no sale por OTA; `Drawer` del kit (`Animated` + `Pressable`) alcanza |
 | Rediseñar el campo con pestañas abajo (D-SPEC-29-6 B) | Rompe la memoria muscular de los gestores y arriesga regresiones en el diferencial |
 
 ## Consecuencias
@@ -79,6 +92,8 @@ recorrido (entonces se evalúa reanimated con un ADR).
 
 - `src/shared/ui/*` (kit, `tema.ts`, `motion.ts`, `icono.tsx`, tests al lado) y
   `src/shared/ui/catalogo/CatalogoScreen.tsx`.
-- `src/navigation/PanelShell.tsx`: entrada "Catálogo de UI" en "Más" solo con `__DEV__`.
-- HU-DS-10 migra las pantallas de campo al kit (mismas vistas); HU-DS-11 arma el shell de 4 destinos
-  + Más; HU-DS-12 puede subir `motion.ts` a `src/core/theme/`.
+- `src/navigation/PanelShell.tsx`, `HeaderPanel.tsx`, `CajonPanel.tsx`, `menu-panel.ts`,
+  `menu-panel-context.tsx`; `src/shared/ui/Drawer.tsx` y `NavGroup.tsx`; `@shared/pestana-inicial`.
+  El Catálogo de UI va en el grupo «Desarrollo» del cajón, solo con `__DEV__`.
+- HU-DS-10 migra las pantallas de campo al kit (mismas vistas); HU-DS-11 arma el shell con cajón
+  (D-34); HU-DS-12 puede subir `motion.ts` a `src/core/theme/`.

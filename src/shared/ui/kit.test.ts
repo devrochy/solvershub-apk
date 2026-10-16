@@ -15,6 +15,7 @@ describe("kit shared/ui", () => {
   it("exporta los componentes de la HU", () => {
     for (const nombre of [
       "Button",
+      "Drawer",
       "IconButton",
       "Field",
       "TextField",
@@ -27,6 +28,7 @@ describe("kit shared/ui", () => {
       "useToast",
       "Sheet",
       "ListItem",
+      "NavGroup",
       "RecordRow",
       "KpiTile",
       "PageHeader",

@@ -8,32 +8,31 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { emitirNavegacion } from "@shared/navegacion-evento";
+import { emitirNavegacion, type DestinoNavegacion } from "@shared/navegacion-evento";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { baseActual } from "@data/bootstrap";
 import { buscarEnCache } from "@data/busqueda-cache";
 import { buscar, type SeccionResultados } from "../api";
 
-const TAB_POR_ENTIDAD: Record<string, string> = {
-  cliente: "cobranza",
-  prestamo: "cobranza",
-  promesa: "cobranza",
-  producto: "comercio",
-  pedido: "comercio",
-  categoria: "comercio",
-  cita: "calendario",
-  conversacion: "conversaciones",
-  lead: "conversaciones",
-  conexion: "configuracion",
-  colaborador: "configuracion",
+/** Módulo y pestaña interna a los que lleva cada tipo de resultado (HU-APP-21). */
+export const DESTINO_POR_ENTIDAD: Record<string, DestinoNavegacion> = {
+  cliente: { tab: "cobranza", pestana: "clientes" },
+  prestamo: { tab: "cobranza", pestana: "clientes" },
+  promesa: { tab: "cobranza", pestana: "promesas" },
+  producto: { tab: "comercio", pestana: "productos" },
+  pedido: { tab: "comercio", pestana: "pedidos" },
+  categoria: { tab: "comercio", pestana: "categorias" },
+  cita: { tab: "calendario", pestana: "semana" },
+  conversacion: { tab: "conversaciones", pestana: "conversaciones" },
+  lead: { tab: "conversaciones", pestana: "leads" },
+  conexion: { tab: "configuracion", pestana: "conexiones" },
+  colaborador: { tab: "configuracion", pestana: "colaboradores" },
 };
 
 export function BusquedaScreen() {
   const { colores } = useTheme();
   const api = useAdminApi();
-  const navigation = useNavigation();
   const [texto, setTexto] = useState("");
   const [secciones, setSecciones] = useState<SeccionResultados[]>([]);
   const [buscando, setBuscando] = useState(false);
@@ -128,8 +127,8 @@ export function BusquedaScreen() {
           <Pressable
             testID={`busqueda-item-${item.item.tipo}-${item.item.id}`}
             onPress={() => {
-              emitirNavegacion({ tab: TAB_POR_ENTIDAD[item.item.tipo] ?? "inicio" });
-              navigation.goBack();
+              // El shell cambia de módulo; Búsqueda es un módulo más, no un stack.
+              emitirNavegacion(DESTINO_POR_ENTIDAD[item.item.tipo] ?? { tab: "inicio" });
             }}
             style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
           >

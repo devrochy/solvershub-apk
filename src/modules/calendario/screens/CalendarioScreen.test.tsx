@@ -195,4 +195,8 @@ describe("CalendarioScreen (HU-APP-11)", () => {
     mockTenantId = "08ccdc19-f2ef-4eeb-b9a9-65c898c34fd1";
   });
 
+  it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
+    const { getByTestId } = await render(<CalendarioScreen pestanaInicial={{ pestana: "bloqueos", n: 1 }} />);
+    await waitFor(() => expect(getByTestId("calendario-bloqueos")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
 });

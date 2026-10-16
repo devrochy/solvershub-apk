@@ -14,7 +14,8 @@
 
 ## Sistema de diseño
 
-- La paleta del APK se deriva de los tokens de marca SolversHub (`src/theme/tokens.ts`,
+- La paleta del APK se deriva de los tokens de marca SolversHub (`src/core/theme/tokens.ts`,
   generado). Cambiar la marca: editar `../solvershub-panel/brand/tokens/tokens.json` -> `npm run build`
   alli -> `npm run tokens:sync` aqui. Detalle en `docs/ai/tasks/tokens-solvershub.md`.
-- Pendiente: barrido de hex hardcodeados en componentes y tipografias Montserrat/Inter (hoy Roboto).
+- Reglas de UI, kit de componentes (`src/shared/ui`), tipografía Montserrat/Inter y guarda de
+  colores sueltos: `DESIGN.md`. Tema oscuro por defecto, como el panel web (D-34).

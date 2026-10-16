@@ -22,4 +22,12 @@ describe("bus de navegación (HU-APP-21)", () => {
     quitar();
     quitar2();
   });
+
+  it("puede pedir una pestaña interna del módulo (cajón del panel, HU-DS-11)", () => {
+    const fn = jest.fn();
+    const quitar = suscribirNavegacion(fn);
+    emitirNavegacion({ tab: "comercio", pestana: "pedidos" });
+    quitar();
+    expect(fn).toHaveBeenCalledWith({ tab: "comercio", pestana: "pedidos" });
+  });
 });

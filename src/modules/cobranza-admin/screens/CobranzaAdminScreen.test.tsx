@@ -1,6 +1,6 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
-const SESION_ESTABLE = { token: "t", role: "master", permissions: {} };
+const SESION_ESTABLE: { token: string; role: string; permissions: Record<string, string | null> } = { token: "t", role: "master", permissions: {} };
 jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: () => ({ sesion: SESION_ESTABLE, loading: false }),
 }));
@@ -158,5 +158,24 @@ describe("CobranzaAdminScreen (HU-APP-18)", () => {
 
     await fireEvent.press(getByTestId("cobranza-auditoria"));
     await waitFor(() => expect(getByText("cuota · editar")).toBeTruthy());
+  });
+
+  it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
+    const { getByTestId } = await render(<CobranzaAdminScreen pestanaInicial={{ pestana: "alertas", n: 1 }} />);
+    await waitFor(() => expect(getByTestId("cobranza-alertas")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
+
+  it("ignora una pestaña pedida que el usuario no puede ver", async () => {
+    const original = { ...SESION_ESTABLE };
+    Object.assign(SESION_ESTABLE, { role: "owner", permissions: { "pack_cobranza:resumen": "read" } });
+    try {
+      const { getByTestId, queryByTestId } = await render(
+        <CobranzaAdminScreen pestanaInicial={{ pestana: "alertas", n: 1 }} />,
+      );
+      await waitFor(() => expect(getByTestId("cobranza-resumen")).toHaveStyle({ borderBottomWidth: 2 }));
+      expect(queryByTestId("cobranza-alertas")).toBeNull();
+    } finally {
+      Object.assign(SESION_ESTABLE, original);
+    }
   });
 });

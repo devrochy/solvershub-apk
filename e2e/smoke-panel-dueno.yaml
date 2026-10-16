@@ -2,6 +2,8 @@
 # Contra el APK preview + API de test. Credenciales: demo12345.
 # Requiere instalación limpia (sin sesión previa). Las escrituras guardan los
 # valores tal como llegan (no cambian datos) y corren comprobaciones de Meta.
+# Navegación (HU-DS-11, D-34): header con hamburguesa (`panel-menu`) y cajón
+# lateral con grupos (`cajon-grupo-<id>`) e ítems (`cajon-item-<modulo>-<pestana>`).
 appId: com.solvershub.apk
 ---
 - launchApp
@@ -21,29 +23,22 @@ appId: com.solvershub.apk
     visible: "Cobranza Demo"
     timeout: 30000
 - tapOn: "Cobranza Demo"
-- extendedWaitUntil:
-    visible: "Más"
-    timeout: 20000
-# 2. Cobranza → Gestores (solo lectura) y Propietario
-#    Las etiquetas de las pestañas inferiores van truncadas: se tocan por posición.
-- tapOn:
-    point: "31%,93%"
+# Shell del panel: header con la hamburguesa.
 - extendedWaitUntil:
     visible:
-      id: "cobranza-pestanas"
+      id: "panel-menu"
     timeout: 20000
-# La barra de pestañas es angosta: se desliza sobre ella (no por el centro de la pantalla).
-- repeat:
-    times: 4
-    while:
-      notVisible:
-        id: "cobranza-gestores"
-    commands:
-      - swipe:
-          start: "85%,13%"
-          end: "15%,13%"
+# 2. Cobranza → Gestores (solo lectura) y Propietario. Los packs arrancan plegados.
 - tapOn:
-    id: "cobranza-gestores"
+    id: "panel-menu"
+- tapOn:
+    id: "cajon-grupo-pack_cobranza"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-cobranza-gestores"
+    direction: DOWN
+- tapOn:
+    id: "cajon-item-cobranza-gestores"
 - extendedWaitUntil:
     visible:
       id: "gestores-lista"
@@ -52,33 +47,53 @@ appId: com.solvershub.apk
 - assertVisible:
     id: "permiso-generar_reporte"
 - tapOn: "Cancelar"
-- repeat:
-    times: 3
-    while:
-      notVisible:
-        id: "cobranza-propietario"
-    commands:
-      - swipe:
-          start: "85%,13%"
-          end: "15%,13%"
+# El grupo sigue desplegado (estado del cajón).
 - tapOn:
-    id: "cobranza-propietario"
+    id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-cobranza-propietario"
+    direction: DOWN
+- tapOn:
+    id: "cajon-item-cobranza-propietario"
 - extendedWaitUntil:
     visible:
       id: "propietario-contenedor"
     timeout: 20000
-# 3. Comercio → Resumen (pestaña por defecto) con KPIs
+# 3. Comercio → Resumen con KPIs
 - tapOn:
-    point: "44%,93%"
+    id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-grupo-pack_commerce"
+    direction: DOWN
+- tapOn:
+    id: "cajon-grupo-pack_commerce"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-comercio-resumen"
+    direction: DOWN
+- tapOn:
+    id: "cajon-item-comercio-resumen"
 - extendedWaitUntil:
     visible:
       id: "comercio-kpi-.*"
     timeout: 20000
-# 4. Calendario → Horario (guardar sin cambios) y Conexión
+# 4. Calendario → Horario (guardar sin cambios) y Conexión, directo desde el cajón
 - tapOn:
-    point: "56%,93%"
+    id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-grupo-pack_calendar"
+    direction: DOWN
 - tapOn:
-    id: "calendario-horario"
+    id: "cajon-grupo-pack_calendar"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-calendario-horario"
+    direction: DOWN
+- tapOn:
+    id: "cajon-item-calendario-horario"
 - extendedWaitUntil:
     visible:
       id: "horario-inicio-mon"
@@ -95,16 +110,26 @@ appId: com.solvershub.apk
       id: "horario-mensaje"
     timeout: 15000
 - tapOn:
-    id: "calendario-conexion"
+    id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-calendario-conexion"
+    direction: DOWN
+- tapOn:
+    id: "cajon-item-calendario-conexion"
 - extendedWaitUntil:
     visible:
       id: "conexion-tarjeta"
     timeout: 20000
 # 5. Configuración → Ajustes (guardar identidad sin cambios)
 - tapOn:
-    point: "81%,93%"
+    id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-configuracion-ajustes"
+    direction: DOWN
 - tapOn:
-    id: "config-ajustes"
+    id: "cajon-item-configuracion-ajustes"
 - extendedWaitUntil:
     visible:
       id: "ajustes-identidad"
@@ -120,7 +145,7 @@ appId: com.solvershub.apk
     visible:
       id: "ajustes-mensaje"
     timeout: 15000
-# 6. Conexiones → Meta → Producción: correr comprobaciones
+# 6. Conexiones → Meta → Producción: correr comprobaciones (pestaña interna, como hoy)
 - tapOn:
     id: "config-conexiones"
 - tapOn:
@@ -137,3 +162,10 @@ appId: com.solvershub.apk
     visible:
       id: "checklist-checks"
     timeout: 30000
+# 7. Tema: el toggle del header alterna (oscuro por defecto → claro) y vuelve
+- tapOn:
+    id: "panel-tema"
+- assertVisible:
+    id: "panel-tema"
+- tapOn:
+    id: "panel-tema"

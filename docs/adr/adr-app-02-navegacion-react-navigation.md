@@ -1,6 +1,6 @@
 # ADR-APP-02 — React Navigation 7 como navegador único, compuesto por módulos y permisos
 
-- **Estado:** aceptado
+- **Estado:** aceptado (estructura actualizada el 2026-10-14)
 - **Fecha:** 2026-10-05
 - **Contexto:** SPEC-25 (solvershub-docs), decisión D-SPEC-25-2
 
@@ -19,18 +19,19 @@ para dueño/colaboradores se filtra por `MeResponse.permissions` (secciones del 
 sidebar web) y para gestores por los 14 permisos finos del pack de cobranza. Los deep links se
 configuran con `linking` de React Navigation (`solvershub://…`) sobre las mismas rutas.
 
-Estructura de navegación:
+Estructura real (al 2026-10-14; `App.tsx` elige el contenedor por sesión y rol, no hay
+`AppNavigator` ni `linking`: los deep links llegan por el bus `@shared/navegacion-evento`):
 
 ```
-RootStack
-├── AuthStack        # login, recuperar, invitaciones, vinculación
-├── FieldShell       # gestor: tabs Diario · Carteras · Clientes · Notificaciones · Perfil
-└── PanelShell       # dueño/colaborador: tabs + drawer según permisos
-    ├── Home (dashboard)
-    ├── Operacion (conversaciones, escalaciones, leads)
-    ├── Cobranza (16 secciones, visibles por permiso de sección)
-    ├── Comercio · Calendario · Negocio
-    └── Más: Configuración · Herramientas · Plataforma · Búsqueda · Auditoría
+App (RootNavigator)
+├── AuthNavigator     # login unificado, selector de negocio admin, recuperar contraseña
+├── BloqueoBiometrico
+├── PanelShell        # dueño/colaborador (ADR-APP-07, D-34): header con hamburguesa + cajón
+│   └── Tab.Navigator sin barra, un módulo por pantalla según permisos:
+│       inicio · conversaciones (stack) · cobranza (stack) · comercio · calendario · negocio ·
+│       configuracion · herramientas · busqueda · catalogo (solo __DEV__)
+└── Campo (gestor, D-SPEC-29-6): stack Main → Cartera (CarteraFlujo) · Perfil · Configuracion ·
+    Notificaciones + MenuLateral (cajón) y overlays (ficha del cliente, trayectos)
 ```
 
 ## Alternativas consideradas
