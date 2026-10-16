@@ -14,11 +14,15 @@ appId: com.solvershub.apk
 - inputText: "demo12345"
 - tapOn:
     id: "login-entrar"
-# 2. Selector de negocio (el gestor demo tiene 2)
-- assertVisible: "Elige tu negocio"
+# 2. Selector de negocio (el login llega por red: se espera)
+- extendedWaitUntil:
+    visible: "Elige tu negocio"
+    timeout: 30000
 - tapOn: "Cobranza Demo"
 # 3. Campo: el gestor con una sola cartera entra directo a su cartera
-- assertVisible: "Información de la cartera"
+- extendedWaitUntil:
+    visible: "Información de la cartera"
+    timeout: 30000
 # 4. Menú lateral → Diario del día
 #    Un toque mientras la pantalla termina de montar puede no abrir el menú:
 #    se reintenta hasta que aparezca la opción.

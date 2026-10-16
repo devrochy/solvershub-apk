@@ -63,8 +63,16 @@ appId: com.solvershub.apk
 # 3. Comercio → Resumen con KPIs
 - tapOn:
     id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-grupo-pack_commerce"
+    direction: DOWN
 - tapOn:
     id: "cajon-grupo-pack_commerce"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-comercio-resumen"
+    direction: DOWN
 - tapOn:
     id: "cajon-item-comercio-resumen"
 - extendedWaitUntil:
@@ -74,8 +82,16 @@ appId: com.solvershub.apk
 # 4. Calendario → Horario (guardar sin cambios) y Conexión, directo desde el cajón
 - tapOn:
     id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-grupo-pack_calendar"
+    direction: DOWN
 - tapOn:
     id: "cajon-grupo-pack_calendar"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-calendario-horario"
+    direction: DOWN
 - tapOn:
     id: "cajon-item-calendario-horario"
 - extendedWaitUntil:
@@ -95,6 +111,10 @@ appId: com.solvershub.apk
     timeout: 15000
 - tapOn:
     id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-calendario-conexion"
+    direction: DOWN
 - tapOn:
     id: "cajon-item-calendario-conexion"
 - extendedWaitUntil:

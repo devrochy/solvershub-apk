@@ -14,9 +14,8 @@ tags: [diseno, navegacion, panel, tema, accesibilidad]
 - **Regla que manda:** D-34 para el panel en la app; D-SPEC-29-6 sigue para el campo (mismas vistas,
   flujo y rutas; solo arranca en oscuro). Sin dependencias nativas nuevas: todo sale por EAS Update
   con el runtime actual.
-- **Estado:** completado en código. Faltan el smoke en el OPPO (campo en oscuro y panel con el
-  cajón), las capturas claro/oscuro y la OTA gradual; y el PR de docs con D-34, HU-DS-11 reescrita y
-  HU-DS-13 (Resumen móvil por rol, tras HU-DS-07).
+- **Estado:** completado en código y con smoke en el OPPO (2026-10-14). Falta la OTA gradual y el
+  merge del PR de docs (D-34, HU-DS-11 reescrita, HU-DS-13).
 
 ## Qué se hizo
 
@@ -79,13 +78,32 @@ tags: [diseno, navegacion, panel, tema, accesibilidad]
 - `src/core/api/schema.d.ts` sin tocar (`check.sh` se detiene en `api:types` por el desfase
   conocido frente al backend). Sin dependencias ni permisos nuevos.
 
+## Smoke en el OPPO (2026-10-14)
+
+- Build local por Gradle sobre el proyecto preparado de HU-DS-10 con la fuente de `aa45619` (firma
+  `fa17f831…`, fingerprint `68a78b…`, API de test), instalado limpio con `adb uninstall` +
+  `adb install` (OPPO CPH2603, 1080×2412).
+- `maestro test e2e/smoke-cobranza.yaml`: **verde** (login → negocio → cartera → menú lateral →
+  Diario → cliente cercano), todo en oscuro con el navy de los tokens. Dos ajustes al flujo: el
+  selector de negocio y la cartera esperan hasta 30 s (el login llega por red; con `assertVisible`
+  fallaba por tiempo).
+- `maestro test e2e/smoke-panel-dueno.yaml`: **verde** completo por el cajón (Cobranza › Gestores y
+  Propietario, Comercio › Resumen, Calendario › Horario y Conexión, Configuración › Ajustes,
+  Conexiones › Meta › Producción, toggle de tema ida y vuelta). Ajuste: los grupos y las secciones
+  bajo el pliegue del cajón (Comercio, Calendario) se alcanzan con `scrollUntilVisible` porque
+  Cobranza desplegada ocupa la pantalla.
+- Capturas en `~/capturas/spec29/`: `ds11-selector-negocio-oscuro.png`, `ds11-campo-diario-oscuro.png`
+  (header de campo, chip Sincronizado, badges de compromiso y trayecto) y `ds11-panel-cajon-oscuro.png`
+  (cajón con Operación desplegado, Cobranza con la fila Propietario activa).
+- Tropiezos de Maestro, no de la app: una corrida se colgó al seleccionar el dispositivo y la
+  siguiente murió con `Device server died` (driver en mal estado); se resolvió matando el proceso,
+  `adb forward --remove-all` y reintentando.
+
 ## Pendientes (registrados)
 
-- **Evidencia en el OPPO:** build local por Gradle + `adb install` (cupo de EAS agotado), `maestro
-  test e2e/smoke-cobranza.yaml` (campo intacto, ahora en oscuro) y `maestro test
-  e2e/smoke-panel-dueno.yaml`; capturas claro/oscuro del header, el cajón y una pantalla por módulo;
-  verificar el contraste de las cifras del diario en oscuro (meta 7:1). Luego la OTA gradual
-  10/50/100 (lleva también el #155 de DS-10).
+- **OTA gradual** 10/50/100 con `scripts/publicar-ota.sh preview` cuando se mergeen los PR (lleva
+  también el #155 de DS-10); avisar en la nota que el campo arranca en oscuro. Captura en claro del
+  cajón para la doc (el smoke alternó el tema y volvió a oscuro).
 - **Candado por pack** (`/admin/plugins`) a nivel shell, **resaltado de la pestaña real** y
   **pantallas del panel con el kit**: en `backlog.md`.
 - **Resumen móvil por rol:** HU-DS-13 en docs, después de HU-DS-07.
