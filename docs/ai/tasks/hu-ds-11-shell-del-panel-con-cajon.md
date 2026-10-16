@@ -1,5 +1,5 @@
 ---
-estado: en-curso
+estado: completado
 tags: [diseno, navegacion, panel, tema, accesibilidad]
 ---
 
@@ -14,8 +14,10 @@ tags: [diseno, navegacion, panel, tema, accesibilidad]
 - **Regla que manda:** D-34 para el panel en la app; D-SPEC-29-6 sigue para el campo (mismas vistas,
   flujo y rutas; solo arranca en oscuro). Sin dependencias nativas nuevas: todo sale por EAS Update
   con el runtime actual.
-- **Estado:** completado en código y con smoke en el OPPO (2026-10-14). Falta la OTA gradual y el
-  merge del PR de docs (D-34, HU-DS-11 reescrita, HU-DS-13).
+- **Estado:** completado. En `develop` desde `a5b0799` (apk #159: #157 y #158 se habían mergeado
+  en sus ramas base, no en `develop`). OTA publicada el 2026-10-16 en `preview` al 100 %: grupo
+  `36bab8dd-25bd-4b69-9976-f3c3a882017b`, runtime `68a78b…`, lleva también el #155 de DS-10.
+  Rollback: `eas update:republish --group <anterior>`. Docs #91 y #92 mergeados.
 
 ## Qué se hizo
 
@@ -101,9 +103,8 @@ tags: [diseno, navegacion, panel, tema, accesibilidad]
 
 ## Pendientes (registrados)
 
-- **OTA gradual** 10/50/100 con `scripts/publicar-ota.sh preview` cuando se mergeen los PR (lleva
-  también el #155 de DS-10); avisar en la nota que el campo arranca en oscuro. Captura en claro del
-  cajón para la doc (el smoke alternó el tema y volvió a oscuro).
+- Captura en claro del cajón para la doc (el smoke alternó el tema y volvió a oscuro).
+- La OTA salió al 100 % (no gradual) por pedido del dueño; el canal `preview` es el de test.
 - **Candado por pack** (`/admin/plugins`) a nivel shell, **resaltado de la pestaña real** y
   **pantallas del panel con el kit**: en `backlog.md`.
 - **Resumen móvil por rol:** HU-DS-13 en docs, después de HU-DS-07.
