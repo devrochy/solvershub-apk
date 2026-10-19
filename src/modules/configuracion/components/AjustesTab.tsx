@@ -13,6 +13,7 @@ import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { AvanzadoTab } from "./AvanzadoTab";
 import { ChatWebTab } from "./ChatWebTab";
+import { aRangosTexto, leyendaDias, textoARangos } from "../horarioAtencion";
 import {
   cargarSettings,
   guardarBrain,
@@ -73,17 +74,6 @@ const aNumero = (s: string, respaldo: number): number => {
   const n = Number(s);
   return Number.isFinite(n) ? n : respaldo;
 };
-const aRangosTexto = (rangos: Record<string, unknown>[]): string =>
-  rangos.map((r) => `${r.day} ${r.from}-${r.to}`).join("\n");
-const textoARangos = (texto: string): Record<string, unknown>[] => {
-  const out: Record<string, unknown>[] = [];
-  for (const linea of texto.split("\n")) {
-    const m = /^([0-6])\s+(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/.exec(linea.trim());
-    if (m) out.push({ day: Number(m[1]), from: m[2], to: m[3] });
-  }
-  return out;
-};
-
 interface CamposIdentidad {
   assistant_name: string;
   tono: string;
@@ -615,7 +605,7 @@ export function AjustesTab() {
               <Campo
                 id="ajustes-ranges"
                 label="Horario de atención"
-                ayuda="Una franja por línea: día (0=Dom…6=Sáb) HH:MM-HH:MM. Ej.: 1 08:00-18:00"
+                ayuda={`Una franja por línea: día HH:MM-HH:MM. Ej.: 0 08:00-18:00 es el lunes. Días: ${leyendaDias()}`}
               >
                 {InputCampo({
                   id: "ajustes-ranges",
