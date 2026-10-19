@@ -41,10 +41,20 @@ describe("HerramientasScreen (HU-APP-13)", () => {
               plan_status: "active",
               operational: true,
             },
+            {
+              id: "t-2",
+              name: "Negocio Dos",
+              slug: "dos",
+              status: "suspended",
+              created_at: "2026-10-01T00:00:00Z",
+              plan_name: "Negocio",
+              plan_status: "active",
+              operational: false,
+            },
           ],
           page: 1,
           has_more: false,
-          total: 1,
+          total: 2,
         });
       }
       return Promise.reject(new Error("no mockeado"));
@@ -84,6 +94,51 @@ describe("HerramientasScreen (HU-APP-13)", () => {
     );
     alertSpy.mockRestore();
   });
+  it("master elimina un negocio suspendido con la frase exacta", async () => {
+    mockSesion = { token: "t", role: "master", permissions: {} };
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
+      botones?.find((b) => b.text === "Eliminar…")?.onPress?.();
+    });
+
+    const { getByTestId, getByText } = await render(
+      <HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByText("Negocio Dos")).toBeTruthy());
+    await fireEvent.press(getByTestId("negocio-plataforma-dos"));
+
+    await waitFor(() => expect(getByTestId("eliminar-negocio-frase")).toBeTruthy());
+    expect(getByTestId("eliminar-negocio-confirmar")).toBeDisabled();
+    await fireEvent.changeText(getByTestId("eliminar-negocio-frase"), "ELIMINAR uno");
+    expect(getByTestId("eliminar-negocio-confirmar")).toBeDisabled();
+    await fireEvent.changeText(getByTestId("eliminar-negocio-frase"), "ELIMINAR dos");
+    await fireEvent.press(getByTestId("eliminar-negocio-confirmar"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/admin/platform/tenants/t-2/purge", {
+        confirm_phrase: "ELIMINAR dos",
+      }),
+    );
+    alertSpy.mockRestore();
+  });
+
+  it("un negocio activo pide suspenderlo antes de eliminarlo", async () => {
+    mockSesion = { token: "t", role: "master", permissions: {} };
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
+      botones?.find((b) => b.text === "Eliminar…")?.onPress?.();
+    });
+
+    const { getByTestId, getByText, queryByTestId } = await render(
+      <HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByText("Negocio Uno")).toBeTruthy());
+    await fireEvent.press(getByTestId("negocio-plataforma-uno"));
+
+    await waitFor(() => expect(getByTestId("eliminar-negocio-aviso")).toBeTruthy());
+    expect(queryByTestId("eliminar-negocio-frase")).toBeNull();
+    expect(mockPost).not.toHaveBeenCalledWith(expect.stringContaining("/purge"), expect.anything());
+    alertSpy.mockRestore();
+  });
+
   it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
     mockSesion = { token: "t", role: "master", permissions: {} };
     const { getByTestId } = await render(<HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />);

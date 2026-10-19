@@ -19,7 +19,6 @@ import {
 } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
-import { useAdminSession } from "@core/session/admin-session-context";
 import { CLAVE_PUSH_HABILITADO, guardarAjuste, leerAjuste } from "@data/ajustes";
 import { AjustesTab } from "../components/AjustesTab";
 import { MetaChecklist } from "../components/MetaChecklist";
@@ -30,13 +29,9 @@ import {
   cargarColaboradores,
   cargarConexiones,
   cargarHabilidades,
-  cargarPlan,
   cargarPlantillas,
   invitarColaborador,
-  purgarNegocio,
   sincronizarPlantillas,
-  suscribirPlan,
-  type PlanResumen,
   type PlantillaMeta,
   type CollaboratorItem,
   type ConnectionItem,
@@ -48,9 +43,8 @@ type Pestana =
   | "habilidades"
   | "conexiones"
   | "ajustes"
-  | "plan"
   | "notificaciones";
-const PESTANAS: readonly Pestana[] = ["colaboradores", "habilidades", "conexiones", "ajustes", "plan", "notificaciones"];
+const PESTANAS: readonly Pestana[] = ["colaboradores", "habilidades", "conexiones", "ajustes", "notificaciones"];
 
 export function ConfiguracionScreen({
   pestanaInicial,
@@ -77,13 +71,11 @@ export function ConfiguracionScreen({
   const [campoClave, setCampoClave] = useState("");
   const [campoRol, setCampoRol] = useState("colaborador");
   const [enviando, setEnviando] = useState(false);
-  const [plan, setPlan] = useState<PlanResumen | null>(null);
   const [conexionPlantillas, setConexionPlantillas] = useState<ConnectionItem | null>(null);
   const [plantillas, setPlantillas] = useState<PlantillaMeta[]>([]);
   const [plantillasCargando, setPlantillasCargando] = useState(false);
   const [pushOn, setPushOn] = useState(true);
   const [subConexiones, setSubConexiones] = useState<"canales" | "meta">("canales");
-  const { sesion } = useAdminSession();
 
   const cargar = useCallback(async () => {
     try {
@@ -107,11 +99,6 @@ export function ConfiguracionScreen({
   }, [cargar]);
 
   useEffect(() => {
-    if (pestana === "plan") {
-      cargarPlan(api)
-        .then(setPlan)
-        .catch(() => setError("No pudimos cargar el plan."));
-    }
     if (pestana === "notificaciones") {
       leerAjuste(CLAVE_PUSH_HABILITADO)
         .then((v) => setPushOn(v !== "0"))
@@ -223,9 +210,7 @@ export function ConfiguracionScreen({
                       ? "Conex."
                       : p === "ajustes"
                         ? "Ajustes"
-                        : p === "plan"
-                          ? "Plan"
-                          : "Push"}
+                        : "Push"}
               </Text>
             </Pressable>
           ))}
@@ -421,106 +406,6 @@ export function ConfiguracionScreen({
         </View>
       ) : pestana === "ajustes" ? (
         <AjustesTab />
-      ) : pestana === "plan" ? (
-        <FlatList
-          testID="config-lista-plan"
-          data={plan?.plans ?? []}
-          keyExtractor={(pl) => pl.id}
-          ListHeaderComponent={
-            plan ? (
-              <View style={{ marginBottom: 8 }}>
-                <Text style={{ color: colores.texto, fontWeight: "700", fontSize: 15 }}>
-                  {plan.overview.plan_name ?? "Sin plan"}
-                </Text>
-                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
-                  {plan.overview.status}
-                  {typeof plan.overview.days_left === "number"
-                    ? ` · ${plan.overview.days_left} días restantes`
-                    : ""}
-                </Text>
-                {sesion?.role === "master" && sesion.tenantId ? (
-                  <Pressable
-                    testID="plan-purge"
-                    onPress={() => {
-                      Alert.alert(
-                        "Purgar negocio",
-                        "Esto borra TODOS los datos del negocio activo. No se puede deshacer.",
-                        [
-                          { text: "Cancelar", style: "cancel" },
-                          {
-                            text: "Borrar todo",
-                            style: "destructive",
-                            onPress: () => {
-                              Alert.alert(
-                                "Última confirmación",
-                                "¿De verdad quieres purgar este negocio?",
-                                [
-                                  { text: "Cancelar", style: "cancel" },
-                                  {
-                                    text: "Sí, purgar",
-                                    style: "destructive",
-                                    onPress: () => {
-                                      void purgarNegocio(api, sesion.tenantId as string)
-                                        .then(() => setError("Negocio purgado."))
-                                        .catch(() => setError("No se pudo purgar el negocio."));
-                                    },
-                                  },
-                                ],
-                              );
-                            },
-                          },
-                        ],
-                      );
-                    }}
-                    style={[styles.modalBoton, { backgroundColor: colores.peligro, alignSelf: "flex-start", marginTop: 10 }]}
-                  >
-                    <Text style={{ color: "#ffffff", fontWeight: "700" }}>Purgar negocio</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            ) : null
-          }
-          ListEmptyComponent={
-            <Text style={{ color: colores.textoSuave, textAlign: "center", marginTop: 20 }}>
-              Sin planes disponibles.
-            </Text>
-          }
-          renderItem={({ item }) => (
-            <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colores.texto, fontWeight: "600" }}>
-                  {item.name}
-                  {item.current ? " · actual" : ""}
-                </Text>
-                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
-                  {item.is_free ? "Gratis" : item.price_cop ? `$${item.price_cop} COP` : ""}
-                </Text>
-              </View>
-              {!item.current ? (
-                <Pressable
-                  testID={`plan-suscribir-${item.id}`}
-                  onPress={() => {
-                    Alert.alert("Cambiar de plan", `¿Suscribirte a ${item.name}?`, [
-                      { text: "Cancelar", style: "cancel" },
-                      {
-                        text: "Suscribir",
-                        onPress: () => {
-                          void suscribirPlan(api, item.id)
-                            .then(() => cargarPlan(api))
-                            .then(setPlan)
-                            .catch(() => setError("No se pudo suscribir el plan."));
-                        },
-                      },
-                    ]);
-                  }}
-                  style={[styles.modalBoton, { backgroundColor: colores.primario }]}
-                >
-                  <Text style={{ color: "#ffffff", fontWeight: "700", fontSize: 12 }}>Suscribir</Text>
-                </Pressable>
-              ) : null}
-            </View>
-          )}
-        />
       ) : (
         <View style={{ padding: 4 }}>
           <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>

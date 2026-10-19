@@ -147,17 +147,6 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
           meta_configured: true,
         });
       }
-      if (path === "/admin/plan") {
-        return Promise.resolve({
-          overview: { plan_id: "pro", plan_name: "Pro", status: "activo", operational: true, days_left: 12, has_plan: true },
-          usage: {},
-          payments: [],
-          plans: [
-            { id: "pro", name: "Pro", price_cop: 199000, is_free: false, current: true },
-            { id: "max", name: "Max", price_cop: 399000, is_free: false, current: false },
-          ],
-        });
-      }
       if (String(path).includes("/templates")) {
         return Promise.resolve({ templates: [], sync_error: null, at_limit: false });
       }
@@ -224,24 +213,6 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
         role: "colaborador",
       }),
     );
-  });
-
-  it("muestra el plan y permite suscribirse (HU-APP-21)", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
-      botones?.find((b) => b.text === "Suscribir")?.onPress?.();
-    });
-    const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
-    await waitFor(() => expect(getByTestId("config-plan")).toBeTruthy());
-
-    await fireEvent.press(getByTestId("config-plan"));
-    await waitFor(() => expect(getByText("Pro")).toBeTruthy());
-    expect(getByText("Pro · actual")).toBeTruthy();
-
-    await fireEvent.press(getByTestId("plan-suscribir-max"));
-    await waitFor(() =>
-      expect(mockPost).toHaveBeenCalledWith("/admin/plan/subscribe", { plan_id: "max" }),
-    );
-    alertSpy.mockRestore();
   });
 
   it("alterna el opt-out de push (HU-APP-21)", async () => {

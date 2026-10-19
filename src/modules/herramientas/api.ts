@@ -35,3 +35,26 @@ export async function accionNegocio(
 ): Promise<void> {
   await api.post(`/admin/platform/tenants/${tenantId}/${accion}`);
 }
+
+/**
+ * Eliminación física e irreversible de un negocio (invariante 8), igual que en el
+ * panel web: el core solo purga negocios suspendidos (409 `tenant_not_suspended`)
+ * y exige la frase exacta `ELIMINAR <slug>`.
+ */
+export function sePuedeEliminar(status: string): boolean {
+  return status === "suspended";
+}
+
+export function fraseDeEliminar(slug: string): string {
+  return `ELIMINAR ${slug}`;
+}
+
+export const AVISO_DESACTIVAR_PRIMERO =
+  "Para eliminar un negocio, primero hay que desactivarlo. Suspéndelo y luego escribe la frase de confirmación.";
+
+export const MENSAJE_NO_SUSPENDIDO =
+  "No se eliminó: el negocio sigue activo. Suspéndelo primero y vuelve a intentarlo.";
+
+export async function purgarNegocio(api: ClienteAdmin, tenantId: string, fraseConfirmacion: string): Promise<void> {
+  await api.post(`/admin/platform/tenants/${tenantId}/purge`, { confirm_phrase: fraseConfirmacion });
+}
