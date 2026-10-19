@@ -1,4 +1,11 @@
-import { gruposDeMenu, modulosVisibles, seccionesDeMenu, tituloDeDestino } from "./menu-panel";
+import {
+  entradaDeDestino,
+  gruposDeMenu,
+  modulosVisibles,
+  pestanasDeEntrada,
+  seccionesDeMenu,
+  tituloDeDestino,
+} from "./menu-panel";
 
 describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () => {
   it("dueño con todo: mismos grupos y entradas, en el orden del menú v2", () => {
@@ -102,5 +109,47 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
     expect(tituloDeDestino({ modulo: "herramientas", pestana: "fallos" })).toBe("Configuración");
     expect(tituloDeDestino({ modulo: "inicio" })).toBe("Resumen");
     expect(tituloDeDestino({ modulo: "configuracion" })).toBe("Configuración");
+  });
+
+  it("con la entrada explícita, el título es el de esa entrada", () => {
+    expect(tituloDeDestino({ modulo: "configuracion", entrada: "conexiones" })).toBe("Conexiones");
+    expect(tituloDeDestino({ modulo: "herramientas", pestana: "fallos", entrada: "configuracion" })).toBe(
+      "Configuración",
+    );
+  });
+
+  it("la entrada de un destino: la explícita, la que lo contiene o la primera del módulo", () => {
+    const permisos = { collaborators: "read", settings: "write", leads: "read", conversations: "read" } as const;
+    expect(entradaDeDestino(permisos, false, { modulo: "configuracion", entrada: "equipo" })?.id).toBe("equipo");
+    expect(entradaDeDestino(permisos, false, { modulo: "conversaciones", pestana: "leads" })?.id).toBe("clientes");
+    expect(entradaDeDestino(permisos, false, { modulo: "configuracion" })?.id).toBe("equipo");
+    expect(entradaDeDestino(permisos, false, { modulo: "herramientas", pestana: "fallos" })?.id).toBe(
+      "configuracion",
+    );
+    // Sin permiso en ninguna pestaña del módulo: sin entrada.
+    expect(entradaDeDestino({ leads: "read" }, false, { modulo: "configuracion" })).toBeNull();
+  });
+
+  it("las pestañas de una entrada salen filtradas por permiso y sin repetir", () => {
+    const [conexiones] = gruposDeMenu({ connections: "read" }, false, { dev: false })
+      .flatMap((g) => g.entradas)
+      .filter((e) => e.id === "conexiones");
+    expect(pestanasDeEntrada(conexiones)).toEqual({
+      id: "conexiones",
+      pestanas: [{ tab: "configuracion", pestana: "conexiones", label: "Conexiones" }],
+    });
+
+    const configuracion = entradaDeDestino({ settings: "write" }, false, { modulo: "configuracion", entrada: "configuracion" });
+    expect(pestanasDeEntrada(configuracion!).pestanas.map((p) => `${p.tab}/${p.pestana}`)).toEqual([
+      "configuracion/ajustes",
+      "herramientas/fallos",
+      "configuracion/notificaciones",
+    ]);
+
+    // Agenda sin `pack_calendar:configuracion`: sin Horario.
+    const agenda = entradaDeDestino({ "pack_calendar:citas": "read", "pack_calendar:tipos": "read" }, false, {
+      modulo: "calendario",
+    });
+    expect(pestanasDeEntrada(agenda!).pestanas.map((p) => p.pestana)).toEqual(["semana", "tipos"]);
   });
 });

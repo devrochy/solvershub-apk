@@ -67,8 +67,11 @@ tarea** y sus pestañas. Claves estables: el `id` de la entrada (`cajon-item-<id
 `pestana` y `seccion`; los labels son reemplazables. Una entrada se ve si el usuario puede ver al
 menos una de sus pestañas, abre la primera permitida y, si es de un pack no habilitado, queda con
 candado. Solo se mapean pantallas que existen en la app: una pestaña del panel web sin pantalla
-aquí se omite. Una sección nueva se agrega como pestaña de su entrada y en la pantalla del módulo
-con `usePestanaInicial`. La Búsqueda se abre con la lupa del header, como en la topbar del panel. El tema arranca en oscuro en toda la app, como el panel web; el
+aquí se omite. La pantalla muestra solo las pestañas de la entrada por la que se llegó (param
+`entrada`, `usePestanasDeEntrada`): Equipo abre Configuración solo con Colaboradores y la barra se
+esconde si queda una pestaña; las de otra pantalla (Configuración › Mensajes fallidos) se abren por
+el bus de navegación. Una sección nueva se agrega como pestaña de su entrada y en la pantalla del
+módulo con `usePestanasDeEntrada`. La Búsqueda se abre con la lupa del header, como en la topbar del panel. El tema arranca en oscuro en toda la app, como el panel web; el
 toggle está en el header y en el cajón (y en el menú lateral del campo).
 
 ## Campo de cobranza (D-SPEC-29-6)

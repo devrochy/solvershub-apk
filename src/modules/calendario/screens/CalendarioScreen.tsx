@@ -7,7 +7,7 @@ import {
   Text,
   View,
  Modal, ScrollView, TextInput , Linking } from "react-native";
-import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
+import { usePestanasDeEntrada, type EntradaPestanas, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
@@ -80,11 +80,21 @@ export function urlConectarGoogle(tenantId: string | null): string {
   return tenantId ? `${base}?tenant=${encodeURIComponent(tenantId)}` : base;
 }
 
-export function CalendarioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
+export function CalendarioScreen({
+  pestanaInicial,
+  entrada,
+}: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const { sesion } = useAdminSession();
-  const [pestana, setPestana] = usePestanaInicial<Pestana>("semana", PESTANAS, pestanaInicial);
+  // Solo las pestañas de Agenda que el usuario puede ver (cada una tiene su sección RBAC).
+  const { pestana, setPestana, propias } = usePestanasDeEntrada<Pestana>(
+    "calendario",
+    "semana",
+    PESTANAS,
+    pestanaInicial,
+    entrada,
+  );
   const [items, setItems] = useState<WeekItem[]>([]);
   const [inicio, setInicio] = useState<string>("");
   const [tipos, setTipos] = useState<TypeOut[]>([]);
@@ -199,36 +209,38 @@ export function CalendarioScreen({ pestanaInicial }: { pestanaInicial?: Solicitu
 
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
-      <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(["semana", "tipos", "bloqueos", "horario", "conexion"] as Pestana[]).map((p) => (
-          <Pressable
-            key={p}
-            testID={`calendario-${p}`}
-            onPress={() => setPestana(p)}
-            style={[
-              styles.pestana,
-              pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
-            ]}
-          >
-            <Text
-              style={{
-                color: pestana === p ? colores.texto : colores.textoSuave,
-                fontWeight: "600",
-              }}
+      {propias.length > 1 ? (
+        <View style={[styles.pestanas, { borderColor: colores.borde }]}>
+          {propias.map((p) => (
+            <Pressable
+              key={p}
+              testID={`calendario-${p}`}
+              onPress={() => setPestana(p)}
+              style={[
+                styles.pestana,
+                pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
+              ]}
             >
-              {p === "semana"
-                ? "Semana"
-                : p === "tipos"
-                  ? "Tipos"
-                  : p === "bloqueos"
-                    ? "Bloqueos"
-                    : p === "horario"
-                      ? "Horario"
-                      : "Conexión"}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+              <Text
+                style={{
+                  color: pestana === p ? colores.texto : colores.textoSuave,
+                  fontWeight: "600",
+                }}
+              >
+                {p === "semana"
+                  ? "Semana"
+                  : p === "tipos"
+                    ? "Tipos"
+                    : p === "bloqueos"
+                      ? "Bloqueos"
+                      : p === "horario"
+                        ? "Horario"
+                        : "Conexión"}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
 
       {error ? (
         <Text testID="calendario-error" style={{ color: colores.peligro, marginBottom: 8 }}>

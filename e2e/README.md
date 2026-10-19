@@ -48,8 +48,11 @@ cajón tiene grupos por tarea `cajon-grupo-<id>` (`operacion`, `asistente`,
 `negocio`, `cuenta`, `plataforma`) y una fila por entrada `cajon-item-<id>`
 (`resumen`, `conversaciones`, `clientes`, `agentes`, `conexiones`, `agenda`,
 `ventas`, `cobranza`, `consumo`, `equipo`, `configuracion`, `negocios`). Cada
-entrada abre su primera pestaña permitida; las demás se tocan dentro de la
-pantalla (en Cobranza hay que deslizar `cobranza-pestanas`).
+entrada abre su primera pestaña permitida y la pantalla muestra solo las
+pestañas de esa entrada (Equipo → Colaboradores, sin barra; Configuración →
+General, Habilidades, Push y `config-fallos`, que abre Mensajes fallidos); las
+demás se tocan dentro de la pantalla (en Cobranza hay que deslizar
+`cobranza-pestanas`).
 
 ## Estado
 

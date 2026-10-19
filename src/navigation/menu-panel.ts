@@ -1,5 +1,6 @@
 import type { MaterialIcons } from "@expo/vector-icons";
 import { puedeVerSeccion, type PermisosSeccion } from "@core/permisos";
+import type { EntradaPestanas } from "@shared/pestana-inicial";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
 
@@ -363,13 +364,61 @@ export function entradaContiene(
   return entrada.pestanas.some((p) => p.modulo === destino.modulo && p.pestana === destino.pestana);
 }
 
+/** Destino del shell: módulo, pestaña interna y, si se sabe, la entrada del cajón. */
+export interface DestinoMenu {
+  modulo: ModuloPanel;
+  pestana?: string;
+  /** `id` de la entrada por la que se llegó; manda sobre el módulo y la pestaña. */
+  entrada?: string;
+}
+
 /**
- * Título del header para un destino: el nombre de la entrada del cajón que lo
- * contiene; sin entrada (p. ej. back del sistema, sin pestaña), el del módulo.
+ * Entrada visible a la que pertenece un destino: la de `entrada` si viene; si
+ * no, la que contiene el módulo y la pestaña exactos (push, Búsqueda); sin
+ * pestaña (o sin coincidencia), la primera visible con una pestaña del módulo.
  */
-export function tituloDeDestino(destino: { modulo: ModuloPanel; pestana?: string }): string {
+export function entradaDeDestino(
+  permisos: PermisosSeccion,
+  esMaster: boolean,
+  destino: DestinoMenu,
+  opciones: OpcionesMenu = {},
+): EntradaVisible | null {
+  const entradas = gruposDeMenu(permisos, esMaster, opciones).flatMap((g) => g.entradas);
+  return (
+    (destino.entrada ? entradas.find((e) => e.id === destino.entrada) : undefined) ??
+    entradas.find((e) => entradaContiene(e, destino)) ??
+    entradas.find((e) => e.pestanas.some((p) => p.modulo === destino.modulo)) ??
+    null
+  );
+}
+
+/**
+ * Pestañas de una entrada para las pantallas (`EntradaPestanas`): solo las que
+ * apuntan a una pestaña interna y sin repetir (las cuatro de Conexiones viven
+ * en la misma pestaña de Configuración).
+ */
+export function pestanasDeEntrada(entrada: Pick<EntradaMenuPanel, "id" | "pestanas">): EntradaPestanas {
+  const vistas = new Set<string>();
+  const pestanas = entrada.pestanas.flatMap((p) => {
+    if (!p.pestana) return [];
+    const clave = `${p.modulo}/${p.pestana}`;
+    if (vistas.has(clave)) return [];
+    vistas.add(clave);
+    return [{ tab: p.modulo, pestana: p.pestana, label: p.label }];
+  });
+  return { id: entrada.id, pestanas };
+}
+
+/**
+ * Título del header para un destino: el nombre de la entrada del cajón por la
+ * que se llegó (o la que lo contiene); sin entrada (p. ej. back del sistema,
+ * sin pestaña), el del módulo.
+ */
+export function tituloDeDestino(destino: DestinoMenu): string {
   for (const grupo of MENU_PANEL) {
-    const entrada = grupo.entradas.find((e) => entradaContiene(e, destino));
+    const entrada = destino.entrada
+      ? grupo.entradas.find((e) => e.id === destino.entrada)
+      : grupo.entradas.find((e) => entradaContiene(e, destino));
     if (entrada) return entrada.label;
   }
   return MODULOS_PANEL[destino.modulo].label;

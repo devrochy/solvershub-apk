@@ -8,9 +8,10 @@ import { SessionContext } from "../modules/cobranza/session/session-context";
 import { entradaContiene, gruposDeMenu, type EntradaVisible } from "./menu-panel";
 import { useMenuPanel, type DestinoPanel } from "./menu-panel-context";
 
-/** Entrada resaltada: contiene el destino activo (módulo y pestaña exactos). */
+/** Entrada resaltada: la del destino activo o, sin entrada, la que lo contiene. */
 function esActiva(entrada: EntradaVisible, activo: DestinoPanel | null): boolean {
-  return activo !== null && entradaContiene(entrada, activo);
+  if (activo === null) return false;
+  return activo.entrada ? entrada.id === activo.entrada : entradaContiene(entrada, activo);
 }
 
 /**
@@ -74,7 +75,7 @@ export function CajonPanel() {
                       selected={seleccionada}
                       disabled={entrada.bloqueado}
                       showChevron={false}
-                      onPress={() => irA({ modulo: entrada.destino.modulo, pestana: entrada.destino.pestana })}
+                      onPress={() => irA({ modulo: entrada.destino.modulo, pestana: entrada.destino.pestana, entrada: entrada.id })}
                     />
                   );
                 })}

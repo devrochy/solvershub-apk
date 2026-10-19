@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -8,7 +8,12 @@ import {
   Text,
   View,
 } from "react-native";
-import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
+import {
+  abrirPestanaAjena,
+  usePestanasDeEntrada,
+  type EntradaPestanas,
+  type SolicitudPestana,
+} from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
@@ -25,16 +30,24 @@ import {
 
 type Pestana = "fallos" | "negocios";
 
-export function HerramientasScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
+export function HerramientasScreen({
+  pestanaInicial,
+  entrada,
+}: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const { sesion } = useAdminSession();
   const esMaster = sesion?.role === "master";
 
-  const [pestana, setPestana] = usePestanaInicial<Pestana>(
+  const todas = useMemo<Pestana[]>(() => (esMaster ? ["fallos", "negocios"] : ["fallos"]), [esMaster]);
+  // Mensajes fallidos es de la entrada Configuración (sus otras pestañas se abren
+  // por el bus) y Negocios, de Plataforma.
+  const { pestana, setPestana, propias, ajenas } = usePestanasDeEntrada<Pestana>(
+    "herramientas",
     "fallos",
-    esMaster ? ["fallos", "negocios"] : ["fallos"],
+    todas,
     pestanaInicial,
+    entrada,
   );
   const [entradas, setEntradas] = useState<DlqEntry[]>([]);
   const [negocios, setNegocios] = useState<PlatformTenant[]>([]);
@@ -97,28 +110,42 @@ export function HerramientasScreen({ pestanaInicial }: { pestanaInicial?: Solici
 
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
-      <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(esMaster ? (["fallos", "negocios"] as Pestana[]) : (["fallos"] as Pestana[])).map((p) => (
-          <Pressable
-            key={p}
-            testID={`herramientas-${p}`}
-            onPress={() => setPestana(p)}
-            style={[
-              styles.pestana,
-              pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
-            ]}
-          >
-            <Text
-              style={{
-                color: pestana === p ? colores.texto : colores.textoSuave,
-                fontWeight: "600",
-              }}
+      {propias.length + ajenas.length > 1 ? (
+        <View style={[styles.pestanas, { borderColor: colores.borde }]}>
+          {propias.map((p) => (
+            <Pressable
+              key={p}
+              testID={`herramientas-${p}`}
+              onPress={() => setPestana(p)}
+              style={[
+                styles.pestana,
+                pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
+              ]}
             >
-              {p === "fallos" ? "Bandeja de fallos" : "Negocios"}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+              <Text
+                style={{
+                  color: pestana === p ? colores.texto : colores.textoSuave,
+                  fontWeight: "600",
+                }}
+              >
+                {p === "fallos" ? "Bandeja de fallos" : "Negocios"}
+              </Text>
+            </Pressable>
+          ))}
+          {ajenas.map((a) => (
+            <Pressable
+              key={`${a.tab}-${a.pestana}`}
+              testID={`herramientas-${a.pestana}`}
+              onPress={() => abrirPestanaAjena(a)}
+              style={styles.pestana}
+            >
+              <Text style={{ color: colores.textoSuave, fontWeight: "600" }} numberOfLines={1}>
+                {a.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
 
       {error ? (
         <Text testID="herramientas-error" style={{ color: colores.peligro, marginBottom: 8 }}>

@@ -4,8 +4,9 @@
 # valores tal como llegan (no cambian datos) y corren comprobaciones de Meta.
 # Navegación (HU-DS-11, D-34; menú v2, HU-UX-11): header con hamburguesa
 # (`panel-menu`) y cajón lateral con grupos (`cajon-grupo-<id>`) y una fila por
-# entrada (`cajon-item-<id>`), que abre su primera pestaña permitida. Las demás
-# pestañas se tocan dentro de la pantalla.
+# entrada (`cajon-item-<id>`), que abre su primera pestaña permitida. La
+# pantalla muestra solo las pestañas de esa entrada (Equipo → Colaboradores) y
+# esconde la barra si queda una sola; las demás se tocan dentro de la pantalla.
 appId: com.solvershub.apk
 ---
 - launchApp
@@ -128,7 +129,8 @@ appId: com.solvershub.apk
     visible:
       id: "conexion-tarjeta"
     timeout: 20000
-# 5. Configuración → General (guardar identidad sin cambios); es su primera pestaña
+# 5. Configuración → General (guardar identidad sin cambios); es su primera pestaña.
+#    Solo con las pestañas de la entrada: sin Colaboradores (es de Equipo).
 - tapOn:
     id: "panel-menu"
 - scrollUntilVisible:
@@ -141,6 +143,10 @@ appId: com.solvershub.apk
     visible:
       id: "ajustes-identidad"
     timeout: 20000
+- assertVisible:
+    id: "config-fallos"
+- assertNotVisible:
+    id: "config-colaboradores"
 - scrollUntilVisible:
     element:
       id: "ajustes-guardar"
@@ -152,7 +158,8 @@ appId: com.solvershub.apk
     visible:
       id: "ajustes-mensaje"
     timeout: 15000
-# 6. Conexiones → Meta → Producción: correr comprobaciones (entrada propia en el menú v2)
+# 6. Conexiones → Meta → Producción: correr comprobaciones (entrada propia en el menú v2,
+#    con una sola pestaña: sin barra de pestañas de Configuración)
 - tapOn:
     id: "panel-menu"
 - scrollUntilVisible:
@@ -161,6 +168,12 @@ appId: com.solvershub.apk
     direction: DOWN
 - tapOn:
     id: "cajon-item-conexiones"
+- extendedWaitUntil:
+    visible:
+      id: "subconex-meta"
+    timeout: 20000
+- assertNotVisible:
+    id: "config-ajustes"
 - tapOn:
     id: "subconex-meta"
 - extendedWaitUntil:

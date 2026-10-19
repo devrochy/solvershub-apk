@@ -115,6 +115,60 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Buscar"));
   });
 
+  it("cada entrada muestra solo sus pestañas aunque compartan pantalla (Equipo, Configuración)", async () => {
+    mockSesionValue = { ...DUENO, permissions: { collaborators: "read", settings: "write", plugins: "read" } };
+    const { findByTestId, getByTestId, queryByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    // Equipo: solo Colaboradores, sin barra de pestañas.
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-item-equipo"));
+    await waitFor(() => expect(getByTestId("config-invitar")).toBeTruthy());
+    expect(queryByTestId("config-colaboradores")).toBeNull();
+    expect(queryByTestId("config-ajustes")).toBeNull();
+
+    // Configuración: General, Habilidades, Push y Mensajes fallidos (otra pantalla).
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-item-configuracion"));
+    await waitFor(() => expect(getByTestId("config-ajustes")).toHaveStyle({ borderBottomWidth: 2 }));
+    expect(getByTestId("config-habilidades")).toBeTruthy();
+    expect(getByTestId("config-notificaciones")).toBeTruthy();
+    expect(queryByTestId("config-colaboradores")).toBeNull();
+    expect(queryByTestId("config-conexiones")).toBeNull();
+    expect(queryByTestId("config-plan")).toBeNull();
+
+    // Mensajes fallidos abre Herramientas por el bus, sin salir de la entrada.
+    await fireEvent.press(getByTestId("config-fallos"));
+    await waitFor(() => expect(getByTestId("herramientas-fallos")).toHaveStyle({ borderBottomWidth: 2 }));
+    expect(getByTestId("panel-titulo").props.children).toBe("Configuración");
+    expect(getByTestId("herramientas-ajustes")).toBeTruthy();
+    expect(queryByTestId("herramientas-negocios")).toBeNull();
+
+    await fireEvent.press(getByTestId("herramientas-habilidades"));
+    await waitFor(() => expect(getByTestId("config-habilidades")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
+
+  it("Conversaciones muestra Conversaciones y Escalaciones; el bus a Clientes titula y filtra por su entrada", async () => {
+    mockSesionValue = { ...DUENO, permissions: { conversations: "read", escalations: "read", leads: "read" } };
+    const { findByTestId, getByTestId, queryByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-item-conversaciones"));
+    await waitFor(() => expect(getByTestId("pestana-conversaciones")).toHaveStyle({ borderBottomWidth: 2 }));
+    expect(getByTestId("pestana-escalaciones")).toBeTruthy();
+    expect(queryByTestId("pestana-leads")).toBeNull();
+    expect(queryByTestId("pestana-playground")).toBeNull();
+
+    // Búsqueda / push: `{tab, pestana}` sin entrada → la que contiene el destino.
+    await act(async () => {
+      emitirNavegacion({ tab: "conversaciones", pestana: "leads" });
+    });
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Clientes"));
+    await waitFor(() => expect(getByTestId("operacion-busqueda-leads")).toBeTruthy());
+    expect(queryByTestId("pestana-conversaciones")).toBeNull();
+  });
+
   it("la raíz de Cobranza lleva el header del panel (sin header nativo encima)", async () => {
     mockSesionValue = { ...DUENO, permissions: { "pack_cobranza:resumen": "read" } };
     const { findByTestId, getByTestId } = await renderShell();
