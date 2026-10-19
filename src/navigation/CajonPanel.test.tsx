@@ -78,7 +78,7 @@ describe("CajonPanel (HU-DS-11, D-34; menú v2, HU-UX-11)", () => {
     const { getByTestId, alNavegar } = await renderCajon();
     await fireEvent.press(getByTestId("cajon-item-cobranza"));
 
-    expect(alNavegar).toHaveBeenCalledWith({ modulo: "cobranza", pestana: "gestores" });
+    expect(alNavegar).toHaveBeenCalledWith({ modulo: "cobranza", pestana: "gestores", entrada: "cobranza" });
     expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "none");
   });
 

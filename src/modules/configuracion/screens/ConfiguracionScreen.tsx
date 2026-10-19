@@ -11,7 +11,12 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
+import {
+  abrirPestanaAjena,
+  usePestanasDeEntrada,
+  type EntradaPestanas,
+  type SolicitudPestana,
+} from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
@@ -47,10 +52,21 @@ type Pestana =
   | "notificaciones";
 const PESTANAS: readonly Pestana[] = ["colaboradores", "habilidades", "conexiones", "ajustes", "plan", "notificaciones"];
 
-export function ConfiguracionScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
+export function ConfiguracionScreen({
+  pestanaInicial,
+  entrada,
+}: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
-  const [pestana, setPestana] = usePestanaInicial<Pestana>("colaboradores", PESTANAS, pestanaInicial);
+  // Solo las pestañas de la entrada del cajón (Equipo, Conexiones, Configuración);
+  // las de otra pantalla (Mensajes fallidos) se abren por el bus.
+  const { pestana, setPestana, propias, ajenas } = usePestanasDeEntrada<Pestana>(
+    "configuracion",
+    "colaboradores",
+    PESTANAS,
+    pestanaInicial,
+    entrada,
+  );
   const [colaboradores, setColaboradores] = useState<CollaboratorItem[]>([]);
   const [habilidades, setHabilidades] = useState<PluginSummary[]>([]);
   const [conexiones, setConexiones] = useState<ConnectionItem[]>([]);
@@ -180,46 +196,53 @@ export function ConfiguracionScreen({ pestanaInicial }: { pestanaInicial?: Solic
 
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
-      <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {([
-          "colaboradores",
-          "habilidades",
-          "conexiones",
-          "ajustes",
-          "plan",
-          "notificaciones",
-        ] as Pestana[]).map((p) => (
-          <Pressable
-            key={p}
-            testID={`config-${p}`}
-            onPress={() => setPestana(p)}
-            style={[
-              styles.pestana,
-              pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
-            ]}
-          >
-            <Text
-              style={{
-                color: pestana === p ? colores.texto : colores.textoSuave,
-                fontSize: 12,
-                fontWeight: "600",
-              }}
+      {propias.length + ajenas.length > 1 ? (
+        <View style={[styles.pestanas, { borderColor: colores.borde }]}>
+          {propias.map((p) => (
+            <Pressable
+              key={p}
+              testID={`config-${p}`}
+              onPress={() => setPestana(p)}
+              style={[
+                styles.pestana,
+                pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
+              ]}
             >
-              {p === "colaboradores"
-                ? "Colab."
-                : p === "habilidades"
-                  ? "Habil."
-                  : p === "conexiones"
-                    ? "Conex."
-                    : p === "ajustes"
-                      ? "Ajustes"
-                      : p === "plan"
-                        ? "Plan"
-                        : "Push"}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+              <Text
+                style={{
+                  color: pestana === p ? colores.texto : colores.textoSuave,
+                  fontSize: 12,
+                  fontWeight: "600",
+                }}
+              >
+                {p === "colaboradores"
+                  ? "Colab."
+                  : p === "habilidades"
+                    ? "Habil."
+                    : p === "conexiones"
+                      ? "Conex."
+                      : p === "ajustes"
+                        ? "Ajustes"
+                        : p === "plan"
+                          ? "Plan"
+                          : "Push"}
+              </Text>
+            </Pressable>
+          ))}
+          {ajenas.map((a) => (
+            <Pressable
+              key={`${a.tab}-${a.pestana}`}
+              testID={`config-${a.pestana}`}
+              onPress={() => abrirPestanaAjena(a)}
+              style={styles.pestana}
+            >
+              <Text style={{ color: colores.textoSuave, fontSize: 12, fontWeight: "600" }} numberOfLines={1}>
+                {a.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
 
       {error ? (
         <Text testID="config-error" style={{ color: colores.peligro, marginBottom: 8 }}>

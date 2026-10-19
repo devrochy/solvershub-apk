@@ -7,7 +7,7 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { EmptyState } from "@shared/ui";
 import { suscribirNavegacion } from "@shared/navegacion-evento";
-import type { SolicitudPestana } from "@shared/pestana-inicial";
+import type { EntradaPestanas, SolicitudPestana } from "@shared/pestana-inicial";
 import { CatalogoScreen } from "@shared/ui/catalogo/CatalogoScreen";
 import { DashboardScreen } from "../modules/dashboard";
 import { OperacionNavigator } from "../modules/operacion";
@@ -20,7 +20,14 @@ import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
 import { CajonPanel } from "./CajonPanel";
 import { HeaderPanel } from "./HeaderPanel";
-import { MODULOS_PANEL, modulosVisibles, tituloDeDestino, type ModuloPanel } from "./menu-panel";
+import {
+  MODULOS_PANEL,
+  entradaDeDestino,
+  modulosVisibles,
+  pestanasDeEntrada,
+  tituloDeDestino,
+  type ModuloPanel,
+} from "./menu-panel";
 import { MenuPanelProvider, useMenuPanel, type DestinoPanel } from "./menu-panel-context";
 
 export { catalogoDisponible, seccionesDeMenu } from "./menu-panel";
@@ -34,12 +41,15 @@ export { catalogoDisponible, seccionesDeMenu } from "./menu-panel";
  * Por debajo sigue un `Tab.Navigator` sin barra: conserva el montaje perezoso,
  * el estado por módulo y el `navRef` que usan el push y la Búsqueda (bus de
  * `@shared/navegacion-evento`). Cada ítem del cajón abre su módulo en la
- * pestaña interna pedida (`pestanaInicial`).
+ * pestaña interna pedida (`pestanaInicial`) y le pasa las pestañas de la
+ * entrada (`entrada`): la pantalla muestra solo esas (Equipo → Colaboradores).
  */
 
 const Tab = createBottomTabNavigator();
 
-type ParamsModulo = { pestanaInicial?: SolicitudPestana } | undefined;
+type ParamsModulo =
+  | { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas; screen?: string; params?: object }
+  | undefined;
 
 /**
  * Header de un módulo: lleva el nombre de la entrada del cajón por la que se
@@ -63,9 +73,10 @@ function ConHeader({ modulo, children }: { modulo: ModuloPanel; children: ReactN
 
 function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: ParamsModulo }) {
   const pestanaInicial = params?.pestanaInicial;
+  const entrada = params?.entrada;
   switch (modulo) {
     case "conversaciones":
-      return <OperacionNavigator encabezadoRaiz={<HeaderDeModulo modulo="conversaciones" />} />;
+      return <OperacionNavigator encabezadoRaiz={<HeaderDeModulo modulo="conversaciones" />} entrada={entrada} />;
     case "cobranza":
       return <CobranzaAdminNavigator encabezadoRaiz={<HeaderDeModulo modulo="cobranza" />} />;
     case "inicio":
@@ -83,7 +94,7 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
     case "calendario":
       return (
         <ConHeader modulo={modulo}>
-          <CalendarioScreen pestanaInicial={pestanaInicial} />
+          <CalendarioScreen pestanaInicial={pestanaInicial} entrada={entrada} />
         </ConHeader>
       );
     case "negocio":
@@ -95,13 +106,13 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
     case "configuracion":
       return (
         <ConHeader modulo={modulo}>
-          <ConfiguracionScreen pestanaInicial={pestanaInicial} />
+          <ConfiguracionScreen pestanaInicial={pestanaInicial} entrada={entrada} />
         </ConHeader>
       );
     case "herramientas":
       return (
         <ConHeader modulo={modulo}>
-          <HerramientasScreen pestanaInicial={pestanaInicial} />
+          <HerramientasScreen pestanaInicial={pestanaInicial} entrada={entrada} />
         </ConHeader>
       );
     case "busqueda":
@@ -125,10 +136,24 @@ export function PanelShell() {
   const esMaster = sesion?.role === "master";
   const permisos = useMemo(() => sesion?.permissions ?? {}, [sesion?.permissions]);
   const modulos = useMemo(() => modulosVisibles(permisos, esMaster), [permisos, esMaster]);
+  // Sin destino del cajón (arranque, módulo abierto por primera vez con back),
+  // cada módulo muestra las pestañas de su primera entrada visible.
+  const paramsIniciales = useMemo(
+    () =>
+      Object.fromEntries(
+        modulos.map((modulo) => {
+          const entrada = entradaDeDestino(permisos, esMaster, { modulo });
+          return [modulo, entrada ? { entrada: pestanasDeEntrada(entrada) } : undefined];
+        }),
+      ) as Partial<Record<ModuloPanel, { entrada: EntradaPestanas }>>,
+    [modulos, permisos, esMaster],
+  );
 
   const navRef = useRef(createNavigationContainerRef());
   const contador = useRef(0);
-  const [activo, setActivo] = useState<DestinoPanel | null>(() => (modulos[0] ? { modulo: modulos[0] } : null));
+  const [activo, setActivo] = useState<DestinoPanel | null>(() =>
+    modulos[0] ? { modulo: modulos[0], entrada: paramsIniciales[modulos[0]]?.entrada.id } : null,
+  );
   // Destino que llegó antes de que la navegación estuviera lista (push en frío).
   const destinoPendiente = useRef<DestinoPanel | null>(null);
 
@@ -140,14 +165,22 @@ export function PanelShell() {
         return;
       }
       const n = ++contador.current;
-      const params = destino.pestana ? { pestanaInicial: { pestana: destino.pestana, n } } : undefined;
+      // La entrada del cajón (o la que contiene el destino del bus) decide qué
+      // pestañas muestra la pantalla y el título del header.
+      const visible = entradaDeDestino(permisos, esMaster, destino);
+      const entrada = visible ? pestanasDeEntrada(visible) : undefined;
+      const params = {
+        ...(destino.pestana ? { pestanaInicial: { pestana: destino.pestana, n } } : {}),
+        entrada,
+      };
       const raiz = MODULOS_PANEL[destino.modulo].raizStack;
-      // Con stack propio, el `screen` anidado además vuelve a la raíz del módulo.
+      // Con stack propio, el `screen` anidado además vuelve a la raíz del módulo;
+      // `entrada` va también arriba, donde la lee el shell (header y back).
       const navegarA = navRef.current.navigate as (nombre: string, params?: object) => void;
-      navegarA(destino.modulo, raiz ? { screen: raiz, params } : params);
-      setActivo(destino);
+      navegarA(destino.modulo, raiz ? { screen: raiz, params, entrada } : params);
+      setActivo({ ...destino, entrada: visible?.id });
     },
-    [modulos],
+    [modulos, permisos, esMaster],
   );
 
   useEffect(() => {
@@ -196,15 +229,21 @@ export function PanelShell() {
           // Back del sistema u otro cambio fuera del cajón: el header y el
           // ítem resaltado siguen al módulo que quedó en pantalla.
           const estado = navRef.current?.getRootState();
-          const nombre = estado?.routes[estado.index]?.name as ModuloPanel | undefined;
+          const ruta = estado?.routes[estado.index];
+          const nombre = ruta?.name as ModuloPanel | undefined;
           if (nombre) {
-            setActivo((actual) => (actual?.modulo === nombre ? actual : { modulo: nombre }));
+            // La entrada sale de los params del módulo: el header sigue a la
+            // entrada cuyas pestañas están en pantalla.
+            const entrada = (ruta?.params as ParamsModulo)?.entrada?.id;
+            setActivo((actual) =>
+              actual?.modulo === nombre && actual.entrada === entrada ? actual : { modulo: nombre, entrada },
+            );
           }
         }}
       >
         <Tab.Navigator tabBar={() => null} screenOptions={{ headerShown: false }}>
           {modulos.map((modulo) => (
-            <Tab.Screen key={modulo} name={modulo}>
+            <Tab.Screen key={modulo} name={modulo} initialParams={paramsIniciales[modulo]}>
               {({ route }) => <ContenidoDeModulo modulo={modulo} params={route.params as ParamsModulo} />}
             </Tab.Screen>
           ))}

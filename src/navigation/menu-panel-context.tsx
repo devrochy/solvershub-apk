@@ -1,11 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { MENU_PANEL, type ModuloPanel } from "./menu-panel";
+import { MENU_PANEL, type DestinoMenu } from "./menu-panel";
 
-/** Destino dentro del panel: un módulo y, si aplica, su pestaña interna. */
-export interface DestinoPanel {
-  modulo: ModuloPanel;
-  pestana?: string;
-}
+/** Destino dentro del panel: un módulo, su pestaña interna y la entrada del cajón. */
+export type DestinoPanel = DestinoMenu;
 
 export interface MenuPanelValue {
   abierto: boolean;

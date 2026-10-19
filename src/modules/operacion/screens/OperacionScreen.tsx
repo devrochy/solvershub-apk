@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
+import { usePestanasDeEntrada, type EntradaPestanas, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import {
@@ -43,12 +43,22 @@ function Vacio({ texto }: { texto: string }) {
   return <Text style={[styles.vacio, { color: colores.textoSuave }]}>{texto}</Text>;
 }
 
-export function OperacionScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
+export function OperacionScreen({
+  pestanaInicial,
+  entrada,
+}: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const navigation = useNavigation<Nav>();
 
-  const [pestana, setPestana] = usePestanaInicial<Pestana>("conversaciones", PESTANAS, pestanaInicial);
+  // Solo las pestañas de la entrada del cajón (Conversaciones, Clientes, Agentes).
+  const { pestana, setPestana, propias } = usePestanasDeEntrada<Pestana>(
+    "conversaciones",
+    "conversaciones",
+    PESTANAS,
+    pestanaInicial,
+    entrada,
+  );
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -142,34 +152,36 @@ export function OperacionScreen({ pestanaInicial }: { pestanaInicial?: Solicitud
 
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
-      <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-        {(["conversaciones", "escalaciones", "leads", "playground"] as Pestana[]).map((p) => (
-          <Pressable
-            key={p}
-            testID={`pestana-${p}`}
-            onPress={() => setPestana(p)}
-            style={[
-              styles.pestana,
-              pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
-            ]}
-          >
-            <Text
+      {propias.length > 1 ? (
+        <View style={[styles.pestanas, { borderColor: colores.borde }]}>
+          {propias.map((p) => (
+            <Pressable
+              key={p}
+              testID={`pestana-${p}`}
+              onPress={() => setPestana(p)}
               style={[
-                styles.pestanaTexto,
-                { color: pestana === p ? colores.texto : colores.textoSuave },
+                styles.pestana,
+                pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
               ]}
             >
-              {p === "conversaciones"
-                ? "Conversaciones"
-                : p === "escalaciones"
-                  ? "Escalaciones"
-                  : p === "leads"
-                    ? "Clientes"
-                    : "Playground"}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+              <Text
+                style={[
+                  styles.pestanaTexto,
+                  { color: pestana === p ? colores.texto : colores.textoSuave },
+                ]}
+              >
+                {p === "conversaciones"
+                  ? "Conversaciones"
+                  : p === "escalaciones"
+                    ? "Escalaciones"
+                    : p === "leads"
+                      ? "Clientes"
+                      : "Playground"}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
 
       {pestana === "conversaciones" ? (
         <>
