@@ -1,6 +1,6 @@
 # ADR-APP-07 — Kit de UI en `shared/ui`, panel con header + cajón lateral y campo de cobranza con sus vistas
 
-- **Estado:** aceptado (enmendado el 2026-10-14)
+- **Estado:** aceptado (enmendado el 2026-10-14 y el 2026-10-19)
 - **Fecha:** 2026-10-10
 - **Contexto:** SPEC-29 (solvershub-docs), decisiones D-SPEC-29-5 y D-SPEC-29-6 (Diseño aprobado,
   D-32). HU-DS-09 (kit), HU-DS-10 (campo con el kit) y HU-DS-11 (shell del panel en la app).
@@ -12,6 +12,15 @@
 > (el cajón de campo ya era `Animated` + `Pressable`). Además, la app arranca en **tema oscuro**,
 > como el panel web, campo incluido; D-SPEC-29-6 se mantiene para vistas y flujo del campo. La
 > decisión 2 y la tabla de alternativas quedan reescritas abajo.
+
+> **Enmienda 2026-10-19 (D-37, HU-UX-11).** El panel web pasa al menú v2 (SPEC-12): de ~40 entradas a
+> 11, agrupadas por tarea, con las antiguas hermanas como pestañas. El cajón lo sigue: `menu-panel.ts`
+> declara grupos → **entradas** → pestañas (cada pestaña con `modulo`, `pestana` y `seccion`). La
+> entrada se ve con permiso en al menos una pestaña, abre la primera permitida y lleva el candado del
+> pack. Los módulos de la app (`ModuloPanel`, `ORDEN_MODULOS`) **no cambian**: varias entradas pueden
+> compartir módulo (Equipo y Configuración) y una entrada puede abarcar dos (Configuración → Mensajes
+> fallidos vive en `herramientas`); el header toma el nombre de la entrada. «Herramientas» deja de
+> ser un grupo del cajón y la Búsqueda pasa a la lupa del header.
 
 ## Contexto
 
@@ -51,8 +60,8 @@ muscular.
 2. **D-34 · Panel en la app con header + cajón lateral** (reemplaza a D-SPEC-29-5). `PanelShell`
    monta un `HeaderPanel` (hamburguesa, título del módulo, negocio, toggle de tema) en la raíz de
    cada módulo y un `CajonPanel` (`Drawer` del kit) con la lista de `src/navigation/menu-panel.ts`:
-   los mismos grupos y secciones que `nav.ts` del panel web, filtrados por `MeResponse.permissions`,
-   con los packs plegados al arrancar; cada sección abre su módulo en la pestaña interna pedida
+   los mismos grupos y entradas que `nav.ts` del panel web (menú v2 desde la enmienda del 2026-10-19),
+   filtrados por `MeResponse.permissions`; cada entrada abre su módulo en la primera pestaña permitida
    (`pestanaInicial` con nonce, `@shared/pestana-inicial`). Por debajo sigue un `Tab.Navigator`
    sin barra (montaje perezoso, estado por módulo y el `navRef` del bus de navegación). Sin
    `@react-navigation/drawer`: sale por EAS Update.

@@ -20,8 +20,8 @@ import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
 import { CajonPanel } from "./CajonPanel";
 import { HeaderPanel } from "./HeaderPanel";
-import { MODULOS_PANEL, modulosVisibles, type ModuloPanel } from "./menu-panel";
-import { MenuPanelProvider, type DestinoPanel } from "./menu-panel-context";
+import { MODULOS_PANEL, modulosVisibles, tituloDeDestino, type ModuloPanel } from "./menu-panel";
+import { MenuPanelProvider, useMenuPanel, type DestinoPanel } from "./menu-panel-context";
 
 export { catalogoDisponible, seccionesDeMenu } from "./menu-panel";
 
@@ -41,11 +41,21 @@ const Tab = createBottomTabNavigator();
 
 type ParamsModulo = { pestanaInicial?: SolicitudPestana } | undefined;
 
+/**
+ * Header de un módulo: lleva el nombre de la entrada del cajón por la que se
+ * llegó (varias entradas comparten módulo, p. ej. Equipo y Configuración).
+ */
+function HeaderDeModulo({ modulo }: { modulo: ModuloPanel }) {
+  const { activo } = useMenuPanel();
+  const titulo = activo?.modulo === modulo ? tituloDeDestino(activo) : MODULOS_PANEL[modulo].label;
+  return <HeaderPanel titulo={titulo} />;
+}
+
 function ConHeader({ modulo, children }: { modulo: ModuloPanel; children: ReactNode }) {
   const { colores } = useTheme();
   return (
     <View style={[styles.modulo, { backgroundColor: colores.fondo }]}>
-      <HeaderPanel titulo={MODULOS_PANEL[modulo].label} />
+      <HeaderDeModulo modulo={modulo} />
       {children}
     </View>
   );
@@ -55,9 +65,9 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
   const pestanaInicial = params?.pestanaInicial;
   switch (modulo) {
     case "conversaciones":
-      return <OperacionNavigator encabezadoRaiz={<HeaderPanel titulo={MODULOS_PANEL.conversaciones.label} />} />;
+      return <OperacionNavigator encabezadoRaiz={<HeaderDeModulo modulo="conversaciones" />} />;
     case "cobranza":
-      return <CobranzaAdminNavigator encabezadoRaiz={<HeaderPanel titulo={MODULOS_PANEL.cobranza.label} />} />;
+      return <CobranzaAdminNavigator encabezadoRaiz={<HeaderDeModulo modulo="cobranza" />} />;
     case "inicio":
       return (
         <ConHeader modulo={modulo}>
@@ -154,7 +164,7 @@ export function PanelShell() {
       <MenuPanelProvider activo={null} alNavegar={navegar}>
         {barra}
         <View style={[styles.modulo, { backgroundColor: colores.fondo }]}>
-          <HeaderPanel titulo="SolversHub" />
+          <HeaderPanel titulo="SolversHub" conBusqueda={false} />
           <EmptyState
             testID="panel-sin-secciones"
             icon="lock-outline"

@@ -5,23 +5,19 @@ import { useTheme } from "@core/theme/theme-context";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Drawer, Icono, ListItem, NavGroup, useKit } from "@shared/ui";
 import { SessionContext } from "../modules/cobranza/session/session-context";
-import { claveDeDestino, gruposDeMenu, type ItemMenuPanel } from "./menu-panel";
+import { entradaContiene, gruposDeMenu, type EntradaVisible } from "./menu-panel";
 import { useMenuPanel, type DestinoPanel } from "./menu-panel-context";
 
-/** Fila resaltada: solo con módulo y pestaña exactos (un destino sin pestaña no resalta ninguna). */
-function esActivo(item: ItemMenuPanel, activo: DestinoPanel | null): boolean {
-  return activo !== null && activo.modulo === item.modulo && activo.pestana === item.pestana;
-}
-
-/** El grupo del módulo activo se mantiene desplegado aunque no haya fila exacta. */
-function contieneModuloActivo(items: ItemMenuPanel[], activo: DestinoPanel | null): boolean {
-  return activo !== null && items.some((item) => item.modulo === activo.modulo);
+/** Entrada resaltada: contiene el destino activo (módulo y pestaña exactos). */
+function esActiva(entrada: EntradaVisible, activo: DestinoPanel | null): boolean {
+  return activo !== null && entradaContiene(entrada, activo);
 }
 
 /**
  * Cajón lateral del panel en la app (HU-DS-11, D-34): la misma lista agrupada
- * que el sidebar del panel web, filtrada por permisos, con los packs plegados
- * al arrancar. Abajo, la cuenta: negocio y correo, tema y cerrar sesión.
+ * que el sidebar del panel web (menú v2, HU-UX-11), filtrada por permisos. Cada
+ * entrada abre su primera pestaña permitida; la de un pack no habilitado queda
+ * con candado. Abajo, la cuenta: negocio y correo, tema y cerrar sesión.
  */
 export function CajonPanel() {
   const { c } = useKit();
@@ -49,29 +45,36 @@ export function CajonPanel() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.grupos}>
           {grupos.map((grupo) => {
-            const contieneActivo = contieneModuloActivo(grupo.items, activo);
+            const contieneActiva = grupo.entradas.some((entrada) => esActiva(entrada, activo));
             return (
               <NavGroup
                 key={grupo.id}
                 testID={`cajon-grupo-${grupo.id}`}
                 label={grupo.label}
                 icon={grupo.icono}
-                abierto={gruposAbiertos.has(grupo.id) || contieneActivo}
+                abierto={gruposAbiertos.has(grupo.id) || contieneActiva}
                 onToggle={() => alternarGrupo(grupo.id)}
-                bloqueado={grupo.bloqueado}
               >
-                {grupo.items.map((item) => {
-                  const clave = claveDeDestino(item.modulo, item.pestana);
-                  const seleccionado = esActivo(item, activo);
+                {grupo.entradas.map((entrada) => {
+                  const seleccionada = esActiva(entrada, activo);
                   return (
                     <ListItem
-                      key={clave}
-                      testID={`cajon-item-${clave}`}
-                      title={item.label}
-                      leading={<Icono name={item.icono} size={20} color={seleccionado ? c.textStrong : c.textMuted} />}
-                      selected={seleccionado}
+                      key={entrada.id}
+                      testID={`cajon-item-${entrada.id}`}
+                      title={entrada.label}
+                      leading={
+                        <Icono
+                          name={entrada.icono}
+                          size={20}
+                          color={entrada.bloqueado ? c.textSoft : seleccionada ? c.textStrong : c.textMuted}
+                        />
+                      }
+                      trailing={entrada.bloqueado ? <Icono name="lock" size={18} color={c.textSoft} /> : undefined}
+                      accessibilityHint={entrada.bloqueado ? "Habilidad no habilitada en tu negocio" : undefined}
+                      selected={seleccionada}
+                      disabled={entrada.bloqueado}
                       showChevron={false}
-                      onPress={() => irA({ modulo: item.modulo, pestana: item.pestana })}
+                      onPress={() => irA({ modulo: entrada.destino.modulo, pestana: entrada.destino.pestana })}
                     />
                   );
                 })}

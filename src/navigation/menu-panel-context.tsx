@@ -13,7 +13,7 @@ export interface MenuPanelValue {
   cerrar(): void;
   /** Último destino al que se navegó (resalta el ítem del cajón y titula el header). */
   activo: DestinoPanel | null;
-  /** Grupos desplegados; los packs arrancan plegados, como en el panel web. */
+  /** Grupos desplegados; con el menú v2 (una entrada por tarea) arrancan todos abiertos. */
   gruposAbiertos: ReadonlySet<string>;
   alternarGrupo(id: string): void;
   /** Toca un ítem del cajón: cierra y navega. */
@@ -33,7 +33,7 @@ const MenuPanelContext = createContext<MenuPanelValue>({
 });
 
 function gruposAbiertosPorDefecto(): Set<string> {
-  return new Set(MENU_PANEL.filter((g) => !g.pack).map((g) => g.id));
+  return new Set(MENU_PANEL.map((g) => g.id));
 }
 
 export function MenuPanelProvider({
