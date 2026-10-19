@@ -51,35 +51,34 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await fireEvent.press(getByTestId("panel-menu"));
     expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "auto");
     expect(getByTestId("cajon-grupo-operacion")).toBeTruthy();
-    expect(getByTestId("cajon-grupo-pack_cobranza")).toBeTruthy();
-    expect(getByTestId("cajon-grupo-pack_commerce")).toBeTruthy();
-    // Calendario y Negocio sin permiso → no aparecen.
-    expect(queryByTestId("cajon-grupo-pack_calendar")).toBeNull();
-    expect(queryByTestId("cajon-grupo-negocio")).toBeNull();
+    expect(getByTestId("cajon-item-cobranza")).toBeTruthy();
+    expect(getByTestId("cajon-item-ventas")).toBeTruthy();
+    // Agenda y Cuenta sin permiso → no aparecen.
+    expect(queryByTestId("cajon-item-agenda")).toBeNull();
+    expect(queryByTestId("cajon-grupo-cuenta")).toBeNull();
   });
 
-  it("una sección del cajón abre el módulo en su pestaña interna", async () => {
+  it("una entrada del cajón abre el módulo en su primera pestaña permitida", async () => {
     mockSesionValue = DUENO;
     const { findByTestId, getByTestId } = await renderShell();
     await findByTestId("panel-menu");
 
     await fireEvent.press(getByTestId("panel-menu"));
-    await fireEvent.press(getByTestId("cajon-grupo-pack_commerce"));
-    await fireEvent.press(getByTestId("cajon-item-comercio-pedidos"));
+    await fireEvent.press(getByTestId("cajon-item-ventas"));
 
-    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Comercio"));
-    await waitFor(() => expect(getByTestId("comercio-pedidos")).toHaveStyle({ borderBottomWidth: 2 }));
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Ventas"));
+    await waitFor(() => expect(getByTestId("comercio-resumen")).toHaveStyle({ borderBottomWidth: 2 }));
     expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "none");
   });
 
-  it("una sección de un módulo con stack (Cobranza) llega a su pestaña por los params anidados", async () => {
-    mockSesionValue = { token: "t", adminId: "a-6", role: "master", permissions: {} };
+  it("una entrada de un módulo con stack (Cobranza) llega a su pestaña por los params anidados", async () => {
+    // Solo Alertas de acceso: la primera pestaña permitida no es la de por defecto (Resumen).
+    mockSesionValue = { token: "t", adminId: "a-6", role: "owner", permissions: { "pack_cobranza:alertas": "read" } };
     const { findByTestId, getByTestId } = await renderShell();
     await findByTestId("panel-menu");
 
     await fireEvent.press(getByTestId("panel-menu"));
-    await fireEvent.press(getByTestId("cajon-grupo-pack_cobranza"));
-    await fireEvent.press(getByTestId("cajon-item-cobranza-alertas"));
+    await fireEvent.press(getByTestId("cajon-item-cobranza"));
 
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Cobranza"));
     await waitFor(() => expect(getByTestId("cobranza-alertas")).toHaveStyle({ borderBottomWidth: 2 }));
@@ -94,8 +93,26 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
       emitirNavegacion({ tab: "comercio", pestana: "productos" });
     });
 
-    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Comercio"));
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Ventas"));
     await waitFor(() => expect(getByTestId("comercio-productos")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
+
+  it("el header lleva el nombre de la entrada aunque compartan módulo, y la lupa abre la Búsqueda", async () => {
+    mockSesionValue = { ...DUENO, permissions: { collaborators: "read", settings: "write" } };
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-item-equipo"));
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Equipo"));
+
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-item-configuracion"));
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Configuración"));
+    await waitFor(() => expect(getByTestId("config-ajustes")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("panel-buscar"));
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Buscar"));
   });
 
   it("la raíz de Cobranza lleva el header del panel (sin header nativo encima)", async () => {
@@ -137,7 +154,7 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await findByTestId("panel-menu");
     await fireEvent.press(getByTestId("panel-menu"));
     expect(getByTestId("cajon-grupo-plataforma")).toBeTruthy();
-    expect(getByTestId("cajon-item-herramientas-negocios")).toBeTruthy();
+    expect(getByTestId("cajon-item-negocios")).toBeTruthy();
     unmount();
 
     mockSesionValue = { token: "t", adminId: "a-4", role: "owner", permissions: { tenants: "write", dashboard: "read" } };

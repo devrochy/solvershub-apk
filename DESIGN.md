@@ -61,10 +61,14 @@ Se respeta la fuente del sistema hasta 200 %; las cifras densas usan
 ## Panel en la app (D-34)
 
 Header con hamburguesa + cajón lateral (`src/navigation/HeaderPanel.tsx`, `CajonPanel.tsx`) con la
-misma lista agrupada que el sidebar del panel web, definida en `src/navigation/menu-panel.ts`
-(claves estables `modulo`, `pestana` y `seccion`; los labels son reemplazables). Los packs
-arrancan plegados. Una sección nueva del panel se agrega ahí y en la pantalla del módulo como
-pestaña con `usePestanaInicial`. El tema arranca en oscuro en toda la app, como el panel web; el
+misma lista que el sidebar del panel web (menú v2, HU-UX-11), definida en `src/navigation/menu-panel.ts`:
+grupos por tarea (Operación, Tu asistente, Negocio, Cuenta y Plataforma) con **una entrada por
+tarea** y sus pestañas. Claves estables: el `id` de la entrada (`cajon-item-<id>`), `modulo`,
+`pestana` y `seccion`; los labels son reemplazables. Una entrada se ve si el usuario puede ver al
+menos una de sus pestañas, abre la primera permitida y, si es de un pack no habilitado, queda con
+candado. Solo se mapean pantallas que existen en la app: una pestaña del panel web sin pantalla
+aquí se omite. Una sección nueva se agrega como pestaña de su entrada y en la pantalla del módulo
+con `usePestanaInicial`. La Búsqueda se abre con la lupa del header, como en la topbar del panel. El tema arranca en oscuro en toda la app, como el panel web; el
 toggle está en el header y en el cajón (y en el menú lateral del campo).
 
 ## Campo de cobranza (D-SPEC-29-6)

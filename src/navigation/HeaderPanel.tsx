@@ -9,14 +9,15 @@ import { useMenuPanel } from "./menu-panel-context";
 /**
  * Header del panel en la app (HU-DS-11, D-34): hamburguesa que abre el cajón,
  * título del módulo con el nombre del negocio debajo y el toggle de tema, como
- * la topbar del panel web (`theme-toggle.tsx`). Reserva el área segura superior
- * (edge-to-edge): va en la raíz de cada módulo.
+ * la topbar del panel web (`theme-toggle.tsx`). La lupa abre la Búsqueda, que
+ * en el panel web también vive en la topbar y no en el menú (HU-UX-11). Reserva
+ * el área segura superior (edge-to-edge): va en la raíz de cada módulo.
  */
-export function HeaderPanel({ titulo }: { titulo: string }) {
+export function HeaderPanel({ titulo, conBusqueda = true }: { titulo: string; conBusqueda?: boolean }) {
   const { c } = useKit();
   const { tema, alternarTema } = useTheme();
   const { sesion } = useAdminSession();
-  const { abrir } = useMenuPanel();
+  const { abrir, irA } = useMenuPanel();
   const insets = useSafeAreaInsets();
   const oscuro = tema === "oscuro";
 
@@ -37,6 +38,9 @@ export function HeaderPanel({ titulo }: { titulo: string }) {
             </Text>
           ) : null}
         </View>
+        {conBusqueda ? (
+          <IconButton testID="panel-buscar" icon="search" label="Buscar" onPress={() => irA({ modulo: "busqueda" })} />
+        ) : null}
         <IconButton
           testID="panel-tema"
           icon={oscuro ? "light-mode" : "dark-mode"}

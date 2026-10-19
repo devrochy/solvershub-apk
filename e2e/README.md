@@ -35,19 +35,21 @@ clave de firma.
 ### Panel del dueño (`smoke-panel-dueno.yaml`)
 
 1. Login del dueño (`dueno-a@demo.test`) → selector de negocio → "Cobranza Demo".
-2. Cobranza → Gestores (modal con permisos finos, sin guardar) → Propietario.
-3. Comercio → Resumen con KPIs.
-4. Calendario → Horario (guarda los valores sin cambios → "Horario guardado.") → Conexión.
-5. Configuración → Ajustes → guarda Identidad sin cambios ("Identidad guardada.").
-6. Configuración → Conexiones → Meta → Producción → corre las comprobaciones.
+2. Cobranza → pestaña Gestores (modal con permisos finos, sin guardar) → pestaña Propietario.
+3. Ventas → Resumen con KPIs.
+4. Agenda → pestaña Horario (guarda los valores sin cambios → "Horario guardado.") → pestaña Google Calendar.
+5. Configuración → General → guarda Identidad sin cambios ("Identidad guardada.").
+6. Conexiones → Meta → Producción → corre las comprobaciones.
 7. El toggle de tema del header alterna y vuelve.
 
 Desde HU-DS-11 (D-34) el panel en la app navega con el header (`panel-menu`,
-`panel-tema`) y el cajón lateral: grupos `cajon-grupo-<id>` (`pack_cobranza`,
-`pack_commerce`, `pack_calendar`, `configuracion`, …) e ítems
-`cajon-item-<modulo>-<pestana>` (p. ej. `cajon-item-cobranza-gestores`). Los
-packs arrancan plegados: primero se toca el grupo. Cada ítem abre el módulo en
-su pestaña, así que ya no hace falta deslizar la barra de pestañas de Cobranza.
+`panel-buscar`, `panel-tema`) y el cajón lateral. Con el menú v2 (HU-UX-11) el
+cajón tiene grupos por tarea `cajon-grupo-<id>` (`operacion`, `asistente`,
+`negocio`, `cuenta`, `plataforma`) y una fila por entrada `cajon-item-<id>`
+(`resumen`, `conversaciones`, `clientes`, `agentes`, `conexiones`, `agenda`,
+`ventas`, `cobranza`, `consumo`, `equipo`, `configuracion`, `negocios`). Cada
+entrada abre su primera pestaña permitida; las demás se tocan dentro de la
+pantalla (en Cobranza hay que deslizar `cobranza-pestanas`).
 
 ## Estado
 

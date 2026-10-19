@@ -43,65 +43,62 @@ const DUENO = {
   },
 };
 
-describe("CajonPanel (HU-DS-11, D-34)", () => {
+describe("CajonPanel (HU-DS-11, D-34; menú v2, HU-UX-11)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSesionValue = DUENO;
   });
 
-  it("lista solo los grupos y secciones de los permisos, con los packs plegados", async () => {
+  it("lista solo las entradas con alguna pestaña permitida, agrupadas por tarea", async () => {
     const { getByTestId, queryByTestId } = await renderCajon();
     expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "auto");
 
     expect(getByTestId("cajon-grupo-operacion")).toBeTruthy();
-    expect(getByTestId("cajon-grupo-pack_cobranza")).toBeTruthy();
-    expect(getByTestId("cajon-grupo-pack_commerce")).toBeTruthy();
-    expect(getByTestId("cajon-grupo-herramientas")).toBeTruthy();
-    expect(queryByTestId("cajon-grupo-pack_calendar")).toBeNull();
-    expect(queryByTestId("cajon-grupo-negocio")).toBeNull();
+    expect(getByTestId("cajon-grupo-negocio")).toBeTruthy();
+    expect(queryByTestId("cajon-grupo-asistente")).toBeNull();
+    expect(queryByTestId("cajon-grupo-cuenta")).toBeNull();
     expect(queryByTestId("cajon-grupo-plataforma")).toBeNull();
+    expect(queryByTestId("cajon-grupo-herramientas")).toBeNull();
 
-    // Operación está desplegado; los packs, plegados.
-    expect(getByTestId("cajon-item-inicio")).toBeTruthy();
-    expect(getByTestId("cajon-item-conversaciones-conversaciones")).toBeTruthy();
-    expect(queryByTestId("cajon-item-conversaciones-leads")).toBeNull();
+    // Los grupos arrancan abiertos: una fila por entrada, sin hermanas por pestaña.
+    expect(getByTestId("cajon-item-resumen")).toBeTruthy();
+    expect(getByTestId("cajon-item-conversaciones")).toBeTruthy();
+    expect(queryByTestId("cajon-item-clientes")).toBeNull();
+    expect(getByTestId("cajon-item-cobranza")).toBeTruthy();
+    expect(getByTestId("cajon-item-ventas")).toBeTruthy();
+    expect(queryByTestId("cajon-item-agenda")).toBeNull();
     expect(queryByTestId("cajon-item-cobranza-gestores")).toBeNull();
 
-    await fireEvent.press(getByTestId("cajon-grupo-pack_cobranza"));
-    expect(getByTestId("cajon-item-cobranza-resumen")).toBeTruthy();
-    expect(getByTestId("cajon-item-cobranza-gestores")).toBeTruthy();
-    expect(queryByTestId("cajon-item-cobranza-carteras")).toBeNull();
+    await fireEvent.press(getByTestId("cajon-grupo-negocio"));
+    expect(queryByTestId("cajon-item-cobranza")).toBeNull();
   });
 
-  it("tocar una sección navega al módulo en su pestaña y cierra el cajón", async () => {
+  it("tocar una entrada abre su primera pestaña permitida y cierra el cajón", async () => {
+    mockSesionValue = { ...DUENO, permissions: { "pack_cobranza:gestores": "write", pack_commerce: "read" } };
     const { getByTestId, alNavegar } = await renderCajon();
-    await fireEvent.press(getByTestId("cajon-grupo-pack_commerce"));
-    await fireEvent.press(getByTestId("cajon-item-comercio-pedidos"));
+    await fireEvent.press(getByTestId("cajon-item-cobranza"));
 
-    expect(alNavegar).toHaveBeenCalledWith({ modulo: "comercio", pestana: "pedidos" });
+    expect(alNavegar).toHaveBeenCalledWith({ modulo: "cobranza", pestana: "gestores" });
     expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "none");
   });
 
-  it("resalta el destino activo y mantiene abierto su grupo", async () => {
-    const { getByTestId } = await renderCajon({ modulo: "cobranza", pestana: "gestores" });
-    // El pack arranca plegado, pero contiene el ítem activo.
-    expect(getByTestId("cajon-item-cobranza-gestores")).toHaveProp("accessibilityState", {
+  it("resalta la entrada que contiene el destino activo", async () => {
+    mockSesionValue = { ...DUENO, permissions: { settings: "write", collaborators: "read" } };
+    const { getByTestId } = await renderCajon({ modulo: "herramientas", pestana: "fallos" });
+    expect(getByTestId("cajon-item-configuracion")).toHaveProp("accessibilityState", {
       selected: true,
       disabled: false,
     });
-    expect(getByTestId("cajon-item-cobranza-resumen")).toHaveProp("accessibilityState", {
+    // Equipo comparte módulo con Configuración, pero no contiene el destino.
+    expect(getByTestId("cajon-item-equipo")).toHaveProp("accessibilityState", {
       selected: false,
       disabled: false,
     });
   });
 
-  it("un destino sin pestaña (push, back) abre el grupo pero no resalta ninguna fila", async () => {
+  it("un destino sin pestaña (push, back) no resalta ninguna fila de ese módulo", async () => {
     const { getByTestId } = await renderCajon({ modulo: "cobranza" });
-    expect(getByTestId("cajon-item-cobranza-resumen")).toHaveProp("accessibilityState", {
-      selected: false,
-      disabled: false,
-    });
-    expect(getByTestId("cajon-item-cobranza-gestores")).toHaveProp("accessibilityState", {
+    expect(getByTestId("cajon-item-cobranza")).toHaveProp("accessibilityState", {
       selected: false,
       disabled: false,
     });
@@ -111,7 +108,7 @@ describe("CajonPanel (HU-DS-11, D-34)", () => {
     mockSesionValue = { ...DUENO, role: "master", permissions: {} };
     const { getByTestId } = await renderCajon();
     expect(getByTestId("cajon-grupo-plataforma")).toBeTruthy();
-    expect(getByTestId("cajon-item-herramientas-negocios")).toBeTruthy();
+    expect(getByTestId("cajon-item-negocios")).toBeTruthy();
     expect(getByTestId("cajon-grupo-desarrollo")).toBeTruthy();
     expect(getByTestId("cajon-item-catalogo")).toBeTruthy();
   });
