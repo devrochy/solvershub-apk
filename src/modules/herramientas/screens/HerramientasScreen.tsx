@@ -14,16 +14,23 @@ import {
   type EntradaPestanas,
   type SolicitudPestana,
 } from "@shared/pestana-inicial";
+import { AdminApiError } from "@core/api/admin";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { baseActual } from "@data/bootstrap";
 import { registrarAccionCritica } from "@data/auditoria-sync";
+import { Button, Field, Sheet, TextField } from "@shared/ui";
 import {
+  AVISO_DESACTIVAR_PRIMERO,
+  MENSAJE_NO_SUSPENDIDO,
   accionNegocio,
   cargarDlq,
   cargarNegocios,
+  fraseDeEliminar,
+  purgarNegocio,
   reintentarDlq,
+  sePuedeEliminar,
   type DlqEntry,
   type PlatformTenant,
 } from "../api";
@@ -53,6 +60,10 @@ export function HerramientasScreen({
   const [negocios, setNegocios] = useState<PlatformTenant[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [porEliminar, setPorEliminar] = useState<PlatformTenant | null>(null);
+  const [frase, setFrase] = useState("");
+  const [eliminando, setEliminando] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -104,9 +115,52 @@ export function HerramientasScreen({
               .catch(() => setError("No se pudo cambiar el negocio."));
           },
         },
+        { text: "Eliminar…", style: "destructive", onPress: () => abrirEliminar(t) },
       ],
     );
   };
+
+  const abrirEliminar = (t: PlatformTenant) => {
+    setFrase("");
+    setErrorEliminar(null);
+    setPorEliminar(t);
+  };
+
+  const cerrarEliminar = () => {
+    if (!eliminando) setPorEliminar(null);
+  };
+
+  const eliminar = (t: PlatformTenant) => {
+    setEliminando(true);
+    setErrorEliminar(null);
+    void purgarNegocio(api, t.id, frase.trim())
+      .then(() => {
+        const db = baseActual();
+        if (db) {
+          void registrarAccionCritica(db, {
+            accion: "eliminar_negocio",
+            entidad: "tenant",
+            entidadId: t.id,
+            payload: { slug: t.slug },
+          }).catch(() => undefined);
+        }
+        setPorEliminar(null);
+        return cargar();
+      })
+      .catch((e: unknown) => {
+        setErrorEliminar(
+          e instanceof AdminApiError && e.code === "tenant_not_suspended"
+            ? MENSAJE_NO_SUSPENDIDO
+            : e instanceof AdminApiError
+              ? e.message
+              : "No se pudo eliminar el negocio.",
+        );
+      })
+      .finally(() => setEliminando(false));
+  };
+
+  const eliminable = porEliminar ? sePuedeEliminar(porEliminar.status) : false;
+  const fraseEsperada = porEliminar ? fraseDeEliminar(porEliminar.slug) : "";
 
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
@@ -217,6 +271,45 @@ export function HerramientasScreen({
           )}
         />
       )}
+
+      <Sheet
+        testID="eliminar-negocio"
+        visible={porEliminar !== null}
+        onClose={cerrarEliminar}
+        title="Eliminar negocio"
+        description={porEliminar ? `${porEliminar.name} · ${porEliminar.slug}. Borra todos sus datos y no se puede deshacer.` : undefined}
+        footer={
+          eliminable ? (
+            <Button
+              testID="eliminar-negocio-confirmar"
+              variant="danger"
+              fullWidth
+              loading={eliminando}
+              disabled={frase.trim() !== fraseEsperada}
+              onPress={() => porEliminar && eliminar(porEliminar)}
+            >
+              Eliminar definitivamente
+            </Button>
+          ) : null
+        }
+      >
+        {eliminable ? (
+          <Field label="Frase de confirmación" hint={`Escribe exactamente: ${fraseEsperada}`} error={errorEliminar} required>
+            <TextField
+              testID="eliminar-negocio-frase"
+              value={frase}
+              onChangeText={setFrase}
+              placeholder={fraseEsperada}
+              autoCapitalize="characters"
+              autoCorrect={false}
+            />
+          </Field>
+        ) : (
+          <Text testID="eliminar-negocio-aviso" style={{ color: colores.textoSuave }}>
+            {AVISO_DESACTIVAR_PRIMERO}
+          </Text>
+        )}
+      </Sheet>
     </View>
   );
 }

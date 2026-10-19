@@ -71,6 +71,12 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
     expect(seccionesDeMenu({ tenants: "write" }, false, { dev: false }).map((i) => i.seccion)).not.toContain("tenants");
   });
 
+  it("eliminar un negocio vive en Plataforma → Negocios: ninguna entrada abre la vieja pestaña Plan de Configuración", () => {
+    const items = seccionesDeMenu({ plan: "write", settings: "write" }, true, { dev: false });
+    expect(items.find((i) => i.entrada === "negocios")).toMatchObject({ modulo: "herramientas", pestana: "negocios" });
+    expect(items.some((i) => i.modulo === "configuracion" && i.pestana === "plan")).toBe(false);
+  });
+
   it("sin permisos y sin master el menú queda vacío", () => {
     expect(seccionesDeMenu({}, false, { dev: false })).toEqual([]);
     expect(modulosVisibles({}, false, { dev: false })).toEqual([]);

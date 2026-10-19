@@ -135,6 +135,7 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     expect(getByTestId("config-notificaciones")).toBeTruthy();
     expect(queryByTestId("config-colaboradores")).toBeNull();
     expect(queryByTestId("config-conexiones")).toBeNull();
+    // La pestaña Plan de Configuración ya no existe (la eliminación de negocios está en Plataforma).
     expect(queryByTestId("config-plan")).toBeNull();
 
     // Mensajes fallidos abre Herramientas por el bus, sin salir de la entrada.
@@ -209,6 +210,10 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await fireEvent.press(getByTestId("panel-menu"));
     expect(getByTestId("cajon-grupo-plataforma")).toBeTruthy();
     expect(getByTestId("cajon-item-negocios")).toBeTruthy();
+    // Negocios abre la lista de la plataforma (desde ahí se suspende o elimina un negocio).
+    await fireEvent.press(getByTestId("cajon-item-negocios"));
+    await waitFor(() => expect(getByTestId("herramientas-lista-negocios")).toBeTruthy());
+    expect(getByTestId("panel-titulo").props.children).toBe("Negocios");
     unmount();
 
     mockSesionValue = { token: "t", adminId: "a-4", role: "owner", permissions: { tenants: "write", dashboard: "read" } };
