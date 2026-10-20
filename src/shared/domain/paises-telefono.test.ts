@@ -14,7 +14,7 @@ describe("paises-telefono", () => {
 
   it("infiere el país desde un número internacional", () => {
     expect(paisDesdeTelefono("+5917000111")).toMatchObject({ codigo: "BO" });
-    expect(paisDesdeTelefono("+573184935933")).toMatchObject({ codigo: "CO" });
+    expect(paisDesdeTelefono("+573001234567")).toMatchObject({ codigo: "CO" });
   });
 
   it("devuelve null para números sin prefijo internacional", () => {
