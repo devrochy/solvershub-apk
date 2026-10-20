@@ -45,6 +45,8 @@ export interface PestanaDeEntrada {
   tab: string;
   pestana: string;
   label: string;
+  /** Fuera de la barra de pestañas salvo cuando es la que está en pantalla (HU-UX-08). */
+  oculta?: boolean;
 }
 
 /**
@@ -65,6 +67,8 @@ export interface PestanasDeEntrada<T extends string> {
   setPestana: Dispatch<SetStateAction<T>>;
   /** Pestañas de esta pantalla que la entrada muestra, en el orden de la pantalla. */
   propias: readonly T[];
+  /** Las de `propias` que van en la barra: sin las ocultas, salvo la que está en pantalla. */
+  enBarra: readonly T[];
   /** Pestañas de la entrada que viven en otra pantalla. */
   ajenas: readonly PestanaDeEntrada[];
 }
@@ -92,7 +96,13 @@ export function usePestanasDeEntrada<T extends string>(
     propias,
     solicitud,
   );
-  return { pestana: propias.includes(pestana) ? pestana : propias[0], setPestana, propias, ajenas };
+  const actual = propias.includes(pestana) ? pestana : propias[0];
+  const ocultas = useMemo(
+    () => new Set(entrada?.pestanas.filter((e) => e.tab === tab && e.oculta).map((e) => e.pestana) ?? []),
+    [tab, entrada],
+  );
+  const enBarra = propias.filter((p) => p === actual || !ocultas.has(p));
+  return { pestana: actual, setPestana, propias, enBarra, ajenas };
 }
 
 /** Abre una pestaña de la entrada que vive en otra pantalla. */

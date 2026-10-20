@@ -56,6 +56,35 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
     ]);
   });
 
+  it("Agenda: Calendario · Tipos de cita · Horario · Google Calendar; Bloqueos oculta al final (HU-UX-08)", () => {
+    const agenda = gruposDeMenu({}, true, { dev: false })
+      .flatMap((g) => g.entradas)
+      .find((e) => e.id === "agenda")!;
+    expect(agenda.pestanas.filter((p) => !p.oculta).map((p) => p.label)).toEqual([
+      "Calendario",
+      "Tipos de cita",
+      "Horario",
+      "Google Calendar",
+    ]);
+    expect(agenda.pestanas.at(-1)).toMatchObject({ pestana: "bloqueos", seccion: "pack_calendar:bloqueos", oculta: true });
+    expect(agenda.destino).toMatchObject({ pestana: "semana" });
+    expect(pestanasDeEntrada(agenda).pestanas.at(-1)).toEqual({
+      tab: "calendario",
+      pestana: "bloqueos",
+      label: "Bloqueos",
+      oculta: true,
+    });
+
+    // El push y la Búsqueda siguen llegando a Bloqueos por su pestaña.
+    expect(entradaDeDestino({}, true, { modulo: "calendario", pestana: "bloqueos" })).toMatchObject({ id: "agenda" });
+
+    // Con permiso solo en Bloqueos, la entrada sigue y abre en ella (como el panel web).
+    const soloBloqueos = gruposDeMenu({ "pack_calendar:bloqueos": "write" }, false, { dev: false })
+      .flatMap((g) => g.entradas)
+      .find((e) => e.id === "agenda");
+    expect(soloBloqueos?.destino).toMatchObject({ pestana: "bloqueos" });
+  });
+
   it("Configuración absorbe Mensajes fallidos; Equipo es Colaboradores", () => {
     const items = seccionesDeMenu({ settings: "write", collaborators: "read" }, false, { dev: false });
     expect(items.filter((i) => i.entrada === "configuracion").map((i) => [i.modulo, i.pestana])).toEqual([
