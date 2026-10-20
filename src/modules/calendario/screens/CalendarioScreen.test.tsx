@@ -9,6 +9,7 @@ import { Linking } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { apiRoot } from "@core/config";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { gruposDeMenu, pestanasDeEntrada } from "@/navigation/menu-panel";
 import { CalendarioScreen } from "./CalendarioScreen";
 
 const mockUseAdminApi = useAdminApi as jest.Mock;
@@ -198,5 +199,30 @@ describe("CalendarioScreen (HU-APP-11)", () => {
   it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
     const { getByTestId } = await render(<CalendarioScreen pestanaInicial={{ pestana: "bloqueos", n: 1 }} />);
     await waitFor(() => expect(getByTestId("calendario-bloqueos")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
+
+  describe("entrada Agenda del cajón (HU-UX-08)", () => {
+    const agenda = pestanasDeEntrada(
+      gruposDeMenu({}, true, { dev: false })
+        .flatMap((g) => g.entradas)
+        .find((e) => e.id === "agenda")!,
+    );
+
+    it("la barra no muestra Bloqueos", async () => {
+      const { getByTestId, queryByTestId } = await render(<CalendarioScreen entrada={agenda} />);
+      await waitFor(() => expect(getByTestId("calendario-lista-semana")).toBeTruthy());
+      for (const p of ["semana", "tipos", "horario", "conexion"]) {
+        expect(getByTestId(`calendario-${p}`)).toBeTruthy();
+      }
+      expect(queryByTestId("calendario-bloqueos")).toBeNull();
+    });
+
+    it("pedida por su pestaña (push, Búsqueda), Bloqueos sigue abriendo", async () => {
+      const { getByTestId } = await render(
+        <CalendarioScreen entrada={agenda} pestanaInicial={{ pestana: "bloqueos", n: 1 }} />,
+      );
+      await waitFor(() => expect(getByTestId("calendario-lista-bloqueos")).toBeTruthy());
+      expect(getByTestId("calendario-bloqueos")).toHaveStyle({ borderBottomWidth: 2 });
+    });
   });
 });

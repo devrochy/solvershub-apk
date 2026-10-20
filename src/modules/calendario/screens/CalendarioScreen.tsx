@@ -88,7 +88,7 @@ export function CalendarioScreen({
   const api = useAdminApi();
   const { sesion } = useAdminSession();
   // Solo las pestañas de Agenda que el usuario puede ver (cada una tiene su sección RBAC).
-  const { pestana, setPestana, propias } = usePestanasDeEntrada<Pestana>(
+  const { pestana, setPestana, enBarra } = usePestanasDeEntrada<Pestana>(
     "calendario",
     "semana",
     PESTANAS,
@@ -209,9 +209,9 @@ export function CalendarioScreen({
 
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
-      {propias.length > 1 ? (
+      {enBarra.length > 1 ? (
         <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-          {propias.map((p) => (
+          {enBarra.map((p) => (
             <Pressable
               key={p}
               testID={`calendario-${p}`}
