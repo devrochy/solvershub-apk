@@ -22,6 +22,7 @@ import {
   type FichaDelCliente,
 } from "../api";
 import type { OperacionStackParamList } from "../navigation";
+import { NotasYHistoria } from "./NotasYHistoria";
 
 type Props = NativeStackScreenProps<OperacionStackParamList, "ClienteDetalle">;
 
@@ -241,6 +242,13 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
           </View>
         ))
       )}
+
+      <NotasYHistoria
+        leadId={id}
+        onAbrirConversacion={(conversacionId) =>
+          navigation.navigate("ConversacionDetalle", { id: conversacionId, titulo: ficha.cliente })
+        }
+      />
     </ScrollView>
   );
 }

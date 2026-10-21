@@ -125,6 +125,56 @@ export async function alternarAgenteDelCliente(api: ClienteAdmin, id: string): P
   return res.bot_paused;
 }
 
+/** Nota del equipo sobre el cliente (HU-CRM-04). */
+export interface NotaDelCliente {
+  id: string;
+  text: string;
+  author: string;
+  created_at: string;
+  puede_borrar: boolean;
+}
+
+export interface EventoDelCliente {
+  at: string;
+  kind: string;
+  title: string;
+  detail?: string | null;
+  link_kind?: string | null;
+  link_id?: string | null;
+}
+
+export interface PaginaHistoria {
+  items: EventoDelCliente[];
+  next_cursor: string | null;
+  partial: boolean;
+}
+
+export async function notasDelCliente(api: ClienteAdmin, id: string): Promise<NotaDelCliente[]> {
+  return api.get<NotaDelCliente[]>(`/admin/leads/${id}/notes`);
+}
+
+export async function agregarNota(api: ClienteAdmin, id: string, text: string): Promise<NotaDelCliente> {
+  return api.post<NotaDelCliente>(`/admin/leads/${id}/notes`, { text });
+}
+
+export async function borrarNota(api: ClienteAdmin, id: string, notaId: string): Promise<void> {
+  await api.del(`/admin/leads/${id}/notes/${notaId}`);
+}
+
+export async function historiaDelCliente(api: ClienteAdmin, id: string, cursor?: string | null): Promise<PaginaHistoria> {
+  return api.get<PaginaHistoria>(`/admin/leads/${id}/timeline`, { limit: 20, cursor: cursor ?? undefined });
+}
+
+export const TIPO_DE_EVENTO: Record<string, string> = {
+  conversacion: "Conversación",
+  escalacion: "Escalación",
+  dato: "Dato",
+  nota: "Nota",
+  cotizacion: "Cotización",
+  pedido: "Pedido",
+  cita: "Cita",
+};
+
 const ORIGEN: Record<string, string> = { tool: "Asistente", agent: "Asistente", human: "Persona", import: "Importado" };
 
 export function origenDelDato(source: string): string {
