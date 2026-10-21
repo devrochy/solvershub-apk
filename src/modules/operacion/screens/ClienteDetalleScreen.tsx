@@ -15,6 +15,7 @@ import { useAdminApi } from "@core/session/use-admin-api";
 import {
   alternarAgenteDelCliente,
   corregirDatosDelCliente,
+  datosDelPerfil,
   etiquetaDelDato,
   fichaDelCliente,
   origenDelDato,
@@ -22,6 +23,7 @@ import {
   type FichaDelCliente,
 } from "../api";
 import type { OperacionStackParamList } from "../navigation";
+import { LeadDeVenta } from "./LeadDeVenta";
 import { NotasYHistoria } from "./NotasYHistoria";
 
 type Props = NativeStackScreenProps<OperacionStackParamList, "ClienteDetalle">;
@@ -29,7 +31,8 @@ type Props = NativeStackScreenProps<OperacionStackParamList, "ClienteDetalle">;
 /**
  * Ficha del cliente (HU-CRM-02): información general, el interruptor del agente solo para este
  * cliente, su clasificación y lo que sabemos de él (con origen y fecha), con corrección de datos.
- * Misma API que la ficha del panel (HU-UX-16).
+ * Misma API que la ficha del panel (HU-UX-16). Los packs aportan campos editables, como el estado y
+ * el interés del lead de venta (ADR-0149); los datos de contacto son siempre los del perfil.
  */
 export function ClienteDetalleScreen({ route, navigation }: Props) {
   const { colores } = useTheme();
@@ -74,7 +77,11 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
     );
   }
 
-  const perfil = ficha.datos.filter((d) => d.namespace === "perfil" && d.key !== "name");
+  const perfil = datosDelPerfil(ficha);
+  const editables = ficha.editables ?? [];
+  const claves = new Set(editables.map((e) => e.key));
+  const columnas = ficha.columns.filter((c) => !claves.has(c.key));
+  const packs = [...new Set(editables.map((e) => e.plugin_id))];
 
   const alternar = async () => {
     const antes = ficha.bot_paused;
@@ -153,7 +160,7 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
         </View>
         <Linea etiqueta="Teléfono" valor={ficha.telefono ?? "—"} />
         <Linea etiqueta="Conexiones" valor={ficha.conexiones.map((c) => c.label).join(", ") || "—"} />
-        {ficha.columns.map((col) => (
+        {columnas.map((col) => (
           <Linea key={col.key} etiqueta={col.label} valor={textoDelDato(ficha.extras[col.key])} />
         ))}
         {ficha.ultima_conversacion_id && (
@@ -172,6 +179,16 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
           </Pressable>
         )}
       </View>
+
+      {packs.map((pluginId) => (
+        <LeadDeVenta
+          key={pluginId}
+          clienteId={id}
+          pluginId={pluginId}
+          campos={editables.filter((e) => e.plugin_id === pluginId)}
+          onGuardado={setFicha}
+        />
+      ))}
 
       <View style={styles.cabeceraSeccion}>
         <Text style={[styles.seccion, { color: colores.texto }]}>Lo que sabemos</Text>

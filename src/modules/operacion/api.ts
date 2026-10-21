@@ -31,6 +31,19 @@ export interface FichaDelCliente {
   datos: DatoDelCliente[];
   extras: Record<string, unknown>;
   columns: { key: string; label: string }[];
+  /** Campos que un pack deja cambiar desde la ficha (ADR-0149); el backend viejo no los manda. */
+  editables?: CampoEditable[];
+}
+
+/** Campo de un pack editable desde la ficha, p. ej. el estado del lead de venta (ADR-0149). */
+export interface CampoEditable {
+  plugin_id: string;
+  key: string;
+  label: string;
+  tipo: "opciones" | "texto";
+  options?: { value: string; label: string }[];
+  max_length: number;
+  value?: string | null;
 }
 
 export interface PaginaConversaciones {
@@ -117,6 +130,35 @@ export async function corregirDatosDelCliente(
   datos: Record<string, string>,
 ): Promise<FichaDelCliente> {
   return api.patch<FichaDelCliente>(`/admin/leads/${id}`, { datos });
+}
+
+/** Cambia campos que un pack deja editar (estado e interés del lead de venta, ADR-0149). */
+export async function editarCamposDelPack(
+  api: ClienteAdmin,
+  id: string,
+  pluginId: string,
+  valores: Record<string, string>,
+): Promise<FichaDelCliente> {
+  return api.patch<FichaDelCliente>(`/admin/leads/${id}/pack/${encodeURIComponent(pluginId)}`, { valores });
+}
+
+/**
+ * Datos del perfil para «Lo que sabemos» (ADR-0149): sin el nombre (va en el título) ni el teléfono
+ * del perfil cuando es el mismo del canal, para no mostrar el mismo dato dos veces.
+ */
+export function datosDelPerfil(ficha: Pick<FichaDelCliente, "datos" | "telefono">): DatoDelCliente[] {
+  return ficha.datos.filter(
+    (d) => d.namespace === "perfil" && d.key !== "name" && !(d.key === "phone" && mismoTelefono(d.value, ficha.telefono)),
+  );
+}
+
+/** Mismo número con o sin indicativo de país (`+57 300…` y `300…`). */
+export function mismoTelefono(a: unknown, b: unknown): boolean {
+  const digitos = (v: unknown) => String(v ?? "").replace(/\D+/g, "");
+  const x = digitos(a);
+  const y = digitos(b);
+  if (x.length < 7 || y.length < 7) return false;
+  return x.endsWith(y) || y.endsWith(x);
 }
 
 /** Pausa o reanuda el agente para este cliente en todas sus conversaciones. */
