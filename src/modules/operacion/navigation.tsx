@@ -4,11 +4,13 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { EntradaPestanas, SolicitudPestana } from "@shared/pestana-inicial";
 import { useKit } from "@shared/ui";
 import { OperacionScreen } from "./screens/OperacionScreen";
+import { ClienteDetalleScreen } from "./screens/ClienteDetalleScreen";
 import { ConversacionDetalleScreen } from "./screens/ConversacionDetalleScreen";
 
 export type OperacionStackParamList = {
   Operacion: { pestanaInicial?: SolicitudPestana } | undefined;
   ConversacionDetalle: { id: string; titulo: string };
+  ClienteDetalle: { id: string; titulo: string };
 };
 
 const Stack = createNativeStackNavigator<OperacionStackParamList>();
@@ -46,6 +48,11 @@ export function OperacionNavigator({
       <Stack.Screen
         name="ConversacionDetalle"
         component={ConversacionDetalleScreen}
+        options={({ route }) => ({ title: route.params.titulo })}
+      />
+      <Stack.Screen
+        name="ClienteDetalle"
+        component={ClienteDetalleScreen}
         options={({ route }) => ({ title: route.params.titulo })}
       />
     </Stack.Navigator>
