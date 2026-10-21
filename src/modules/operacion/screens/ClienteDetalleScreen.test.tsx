@@ -147,7 +147,7 @@ describe("ClienteDetalleScreen (HU-CRM-02)", () => {
         ...FICHA.datos,
         { namespace: "perfil", key: "phone", value: "300 111 2233", source: "tool", data_class: "pii", valid_from: "2026-10-21T10:00:00Z" },
       ],
-      telefono: "3001112233",
+      telefono: "+573001112233",
     };
     mockGet.mockImplementation((path: string) => {
       if (path.endsWith("/notes")) return Promise.resolve(NOTAS);

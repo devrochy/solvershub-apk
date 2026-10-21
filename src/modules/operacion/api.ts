@@ -147,11 +147,18 @@ export async function editarCamposDelPack(
  * del perfil cuando es el mismo del canal, para no mostrar el mismo dato dos veces.
  */
 export function datosDelPerfil(ficha: Pick<FichaDelCliente, "datos" | "telefono">): DatoDelCliente[] {
-  const digitos = (v: unknown) => String(v ?? "").replace(/\D+/g, "");
-  const canal = digitos(ficha.telefono);
   return ficha.datos.filter(
-    (d) => d.namespace === "perfil" && d.key !== "name" && !(d.key === "phone" && canal !== "" && digitos(d.value) === canal),
+    (d) => d.namespace === "perfil" && d.key !== "name" && !(d.key === "phone" && mismoTelefono(d.value, ficha.telefono)),
   );
+}
+
+/** Mismo número con o sin indicativo de país (`+57 300…` y `300…`). */
+export function mismoTelefono(a: unknown, b: unknown): boolean {
+  const digitos = (v: unknown) => String(v ?? "").replace(/\D+/g, "");
+  const x = digitos(a);
+  const y = digitos(b);
+  if (x.length < 7 || y.length < 7) return false;
+  return x.endsWith(y) || y.endsWith(x);
 }
 
 /** Pausa o reanuda el agente para este cliente en todas sus conversaciones. */
