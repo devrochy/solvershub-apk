@@ -40,6 +40,16 @@ describe("ComercioScreen (HU-APP-10)", () => {
       if (path === "/pack/commerce/products") {
         return Promise.resolve([
           { id: "p-1", name: "Chaqueta", description: "", category_id: null, category: null, price: 120, variants: [] },
+          {
+            id: "p-2",
+            name: "Casco",
+            description: "Casco integral",
+            category_id: "c-1",
+            category: "Ropa",
+            price: 300,
+            image_url: "https://cdn.tienda.com/casco.jpg",
+            variants: [{ id: "v-2", sku: "CA-01", attributes: {}, price: 300, stock: 7, active: true }],
+          },
         ]);
       }
       if (path === "/pack/commerce/promotions") {
@@ -109,6 +119,70 @@ describe("ComercioScreen (HU-APP-10)", () => {
 
     await waitFor(() =>
       expect(mockPost).toHaveBeenCalledWith("/pack/commerce/products", { name: "Termo promo", price: 45000 }),
+    );
+  });
+
+  it("muestra la miniatura del producto con foto y la inicial sin foto (HU-CRM-01)", async () => {
+    const { getByTestId, getAllByTestId } = await render(<ComercioScreen />);
+    await waitFor(() => expect(getByTestId("comercio-productos")).toBeTruthy());
+    await fireEvent.press(getByTestId("comercio-productos"));
+
+    expect(getByTestId("foto-producto").props.source).toEqual({ uri: "https://cdn.tienda.com/casco.jpg" });
+    expect(getAllByTestId("foto-producto-vacia")).toHaveLength(1);
+  });
+
+  it("edita la foto de un producto sin pisar stock, categoría ni descripción (HU-CRM-01)", async () => {
+    const { getByTestId } = await render(<ComercioScreen />);
+    await waitFor(() => expect(getByTestId("comercio-productos")).toBeTruthy());
+    await fireEvent.press(getByTestId("comercio-productos"));
+
+    await fireEvent.press(getByTestId("producto-p-2"));
+    expect(getByTestId("modal-foto").props.value).toBe("https://cdn.tienda.com/casco.jpg");
+    await fireEvent.changeText(getByTestId("modal-foto"), " https://cdn.tienda.com/casco-2.jpg ");
+    await fireEvent.press(getByTestId("modal-crear"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/pack/commerce/products", {
+        product_id: "p-2",
+        name: "Casco",
+        description: "Casco integral",
+        category_id: "c-1",
+        sku: "CA-01",
+        price: 300,
+        stock: 7,
+        image_url: "https://cdn.tienda.com/casco-2.jpg",
+      }),
+    );
+  });
+
+  it("no deja guardar una foto que no sea https (HU-CRM-01)", async () => {
+    const { getByTestId } = await render(<ComercioScreen />);
+    await waitFor(() => expect(getByTestId("comercio-productos")).toBeTruthy());
+    await fireEvent.press(getByTestId("comercio-productos"));
+    await fireEvent.press(getByTestId("comercio-nuevo"));
+    await fireEvent.changeText(getByTestId("modal-nombre"), "Termo");
+    await fireEvent.changeText(getByTestId("modal-foto"), "http://cdn.tienda.com/termo.jpg");
+
+    expect(getByTestId("modal-foto-error")).toBeTruthy();
+    await fireEvent.press(getByTestId("modal-crear"));
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it("crea un producto con foto (HU-CRM-01)", async () => {
+    const { getByTestId } = await render(<ComercioScreen />);
+    await waitFor(() => expect(getByTestId("comercio-productos")).toBeTruthy());
+    await fireEvent.press(getByTestId("comercio-productos"));
+    await fireEvent.press(getByTestId("comercio-nuevo"));
+    await fireEvent.changeText(getByTestId("modal-nombre"), "Termo");
+    await fireEvent.changeText(getByTestId("modal-foto"), "https://cdn.tienda.com/termo.jpg");
+    await fireEvent.press(getByTestId("modal-crear"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/pack/commerce/products", {
+        name: "Termo",
+        price: undefined,
+        image_url: "https://cdn.tienda.com/termo.jpg",
+      }),
     );
   });
 

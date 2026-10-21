@@ -2,7 +2,8 @@ import type { ClienteAdmin } from "@core/api/admin";
 import type { components } from "@core/api/schema";
 
 export type OrderOut = components["schemas"]["OrderOut"];
-export type ProductOut = components["schemas"]["ProductOut"];
+// HU-CRM-01: `image_url` llega con agent-core#504; se quita el agregado al regenerar schema.d.ts.
+export type ProductOut = components["schemas"]["ProductOut"] & { image_url?: string | null };
 export type PromotionOut = components["schemas"]["PromotionOut"];
 export type CategoryOut = components["schemas"]["CategoryOut"];
 
@@ -41,9 +42,36 @@ export async function alternarPromocion(api: ClienteAdmin, id: string): Promise<
 
 export async function crearProducto(
   api: ClienteAdmin,
-  datos: { name: string; price?: number },
+  datos: { name: string; price?: number; image_url?: string },
 ): Promise<void> {
-  await api.post("/pack/commerce/products", { name: datos.name, price: datos.price });
+  await api.post("/pack/commerce/products", {
+    name: datos.name,
+    price: datos.price,
+    ...(datos.image_url ? { image_url: datos.image_url } : {}),
+  });
+}
+
+/**
+ * Edición desde la app (HU-CRM-01): nombre, precio y foto. La API reemplaza descripción,
+ * categoría y stock con lo que reciba, así que se reenvían los del producto tal cual.
+ * `image_url: ""` quita la foto.
+ */
+export async function editarProducto(
+  api: ClienteAdmin,
+  producto: ProductOut,
+  cambios: { name: string; price?: number; image_url: string },
+): Promise<void> {
+  const variante = producto.variants[0];
+  await api.post("/pack/commerce/products", {
+    product_id: producto.id,
+    name: cambios.name,
+    description: producto.description,
+    category_id: producto.category_id,
+    sku: variante?.sku ?? "",
+    price: cambios.price ?? producto.price,
+    stock: variante?.stock ?? 0,
+    image_url: cambios.image_url,
+  });
 }
 
 export async function crearCategoria(
