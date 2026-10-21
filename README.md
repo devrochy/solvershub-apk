@@ -30,6 +30,14 @@ to the platform API when the network allows.
 - **Design system:** Montserrat/Inter typography, dark theme by default and a
   token pipeline synced from `solvershub-panel/brand/tokens/tokens.json`.
 
+## Demo
+
+Captured on the Expo web target against a live local deployment (phone viewport):
+
+| Unified login | Business selector | Dashboard |
+|---|---|---|
+| ![Login](docs/assets/apk-login.png) | ![Business](docs/assets/apk-elige-negocio.png) | ![Dashboard](docs/assets/apk-dashboard.png) |
+
 ## Stack
 
 Expo 57 · React Native 0.86 · TypeScript · expo-sqlite · expo-secure-store ·
