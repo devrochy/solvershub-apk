@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -14,7 +15,8 @@ import { useAdminApi } from "@core/session/use-admin-api";
 import NetInfo from "@react-native-community/netinfo";
 import { baseActual } from "@data/bootstrap";
 import { cambiarEstadoPedidoConOffline } from "../offline";
-import { crearCategoria, crearProducto, crearPromocion } from "../api";
+import { crearCategoria, crearProducto, crearPromocion, editarProducto } from "../api";
+import { FOTO_URL_MAX, esFotoValida } from "../foto";
 import {
   alternarPromocion,
   cargarCategorias,
@@ -48,6 +50,8 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
   const [campoNuevo, setCampoNuevo] = useState("");
   const [campoPrecio, setCampoPrecio] = useState("");
   const [campoTipo, setCampoTipo] = useState("temporada");
+  const [campoFoto, setCampoFoto] = useState("");
+  const [editando, setEditando] = useState<ProductOut | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   const cargar = useCallback(async () => {
@@ -113,23 +117,54 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
     );
   };
 
+  const fotoInvalida = campoFoto.trim() !== "" && !esFotoValida(campoFoto);
+
+  const abrirEdicion = (producto: ProductOut) => {
+    setEditando(producto);
+    setCampoNuevo(producto.name);
+    setCampoPrecio(producto.price ? String(producto.price) : "");
+    setCampoFoto(producto.image_url ?? "");
+    setModalNuevo("producto");
+  };
+
+  const cerrarModal = () => {
+    setModalNuevo(null);
+    setEditando(null);
+    setCampoNuevo("");
+    setCampoPrecio("");
+    setCampoFoto("");
+  };
+
   const crearNuevo = async () => {
     if (modalNuevo === "producto" && !campoNuevo.trim()) {
       setError("Escribe el nombre del producto.");
       return;
     }
+    if (modalNuevo === "producto" && fotoInvalida) {
+      setError("La foto tiene que ser un link https://");
+      return;
+    }
     setEnviando(true);
     try {
-      if (modalNuevo === "producto") {
-        await crearProducto(api, { name: campoNuevo.trim(), price: Number(campoPrecio) || undefined });
+      if (modalNuevo === "producto" && editando) {
+        await editarProducto(api, editando, {
+          name: campoNuevo.trim(),
+          price: Number(campoPrecio) || undefined,
+          image_url: campoFoto.trim(),
+        });
+      } else if (modalNuevo === "producto") {
+        await crearProducto(api, {
+          name: campoNuevo.trim(),
+          price: Number(campoPrecio) || undefined,
+          image_url: campoFoto.trim() || undefined,
+        });
       } else if (modalNuevo === "categoria") {
         await crearCategoria(api, { name: campoNuevo.trim() });
       } else if (modalNuevo === "promocion") {
         await crearPromocion(api, { type: campoTipo });
       }
-      setModalNuevo(null);
-      setCampoNuevo("");
-      setCampoPrecio("");
+      cerrarModal();
+      setError(null);
       await cargar();
     } catch {
       setError("No se pudo crear. Revisa los datos.");
@@ -200,7 +235,7 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
         <View style={styles.modalFondo}>
           <View style={[styles.modalCaja, { backgroundColor: colores.tarjeta }]}>
             <Text style={[styles.modalTitulo, { color: colores.texto }]}>
-              {modalNuevo === "producto" ? "Nuevo producto" : modalNuevo === "categoria" ? "Nueva categoría" : "Nueva promoción"}
+              {modalNuevo === "producto" ? (editando ? "Editar producto" : "Nuevo producto") : modalNuevo === "categoria" ? "Nueva categoría" : "Nueva promoción"}
             </Text>
             {modalNuevo === "promocion" ? (
               <View style={styles.chips}>
@@ -220,15 +255,32 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
                     placeholder="Precio (opcional)" placeholderTextColor={colores.textoSuave} keyboardType="numeric"
                     style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
                 ) : null}
+                {modalNuevo === "producto" ? (
+                  <View style={styles.filaFoto}>
+                    <View style={{ flex: 1, gap: 4 }}>
+                      <TextInput testID="modal-foto" value={campoFoto} onChangeText={setCampoFoto}
+                        placeholder="Foto (link https, opcional)" placeholderTextColor={colores.textoSuave}
+                        keyboardType="url" autoCapitalize="none" autoCorrect={false} maxLength={FOTO_URL_MAX}
+                        accessibilityLabel="Foto del producto (URL)"
+                        style={[styles.campo, { borderColor: fotoInvalida ? colores.peligro : colores.borde, color: colores.texto }]} />
+                      {fotoInvalida ? (
+                        <Text testID="modal-foto-error" style={{ color: colores.peligro, fontSize: 12 }}>
+                          Tiene que ser un link https://
+                        </Text>
+                      ) : null}
+                    </View>
+                    <FotoProducto url={campoFoto} nombre={campoNuevo || "el producto"} grande />
+                  </View>
+                ) : null}
               </>
             )}
             <View style={styles.modalBotones}>
-              <Pressable onPress={() => setModalNuevo(null)} style={{ padding: 10 }}>
+              <Pressable onPress={cerrarModal} style={{ padding: 10 }}>
                 <Text style={{ color: colores.textoSuave }}>Cancelar</Text>
               </Pressable>
               <Pressable testID="modal-crear" disabled={enviando} onPress={() => void crearNuevo()}
                 style={[styles.modalBoton, { backgroundColor: colores.primario }]}>
-                <Text style={{ color: "#ffffff", fontWeight: "700" }}>Crear</Text>
+                <Text style={{ color: "#ffffff", fontWeight: "700" }}>{editando ? "Guardar" : "Crear"}</Text>
               </Pressable>
             </View>
           </View>
@@ -290,7 +342,14 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
             </Text>
           }
           renderItem={({ item }) => (
-            <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+            <Pressable
+              testID={`producto-${item.id}`}
+              onPress={() => abrirEdicion(item)}
+              accessibilityRole="button"
+              accessibilityHint="Editar el producto"
+              style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta, gap: 10 }]}
+            >
+              <FotoProducto url={item.image_url} nombre={item.name} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: colores.texto, fontWeight: "600" }}>{item.name}</Text>
                 <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
@@ -301,7 +360,7 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
               {item.price != null ? (
                 <Text style={{ color: colores.texto }}>${item.price}</Text>
               ) : null}
-            </View>
+            </Pressable>
           )}
         />
       ) : pestana === "promociones" ? (
@@ -355,7 +414,37 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
   );
 }
 
+/** Miniatura de la foto del producto (HU-CRM-01). Sin foto o con un link roto, una inicial. */
+function FotoProducto({ url, nombre, grande = false }: { url: string | null | undefined; nombre: string; grande?: boolean }) {
+  const { colores } = useTheme();
+  const [rota, setRota] = useState<string | null>(null);
+  const lado = grande ? 64 : 40;
+  const marco = [styles.foto, { width: lado, height: lado, borderColor: colores.borde, backgroundColor: colores.fondo }];
+  const limpia = (url ?? "").trim();
+  if (!esFotoValida(limpia) || rota === limpia) {
+    return (
+      <View testID="foto-producto-vacia" style={marco} accessibilityLabel={`${nombre} sin foto`}>
+        <Text style={{ color: colores.textoSuave, fontWeight: "700" }}>{(nombre.trim()[0] ?? "?").toUpperCase()}</Text>
+      </View>
+    );
+  }
+  return (
+    <View style={marco}>
+      <Image
+        testID="foto-producto"
+        source={{ uri: limpia }}
+        accessibilityLabel={`Foto de ${nombre}`}
+        style={{ width: lado, height: lado }}
+        resizeMode="cover"
+        onError={() => setRota(limpia)}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  foto: { borderWidth: 1, borderRadius: 8, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  filaFoto: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   contenedor: { flex: 1, padding: 12 },
   pestanas: { flexDirection: "row", borderBottomWidth: 1, marginBottom: 10 },
   pestana: { flex: 1, paddingVertical: 10, alignItems: "center" },
