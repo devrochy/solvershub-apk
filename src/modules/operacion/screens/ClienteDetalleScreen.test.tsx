@@ -108,6 +108,57 @@ describe("ClienteDetalleScreen (HU-CRM-02)", () => {
     );
   });
 
+  it("cambia el estado y el interés del lead de venta (ADR-0149)", async () => {
+    const editables = [
+      {
+        plugin_id: "pack_commerce", key: "estado_lead", label: "Estado del lead", tipo: "opciones", max_length: 200,
+        value: "calificado",
+        options: [{ value: "calificado", label: "Calificado" }, { value: "perdido", label: "Perdido" }],
+      },
+      { plugin_id: "pack_commerce", key: "interes", label: "Interés", tipo: "texto", max_length: 500, value: "plan basic" },
+    ];
+    const ficha = {
+      ...FICHA,
+      extras: { clasificacion: "Fiel", estado_lead: "Calificado", interes: "plan basic" },
+      columns: [...FICHA.columns, { key: "estado_lead", label: "Estado del lead" }, { key: "interes", label: "Interés" }],
+      editables,
+    };
+    mockGet.mockImplementation((path: string) => {
+      if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
+      if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+      return Promise.resolve(ficha);
+    });
+    mockPatch.mockResolvedValue({ ...ficha, editables: [{ ...editables[0], value: "perdido" }, editables[1]] });
+    const { findByTestId, getByTestId, queryAllByText } = await pantalla();
+    await findByTestId("pack-pack_commerce");
+    // Las columnas editables no se repiten como solo lectura.
+    expect(queryAllByText("Calificado")).toHaveLength(1);
+    await fireEvent.press(getByTestId("pack-estado_lead-perdido"));
+    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await waitFor(() =>
+      expect(mockPatch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", { valores: { estado_lead: "perdido" } }),
+    );
+  });
+
+  it("no repite el teléfono del canal en lo que sabemos", async () => {
+    const ficha = {
+      ...FICHA,
+      datos: [
+        ...FICHA.datos,
+        { namespace: "perfil", key: "phone", value: "300 111 2233", source: "tool", data_class: "pii", valid_from: "2026-10-21T10:00:00Z" },
+      ],
+      telefono: "3001112233",
+    };
+    mockGet.mockImplementation((path: string) => {
+      if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
+      if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+      return Promise.resolve(ficha);
+    });
+    const { findByText, queryByTestId } = await pantalla();
+    expect(await findByText("Calle 12")).toBeTruthy();
+    expect(queryByTestId("cliente-dato-phone")).toBeNull();
+  });
+
   it("un evento de conversación abre el chat", async () => {
     const { findByTestId } = await pantalla();
     await fireEvent.press(await findByTestId("evento-0"));
