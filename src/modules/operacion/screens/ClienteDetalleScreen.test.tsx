@@ -29,6 +29,18 @@ const FICHA = {
   columns: [{ key: "clasificacion", label: "Clasificación" }],
 };
 
+const NOTAS = [
+  { id: "n-1", text: "Prefiere entregas en la tarde", author: "duena@test.example", created_at: "2026-10-21T10:00:00Z", puede_borrar: true },
+];
+const HISTORIA = {
+  items: [
+    { at: "2026-10-21T10:00:00Z", kind: "conversacion", title: "Escribió por WhatsApp Tienda", link_kind: "conversation", link_id: "cv-9" },
+    { at: "2026-10-20T10:00:00Z", kind: "pedido", title: "Pedido OC-0001 por $50.000", detail: "Pago pendiente", link_kind: "order", link_id: "o-1" },
+  ],
+  next_cursor: null,
+  partial: false,
+};
+
 async function pantalla() {
   const props = {
     route: { key: "k", name: "ClienteDetalle", params: { id: "c-1", titulo: "Juana" } },
@@ -41,7 +53,11 @@ describe("ClienteDetalleScreen (HU-CRM-02)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useAdminApi as jest.Mock).mockReturnValue({ get: mockGet, post: mockPost, patch: mockPatch, put: jest.fn(), del: jest.fn() });
-    mockGet.mockResolvedValue(FICHA);
+    mockGet.mockImplementation((path: string) => {
+      if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
+      if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+      return Promise.resolve(FICHA);
+    });
   });
 
   it("muestra la ficha con la clasificación y lo que sabemos (solo el perfil)", async () => {
@@ -77,6 +93,24 @@ describe("ClienteDetalleScreen (HU-CRM-02)", () => {
   it("abre la última conversación", async () => {
     const { findByTestId } = await pantalla();
     await fireEvent.press(await findByTestId("cliente-abrir-conversacion"));
+    expect(mockNavigate).toHaveBeenCalledWith("ConversacionDetalle", { id: "cv-9", titulo: "Juana Pérez" });
+  });
+
+  it("muestra notas e historia y guarda una nota nueva", async () => {
+    mockPost.mockResolvedValue({ ...NOTAS[0], id: "n-2", text: "No llamar antes de las 10" });
+    const { findByText, getByTestId, getByText } = await pantalla();
+    expect(await findByText("Prefiere entregas en la tarde")).toBeTruthy();
+    expect(getByText("Pedido OC-0001 por $50.000")).toBeTruthy();
+    await fireEvent.changeText(getByTestId("nota-nueva"), "No llamar antes de las 10");
+    await fireEvent.press(getByTestId("nota-guardar"));
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/admin/leads/c-1/notes", { text: "No llamar antes de las 10" }),
+    );
+  });
+
+  it("un evento de conversación abre el chat", async () => {
+    const { findByTestId } = await pantalla();
+    await fireEvent.press(await findByTestId("evento-0"));
     expect(mockNavigate).toHaveBeenCalledWith("ConversacionDetalle", { id: "cv-9", titulo: "Juana Pérez" });
   });
 });

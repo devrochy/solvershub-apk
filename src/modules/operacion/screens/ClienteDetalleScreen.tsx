@@ -22,6 +22,7 @@ import {
   type FichaDelCliente,
 } from "../api";
 import type { OperacionStackParamList } from "../navigation";
+import { NotasYHistoria } from "./NotasYHistoria";
 
 type Props = NativeStackScreenProps<OperacionStackParamList, "ClienteDetalle">;
 
@@ -213,7 +214,7 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
               onPress={() => void guardar()}
               style={[styles.boton, { borderColor: colores.primario, backgroundColor: colores.primario }]}
             >
-              <Text style={{ color: "#ffffff", fontWeight: "700" }}>{guardando ? "Guardando…" : "Guardar"}</Text>
+              <Text style={{ color: colores.sobrePrimario, fontWeight: "700" }}>{guardando ? "Guardando…" : "Guardar"}</Text>
             </Pressable>
           </View>
         </View>
@@ -241,6 +242,13 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
           </View>
         ))
       )}
+
+      <NotasYHistoria
+        leadId={id}
+        onAbrirConversacion={(conversacionId) =>
+          navigation.navigate("ConversacionDetalle", { id: conversacionId, titulo: ficha.cliente })
+        }
+      />
     </ScrollView>
   );
 }
