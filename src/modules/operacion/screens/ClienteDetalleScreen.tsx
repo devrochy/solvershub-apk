@@ -214,7 +214,7 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
               onPress={() => void guardar()}
               style={[styles.boton, { borderColor: colores.primario, backgroundColor: colores.primario }]}
             >
-              <Text style={{ color: "#ffffff", fontWeight: "700" }}>{guardando ? "Guardando…" : "Guardar"}</Text>
+              <Text style={{ color: colores.sobrePrimario, fontWeight: "700" }}>{guardando ? "Guardando…" : "Guardar"}</Text>
             </Pressable>
           </View>
         </View>

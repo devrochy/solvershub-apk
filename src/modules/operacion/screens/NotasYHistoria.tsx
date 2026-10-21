@@ -109,7 +109,7 @@ export function NotasYHistoria({
         onPress={() => void guardar()}
         style={[styles.boton, { backgroundColor: colores.primario, opacity: !texto.trim() || guardando ? 0.5 : 1 }]}
       >
-        <Text style={{ color: "#ffffff", fontWeight: "700" }}>{guardando ? "Guardando…" : "Guardar nota"}</Text>
+        <Text style={{ color: colores.sobrePrimario, fontWeight: "700" }}>{guardando ? "Guardando…" : "Guardar nota"}</Text>
       </Pressable>
       {notas.map((n) => (
         <View
