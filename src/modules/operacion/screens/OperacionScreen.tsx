@@ -321,18 +321,30 @@ export function OperacionScreen({
           data={leads}
           keyExtractor={(l) => l.id}
           ListEmptyComponent={<Vacio texto="Sin clientes registrados." />}
-          renderItem={({ item }) => (
-            <View style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
-              <View style={styles.filaTexto}>
-                <Text style={[styles.filaTitulo, { color: colores.texto }]} numberOfLines={1}>
-                  {item.cliente}
-                </Text>
-                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
-                  {item.canal} · {item.alta}
-                </Text>
-              </View>
-            </View>
-          )}
+          renderItem={({ item }) => {
+            const clasificacion = item.extras?.clasificacion;
+            return (
+              <Pressable
+                testID={`lead-${item.id}`}
+                accessibilityRole="button"
+                onPress={() => navigation.navigate("ClienteDetalle", { id: item.id, titulo: item.cliente })}
+                style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+              >
+                <View style={styles.filaTexto}>
+                  <Text style={[styles.filaTitulo, { color: colores.texto }]} numberOfLines={1}>
+                    {item.cliente}
+                  </Text>
+                  <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                    {item.canal} · {item.telefono ?? item.alta}
+                    {typeof clasificacion === "string" ? ` · ${clasificacion}` : ""}
+                  </Text>
+                </View>
+                {item.bot_paused && (
+                  <Text style={{ color: colores.peligro, fontSize: 12 }}>Agente pausado</Text>
+                )}
+              </Pressable>
+            );
+          }}
         />
       ) : (
         <>
