@@ -14,6 +14,7 @@ import { fireEvent, render, waitFor, within } from "@testing-library/react-nativ
 import { useAdminApi } from "@core/session/use-admin-api";
 import { guardarAjuste as mockGuardarAjuste } from "@data/ajustes";
 import { ConfiguracionScreen } from "./ConfiguracionScreen";
+import catalogo from "../testing/catalogo.json";
 
 const mockUseAdminApi = useAdminApi as jest.Mock;
 const mockGet = jest.fn();
@@ -80,6 +81,11 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
           webhook_url: "https://x/webhooks",
         });
       }
+      // SPEC-37: el catálogo real del dueño (volcado del backend) y las palabras de baja.
+      if (path === "/admin/settings/catalog") return Promise.resolve(catalogo);
+      if (path === "/admin/settings/bajas") {
+        return Promise.resolve({ palabras: [], por_defecto: ["baja", "stop"], usa_por_defecto: true });
+      }
       if (path === "/admin/settings") {
         return Promise.resolve({
           identity: {
@@ -91,11 +97,12 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
             brand_voice_warning: false,
             business_description: "Tienda de ropa",
             business_ranges: [],
+            out_of_hours_default_message: "Estamos fuera de horario.",
             business_tz: "America/Bogota",
             currency: "COP",
             debounce_mode: "natural",
             difficulty_long_message_threshold: 400,
-            difficulty_score_threshold: 0.6,
+            difficulty_score_threshold: 3,
             difficulty_turnos_sin_resolver_threshold: 3,
             disabled_guardrails: [],
             escalation_keywords: [],
@@ -248,10 +255,10 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
     await waitFor(() => expect(getByTestId("config-ajustes")).toBeTruthy());
 
     await fireEvent.press(getByTestId("config-ajustes"));
-    await waitFor(() => expect(getByTestId("ajustes-nombre")).toBeTruthy());
-    expect(getByTestId("ajustes-nombre").props.value).toBe("Ana");
+    await waitFor(() => expect(getByTestId("ajustes-assistant_name")).toBeTruthy());
+    expect(getByTestId("ajustes-assistant_name").props.value).toBe("Ana");
 
-    await fireEvent.changeText(getByTestId("ajustes-nombre"), "Ana María");
+    await fireEvent.changeText(getByTestId("ajustes-assistant_name"), "Ana María");
     await fireEvent.press(getByTestId("ajustes-guardar"));
 
     await waitFor(() =>
