@@ -137,6 +137,16 @@ describe("AjustesTab · Identidad guiada (HU-CFG-06)", () => {
     await waitFor(() => expect(getByTestId("ajustes-out_of_hours_message").props.editable).toBe(true));
   });
 
+  it("explica cada guardrail bajo su interruptor", async () => {
+    const conNota = JSON.parse(JSON.stringify(catalogo));
+    const opcion = conNota.opciones.find((o: { clave: string }) => o.clave === "disabled_guardrails");
+    opcion.valores = [{ valor: "verificador_links", etiqueta: "Verificador de enlaces", nota: "Quita los enlaces inventados." }];
+    configurarApi({ catalogo: conNota });
+    const { findByText } = await render(<AjustesTab />);
+    expect(await findByText("Verificador de enlaces")).toBeTruthy();
+    expect(await findByText("Quita los enlaces inventados.")).toBeTruthy();
+  });
+
   it("guarda las palabras de baja por su endpoint", async () => {
     configurarApi();
     const { findByTestId, getByTestId } = await render(<AjustesTab />);

@@ -75,7 +75,11 @@ function CampoGuiado({
             key={p.valor}
             style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 4 }}
           >
-            <Text style={{ color: colores.texto, fontSize: 13, flex: 1 }}>{p.etiqueta}</Text>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <Text style={{ color: colores.texto, fontSize: 13 }}>{p.etiqueta}</Text>
+              {/* Qué evita esta validación (la declara el pack o el core, SPEC-37). */}
+              {p.nota ? <Text style={{ color: colores.textoSuave, fontSize: 11 }}>{p.nota}</Text> : null}
+            </View>
             <Switch
               testID={`${id}-${p.valor}`}
               value={!apagadas.includes(p.valor)}
