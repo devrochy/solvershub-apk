@@ -85,9 +85,27 @@ export async function cargarSettings(api: ClienteAdmin): Promise<SettingsRespons
   return api.get<SettingsResponse>("/admin/settings");
 }
 
+// ---------------- SPEC-37 · catálogo de opciones y palabras de baja ----------------
+
+export type CatalogoConfig = components["schemas"]["Catalogo"];
+export type BajasSettings = components["schemas"]["BajasSettings"];
+
+export async function cargarCatalogo(api: ClienteAdmin): Promise<CatalogoConfig> {
+  return api.get<CatalogoConfig>("/admin/settings/catalog");
+}
+
+export async function cargarBajas(api: ClienteAdmin): Promise<BajasSettings> {
+  return api.get<BajasSettings>("/admin/settings/bajas");
+}
+
+/** Lista vacía = restablecer las palabras de baja por defecto. */
+export async function guardarBajas(api: ClienteAdmin, palabras: string[]): Promise<void> {
+  await api.put<void>("/admin/settings/bajas", { palabras });
+}
+
 export async function guardarIdentity(
   api: ClienteAdmin,
-  values: Partial<IdentitySettings> & { business_tz?: string },
+  values: Record<string, unknown>,
 ): Promise<void> {
   await api.put<void>("/admin/settings/identity", values);
 }

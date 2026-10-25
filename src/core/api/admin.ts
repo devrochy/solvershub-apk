@@ -11,6 +11,8 @@ export class AdminApiError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    /** Errores por campo (`{campo: mensaje}`) de un 422, para marcarlos junto a cada control. */
+    public readonly fields?: Record<string, string>,
   ) {
     super(message);
     this.name = "AdminApiError";
@@ -60,14 +62,21 @@ async function pedir<T>(
   if (!res.ok) {
     let code = String(res.status);
     let message = "Ocurrió un error. Intenta de nuevo.";
+    let fields: Record<string, string> | undefined;
     try {
-      const data = (await res.json()) as { error?: { code?: string; message?: string } };
+      const data = (await res.json()) as {
+        error?: { code?: string; message?: string; fields?: Record<string, unknown> };
+      };
       code = data.error?.code ?? code;
       message = data.error?.message ?? message;
+      const campos = Object.entries(data.error?.fields ?? {}).filter(
+        (par): par is [string, string] => typeof par[1] === "string",
+      );
+      if (campos.length > 0) fields = Object.fromEntries(campos);
     } catch {
       // sin cuerpo JSON
     }
-    throw new AdminApiError(res.status, code, message);
+    throw new AdminApiError(res.status, code, message, fields);
   }
   if (res.status === 204) {
     return undefined as T;

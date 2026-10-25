@@ -5,7 +5,6 @@
   "src/modules/cobranza-admin/screens/GestoresTab.tsx": 5,
   "src/modules/cobranza-admin/screens/PropietarioTab.tsx": 8,
   "src/modules/comercio/screens/ComercioScreen.tsx": 3,
-  "src/modules/configuracion/components/AjustesTab.tsx": 3,
   "src/modules/configuracion/components/AvanzadoTab.tsx": 1,
   "src/modules/configuracion/components/ChatWebTab.tsx": 1,
   "src/modules/configuracion/screens/ConfiguracionScreen.tsx": 4,

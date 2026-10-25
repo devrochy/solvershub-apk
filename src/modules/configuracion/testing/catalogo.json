@@ -1,0 +1,760 @@
+{
+ "version": "4cbeca392932",
+ "opciones": [
+  {
+   "clave": "assistant_name",
+   "grupo": "identidad",
+   "tipo": "texto",
+   "etiqueta": "Nombre del asistente",
+   "explicacion": "Cómo se presenta el asistente a tus clientes y cómo firma sus mensajes.",
+   "ejemplo": "Sofía",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "Asistente",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "columna:assistant_name"
+  },
+  {
+   "clave": "business_description",
+   "grupo": "identidad",
+   "tipo": "texto_largo",
+   "etiqueta": "Descripción del negocio",
+   "explicacion": "Qué hace tu negocio, en pocas líneas. El asistente la usa para contestar con contexto.",
+   "ejemplo": "Panadería artesanal en Manizales con domicilios en el centro.",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "columna:business_description"
+  },
+  {
+   "clave": "brand_voice",
+   "grupo": "identidad",
+   "tipo": "texto_largo",
+   "etiqueta": "Voz de marca",
+   "explicacion": "Guía el estilo de las respuestas. Si queda vacía, el asistente no tiene una voz propia de tu marca.",
+   "ejemplo": "Cercana y breve; nunca promete tiempos de entrega.",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "columna:brand_voice"
+  },
+  {
+   "clave": "language",
+   "grupo": "identidad",
+   "tipo": "elegir_una",
+   "etiqueta": "Idioma del negocio",
+   "explicacion": "Idioma de los avisos automáticos, como el mensaje fuera de horario. Se fija al crear el negocio.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "es",
+     "etiqueta": "Español",
+     "nota": ""
+    },
+    {
+     "valor": "en",
+     "etiqueta": "Inglés",
+     "nota": ""
+    },
+    {
+     "valor": "pt",
+     "etiqueta": "Portugués",
+     "nota": ""
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "es",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": true,
+   "almacen": "columna:language"
+  },
+  {
+   "clave": "currency",
+   "grupo": "identidad",
+   "tipo": "elegir_una",
+   "etiqueta": "Moneda del negocio",
+   "explicacion": "Con qué moneda se muestran los montos de comercio, cobranza y plan. Los costos de proveedor (IA, Meta) se muestran siempre en USD.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "COP",
+     "etiqueta": "Peso colombiano (COP)",
+     "nota": ""
+    },
+    {
+     "valor": "USD",
+     "etiqueta": "Dólar (USD)",
+     "nota": ""
+    },
+    {
+     "valor": "MXN",
+     "etiqueta": "Peso mexicano (MXN)",
+     "nota": ""
+    },
+    {
+     "valor": "PEN",
+     "etiqueta": "Sol peruano (PEN)",
+     "nota": ""
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "COP",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "columna:currency"
+  },
+  {
+   "clave": "timezone",
+   "grupo": "identidad",
+   "tipo": "elegir_una",
+   "etiqueta": "Zona horaria del negocio",
+   "explicacion": "Con esta zona el asistente sabe qué día y hora es («hoy», «mañana») y aplica el horario de atención.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "America/Bogota",
+     "etiqueta": "Colombia (Bogotá)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Lima",
+     "etiqueta": "Perú (Lima)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Guayaquil",
+     "etiqueta": "Ecuador (Guayaquil)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Panama",
+     "etiqueta": "Panamá",
+     "nota": ""
+    },
+    {
+     "valor": "America/Mexico_City",
+     "etiqueta": "México (Ciudad de México)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Guatemala",
+     "etiqueta": "Guatemala",
+     "nota": ""
+    },
+    {
+     "valor": "America/Costa_Rica",
+     "etiqueta": "Costa Rica",
+     "nota": ""
+    },
+    {
+     "valor": "America/Caracas",
+     "etiqueta": "Venezuela (Caracas)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Santo_Domingo",
+     "etiqueta": "República Dominicana",
+     "nota": ""
+    },
+    {
+     "valor": "America/Santiago",
+     "etiqueta": "Chile (Santiago)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Argentina/Buenos_Aires",
+     "etiqueta": "Argentina (Buenos Aires)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Sao_Paulo",
+     "etiqueta": "Brasil (São Paulo)",
+     "nota": ""
+    },
+    {
+     "valor": "America/New_York",
+     "etiqueta": "Estados Unidos (Nueva York)",
+     "nota": ""
+    },
+    {
+     "valor": "Europe/Madrid",
+     "etiqueta": "España (Madrid)",
+     "nota": ""
+    },
+    {
+     "valor": "UTC",
+     "etiqueta": "UTC",
+     "nota": ""
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "America/Bogota",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "columna:timezone"
+  },
+  {
+   "clave": "bot_paused",
+   "grupo": "identidad",
+   "tipo": "booleano",
+   "etiqueta": "Pausar el asistente",
+   "explicacion": "Con la pausa activa el asistente deja de contestar en todos los canales del negocio hasta que lo reactives. Las conversaciones siguen entrando a la bandeja.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": false,
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "columna:bot_paused"
+  },
+  {
+   "clave": "debounce_mode",
+   "grupo": "respuesta",
+   "tipo": "elegir_una",
+   "etiqueta": "Velocidad de respuesta",
+   "explicacion": "Cuánto espera el asistente a que el cliente termine de escribir antes de responder. Esperar más junta varios mensajes seguidos en una sola respuesta.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "inmediato",
+     "etiqueta": "Inmediata",
+     "nota": "responde sin esperar"
+    },
+    {
+     "valor": "corto",
+     "etiqueta": "Corta",
+     "nota": "espera 3 s"
+    },
+    {
+     "valor": "rapido",
+     "etiqueta": "Rápida",
+     "nota": "espera 5 s"
+    },
+    {
+     "valor": "natural",
+     "etiqueta": "Natural",
+     "nota": "espera 15 s"
+    },
+    {
+     "valor": "pausado",
+     "etiqueta": "Pausada",
+     "nota": "espera 30 s"
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "natural",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:debounce_mode"
+  },
+  {
+   "clave": "split_style",
+   "grupo": "respuesta",
+   "tipo": "elegir_una",
+   "etiqueta": "Estilo de envío",
+   "explicacion": "Cuántos mensajes envía el asistente por respuesta. Meta cobra cada mensaje de servicio: «Un solo mensaje» gasta menos.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "un_mensaje",
+     "etiqueta": "Un solo mensaje",
+     "nota": "1 por respuesta"
+    },
+    {
+     "valor": "pocos_cortos",
+     "etiqueta": "Pocos mensajes cortos",
+     "nota": "hasta 3 por respuesta"
+    },
+    {
+     "valor": "varios_cortos",
+     "etiqueta": "Varios mensajes cortos",
+     "nota": "hasta 6 por respuesta"
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "un_mensaje",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:split_style"
+  },
+  {
+   "clave": "guardrail_fail_action",
+   "grupo": "respuesta",
+   "tipo": "elegir_una",
+   "etiqueta": "Si el asistente no logra corregir su respuesta",
+   "explicacion": "Qué hace cuando agota los reintentos de una validación. Responder que va a verificar no pausa el asistente; el escalamiento por turnos sin resolver sigue activo.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "escalate",
+     "etiqueta": "Escalar a una persona",
+     "nota": "pasa la conversación a tu equipo"
+    },
+    {
+     "valor": "neutral",
+     "etiqueta": "Responder que va a verificar",
+     "nota": "el asistente sigue atendiendo"
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "escalate",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:guardrail_fail_action"
+  },
+  {
+   "clave": "guardrail_max_retries",
+   "grupo": "calidad",
+   "tipo": "entero",
+   "etiqueta": "Reintentos de validación",
+   "explicacion": "Intentos para corregir una respuesta que falló una validación o parece inventada. Más intentos mejoran la calidad pero gastan más.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [],
+   "minimo": 0.0,
+   "maximo": 5.0,
+   "por_defecto": 1,
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:guardrail_max_retries"
+  },
+  {
+   "clave": "disabled_guardrails",
+   "grupo": "calidad",
+   "tipo": "elegir_varias",
+   "etiqueta": "Validaciones desactivadas",
+   "explicacion": "Validaciones de calidad que el asistente no aplica en este negocio. La lista depende de los módulos que tengas activos.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "verificador_links",
+     "etiqueta": "verificador_links",
+     "nota": ""
+    },
+    {
+     "valor": "verificador_montos",
+     "etiqueta": "verificador_montos",
+     "nota": ""
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": [],
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:disabled_guardrails"
+  },
+  {
+   "clave": "difficulty_long_message_threshold",
+   "grupo": "calidad",
+   "tipo": "entero",
+   "etiqueta": "Mensaje largo",
+   "explicacion": "Desde cuántos caracteres un mensaje cuenta como difícil y se manda al modelo de razonamiento.",
+   "ejemplo": "",
+   "unidad": "caracteres",
+   "valores": [],
+   "minimo": 50.0,
+   "maximo": 5000.0,
+   "por_defecto": 400,
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:difficulty_long_message_threshold"
+  },
+  {
+   "clave": "difficulty_turnos_sin_resolver_threshold",
+   "grupo": "calidad",
+   "tipo": "entero",
+   "etiqueta": "Turnos sin resolver",
+   "explicacion": "Cuántos turnos seguidos sin resolver el problema antes de pasar al modelo de razonamiento.",
+   "ejemplo": "",
+   "unidad": "turnos",
+   "valores": [],
+   "minimo": 1.0,
+   "maximo": 20.0,
+   "por_defecto": 2,
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:difficulty_turnos_sin_resolver_threshold"
+  },
+  {
+   "clave": "difficulty_score_threshold",
+   "grupo": "calidad",
+   "tipo": "entero",
+   "etiqueta": "Puntaje para razonamiento",
+   "explicacion": "Puntaje de dificultad (1 a 10) desde el cual la conversación pasa al modelo de razonamiento.",
+   "ejemplo": "",
+   "unidad": "puntos",
+   "valores": [],
+   "minimo": 1.0,
+   "maximo": 10.0,
+   "por_defecto": 2,
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:difficulty_score_threshold"
+  },
+  {
+   "clave": "palabras_de_baja",
+   "grupo": "bajas",
+   "tipo": "lista_de_textos",
+   "etiqueta": "Palabras de baja",
+   "explicacion": "Si un cliente escribe una de estas frases (el mensaje entero), deja de recibir envíos a segmentos. Vacío = usa las palabras por defecto.",
+   "ejemplo": "baja, stop, no quiero más promociones",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": [
+    "baja",
+    "stop",
+    "no mas promociones",
+    "no quiero mas promociones",
+    "no quiero mas mensajes",
+    "cancelar promociones"
+   ],
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "behavior_config:palabras_de_baja"
+  },
+  {
+   "clave": "escalation_keywords",
+   "grupo": "escalamiento",
+   "tipo": "lista_de_textos",
+   "etiqueta": "Palabras que disparan escalamiento",
+   "explicacion": "Si el cliente escribe alguna, la conversación pasa a una persona de tu equipo. Vacío = usa las palabras por defecto.",
+   "ejemplo": "asesor, humano, reclamo",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": [
+    "asesor",
+    "humano",
+    "persona real",
+    "reclamo",
+    "queja"
+   ],
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "escalation_config:keywords"
+  },
+  {
+   "clave": "auto_escalate_after_turns",
+   "grupo": "escalamiento",
+   "tipo": "entero",
+   "etiqueta": "Escalar tras N turnos",
+   "explicacion": "Pasa la conversación a una persona si el asistente no la resuelve en este número de turnos. 0 = nunca.",
+   "ejemplo": "",
+   "unidad": "turnos",
+   "valores": [],
+   "minimo": 0.0,
+   "maximo": 20.0,
+   "por_defecto": 0,
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "escalation_config:auto_escalate_after_turns"
+  },
+  {
+   "clave": "business_tz",
+   "grupo": "horario",
+   "tipo": "elegir_una",
+   "etiqueta": "Zona del horario de atención",
+   "explicacion": "Zona en la que se leen las franjas del horario. Si no eliges una, se usa la zona del negocio.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "America/Bogota",
+     "etiqueta": "Colombia (Bogotá)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Lima",
+     "etiqueta": "Perú (Lima)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Guayaquil",
+     "etiqueta": "Ecuador (Guayaquil)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Panama",
+     "etiqueta": "Panamá",
+     "nota": ""
+    },
+    {
+     "valor": "America/Mexico_City",
+     "etiqueta": "México (Ciudad de México)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Guatemala",
+     "etiqueta": "Guatemala",
+     "nota": ""
+    },
+    {
+     "valor": "America/Costa_Rica",
+     "etiqueta": "Costa Rica",
+     "nota": ""
+    },
+    {
+     "valor": "America/Caracas",
+     "etiqueta": "Venezuela (Caracas)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Santo_Domingo",
+     "etiqueta": "República Dominicana",
+     "nota": ""
+    },
+    {
+     "valor": "America/Santiago",
+     "etiqueta": "Chile (Santiago)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Argentina/Buenos_Aires",
+     "etiqueta": "Argentina (Buenos Aires)",
+     "nota": ""
+    },
+    {
+     "valor": "America/Sao_Paulo",
+     "etiqueta": "Brasil (São Paulo)",
+     "nota": ""
+    },
+    {
+     "valor": "America/New_York",
+     "etiqueta": "Estados Unidos (Nueva York)",
+     "nota": ""
+    },
+    {
+     "valor": "Europe/Madrid",
+     "etiqueta": "España (Madrid)",
+     "nota": ""
+    },
+    {
+     "valor": "UTC",
+     "etiqueta": "UTC",
+     "nota": ""
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": null,
+   "depende_de": {
+    "clave": "business_ranges",
+    "condicion": "no_vacia",
+    "valor": null,
+    "motivo": "Sin franjas de atención, la zona del horario no se usa."
+   },
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "escalation_config:business_hours.tz"
+  },
+  {
+   "clave": "business_ranges",
+   "grupo": "horario",
+   "tipo": "franjas",
+   "etiqueta": "Horario de atención",
+   "explicacion": "Franjas en las que el asistente atiende: día (0=lunes … 6=domingo) y hora de inicio y fin en HH:MM. Sin franjas, el asistente responde siempre.",
+   "ejemplo": "0 08:00-18:00 es el lunes de 8 a 18",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": [],
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "escalation_config:business_hours.ranges"
+  },
+  {
+   "clave": "out_of_hours_message",
+   "grupo": "horario",
+   "tipo": "texto_largo",
+   "etiqueta": "Mensaje fuera de horario",
+   "explicacion": "Lo que recibe el cliente cuando escribe fuera del horario, sin pasar por la IA. {assistant_name} se reemplaza por el nombre del asistente. Vacío = aviso por defecto.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "",
+   "depende_de": {
+    "clave": "business_ranges",
+    "condicion": "no_vacia",
+    "valor": null,
+    "motivo": "Sin horario de atención, el asistente responde siempre y este mensaje no se usa."
+   },
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "escalation_config:out_of_hours_message"
+  },
+  {
+   "clave": "persona_tone",
+   "grupo": "voz",
+   "tipo": "elegir_una",
+   "etiqueta": "Tono de personalidad",
+   "explicacion": "Cómo suena el asistente: más formal o más cercano al hablar con tus clientes.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "formal",
+     "etiqueta": "Formal",
+     "nota": "trata de usted y evita coloquialismos"
+    },
+    {
+     "valor": "neutral",
+     "etiqueta": "Neutral",
+     "nota": "correcto y sin adornos"
+    },
+    {
+     "valor": "cercano",
+     "etiqueta": "Cercano",
+     "nota": "amable y cálido, de tú"
+    },
+    {
+     "valor": "informal",
+     "etiqueta": "Informal",
+     "nota": "relajado, como entre conocidos"
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "cercano",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "spec:persona.tone"
+  },
+  {
+   "clave": "persona_warmth",
+   "grupo": "voz",
+   "tipo": "entero",
+   "etiqueta": "Calidez",
+   "explicacion": "Qué tan afectuoso es el trato, de 0 (seco) a 5 (muy cálido).",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [],
+   "minimo": 0.0,
+   "maximo": 5.0,
+   "por_defecto": 3,
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "spec:persona.warmth"
+  },
+  {
+   "clave": "persona_emojis",
+   "grupo": "voz",
+   "tipo": "elegir_una",
+   "etiqueta": "Emojis",
+   "explicacion": "Con qué frecuencia usa emojis en sus respuestas.",
+   "ejemplo": "",
+   "unidad": "",
+   "valores": [
+    {
+     "valor": "none",
+     "etiqueta": "Ninguno",
+     "nota": "nunca usa emojis"
+    },
+    {
+     "valor": "sparse",
+     "etiqueta": "Pocos",
+     "nota": "alguno de vez en cuando"
+    },
+    {
+     "valor": "free",
+     "etiqueta": "Libres",
+     "nota": "los usa con naturalidad"
+    }
+   ],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": "sparse",
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "spec:persona.emojis"
+  },
+  {
+   "clave": "persona_max_length",
+   "grupo": "voz",
+   "tipo": "entero",
+   "etiqueta": "Longitud máxima de respuesta",
+   "explicacion": "Largo máximo de cada respuesta. 0 = sin límite.",
+   "ejemplo": "",
+   "unidad": "caracteres",
+   "valores": [],
+   "minimo": 0.0,
+   "maximo": 10000.0,
+   "por_defecto": 500,
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "spec:persona.maxLength"
+  },
+  {
+   "clave": "persona_forbidden",
+   "grupo": "voz",
+   "tipo": "lista_de_textos",
+   "etiqueta": "Frases prohibidas",
+   "explicacion": "Frases que el asistente nunca debe decir.",
+   "ejemplo": "garantizado, sin falta",
+   "unidad": "",
+   "valores": [],
+   "minimo": null,
+   "maximo": null,
+   "por_defecto": [],
+   "depende_de": null,
+   "editable_por": "dueno",
+   "solo_lectura": false,
+   "almacen": "spec:persona.forbiddenPhrases"
+  }
+ ]
+}
