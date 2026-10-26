@@ -56,6 +56,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/a2a/route-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Route Preview */
+        post: operations["route_preview_api_v1_admin_a2a_route_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agent-models": {
         parameters: {
             query?: never;
@@ -6108,6 +6125,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pack/commerce/pago-en-linea/minimo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Minimo Pago En Linea */
+        get: operations["minimo_pago_en_linea_api_v1_pack_commerce_pago_en_linea_minimo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/commerce/platform/tenants/{tenant_id}/aliados": {
         parameters: {
             query?: never;
@@ -11691,6 +11725,33 @@ export interface components {
             /** Vencidas */
             vencidas: number;
         };
+        /**
+         * MinimoPagoEnLineaOut
+         * @description Mínimo por cobro para pagar en línea (HU-SUB-25). El panel lo usa para avisar al guardar un plan.
+         */
+        MinimoPagoEnLineaOut: {
+            /**
+             * Cuentas De Transferencia
+             * @description Cuentas de transferencia configuradas (0 = el cobro bajo el mínimo no tendría cómo pagarse).
+             */
+            cuentas_de_transferencia: number;
+            /**
+             * Fuente
+             * @description `negocio`: lo fijó el negocio; `pasarela`: lo declara la pasarela para su ambiente.
+             * @enum {string}
+             */
+            fuente: "negocio" | "pasarela" | "ninguna";
+            /**
+             * Minimo
+             * @description Monto mínimo por cobro en la moneda del negocio; `null` si no hay pasarela que lo declare.
+             */
+            minimo: number | null;
+            /**
+             * Moneda
+             * @default COP
+             */
+            moneda: string;
+        };
         /** MissingTemplateItem */
         MissingTemplateItem: {
             /** Conversation Id */
@@ -11855,6 +11916,12 @@ export interface components {
         Opcion: {
             /** Almacen */
             almacen: string;
+            /**
+             * Ambito
+             * @description Derivado del almacén (una sola fuente): lo del KernelSpec es de la conexión.
+             * @enum {string}
+             */
+            readonly ambito: "negocio" | "conexion";
             /** Clave */
             clave: string;
             depende_de?: components["schemas"]["Dependencia"] | null;
@@ -11877,7 +11944,7 @@ export interface components {
              * Grupo
              * @enum {string}
              */
-            grupo: "identidad" | "voz" | "respuesta" | "escalamiento" | "horario" | "calidad" | "bajas" | "whatsapp_web";
+            grupo: "identidad" | "voz" | "respuesta" | "escalamiento" | "horario" | "calidad" | "bajas" | "whatsapp_web" | "coordinador" | "agent_os";
             /** Maximo */
             maximo?: number | null;
             /** Minimo */
@@ -14251,6 +14318,23 @@ export interface components {
             /** To Release Id */
             to_release_id?: string | null;
         };
+        /** RouteCandidate */
+        RouteCandidate: {
+            /**
+             * Owner
+             * @description Key del agente que declara el procedimiento.
+             */
+            owner: string;
+            /** Procedure Id */
+            procedure_id: string;
+            /** Score */
+            score: number;
+            /**
+             * Title
+             * @description Título del procedimiento (dato de la habilidad).
+             */
+            title?: string | null;
+        };
         /** RouteClient */
         RouteClient: {
             /** Cliente */
@@ -14289,6 +14373,51 @@ export interface components {
             orden: string[];
             /** Tiempo Min */
             tiempo_min: number;
+        };
+        /** RoutePreview */
+        RoutePreview: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /** Agent Key */
+            agent_key: string;
+            /** Candidates */
+            candidates: components["schemas"]["RouteCandidate"][];
+            /** Confidence */
+            confidence: number | null;
+            /**
+             * Mode
+             * @description `off`, `shadow` o `active`: si hoy el router decide en esta conexión.
+             */
+            mode: string;
+            /**
+             * Not Evaluated Rules
+             * @description Reglas por datos del cliente, etapa u horario: sin conversación no se evalúan.
+             */
+            not_evaluated_rules: string[];
+            /** Procedure Id */
+            procedure_id: string | null;
+            /** Procedure Title */
+            procedure_title?: string | null;
+            /** Rule Id */
+            rule_id: string | null;
+            /**
+             * Source
+             * @description `rule`, `trigger` o `default`.
+             */
+            source: string;
+        };
+        /** RoutePreviewIn */
+        RoutePreviewIn: {
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /** Text */
+            text: string;
         };
         /** Rules */
         Rules: {
@@ -15944,6 +16073,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GraphVersion"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    route_preview_api_v1_admin_a2a_route_preview_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoutePreviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutePreview"];
                 };
             };
             /** @description Validation Error */
@@ -28229,6 +28393,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    minimo_pago_en_linea_api_v1_pack_commerce_pago_en_linea_minimo_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MinimoPagoEnLineaOut"];
+                };
             };
             /** @description Validation Error */
             422: {
