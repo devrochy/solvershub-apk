@@ -82,6 +82,6 @@ describe("catálogo de configuración (SPEC-37)", () => {
     const estado = estadoInicial(cat, { persona_warmth: 3, difficulty_score_threshold: 3 });
     estado.persona_warmth = "";
     expect(erroresDeRango(cat, estado)).toEqual({ persona_warmth: "«Calidez» necesita un número." });
-    expect(deEstado(opcion("persona_warmth"), "2,5")).toBe(2.5);
+    expect(deEstado({ ...opcion("persona_warmth"), tipo: "decimal" }, "0,7")).toBe(0.7);
   });
 });

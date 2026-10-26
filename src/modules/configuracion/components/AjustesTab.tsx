@@ -257,97 +257,97 @@ export function AjustesTab() {
           ) : sub === "cerebro" ? (
             <View testID="ajustes-cerebro">
               <Campo id="ajustes-model-primary" label="Modelo primario">
-                {InputCampo({
-                  id: "ajustes-model-primary",
-                  valor: cerebro.model_primary,
-                  onChange: (v) => setCerebro({ ...cerebro, model_primary: v }),
-                })}
+                <InputCampo
+                  id="ajustes-model-primary"
+                  valor={cerebro.model_primary}
+                  onChange={(v) => setCerebro({ ...cerebro, model_primary: v })}
+                />
               </Campo>
               <Campo id="ajustes-model-router" label="Modelo de razonamiento">
-                {InputCampo({
-                  id: "ajustes-model-router",
-                  valor: cerebro.model_router,
-                  onChange: (v) => setCerebro({ ...cerebro, model_router: v }),
-                })}
+                <InputCampo
+                  id="ajustes-model-router"
+                  valor={cerebro.model_router}
+                  onChange={(v) => setCerebro({ ...cerebro, model_router: v })}
+                />
               </Campo>
               <Campo id="ajustes-model-fallback" label="Modelo de respaldo">
-                {InputCampo({
-                  id: "ajustes-model-fallback",
-                  valor: cerebro.model_fallback,
-                  onChange: (v) => setCerebro({ ...cerebro, model_fallback: v }),
-                })}
+                <InputCampo
+                  id="ajustes-model-fallback"
+                  valor={cerebro.model_fallback}
+                  onChange={(v) => setCerebro({ ...cerebro, model_fallback: v })}
+                />
               </Campo>
               <Campo id="ajustes-temperature" label="Temperatura (0-2)" error={erroresNum.model_temperature}>
-                {InputCampo({
-                  id: "ajustes-temperature",
-                  valor: cerebro.model_temperature,
-                  onChange: (v) => {
+                <InputCampo
+                  id="ajustes-temperature"
+                  valor={cerebro.model_temperature}
+                  onChange={(v) => {
                     setCerebro({ ...cerebro, model_temperature: v });
                     quitarErrorNum("model_temperature");
-                  },
-                  numeric: true,
-                  decimal: true,
-                })}
+                  }}
+                  numeric
+                  decimal
+                />
               </Campo>
               <Campo id="ajustes-max-tools" label="Máx. llamadas a herramientas por turno" error={erroresNum.policy_max_tool_calls}>
-                {InputCampo({
-                  id: "ajustes-max-tools",
-                  valor: cerebro.policy_max_tool_calls,
-                  onChange: (v) => {
+                <InputCampo
+                  id="ajustes-max-tools"
+                  valor={cerebro.policy_max_tool_calls}
+                  onChange={(v) => {
                     setCerebro({ ...cerebro, policy_max_tool_calls: v });
                     quitarErrorNum("policy_max_tool_calls");
-                  },
-                  numeric: true,
-                })}
+                  }}
+                  numeric
+                />
               </Campo>
               <Campo id="ajustes-budget" label="Presupuesto por conversación" error={erroresNum.policy_budget}>
-                {InputCampo({
-                  id: "ajustes-budget",
-                  valor: cerebro.policy_budget,
-                  onChange: (v) => {
+                <InputCampo
+                  id="ajustes-budget"
+                  valor={cerebro.policy_budget}
+                  onChange={(v) => {
                     setCerebro({ ...cerebro, policy_budget: v });
                     quitarErrorNum("policy_budget");
-                  },
-                  numeric: true,
-                  decimal: true,
-                })}
+                  }}
+                  numeric
+                  decimal
+                />
               </Campo>
             </View>
           ) : sub === "memoria" ? (
             <View testID="ajustes-memoria">
               <Campo id="ajustes-short-term" label="Turnos de contexto (memoria corta)" error={erroresNum.short_term_turns}>
-                {InputCampo({
-                  id: "ajustes-short-term",
-                  valor: memoria.short_term_turns,
-                  onChange: (v) => {
+                <InputCampo
+                  id="ajustes-short-term"
+                  valor={memoria.short_term_turns}
+                  onChange={(v) => {
                     setMemoria({ ...memoria, short_term_turns: v });
                     quitarErrorNum("short_term_turns");
-                  },
-                  numeric: true,
-                })}
+                  }}
+                  numeric
+                />
               </Campo>
               <Campo id="ajustes-rag-topk" label="Recall RAG (top K)" ayuda="0 = desactivado (1–20)." error={erroresNum.rag_top_k}>
-                {InputCampo({
-                  id: "ajustes-rag-topk",
-                  valor: memoria.rag_top_k,
-                  onChange: (v) => {
+                <InputCampo
+                  id="ajustes-rag-topk"
+                  valor={memoria.rag_top_k}
+                  onChange={(v) => {
                     setMemoria({ ...memoria, rag_top_k: v });
                     quitarErrorNum("rag_top_k");
-                  },
-                  numeric: true,
-                })}
+                  }}
+                  numeric
+                />
               </Campo>
               <Campo id="ajustes-rag-score" label="Similitud mínima (0–1)" error={erroresNum.rag_min_score}>
-                {InputCampo({
-                  id: "ajustes-rag-score",
-                  valor: memoria.rag_min_score,
-                  onChange: (v) => {
+                <InputCampo
+                  id="ajustes-rag-score"
+                  valor={memoria.rag_min_score}
+                  onChange={(v) => {
                     setMemoria({ ...memoria, rag_min_score: v });
                     quitarErrorNum("rag_min_score");
-                  },
-                  numeric: true,
-                  decimal: true,
-                })}
+                  }}
+                  numeric
+                  decimal
+                />
               </Campo>
             </View>
           ) : null}
