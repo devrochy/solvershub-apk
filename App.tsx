@@ -36,7 +36,12 @@ import {
 import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/SeleccionNegocioAdminScreen";
 import { PanelShell } from "./src/navigation/PanelShell";
 import { campoNavRef } from "./src/navigation/refs";
-import { PushProvider, tabDelPanelParaPush, type PushDatos } from "./src/modules/notificaciones";
+import {
+  CentroNotificacionesProvider,
+  destinoDePush,
+  PushProvider,
+  type PushDatos,
+} from "./src/modules/notificaciones";
 import { emitirNavegacion } from "@shared/navegacion-evento";
 import { ThemeProvider } from "@core/theme/theme-context";
 import { inicializarBase } from "./src/data/bootstrap";
@@ -51,16 +56,19 @@ const PROYECTO_EAS =
 /** Puente: lee la sesión admin y arma el PushProvider (HU-APP-05). */
 function PushRoot({ children }: { children: React.ReactNode }) {
   const { sesion } = useAdminSession();
+  // El push recibido con la app abierta refresca el contador del centro de notificaciones.
+  const refrescarCentro = useRef<(() => void) | null>(null);
   const alTocarPush = (datos: PushDatos) => {
     // Sesión de campo (gestor): la actividad de campo lleva al diario.
     if (datos?.type === "cobranza.sync" && campoNavRef.isReady()) {
       campoNavRef.navigate("Cartera", {});
       return;
     }
-    // Panel (dueño, destinatario de los push del backend): pestaña del evento.
-    const tab = tabDelPanelParaPush(datos);
-    if (tab) {
-      emitirNavegacion({ tab });
+    // Panel: el destino neutro del centro de notificaciones (ADR-0167) o, si no viene, el `type`
+    // legado del push (ADR-0099).
+    const destino = destinoDePush(datos);
+    if (destino) {
+      emitirNavegacion(destino);
     }
   };
   return (
@@ -69,8 +77,9 @@ function PushRoot({ children }: { children: React.ReactNode }) {
       tenantId={sesion?.tenantId ?? null}
       projectId={PROYECTO_EAS}
       alTocarNotificacion={alTocarPush}
+      alRecibirNotificacion={() => refrescarCentro.current?.()}
     >
-      {children}
+      <CentroNotificacionesProvider refrescarRef={refrescarCentro}>{children}</CentroNotificacionesProvider>
     </PushProvider>
   );
 }

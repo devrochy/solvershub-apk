@@ -5,6 +5,7 @@
 export { Avatar, iniciales, type AvatarProps, type AvatarSize, type AvatarStatus } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeSize } from "./Badge";
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from "./Button";
+export { CampanaDelPanel, CampanaNotificaciones, textoContador, type CampanaNotificacionesProps } from "./CampanaNotificaciones";
 export { Drawer, type DrawerProps } from "./Drawer";
 export { EmptyState, type EmptyStateAction, type EmptyStateProps } from "./EmptyState";
 export { Field, nombreDeCampo, useField, type FieldContexto, type FieldProps } from "./Field";

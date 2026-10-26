@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { EntradaPestanas, SolicitudPestana } from "@shared/pestana-inicial";
-import { useKit } from "@shared/ui";
+import { CampanaDelPanel, useKit } from "@shared/ui";
 import { OperacionScreen } from "./screens/OperacionScreen";
 import { ClienteDetalleScreen } from "./screens/ClienteDetalleScreen";
 import { ConversacionDetalleScreen } from "./screens/ConversacionDetalleScreen";
@@ -34,6 +34,8 @@ export function OperacionNavigator({
         headerTintColor: c.text,
         headerTitleStyle: { color: c.text },
         headerShadowVisible: false,
+        // La campana siempre arriba a la derecha, también en los detalles (ADR-0167).
+        headerRight: () => <CampanaDelPanel />,
         contentStyle: { backgroundColor: c.bg },
       }}
     >

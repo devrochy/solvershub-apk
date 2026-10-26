@@ -56,6 +56,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/a2a/route-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Route Preview */
+        post: operations["route_preview_api_v1_admin_a2a_route_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agent-models": {
         parameters: {
             query?: never;
@@ -4751,6 +4768,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Notifications */
+        get: operations["list_notifications_api_v1_me_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/{notification_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Archive Notification */
+        delete: operations["archive_notification_api_v1_me_notifications__notification_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Mute */
+        put: operations["put_mute_api_v1_me_notifications_mute_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preferences */
+        get: operations["get_preferences_api_v1_me_notifications_preferences_get"];
+        /** Put Preferences */
+        put: operations["put_preferences_api_v1_me_notifications_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Read */
+        post: operations["mark_read_api_v1_me_notifications_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unread Count */
+        get: operations["unread_count_api_v1_me_notifications_unread_count_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/push-token": {
         parameters: {
             query?: never;
@@ -6102,6 +6222,23 @@ export interface paths {
         put?: never;
         /** Update Order Status */
         post: operations["update_order_status_api_v1_pack_commerce_orders__order_id__status_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/commerce/pago-en-linea/minimo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Minimo Pago En Linea */
+        get: operations["minimo_pago_en_linea_api_v1_pack_commerce_pago_en_linea_minimo_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -11211,6 +11348,16 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** MarkReadRequest */
+        MarkReadRequest: {
+            /**
+             * All
+             * @default false
+             */
+            all: boolean;
+            /** Ids */
+            ids?: string[] | null;
+        };
         /** MediaAudioSettings */
         MediaAudioSettings: {
             /** Enabled */
@@ -11691,6 +11838,33 @@ export interface components {
             /** Vencidas */
             vencidas: number;
         };
+        /**
+         * MinimoPagoEnLineaOut
+         * @description Mínimo por cobro para pagar en línea (HU-SUB-25). El panel lo usa para avisar al guardar un plan.
+         */
+        MinimoPagoEnLineaOut: {
+            /**
+             * Cuentas De Transferencia
+             * @description Cuentas de transferencia configuradas (0 = el cobro bajo el mínimo no tendría cómo pagarse).
+             */
+            cuentas_de_transferencia: number;
+            /**
+             * Fuente
+             * @description `negocio`: lo fijó el negocio; `pasarela`: lo declara la pasarela para su ambiente.
+             * @enum {string}
+             */
+            fuente: "negocio" | "pasarela" | "ninguna";
+            /**
+             * Minimo
+             * @description Monto mínimo por cobro en la moneda del negocio; `null` si no hay pasarela que lo declare.
+             */
+            minimo: number | null;
+            /**
+             * Moneda
+             * @default COP
+             */
+            moneda: string;
+        };
         /** MissingTemplateItem */
         MissingTemplateItem: {
             /** Conversation Id */
@@ -11810,6 +11984,14 @@ export interface components {
              */
             motivo: string;
         };
+        /**
+         * MuteRequest
+         * @description `minutes` > 0 silencia el push ese tiempo; `0` o ausente lo reactiva.
+         */
+        MuteRequest: {
+            /** Minutes */
+            minutes?: number | null;
+        };
         /** NoteIn */
         NoteIn: {
             /** Nota */
@@ -11829,6 +12011,42 @@ export interface components {
             /** Nota */
             nota: string;
         };
+        /** NotificationItem */
+        NotificationItem: {
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "conversaciones" | "ventas" | "cobros" | "agenda" | "sistema";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+            /** Event Key */
+            event_key: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Read */
+            read: boolean;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "info" | "success" | "warning" | "critical";
+            target: components["schemas"]["NotificationTarget"] | null;
+            /** Title */
+            title: string;
+        };
         /**
          * NotificationOut
          * @description Resultado real del aviso al cliente (HU-CAL-05).
@@ -11840,6 +12058,41 @@ export interface components {
             email_sent: boolean;
             /** Whatsapp Sent */
             whatsapp_sent: boolean;
+        };
+        /** NotificationPage */
+        NotificationPage: {
+            /** Items */
+            items: components["schemas"]["NotificationItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Unread Count */
+            unread_count: number;
+        };
+        /** NotificationPreferences */
+        NotificationPreferences: {
+            /** Categories */
+            categories: string[];
+            /** Muted Until */
+            muted_until: string | null;
+            /** Push Off Categories */
+            push_off_categories: string[];
+        };
+        /**
+         * NotificationTarget
+         * @description Destino neutro: el cliente lo traduce a su propia ruta. `section` es la sección de PERMISO
+         *     que gobierna la visibilidad (no una ruta). Un `entity` nuevo es aditivo: el cliente debe
+         *     tener un valor por defecto.
+         */
+        NotificationTarget: {
+            /**
+             * Entity
+             * @description conversacion, escalacion, lead, cliente, pedido, pago, suscripcion, cobro, cita, conexion, mensaje_fallido, cobranza
+             */
+            entity: string;
+            /** Id */
+            id: string | null;
+            /** Section */
+            section: string | null;
         };
         /** NumbersResponse */
         NumbersResponse: {
@@ -12845,6 +13098,11 @@ export interface components {
             lat: number;
             /** Lng */
             lng: number;
+        };
+        /** PreferencesUpdate */
+        PreferencesUpdate: {
+            /** Push Off Categories */
+            push_off_categories?: string[];
         };
         /** PreflightOut */
         PreflightOut: {
@@ -14251,6 +14509,23 @@ export interface components {
             /** To Release Id */
             to_release_id?: string | null;
         };
+        /** RouteCandidate */
+        RouteCandidate: {
+            /**
+             * Owner
+             * @description Key del agente que declara el procedimiento.
+             */
+            owner: string;
+            /** Procedure Id */
+            procedure_id: string;
+            /** Score */
+            score: number;
+            /**
+             * Title
+             * @description Título del procedimiento (dato de la habilidad).
+             */
+            title?: string | null;
+        };
         /** RouteClient */
         RouteClient: {
             /** Cliente */
@@ -14289,6 +14564,51 @@ export interface components {
             orden: string[];
             /** Tiempo Min */
             tiempo_min: number;
+        };
+        /** RoutePreview */
+        RoutePreview: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /** Agent Key */
+            agent_key: string;
+            /** Candidates */
+            candidates: components["schemas"]["RouteCandidate"][];
+            /** Confidence */
+            confidence: number | null;
+            /**
+             * Mode
+             * @description `off`, `shadow` o `active`: si hoy el router decide en esta conexión.
+             */
+            mode: string;
+            /**
+             * Not Evaluated Rules
+             * @description Reglas por datos del cliente, etapa u horario: sin conversación no se evalúan.
+             */
+            not_evaluated_rules: string[];
+            /** Procedure Id */
+            procedure_id: string | null;
+            /** Procedure Title */
+            procedure_title?: string | null;
+            /** Rule Id */
+            rule_id: string | null;
+            /**
+             * Source
+             * @description `rule`, `trigger` o `default`.
+             */
+            source: string;
+        };
+        /** RoutePreviewIn */
+        RoutePreviewIn: {
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /** Text */
+            text: string;
         };
         /** Rules */
         Rules: {
@@ -15197,6 +15517,11 @@ export interface components {
             /** Tenant */
             tenant: string;
         };
+        /** UnreadCount */
+        UnreadCount: {
+            /** Unread Count */
+            unread_count: number;
+        };
         /** UsageByConnection */
         UsageByConnection: {
             /** Connection Id */
@@ -15944,6 +16269,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GraphVersion"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    route_preview_api_v1_admin_a2a_route_preview_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoutePreviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutePreview"];
                 };
             };
             /** @description Validation Error */
@@ -25103,6 +25463,241 @@ export interface operations {
             };
         };
     };
+    list_notifications_api_v1_me_notifications_get: {
+        parameters: {
+            query?: {
+                after?: string | null;
+                category?: string | null;
+                cursor?: string | null;
+                limit?: number;
+                unread?: boolean;
+            };
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_notification_api_v1_me_notifications__notification_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                notification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_mute_api_v1_me_notifications_mute_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MuteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferences"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preferences_api_v1_me_notifications_preferences_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferences"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_preferences_api_v1_me_notifications_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferences"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_read_api_v1_me_notifications_read_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkReadRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unread_count_api_v1_me_notifications_unread_count_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     register_push_token_api_v1_me_push_token_post: {
         parameters: {
             query?: never;
@@ -28229,6 +28824,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    minimo_pago_en_linea_api_v1_pack_commerce_pago_en_linea_minimo_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MinimoPagoEnLineaOut"];
+                };
             };
             /** @description Validation Error */
             422: {
