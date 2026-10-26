@@ -1,5 +1,6 @@
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
+import { limpiarNumero } from "../numeros";
 
 /** Controles de formulario de Configuración: campo con etiqueta y ayuda, chips y texto. */
 
@@ -84,6 +85,8 @@ export function InputCampo(props: {
   onChange: (v: string) => void;
   multiline?: boolean;
   numeric?: boolean;
+  /** Con `numeric`: acepta parte decimal (teclado con punto y coma). */
+  decimal?: boolean;
   placeholder?: string;
   deshabilitado?: boolean;
 }) {
@@ -92,10 +95,10 @@ export function InputCampo(props: {
     <TextInput
       testID={props.id}
       value={props.valor}
-      onChangeText={props.onChange}
+      onChangeText={props.numeric ? (v) => props.onChange(limpiarNumero(v, props.decimal === true)) : props.onChange}
       multiline={props.multiline}
       editable={!props.deshabilitado}
-      keyboardType={props.numeric ? "numeric" : undefined}
+      keyboardType={props.numeric ? (props.decimal ? "decimal-pad" : "number-pad") : undefined}
       placeholder={props.placeholder}
       placeholderTextColor={colores.textoSuave}
       style={[
