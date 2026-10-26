@@ -812,6 +812,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/connections/{connection_id}/releases/{release_id}/diff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Release Diff
+         * @description Qué cambia la release frente a `against` (por defecto, la activa) de la MISMA conexión
+         *     (HU-AOS-27). 404 si alguna no es de la conexión.
+         */
+        get: operations["get_release_diff_api_v1_admin_connections__connection_id__releases__release_id__diff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/{connection_id}/releases/{release_id}/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Evaluate Release
+         * @description Pide medir la candidata contra la activa (HU-AOS-21 parte 4). Exige la bandera del gate del
+         *     negocio (409 `gate_abierto` si está apagada) para no gastar el tope sin gate.
+         */
+        post: operations["evaluate_release_api_v1_admin_connections__connection_id__releases__release_id__evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/{connection_id}/releases/{release_id}/evaluation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Evaluation
+         * @description La medición de la candidata contra la activa de ahora (HU-AOS-21 parte 4).
+         */
+        get: operations["get_evaluation_api_v1_admin_connections__connection_id__releases__release_id__evaluation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/connections/{connection_id}/releases/{release_id}/promote": {
         parameters: {
             query?: never;
@@ -823,6 +885,26 @@ export interface paths {
         put?: never;
         /** Promote Release */
         post: operations["promote_release_api_v1_admin_connections__connection_id__releases__release_id__promote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/{connection_id}/releases/{release_id}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop Release
+         * @description El dueño detiene una candidata (HU-AOS-27): queda retirada y no se podrá activar.
+         */
+        post: operations["stop_release_api_v1_admin_connections__connection_id__releases__release_id__stop_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3415,6 +3497,31 @@ export interface paths {
         put?: never;
         /** Deactivate Tenant Endpoint */
         post: operations["deactivate_tenant_endpoint_api_v1_admin_platform_tenants__tenant_id__deactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/tenants/{tenant_id}/gate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Gate
+         * @description Bandera del gate de pass^k del negocio y su tope mensual. Solo el master.
+         */
+        get: operations["get_gate_api_v1_admin_platform_tenants__tenant_id__gate_get"];
+        /**
+         * Put Gate
+         * @description Enciende o apaga el gate del negocio (auditado como `release_gate_bandera`). 409
+         *     `sin_base_de_eval` si se intenta cerrar sin la base de evaluación configurada en el entorno.
+         */
+        put: operations["put_gate_api_v1_admin_platform_tenants__tenant_id__gate_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6921,6 +7028,52 @@ export interface components {
             /** Versions */
             versions: components["schemas"]["SpecVersion"][];
         };
+        /** AgentChange */
+        AgentChange: {
+            /**
+             * Cambio
+             * @description `nuevo`, `retirado`, `actualizado` o `por_defecto`.
+             */
+            cambio: string;
+            /**
+             * Herramientas Agregadas
+             * @default []
+             */
+            herramientas_agregadas: string[];
+            /**
+             * Herramientas Quitadas
+             * @default []
+             */
+            herramientas_quitadas: string[];
+            /** Key */
+            key: string;
+            /** Nombre */
+            nombre: string;
+            /** Por Defecto */
+            por_defecto?: boolean | null;
+            /**
+             * Procedimientos Agregados
+             * @default []
+             */
+            procedimientos_agregados: string[];
+            /**
+             * Procedimientos Quitados
+             * @default []
+             */
+            procedimientos_quitados: string[];
+            /** Rol */
+            rol: string;
+            /**
+             * Secciones
+             * @description Claves de primer nivel del contenido que cambiaron.
+             * @default []
+             */
+            secciones: string[];
+            /** Version Ahora */
+            version_ahora: number | null;
+            /** Version Antes */
+            version_antes: number | null;
+        };
         /** AgentConnection */
         AgentConnection: {
             /** Enabled */
@@ -9759,6 +9912,55 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** Evaluation */
+        Evaluation: {
+            /** Base Release Id */
+            base_release_id: string | null;
+            /** Es La Activa */
+            es_la_activa: boolean;
+            /** Gate Cerrado */
+            gate_cerrado: boolean;
+            medicion: components["schemas"]["EvaluationRun"] | null;
+            veredicto: components["schemas"]["EvaluationVerdict"] | null;
+        };
+        /** EvaluationRequested */
+        EvaluationRequested: {
+            /**
+             * Estado
+             * @description `encolada`, `en_curso`, `demasiados_intentos`, `no_encolada`, `sin_cambios`, `ya_medida`.
+             */
+            estado: string;
+        };
+        /** EvaluationRun */
+        EvaluationRun: {
+            /** Codigo */
+            codigo: string | null;
+            /** Creado */
+            creado: string | null;
+            /** Estado */
+            estado: string;
+            /** Sin Escenarios */
+            sin_escenarios: string[];
+        };
+        /** EvaluationVerdict */
+        EvaluationVerdict: {
+            /** Aprobado */
+            aprobado: boolean;
+            /** K */
+            k: number | null;
+            /** Motivo */
+            motivo: string;
+            /** Por Procedimiento */
+            por_procedimiento: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+            /** Sin Medir */
+            sin_medir: string[];
+            /** Umbral */
+            umbral: number | null;
+        };
         /** EventCatalogItem */
         EventCatalogItem: {
             /** Event */
@@ -9902,6 +10104,32 @@ export interface components {
             draft: components["schemas"]["AgentDraft"];
             /** Warnings */
             warnings: string[];
+        };
+        /** GateBandera */
+        GateBandera: {
+            /**
+             * Cerrado
+             * @description Con el gate cerrado, una versión sin veredicto no se activa (409 `gate_pendiente`).
+             */
+            cerrado: boolean;
+            /**
+             * Tope Usd Mensual
+             * @description Tope mensual de las mediciones (USD, lo paga la plataforma); null = el del entorno.
+             */
+            tope_usd_mensual?: number | null;
+        };
+        /** GateBanderaIn */
+        GateBanderaIn: {
+            /**
+             * Cerrado
+             * @description Con el gate cerrado, una versión sin veredicto no se activa (409 `gate_pendiente`).
+             */
+            cerrado: boolean;
+            /**
+             * Tope Usd Mensual
+             * @description Tope mensual de las mediciones (USD, lo paga la plataforma); null = el del entorno.
+             */
+            tope_usd_mensual?: number | null;
         };
         /**
          * GestorTokenRequest
@@ -11358,6 +11586,15 @@ export interface components {
             /** Ids */
             ids?: string[] | null;
         };
+        /** MeasuredProcedure */
+        MeasuredProcedure: {
+            /** Motivo */
+            motivo: string;
+            /** Procedure Id */
+            procedure_id: string;
+            /** Titulo */
+            titulo: string | null;
+        };
         /** MediaAudioSettings */
         MediaAudioSettings: {
             /** Enabled */
@@ -12108,6 +12345,12 @@ export interface components {
         Opcion: {
             /** Almacen */
             almacen: string;
+            /**
+             * Ambito
+             * @description Derivado del almacén (una sola fuente): lo del KernelSpec es de la conexión.
+             * @enum {string}
+             */
+            readonly ambito: "negocio" | "conexion";
             /** Clave */
             clave: string;
             depende_de?: components["schemas"]["Dependencia"] | null;
@@ -12130,7 +12373,7 @@ export interface components {
              * Grupo
              * @enum {string}
              */
-            grupo: "identidad" | "voz" | "respuesta" | "escalamiento" | "horario" | "calidad" | "bajas" | "whatsapp_web";
+            grupo: "identidad" | "voz" | "respuesta" | "escalamiento" | "horario" | "calidad" | "bajas" | "whatsapp_web" | "coordinador" | "agent_os";
             /** Maximo */
             maximo?: number | null;
             /** Minimo */
@@ -12200,6 +12443,18 @@ export interface components {
         OrderStatusUpdate: {
             /** Status */
             status: string;
+        };
+        /** OtherChanges */
+        OtherChanges: {
+            /**
+             * Ajustes
+             * @description Nombres de los ajustes del asistente que cambiaron.
+             */
+            ajustes: string[];
+            /** Flujo */
+            flujo: boolean;
+            /** Playbooks */
+            playbooks: string[];
         };
         /** OutgoingItem */
         OutgoingItem: {
@@ -12697,6 +12952,22 @@ export interface components {
             telefono?: string | null;
             /** Username */
             username?: string | null;
+        };
+        /** PermissionChange */
+        PermissionChange: {
+            /**
+             * Cambio
+             * @description `agregado`, `quitado` o `modos`.
+             */
+            cambio: string;
+            /** Desde */
+            desde: string;
+            /** Hacia */
+            hacia: string;
+            /** Modos Ahora */
+            modos_ahora: string[];
+            /** Modos Antes */
+            modos_antes: string[];
         };
         /** PermissionItem */
         PermissionItem: {
@@ -14291,6 +14562,12 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Detenida
+             * @description La detuvo el dueño (no se puede activar).
+             * @default false
+             */
+            detenida: boolean;
             /** Events */
             events: components["schemas"]["ReleaseEvent"][];
             /**
@@ -14302,6 +14579,11 @@ export interface components {
             last_event: string | null;
             /** Last Event At */
             last_event_at: string | null;
+            /**
+             * Lifecycle
+             * @description Último evento de ciclo de vida: promoted, rolled_back, invalid…
+             */
+            lifecycle?: string | null;
             /**
              * Manifest
              * @description Manifiesto `release/1` sin textos: hashes y tamaños.
@@ -14318,6 +14600,23 @@ export interface components {
              * @enum {string}
              */
             origin: "owner" | "platform";
+        };
+        /** ReleaseDiff */
+        ReleaseDiff: {
+            /** Agentes */
+            agentes: components["schemas"]["AgentChange"][];
+            /** Base */
+            base: number | null;
+            /** Candidata */
+            candidata: number;
+            /** Medira */
+            medira: components["schemas"]["MeasuredProcedure"][];
+            otros: components["schemas"]["OtherChanges"];
+            /** Permisos */
+            permisos: components["schemas"]["PermissionChange"][];
+            /** Sin Linea Base */
+            sin_linea_base: boolean;
+            superpoderes: components["schemas"]["SuperpowersDiff"];
         };
         /** ReleaseEvent */
         ReleaseEvent: {
@@ -14347,6 +14646,12 @@ export interface components {
              */
             created_at: string;
             /**
+             * Detenida
+             * @description La detuvo el dueño (no se puede activar).
+             * @default false
+             */
+            detenida: boolean;
+            /**
              * Id
              * Format: uuid
              */
@@ -14355,6 +14660,11 @@ export interface components {
             last_event: string | null;
             /** Last Event At */
             last_event_at: string | null;
+            /**
+             * Lifecycle
+             * @description Último evento de ciclo de vida: promoted, rolled_back, invalid…
+             */
+            lifecycle?: string | null;
             /** Manifest Hash */
             manifest_hash: string;
             /** Number */
@@ -14702,6 +15012,22 @@ export interface components {
              */
             requires_confirmation: boolean;
         };
+        /** SkillChange */
+        SkillChange: {
+            /** Ahora */
+            ahora: string | null;
+            /** Antes */
+            antes: string | null;
+            /**
+             * Cambio
+             * @description `agregada`, `quitada` o `nueva_version`.
+             */
+            cambio: string;
+            /** Nombre */
+            nombre: string;
+            /** Pack Id */
+            pack_id: string;
+        };
         /** SkillInstallation */
         SkillInstallation: {
             /** Connection Id */
@@ -14862,6 +15188,15 @@ export interface components {
             title: string;
             /** Version */
             version: string;
+        };
+        /** SuperpowersDiff */
+        SuperpowersDiff: {
+            /** Habilidades */
+            habilidades: components["schemas"]["SkillChange"][];
+            /** Plugins Agregados */
+            plugins_agregados: string[];
+            /** Plugins Quitados */
+            plugins_quitados: string[];
         };
         /** SuscripcionDetalle */
         SuscripcionDetalle: {
@@ -18093,6 +18428,119 @@ export interface operations {
             };
         };
     };
+    get_release_diff_api_v1_admin_connections__connection_id__releases__release_id__diff_get: {
+        parameters: {
+            query?: {
+                against?: string | null;
+            };
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                release_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseDiff"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evaluate_release_api_v1_admin_connections__connection_id__releases__release_id__evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                release_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationRequested"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationRequested"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_evaluation_api_v1_admin_connections__connection_id__releases__release_id__evaluation_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                release_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Evaluation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     promote_release_api_v1_admin_connections__connection_id__releases__release_id__promote_post: {
         parameters: {
             query?: never;
@@ -18118,6 +18566,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReleaseChange"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_release_api_v1_admin_connections__connection_id__releases__release_id__stop_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                release_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseSummary"];
                 };
             };
             /** @description Validation Error */
@@ -22855,6 +23337,76 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_gate_api_v1_admin_platform_tenants__tenant_id__gate_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GateBandera"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_gate_api_v1_admin_platform_tenants__tenant_id__gate_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GateBanderaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GateBandera"];
+                };
             };
             /** @description Validation Error */
             422: {
