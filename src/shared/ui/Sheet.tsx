@@ -39,7 +39,8 @@ const VELOCIDAD_CIERRE = 1;
  * visible, título como encabezado, botón cerrar accesible de 48 dp y cierre con
  * el back de Android (`onRequestClose`). El asa y el encabezado se arrastran
  * hacia abajo para cerrar (PanResponder, sin gesture-handler). Entra deslizando
- * con `dur-slow` y `ease-emphasized`, sin animación con "reducir movimiento".
+ * con `dur-slow` y `ease-emphasized` y sale con el espejo (`dur-base`, `ease-in`): la
+ * hoja sigue montada hasta que termina la salida. Sin animación con "reducir movimiento".
  */
 export function Sheet({
   visible,
@@ -56,19 +57,31 @@ export function Sheet({
   const reducir = useReduceMotion();
   const [entrada] = useState(() => new Animated.Value(0));
   const [arrastre] = useState(() => new Animated.Value(0));
+  // El `Modal` sigue montado mientras la hoja sale: cerrar anima igual que abrir.
+  const [montado, setMontado] = useState(visible);
+  if (visible && !montado) setMontado(true);
 
   useEffect(() => {
-    if (!visible) {
-      entrada.setValue(0);
+    if (visible) {
       arrastre.setValue(0);
+      Animated.timing(entrada, {
+        toValue: 1,
+        duration: duracion("slow", reducir),
+        easing: curva("emphasized"),
+        useNativeDriver: true,
+      }).start();
       return;
     }
-    Animated.timing(entrada, {
-      toValue: 1,
-      duration: duracion("slow", reducir),
-      easing: curva("emphasized"),
+    const salida = Animated.timing(entrada, {
+      toValue: 0,
+      duration: duracion("base", reducir),
+      easing: curva("in"),
       useNativeDriver: true,
-    }).start();
+    });
+    salida.start(({ finished }) => {
+      if (finished) setMontado(false);
+    });
+    return () => salida.stop();
   }, [visible, reducir, entrada, arrastre]);
 
   const gesto = useMemo(
@@ -100,7 +113,7 @@ export function Sheet({
   return (
     <Modal
       testID={testID ? `${testID}-modal` : undefined}
-      visible={visible}
+      visible={montado}
       transparent
       animationType="none"
       statusBarTranslucent

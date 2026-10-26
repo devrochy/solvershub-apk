@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { Sheet } from "./Sheet";
 import { areaTactil } from "./test-utils";
@@ -41,6 +41,35 @@ describe("Sheet (kit)", () => {
       </Sheet>,
     );
     expect(screen.queryByText("Cuerpo")).toBeNull();
+  });
+
+  it("al cerrarse sigue montada mientras sale y luego se desmonta (cierre animado)", async () => {
+    const hoja = (visible: boolean) => (
+      <Sheet visible={visible} title="Nota" onClose={jest.fn()}>
+        <Text>Cuerpo</Text>
+      </Sheet>
+    );
+    const { rerender } = await render(hoja(true));
+    expect(screen.getByText("Cuerpo")).toBeTruthy();
+
+    await rerender(hoja(false));
+    // La salida anima: en el mismo instante en que `visible` pasa a falso aún se ve.
+    expect(screen.getByText("Cuerpo")).toBeTruthy();
+
+    await waitFor(() => expect(screen.queryByText("Cuerpo")).toBeNull());
+  });
+
+  it("reabrir durante la salida la cancela y la hoja queda visible", async () => {
+    const hoja = (visible: boolean) => (
+      <Sheet visible={visible} title="Nota" onClose={jest.fn()}>
+        <Text>Cuerpo</Text>
+      </Sheet>
+    );
+    const { rerender } = await render(hoja(true));
+    await rerender(hoja(false));
+    await rerender(hoja(true));
+    await new Promise((r) => setTimeout(r, 400));
+    expect(screen.getByText("Cuerpo")).toBeTruthy();
   });
 
   it("pinta el pie (acciones) cuando se pasa", async () => {
