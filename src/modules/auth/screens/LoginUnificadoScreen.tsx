@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
-import { useKit } from "@shared/ui";
+import { PasswordField, useKit } from "@shared/ui";
 import type { LoginResult } from "@shared/types/auth";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { ApiAuthError, apiGestorToken } from "@core/api/auth-admin";
@@ -125,14 +125,12 @@ export function LoginUnificadoScreen({
         autoCorrect={false}
         style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
       />
-      <TextInput
+      <PasswordField
         testID="login-password"
         value={password}
         onChangeText={setPassword}
         placeholder="Contraseña"
-        placeholderTextColor={colores.textoSuave}
-        secureTextEntry
-        style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
+        style={[styles.campo, { borderColor: colores.borde, color: colores.texto, backgroundColor: "transparent" }]}
       />
 
       {error ? (

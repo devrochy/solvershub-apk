@@ -21,6 +21,7 @@ import {
   guardarPermisosGestor,
   type GestorOut,
 } from "../api";
+import { PasswordField } from "@shared/ui";
 
 const ETIQUETAS_PERMISO: Record<string, string> = {
   registrar_prestamo: "Registrar préstamo",
@@ -203,9 +204,9 @@ export function GestoresTab({ api }: { api: ClienteAdmin }) {
               placeholder="Correo" placeholderTextColor={colores.textoSuave} autoCapitalize="none"
               style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
             {creando ? (
-              <TextInput testID="gestor-password" value={campoPassword} onChangeText={setCampoPassword}
-                placeholder="Contraseña (si va a entrar a la app)" placeholderTextColor={colores.textoSuave} secureTextEntry
-                style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+              <PasswordField testID="gestor-password" value={campoPassword} onChangeText={setCampoPassword}
+                placeholder="Contraseña (si va a entrar a la app)"
+                style={[styles.campo, { borderColor: colores.borde, color: colores.texto, backgroundColor: "transparent" }]} />
             ) : null}
 
             {!creando && catalogoPermisos.length > 0 ? (

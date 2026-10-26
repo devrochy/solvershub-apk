@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
-import { useKit } from "@shared/ui";
+import { PasswordField, useKit } from "@shared/ui";
 import { ApiAuthError, apiOlvidarContrasena, apiRestablecerContrasena } from "@core/api/auth-admin";
 
 export interface RecuperarContrasenaProps {
@@ -103,23 +103,19 @@ export function RecuperarContrasenaScreen({ volverAlLogin }: RecuperarContrasena
             autoCorrect={false}
             style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
           />
-          <TextInput
+          <PasswordField
             testID="recuperar-nueva"
             value={nueva}
             onChangeText={setNueva}
             placeholder="Nueva contraseña"
-            placeholderTextColor={colores.textoSuave}
-            secureTextEntry
-            style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
+            style={[styles.campo, { borderColor: colores.borde, color: colores.texto, backgroundColor: "transparent" }]}
           />
-          <TextInput
+          <PasswordField
             testID="recuperar-confirmacion"
             value={confirmacion}
             onChangeText={setConfirmacion}
             placeholder="Repite la contraseña"
-            placeholderTextColor={colores.textoSuave}
-            secureTextEntry
-            style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
+            style={[styles.campo, { borderColor: colores.borde, color: colores.texto, backgroundColor: "transparent" }]}
           />
           <BotonPrincipal cargando={cargando} testID="recuperar-aplicar" onPress={aplicar} texto="Restablecer" />
         </>
