@@ -78,4 +78,18 @@ describe("CentroSheet (ADR-0167)", () => {
     expect(n.cargarPreferencias).toHaveBeenCalled();
     expect(screen.getByText("Preferencias")).toBeTruthy();
   });
+
+  it("el texto del silencio no repite el punto final (\"a. m..\")", async () => {
+    const ahora = new Date("2026-10-26T14:00:00Z");
+    const hasta = new Date("2026-10-26T15:00:00Z").toISOString();
+    const n = estado({
+      ahora,
+      preferencias: { categories: ["cobros"], push_off_categories: [], muted_until: hasta },
+    } as never);
+    await render(<CentroSheet visible onClose={jest.fn()} n={n} onAbrirNotificacion={jest.fn()} />);
+    await fireEvent.press(screen.getByTestId("abrir-preferencias"));
+    const texto = screen.getByText(/^Silenciados hasta /).props.children as string;
+    expect(texto.endsWith(".")).toBe(true);
+    expect(texto.endsWith("..")).toBe(false);
+  });
 });

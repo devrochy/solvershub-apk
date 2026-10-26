@@ -226,7 +226,9 @@ function Preferencias({ n, onVolver }: { n: EstadoCentro; onVolver: () => void }
         </Text>
         <Text style={[shType.dense, { color: c.textMuted }]}>
           {silenciado && hasta
-            ? `Silenciados hasta ${hasta.toLocaleString("es-CO", { weekday: "short", hour: "numeric", minute: "2-digit" })}.`
+            ? `Silenciados hasta ${hasta
+                .toLocaleString("es-CO", { weekday: "short", hour: "numeric", minute: "2-digit" })
+                .replace(/\.$/, "")}.`
             : "Pausa los avisos al celular por un tiempo. Las notificaciones siguen apareciendo aquí."}
         </Text>
         <View style={styles.opciones}>

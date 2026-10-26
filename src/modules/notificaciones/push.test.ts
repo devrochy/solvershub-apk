@@ -18,10 +18,13 @@ jest.mock("expo-notifications", () => ({
 import * as Notifications from "expo-notifications";
 import {
   addListener,
+  addRecibidaListener,
   CANALES_ANDROID,
   configurarCanal,
+  configurarPrimerPlano,
   consumirRespuestaInicial,
   enExpoGo,
+  esPushDelCentro,
   obtenerTokenExpo,
   solicitarPermisos,
 } from "./push";
@@ -49,6 +52,31 @@ describe("push (HU-APP-05)", () => {
     await configurarCanal();
     // En el resto de plataformas no se vuelve a llamar.
     expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(CANALES_ANDROID.length);
+  });
+
+  it("los push del centro (con categoría) no usan el banner del sistema: la app pinta el suyo", async () => {
+    configurarPrimerPlano();
+    const { handleNotification } = (Notifications.setNotificationHandler as jest.Mock).mock.calls[0][0];
+    const del = (data: Record<string, unknown>) => ({ request: { content: { data } } });
+
+    expect(esPushDelCentro({ category: "cobros" })).toBe(true);
+    expect(esPushDelCentro({ type: "core.escalation" })).toBe(false);
+
+    expect(await handleNotification(del({ category: "cobros", severity: "warning" }))).toMatchObject({
+      shouldShowBanner: false,
+      shouldShowList: true,
+      shouldPlaySound: true,
+    });
+    // Un push legado (sin categoría) conserva el banner del sistema.
+    expect(await handleNotification(del({ type: "core.escalation" }))).toMatchObject({ shouldShowBanner: true });
+  });
+
+  it("al recibir con la app abierta entrega los datos y el título/cuerpo", () => {
+    const handler = jest.fn();
+    addRecibidaListener(handler);
+    const recibida = (Notifications.addNotificationReceivedListener as jest.Mock).mock.calls[0][0];
+    recibida({ request: { content: { title: "Nueva escalación", body: "Cuerpo", data: { category: "conversaciones" } } } });
+    expect(handler).toHaveBeenCalledWith({ category: "conversaciones" }, { title: "Nueva escalación", body: "Cuerpo" });
   });
 
   it("devuelve una sola vez el push que abrió la app (arranque en frío)", () => {

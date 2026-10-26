@@ -3,6 +3,7 @@ import { darDeBajaPushToken, registrarPushToken } from "./api";
 import {
   addListener,
   addRecibidaListener,
+  type ContenidoPush,
   configurarCanal,
   configurarPrimerPlano,
   consumirRespuestaInicial,
@@ -25,7 +26,7 @@ export interface PushProviderProps {
   /** El usuario tocó la notificación: la composición decide la navegación. */
   alTocarNotificacion(datos: PushDatos): void;
   /** Llegó una notificación con la app abierta: el centro refresca su contador. */
-  alRecibirNotificacion?(datos: PushDatos): void;
+  alRecibirNotificacion?(datos: PushDatos, contenido?: ContenidoPush): void;
   children: ReactNode;
 }
 
@@ -85,7 +86,9 @@ export function PushProvider({
   useEffect(() => {
     void configurarCanal().catch(() => undefined);
     configurarPrimerPlano();
-    const sub = addRecibidaListener((datos) => alRecibirRef.current?.((datos ?? {}) as PushDatos));
+    const sub = addRecibidaListener((datos, contenido) =>
+      alRecibirRef.current?.((datos ?? {}) as PushDatos, contenido),
+    );
     return () => sub.remove();
   }, []);
 

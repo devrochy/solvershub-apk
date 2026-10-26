@@ -1,6 +1,6 @@
 import { Inter_400Regular, Inter_500Medium } from "@expo-google-fonts/inter";
 import { Montserrat_600SemiBold, Montserrat_700Bold } from "@expo-google-fonts/montserrat";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Constants from "expo-constants";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -37,9 +37,11 @@ import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/Seleccio
 import { PanelShell } from "./src/navigation/PanelShell";
 import { campoNavRef } from "./src/navigation/refs";
 import {
+  BannerNotificacion,
   CentroNotificacionesProvider,
   destinoDePush,
   PushProvider,
+  type AvisoBanner,
   type PushDatos,
 } from "./src/modules/notificaciones";
 import { emitirNavegacion } from "@shared/navegacion-evento";
@@ -56,8 +58,23 @@ const PROYECTO_EAS =
 /** Puente: lee la sesión admin y arma el PushProvider (HU-APP-05). */
 function PushRoot({ children }: { children: React.ReactNode }) {
   const { sesion } = useAdminSession();
-  // El push recibido con la app abierta refresca el contador del centro de notificaciones.
+  // El push recibido con la app abierta refresca el contador del centro de notificaciones y,
+  // si es del centro (trae categoría), se muestra en un banner animado propio.
   const refrescarCentro = useRef<(() => void) | null>(null);
+  const [aviso, setAviso] = useState<AvisoBanner | null>(null);
+  const cerrarAviso = useCallback(() => setAviso(null), []);
+  const alRecibirPush = (datos: PushDatos, contenido?: { title?: string; body?: string }) => {
+    refrescarCentro.current?.();
+    if (typeof datos?.category !== "string") return;
+    setAviso({
+      id: String(datos.notificationId ?? `${Date.now()}`),
+      titulo: contenido?.title ?? "Nueva notificación",
+      cuerpo: contenido?.body,
+      categoria: datos.category,
+      severidad: typeof datos.severity === "string" ? datos.severity : "info",
+      datos,
+    });
+  };
   const alTocarPush = (datos: PushDatos) => {
     // Sesión de campo (gestor): la actividad de campo lleva al diario.
     if (datos?.type === "cobranza.sync" && campoNavRef.isReady()) {
@@ -77,9 +94,19 @@ function PushRoot({ children }: { children: React.ReactNode }) {
       tenantId={sesion?.tenantId ?? null}
       projectId={PROYECTO_EAS}
       alTocarNotificacion={alTocarPush}
-      alRecibirNotificacion={() => refrescarCentro.current?.()}
+      alRecibirNotificacion={alRecibirPush}
     >
-      <CentroNotificacionesProvider refrescarRef={refrescarCentro}>{children}</CentroNotificacionesProvider>
+      <CentroNotificacionesProvider refrescarRef={refrescarCentro}>
+        {children}
+        <BannerNotificacion
+          aviso={aviso}
+          onCerrar={cerrarAviso}
+          onAbrir={(a) => {
+            setAviso(null);
+            alTocarPush(a.datos as PushDatos);
+          }}
+        />
+      </CentroNotificacionesProvider>
     </PushProvider>
   );
 }
