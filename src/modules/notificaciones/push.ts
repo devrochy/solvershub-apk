@@ -65,9 +65,22 @@ export async function configurarCanal(): Promise<void> {
   }
 }
 
+/** Lo que el push trae para pintarse: título y cuerpo del mensaje. */
+export interface ContenidoPush {
+  title?: string;
+  body?: string;
+}
+
+/** Los push del centro de notificaciones (ADR-0167) traen `category`; el banner propio los pinta. */
+export function esPushDelCentro(data: Record<string, unknown> | undefined): boolean {
+  return typeof data?.category === "string";
+}
+
 /**
- * Con la app abierta el sistema no muestra el aviso por defecto: se pide que lo muestre
- * (banner y lista) y suene. El centro de notificaciones se actualiza con `addRecibidaListener`.
+ * Con la app abierta el sistema no muestra el aviso por defecto: se pide que lo muestre y suene.
+ * Los avisos del centro NO usan el banner del sistema: la app pinta el suyo, animado
+ * (`BannerNotificacion`); sí entran a la lista del sistema. Los push legados (sin categoría)
+ * siguen con el banner del sistema.
  */
 export function configurarPrimerPlano(): void {
   const Notifications = notificaciones();
@@ -75,8 +88,8 @@ export function configurarPrimerPlano(): void {
     return;
   }
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
+    handleNotification: async (n) => ({
+      shouldShowBanner: !esPushDelCentro(n.request.content.data as Record<string, unknown> | undefined),
       shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
@@ -86,14 +99,18 @@ export function configurarPrimerPlano(): void {
 
 /** Llega una notificación con la app abierta (no confundir con tocarla). */
 export function addRecibidaListener(
-  handler: (data: Record<string, unknown> | undefined) => void,
+  handler: (data: Record<string, unknown> | undefined, contenido?: ContenidoPush) => void,
 ): { remove(): void } {
   const Notifications = notificaciones();
   if (!Notifications) {
     return { remove: () => undefined };
   }
   return Notifications.addNotificationReceivedListener((n) => {
-    handler(n.request.content.data as Record<string, unknown> | undefined);
+    const { title, body, data } = n.request.content;
+    handler(data as Record<string, unknown> | undefined, {
+      title: title ?? undefined,
+      body: body ?? undefined,
+    });
   });
 }
 

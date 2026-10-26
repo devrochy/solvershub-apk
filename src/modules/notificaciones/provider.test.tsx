@@ -197,9 +197,12 @@ describe("PushProvider (HU-APP-05)", () => {
     await waitFor(() => expect(addRecibidaListener).toHaveBeenCalled());
     const registrada = (addRecibidaListener as jest.Mock).mock.calls[0][0];
     await act(async () => {
-      registrada({ type: "core.escalation" });
+      registrada({ type: "core.escalation" }, { title: "Nueva escalación", body: "Un cliente pidió una persona." });
     });
-    expect(alRecibir).toHaveBeenCalledWith({ type: "core.escalation" });
+    expect(alRecibir).toHaveBeenCalledWith(
+      { type: "core.escalation" },
+      { title: "Nueva escalación", body: "Un cliente pidió una persona." },
+    );
   });
 
   it("al cerrar sesión da de baja el token con el token de sesión con que se registró", async () => {
