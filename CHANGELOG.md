@@ -49,3 +49,6 @@
 - Calendario · Conectar con Google abre el panel del mismo entorno que la API (estaba fijo a
   test) y en el negocio activo de la app (`?tenant=`): el panel avisa si su sesión está en
   otro negocio antes de conectar.
+- Configuración · Cerebro y Memoria: los números aceptan coma decimal, solo dígitos y sin ceros
+  a la izquierda; un campo vacío o fuera de rango se marca y no se guarda (antes pasaba como 0
+  o como el valor por defecto en silencio). Los decimales usan el teclado con punto y coma.

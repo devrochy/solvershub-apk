@@ -7,6 +7,7 @@ import { ChatWebTab } from "./ChatWebTab";
 import { AdminApiError } from "@core/api/admin";
 import { Campo, InputCampo } from "./campos";
 import { IdentidadGuiada } from "./IdentidadGuiada";
+import { errorDeNumero, leerNumero, type RangoNumero } from "../numeros";
 import { catalogoConRespaldo } from "../catalogoCache";
 import {
   deEstado,
@@ -35,10 +36,29 @@ const SUB_PESTANAS: { clave: SubPestana; label: string }[] = [
   { clave: "avanzado", label: "Avanzado" },
 ];
 
-const aNumero = (s: string, respaldo: number): number => {
-  const n = Number(s);
-  return Number.isFinite(n) ? n : respaldo;
+/** Rangos de los números de Cerebro y Memoria (los mismos que el panel y la API). */
+const NUMEROS: Record<string, { etiqueta: string } & RangoNumero> = {
+  model_temperature: { etiqueta: "Temperatura", min: 0, max: 2, decimal: true },
+  policy_max_tool_calls: { etiqueta: "Máx. llamadas a herramientas por turno", min: 1, max: 50 },
+  policy_budget: { etiqueta: "Presupuesto por conversación", min: 0, decimal: true },
+  short_term_turns: { etiqueta: "Turnos de contexto", min: 1, max: 200 },
+  rag_top_k: { etiqueta: "Recall RAG (top K)", min: 0, max: 20 },
+  rag_min_score: { etiqueta: "Similitud mínima", min: 0, max: 1, decimal: true },
 };
+
+/** Errores por campo de los números de un bloque (`{clave: mensaje}`), vacío si todo está bien. */
+const erroresDeNumeros = (campos: Record<string, string>, claves: string[]): Record<string, string> => {
+  const errores: Record<string, string> = {};
+  for (const clave of claves) {
+    const { etiqueta, ...rango } = NUMEROS[clave];
+    const error = errorDeNumero(etiqueta, campos[clave], rango);
+    if (error) errores[clave] = error;
+  }
+  return errores;
+};
+
+const CLAVES_CEREBRO = ["model_temperature", "policy_max_tool_calls", "policy_budget"];
+const CLAVES_MEMORIA = ["short_term_turns", "rag_top_k", "rag_min_score"];
 
 interface CamposCerebro {
   model_primary: string;
@@ -71,6 +91,7 @@ export function AjustesTab() {
   const [erroresId, setErroresId] = useState<Record<string, string>>({});
   const [cerebro, setCerebro] = useState<CamposCerebro | null>(null);
   const [memoria, setMemoria] = useState<CamposMemoria | null>(null);
+  const [erroresNum, setErroresNum] = useState<Record<string, string>>({});
 
   useEffect(() => {
     Promise.all([cargarSettings(api), catalogoConRespaldo(api)])
@@ -97,6 +118,8 @@ export function AjustesTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- carga inicial de la pestaña
   }, []);
 
+  const quitarErrorNum = (clave: string) => setErroresNum(({ [clave]: _quitado, ...resto }) => resto);
+
   const guardar = async () => {
     if (!identidad || !identidadApi || !cerebro || !memoria) return;
     if (sub === "identidad") {
@@ -106,6 +129,17 @@ export function AjustesTab() {
       }
       const locales = erroresDeRango(catalogo, identidad);
       setErroresId(locales);
+      if (Object.keys(locales).length > 0) {
+        setError("Revisa los campos marcados antes de guardar.");
+        return;
+      }
+    }
+    if (sub === "cerebro" || sub === "memoria") {
+      const locales =
+        sub === "cerebro"
+          ? erroresDeNumeros({ ...cerebro }, CLAVES_CEREBRO)
+          : erroresDeNumeros({ ...memoria }, CLAVES_MEMORIA);
+      setErroresNum(locales);
       if (Object.keys(locales).length > 0) {
         setError("Revisa los campos marcados antes de guardar.");
         return;
@@ -134,16 +168,16 @@ export function AjustesTab() {
           model_primary: cerebro.model_primary,
           model_router: cerebro.model_router || null,
           model_fallback: cerebro.model_fallback || null,
-          model_temperature: aNumero(cerebro.model_temperature, 0.3),
-          policy_max_tool_calls: aNumero(cerebro.policy_max_tool_calls, 8),
-          policy_budget: aNumero(cerebro.policy_budget, 0),
+          model_temperature: leerNumero(cerebro.model_temperature) ?? 0,
+          policy_max_tool_calls: leerNumero(cerebro.policy_max_tool_calls) ?? 0,
+          policy_budget: leerNumero(cerebro.policy_budget) ?? 0,
         });
         setMensaje("Cerebro guardado.");
       } else if (sub === "memoria") {
         await guardarMemory(api, {
-          short_term_turns: aNumero(memoria.short_term_turns, 12),
-          rag_top_k: aNumero(memoria.rag_top_k, 5),
-          rag_min_score: aNumero(memoria.rag_min_score, 0.6),
+          short_term_turns: leerNumero(memoria.short_term_turns) ?? 0,
+          rag_top_k: leerNumero(memoria.rag_top_k) ?? 0,
+          rag_min_score: leerNumero(memoria.rag_min_score) ?? 0,
         });
         setMensaje("Memoria guardada.");
       }
@@ -182,6 +216,8 @@ export function AjustesTab() {
                 onPress={() => {
                   setSub(p);
                   setMensaje(null);
+                  setError(null);
+                  setErroresNum({});
                 }}
                 style={[
                   styles.subPestana,
@@ -221,76 +257,97 @@ export function AjustesTab() {
           ) : sub === "cerebro" ? (
             <View testID="ajustes-cerebro">
               <Campo id="ajustes-model-primary" label="Modelo primario">
-                {InputCampo({
-                  id: "ajustes-model-primary",
-                  valor: cerebro.model_primary,
-                  onChange: (v) => setCerebro({ ...cerebro, model_primary: v }),
-                })}
+                <InputCampo
+                  id="ajustes-model-primary"
+                  valor={cerebro.model_primary}
+                  onChange={(v) => setCerebro({ ...cerebro, model_primary: v })}
+                />
               </Campo>
               <Campo id="ajustes-model-router" label="Modelo de razonamiento">
-                {InputCampo({
-                  id: "ajustes-model-router",
-                  valor: cerebro.model_router,
-                  onChange: (v) => setCerebro({ ...cerebro, model_router: v }),
-                })}
+                <InputCampo
+                  id="ajustes-model-router"
+                  valor={cerebro.model_router}
+                  onChange={(v) => setCerebro({ ...cerebro, model_router: v })}
+                />
               </Campo>
               <Campo id="ajustes-model-fallback" label="Modelo de respaldo">
-                {InputCampo({
-                  id: "ajustes-model-fallback",
-                  valor: cerebro.model_fallback,
-                  onChange: (v) => setCerebro({ ...cerebro, model_fallback: v }),
-                })}
+                <InputCampo
+                  id="ajustes-model-fallback"
+                  valor={cerebro.model_fallback}
+                  onChange={(v) => setCerebro({ ...cerebro, model_fallback: v })}
+                />
               </Campo>
-              <Campo id="ajustes-temperature" label="Temperatura (0-2)">
-                {InputCampo({
-                  id: "ajustes-temperature",
-                  valor: cerebro.model_temperature,
-                  onChange: (v) => setCerebro({ ...cerebro, model_temperature: v }),
-                  numeric: true,
-                })}
+              <Campo id="ajustes-temperature" label="Temperatura (0-2)" error={erroresNum.model_temperature}>
+                <InputCampo
+                  id="ajustes-temperature"
+                  valor={cerebro.model_temperature}
+                  onChange={(v) => {
+                    setCerebro({ ...cerebro, model_temperature: v });
+                    quitarErrorNum("model_temperature");
+                  }}
+                  numeric
+                  decimal
+                />
               </Campo>
-              <Campo id="ajustes-max-tools" label="Máx. llamadas a herramientas por turno">
-                {InputCampo({
-                  id: "ajustes-max-tools",
-                  valor: cerebro.policy_max_tool_calls,
-                  onChange: (v) => setCerebro({ ...cerebro, policy_max_tool_calls: v }),
-                  numeric: true,
-                })}
+              <Campo id="ajustes-max-tools" label="Máx. llamadas a herramientas por turno" error={erroresNum.policy_max_tool_calls}>
+                <InputCampo
+                  id="ajustes-max-tools"
+                  valor={cerebro.policy_max_tool_calls}
+                  onChange={(v) => {
+                    setCerebro({ ...cerebro, policy_max_tool_calls: v });
+                    quitarErrorNum("policy_max_tool_calls");
+                  }}
+                  numeric
+                />
               </Campo>
-              <Campo id="ajustes-budget" label="Presupuesto por conversación">
-                {InputCampo({
-                  id: "ajustes-budget",
-                  valor: cerebro.policy_budget,
-                  onChange: (v) => setCerebro({ ...cerebro, policy_budget: v }),
-                  numeric: true,
-                })}
+              <Campo id="ajustes-budget" label="Presupuesto por conversación" error={erroresNum.policy_budget}>
+                <InputCampo
+                  id="ajustes-budget"
+                  valor={cerebro.policy_budget}
+                  onChange={(v) => {
+                    setCerebro({ ...cerebro, policy_budget: v });
+                    quitarErrorNum("policy_budget");
+                  }}
+                  numeric
+                  decimal
+                />
               </Campo>
             </View>
           ) : sub === "memoria" ? (
             <View testID="ajustes-memoria">
-              <Campo id="ajustes-short-term" label="Turnos de contexto (memoria corta)">
-                {InputCampo({
-                  id: "ajustes-short-term",
-                  valor: memoria.short_term_turns,
-                  onChange: (v) => setMemoria({ ...memoria, short_term_turns: v }),
-                  numeric: true,
-                })}
+              <Campo id="ajustes-short-term" label="Turnos de contexto (memoria corta)" error={erroresNum.short_term_turns}>
+                <InputCampo
+                  id="ajustes-short-term"
+                  valor={memoria.short_term_turns}
+                  onChange={(v) => {
+                    setMemoria({ ...memoria, short_term_turns: v });
+                    quitarErrorNum("short_term_turns");
+                  }}
+                  numeric
+                />
               </Campo>
-              <Campo id="ajustes-rag-topk" label="Recall RAG (top K)" ayuda="0 = desactivado (1–20).">
-                {InputCampo({
-                  id: "ajustes-rag-topk",
-                  valor: memoria.rag_top_k,
-                  onChange: (v) => setMemoria({ ...memoria, rag_top_k: v }),
-                  numeric: true,
-                })}
+              <Campo id="ajustes-rag-topk" label="Recall RAG (top K)" ayuda="0 = desactivado (1–20)." error={erroresNum.rag_top_k}>
+                <InputCampo
+                  id="ajustes-rag-topk"
+                  valor={memoria.rag_top_k}
+                  onChange={(v) => {
+                    setMemoria({ ...memoria, rag_top_k: v });
+                    quitarErrorNum("rag_top_k");
+                  }}
+                  numeric
+                />
               </Campo>
-              <Campo id="ajustes-rag-score" label="Similitud mínima (0–1)">
-                {InputCampo({
-                  id: "ajustes-rag-score",
-                  valor: memoria.rag_min_score,
-                  onChange: (v) => setMemoria({ ...memoria, rag_min_score: v }),
-                  numeric: true,
-                })}
+              <Campo id="ajustes-rag-score" label="Similitud mínima (0–1)" error={erroresNum.rag_min_score}>
+                <InputCampo
+                  id="ajustes-rag-score"
+                  valor={memoria.rag_min_score}
+                  onChange={(v) => {
+                    setMemoria({ ...memoria, rag_min_score: v });
+                    quitarErrorNum("rag_min_score");
+                  }}
+                  numeric
+                  decimal
+                />
               </Campo>
             </View>
           ) : null}

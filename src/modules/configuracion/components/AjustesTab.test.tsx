@@ -171,3 +171,58 @@ describe("AjustesTab · Identidad guiada (HU-CFG-06)", () => {
     expect(queryByTestId("ajustes-debounce_mode-natural")).toBeNull();
   });
 });
+
+describe("AjustesTab · números de Cerebro y Memoria", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useAdminApi as jest.Mock).mockReturnValue(cliente);
+    (leerAjuste as jest.Mock).mockResolvedValue(null);
+    mockPut.mockResolvedValue(undefined);
+  });
+
+  it("deja borrar el campo, acepta coma decimal y manda el número", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId } = await render(<AjustesTab />);
+    await fireEvent.press(await findByTestId("ajustes-sub-cerebro"));
+    const temperatura = await findByTestId("ajustes-temperature");
+    await fireEvent.changeText(temperatura, "");
+    expect(getByTestId("ajustes-temperature").props.value).toBe("");
+    await fireEvent.changeText(getByTestId("ajustes-temperature"), "0,7");
+    expect(getByTestId("ajustes-temperature").props.keyboardType).toBe("decimal-pad");
+    expect(getByTestId("ajustes-max-tools").props.keyboardType).toBe("number-pad");
+    await fireEvent.press(getByTestId("ajustes-guardar"));
+    await waitFor(() => expect(mockPut).toHaveBeenCalled());
+    expect(mockPut.mock.calls[0][0]).toBe("/admin/settings/brain");
+    expect(mockPut.mock.calls[0][1]).toMatchObject({ model_temperature: 0.7, policy_max_tool_calls: 8 });
+  });
+
+  it("un campo vacío o fuera de rango se marca y no se envía", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId } = await render(<AjustesTab />);
+    await fireEvent.press(await findByTestId("ajustes-sub-memoria"));
+    await fireEvent.changeText(await findByTestId("ajustes-short-term"), "");
+    await fireEvent.changeText(getByTestId("ajustes-rag-score"), "1,5");
+    await fireEvent.press(getByTestId("ajustes-guardar"));
+    expect((await findByTestId("ajustes-short-term-error")).props.children).toBe(
+      "«Turnos de contexto» necesita un número.",
+    );
+    expect(getByTestId("ajustes-rag-score-error").props.children).toBe(
+      "«Similitud mínima» debe estar entre 0 y 1.",
+    );
+    expect(mockPut).not.toHaveBeenCalled();
+
+    // Al corregir un campo, su error se quita.
+    await fireEvent.changeText(getByTestId("ajustes-short-term"), "20");
+    await waitFor(() => expect(() => getByTestId("ajustes-short-term-error")).toThrow());
+  });
+
+  it("quita los ceros a la izquierda y las letras al escribir", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId } = await render(<AjustesTab />);
+    await fireEvent.press(await findByTestId("ajustes-sub-memoria"));
+    await fireEvent.changeText(await findByTestId("ajustes-rag-topk"), "04");
+    expect(getByTestId("ajustes-rag-topk").props.value).toBe("4");
+    await fireEvent.changeText(getByTestId("ajustes-rag-topk"), "1a2");
+    expect(getByTestId("ajustes-rag-topk").props.value).toBe("12");
+  });
+});

@@ -1,5 +1,6 @@
 import type { components } from "@core/api/schema";
 import { aRangosTexto, textoARangos } from "./horarioAtencion";
+import { leerNumero } from "./numeros";
 
 /**
  * Catálogo de opciones de Configuración (SPEC-37, ADR-0166): etiquetas, ayudas, valores y rangos
@@ -118,7 +119,7 @@ export function deEstado(opcion: OpcionConfig, estado: EstadoCampo): unknown {
   switch (opcion.tipo) {
     case "entero":
     case "decimal":
-      return typeof estado === "string" && estado.trim() !== "" ? Number(estado) : Number.NaN;
+      return typeof estado === "string" ? (leerNumero(estado) ?? Number.NaN) : Number.NaN;
     case "lista_de_textos":
       return typeof estado === "string" ? aLista(estado) : [];
     case "franjas":
@@ -152,8 +153,9 @@ export function valoresDeEstado(catalogo: CatalogoConfig, estado: EstadoIdentida
 export function erroresDeRango(catalogo: CatalogoConfig, estado: EstadoIdentidad): Record<string, string> {
   const errores: Record<string, string> = {};
   for (const opcion of catalogo.opciones) {
-    if (opcion.tipo !== "entero" || !(opcion.clave in estado)) continue;
-    const error = errorDeRango(opcion, deEstado(opcion, estado[opcion.clave]) as number);
+    if ((opcion.tipo !== "entero" && opcion.tipo !== "decimal") || !(opcion.clave in estado)) continue;
+    const valor = deEstado(opcion, estado[opcion.clave]) as number;
+    const error = Number.isNaN(valor) ? `«${opcion.etiqueta}» necesita un número.` : errorDeRango(opcion, valor);
     if (error) errores[opcion.clave] = error;
   }
   return errores;

@@ -77,4 +77,11 @@ describe("catálogo de configuración (SPEC-37)", () => {
     expect(erroresDeRango(cat, estado)).toEqual({ persona_warmth: "«Calidez» debe estar entre 0 y 5." });
     expect(valoresDeEstado(cat, estado)).toMatchObject({ persona_warmth: 9 });
   });
+
+  it("un número vacío se marca y no pasa como 0; acepta coma decimal", () => {
+    const estado = estadoInicial(cat, { persona_warmth: 3, difficulty_score_threshold: 3 });
+    estado.persona_warmth = "";
+    expect(erroresDeRango(cat, estado)).toEqual({ persona_warmth: "«Calidez» necesita un número." });
+    expect(deEstado({ ...opcion("persona_warmth"), tipo: "decimal" }, "0,7")).toBe(0.7);
+  });
 });

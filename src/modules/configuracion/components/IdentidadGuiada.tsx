@@ -115,6 +115,7 @@ function CampoGuiado({
         onChange={(v) => onCambio(opcion.clave, v)}
         multiline={opcion.tipo === "texto_largo" || opcion.tipo === "franjas"}
         numeric={opcion.tipo === "entero" || opcion.tipo === "decimal"}
+        decimal={opcion.tipo === "decimal"}
         deshabilitado={bloqueado}
       />
     );
