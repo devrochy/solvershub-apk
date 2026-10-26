@@ -17,6 +17,7 @@ import {
   type EstadoIdentidad,
   type OpcionConfig,
 } from "../catalogo";
+import { usePendientes, type Pendiente } from "../frases";
 import { leyendaDias } from "../horarioAtencion";
 import { Campo, Chips, InputCampo, ListaDeFrases } from "./campos";
 
@@ -25,6 +26,7 @@ const MUCHAS_OPCIONES = 6;
 const MAX_FRASES = 100;
 /** Tope de palabras de baja que acepta el backend. */
 const MAX_PALABRAS_BAJA = 50;
+const ID_BAJAS = "ajustes-palabras_de_baja";
 
 /** Una opción del catálogo con el control que corresponde a su tipo (SPEC-37, HU-CFG-06). */
 function CampoGuiado({
@@ -35,6 +37,7 @@ function CampoGuiado({
   error,
   ayudaExtra,
   etiquetaDe,
+  onPendiente,
 }: {
   opcion: OpcionConfig;
   estado: EstadoCampo;
@@ -43,6 +46,8 @@ function CampoGuiado({
   error?: string;
   ayudaExtra?: string;
   etiquetaDe: (clave: string) => string | undefined;
+  /** Texto escrito y no agregado de una lista de textos, para sumarlo al guardar. */
+  onPendiente?: (pendiente: Pendiente | null) => void;
 }) {
   const { colores } = useTheme();
   const id = `ajustes-${opcion.clave}`;
@@ -119,6 +124,7 @@ function CampoGuiado({
         onChange={(frases) => onCambio(opcion.clave, frases)}
         minLargo={opcion.clave === "persona_forbidden" ? 3 : 2}
         max={MAX_FRASES}
+        onPendiente={onPendiente}
         deshabilitado={bloqueado}
       />
     );
@@ -156,6 +162,7 @@ export function IdentidadGuiada({
   onCambio,
   errores,
   ayudaFueraDeHorario,
+  registrarPendiente,
 }: {
   catalogo: CatalogoConfig | null;
   estado: EstadoIdentidad;
@@ -163,6 +170,8 @@ export function IdentidadGuiada({
   errores: Record<string, string>;
   /** Ayuda que depende del estado (mensaje por defecto fuera de horario). */
   ayudaFueraDeHorario: (valores: Record<string, unknown>) => string;
+  /** Enlaza cada lista de frases (por su clave) con el texto pendiente del formulario (`usePendientes`). */
+  registrarPendiente?: (clave: string) => (pendiente: Pendiente | null) => void;
 }) {
   const { colores } = useTheme();
   if (!catalogo) {
@@ -192,6 +201,7 @@ export function IdentidadGuiada({
                 error={errores[opcion.clave]}
                 ayudaExtra={opcion.clave === "out_of_hours_message" ? ayudaFueraDeHorario(valores) : undefined}
                 etiquetaDe={etiquetaDe}
+                onPendiente={registrarPendiente?.(opcion.clave)}
               />
             ))}
           </View>
@@ -212,6 +222,7 @@ function BajasSeccion({ catalogo }: { catalogo: CatalogoConfig }) {
   const [error, setError] = useState<string | undefined>();
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const pendientes = usePendientes();
 
   useEffect(() => {
     if (!opcion) return;
@@ -227,11 +238,20 @@ function BajasSeccion({ catalogo }: { catalogo: CatalogoConfig }) {
   if (!opcion || !bajas) return null;
 
   const guardar = async () => {
-    setGuardando(true);
     setError(undefined);
     setMensaje(null);
+    // La palabra escrita y no agregada se suma antes de guardar; si no cabe, se avisa y no se guarda.
+    const pendiente = pendientes.completar((id) => (id === ID_BAJAS ? palabras : undefined));
+    if (pendiente.errores[ID_BAJAS]) {
+      setError(pendiente.errores[ID_BAJAS]);
+      return;
+    }
+    const completas = pendiente.listas[ID_BAJAS] ?? palabras;
+    setPalabras(completas);
+    pendiente.limpiar();
+    setGuardando(true);
     try {
-      await guardarBajas(api, palabras);
+      await guardarBajas(api, completas);
       setMensaje("Palabras de baja guardadas.");
     } catch (e) {
       setError(
@@ -246,8 +266,16 @@ function BajasSeccion({ catalogo }: { catalogo: CatalogoConfig }) {
   return (
     <View testID="ajustes-bajas" style={{ marginTop: 8 }}>
       <Text style={{ color: colores.texto, fontSize: 14, fontWeight: "700", marginBottom: 8 }}>Darse de baja</Text>
-      <Campo id="ajustes-palabras_de_baja" label={opcion.etiqueta} ayuda={`${ayudaDeOpcion(opcion)}${porDefecto}`} error={error}>
-        <ListaDeFrases id="ajustes-palabras_de_baja" frases={palabras} onChange={setPalabras} placeholder="Por ejemplo: baja" minLargo={2} max={MAX_PALABRAS_BAJA} />
+      <Campo id={ID_BAJAS} label={opcion.etiqueta} ayuda={`${ayudaDeOpcion(opcion)}${porDefecto}`} error={error}>
+        <ListaDeFrases
+          id={ID_BAJAS}
+          frases={palabras}
+          onChange={setPalabras}
+          placeholder="Por ejemplo: baja"
+          minLargo={2}
+          max={MAX_PALABRAS_BAJA}
+          onPendiente={pendientes.registrar(ID_BAJAS)}
+        />
       </Campo>
       {mensaje ? <Text style={{ color: colores.acento, fontSize: 12, marginBottom: 6 }}>{mensaje}</Text> : null}
       <Pressable

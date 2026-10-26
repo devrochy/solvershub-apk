@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
-import { agregarFrase, MAX_LARGO_FRASE } from "../frases";
+import { agregarFrase, MAX_LARGO_FRASE, type Pendiente } from "../frases";
 import { limpiarNumero } from "../numeros";
 
 /** Controles de formulario de Configuración: campo con etiqueta y ayuda, chips y texto. */
@@ -130,7 +130,8 @@ const styles = {
 /**
  * Lista editable de frases: se agrega con el botón o con Enter y se quita con la ✕ de cada una.
  * Acepta espacios y comas dentro de la frase («no, gracias»); ignora las repetidas sin importar
- * mayúsculas ni tildes.
+ * mayúsculas ni tildes. Con `onPendiente` avisa al formulario del texto escrito y no agregado, para
+ * que lo sume al guardar (ver `usePendientes`).
  */
 export function ListaDeFrases({
   id,
@@ -140,6 +141,7 @@ export function ListaDeFrases({
   max = 100,
   minLargo = 3,
   deshabilitado = false,
+  onPendiente,
 }: {
   id: string;
   frases: string[];
@@ -149,9 +151,17 @@ export function ListaDeFrases({
   /** Largo mínimo de cada frase, sin contar los espacios de los bordes. */
   minLargo?: number;
   deshabilitado?: boolean;
+  /** Recibe el texto escrito y no agregado (y las reglas de la lista), o `null` si no hay. */
+  onPendiente?: (pendiente: Pendiente | null) => void;
 }) {
   const { colores } = useTheme();
   const [nueva, setNueva] = useState("");
+
+  useEffect(() => {
+    if (!onPendiente) return;
+    onPendiente(deshabilitado || !nueva.trim() ? null : { texto: nueva, minLargo, max, limpiar: () => setNueva("") });
+    return () => onPendiente(null);
+  }, [onPendiente, nueva, minLargo, max, deshabilitado]);
   const llena = frases.length >= max;
   const puedeAgregar = !deshabilitado && !llena && nueva.trim().length >= minLargo;
 

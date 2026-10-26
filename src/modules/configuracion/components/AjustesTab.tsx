@@ -18,6 +18,7 @@ import {
   type EstadoIdentidad,
 } from "../catalogo";
 import { ayudaFueraDeHorario } from "../fueraDeHorario";
+import { usePendientes } from "../frases";
 import {
   cargarSettings,
   guardarBrain,
@@ -92,6 +93,7 @@ export function AjustesTab() {
   const [cerebro, setCerebro] = useState<CamposCerebro | null>(null);
   const [memoria, setMemoria] = useState<CamposMemoria | null>(null);
   const [erroresNum, setErroresNum] = useState<Record<string, string>>({});
+  const pendientes = usePendientes();
 
   useEffect(() => {
     Promise.all([cargarSettings(api), catalogoConRespaldo(api)])
@@ -122,17 +124,26 @@ export function AjustesTab() {
 
   const guardar = async () => {
     if (!identidad || !identidadApi || !cerebro || !memoria) return;
+    let completa = identidad;
     if (sub === "identidad") {
       if (!catalogo) {
         setError("No pudimos cargar las opciones de la identidad.");
         return;
       }
-      const locales = erroresDeRango(catalogo, identidad);
+      // El texto escrito en una lista y no agregado se suma antes de validar y de guardar.
+      const pendiente = pendientes.completar((clave) => {
+        const valor = identidad[clave];
+        return Array.isArray(valor) ? valor : undefined;
+      });
+      completa = { ...identidad, ...pendiente.listas };
+      const locales = { ...erroresDeRango(catalogo, completa), ...pendiente.errores };
       setErroresId(locales);
       if (Object.keys(locales).length > 0) {
         setError("Revisa los campos marcados antes de guardar.");
         return;
       }
+      setIdentidad(completa);
+      pendiente.limpiar();
     }
     if (sub === "cerebro" || sub === "memoria") {
       const locales =
@@ -154,8 +165,8 @@ export function AjustesTab() {
         // el usuario lo movió: así guardar no deshace una pausa hecha mientras el formulario estaba abierto.
         const cuerpo: Record<string, unknown> = {};
         for (const opcion of catalogo.opciones) {
-          if (opcion.solo_lectura || !(opcion.clave in identidad)) continue;
-          cuerpo[opcion.clave] = deEstado(opcion, identidad[opcion.clave]);
+          if (opcion.solo_lectura || !(opcion.clave in completa)) continue;
+          cuerpo[opcion.clave] = deEstado(opcion, completa[opcion.clave]);
         }
         if (cuerpo.bot_paused === identidadApi.bot_paused) delete cuerpo.bot_paused;
         // Una sola zona en la UI: el horario de atención usa la del negocio.
@@ -242,6 +253,7 @@ export function AjustesTab() {
               catalogo={catalogo}
               estado={identidad}
               errores={erroresId}
+              registrarPendiente={pendientes.registrar}
               onCambio={(clave: string, valor: EstadoCampo) => {
                 setIdentidad({ ...identidad, [clave]: valor });
                 setErroresId(({ [clave]: _quitado, ...resto }) => resto);

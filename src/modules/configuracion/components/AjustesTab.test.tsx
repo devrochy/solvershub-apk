@@ -190,6 +190,50 @@ describe("AjustesTab · Identidad guiada (HU-CFG-06)", () => {
     });
   });
 
+  it("guarda la frase escrita sin pulsar Agregar (y la deja en la lista)", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId, queryByText } = await render(<AjustesTab />);
+    await fireEvent.changeText(await findByTestId("ajustes-persona_forbidden"), "te lo regalo");
+    await fireEvent.changeText(getByTestId("ajustes-escalation_keywords"), "ok");
+    await fireEvent.press(getByTestId("ajustes-guardar"));
+    await waitFor(() => expect(mockPut).toHaveBeenCalled());
+    expect(mockPut.mock.calls[0][0]).toBe("/admin/settings/identity");
+    expect(mockPut.mock.calls[0][1]).toMatchObject({ persona_forbidden: ["te lo regalo"], escalation_keywords: ["ok"] });
+    await waitFor(() => expect(getByTestId("ajustes-persona_forbidden-frase-0")).toBeTruthy());
+    expect(getByTestId("ajustes-persona_forbidden").props.value).toBe("");
+    expect(queryByText(/texto sin agregar/)).toBeNull();
+  });
+
+  it("una frase pendiente demasiado corta avisa junto al campo y no guarda", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId, findByText } = await render(<AjustesTab />);
+    await fireEvent.changeText(await findByTestId("ajustes-persona_forbidden"), "ab");
+    await fireEvent.press(getByTestId("ajustes-guardar"));
+    expect(await findByText(/Tienes texto sin agregar \(«ab»\)/)).toBeTruthy();
+    expect(mockPut).not.toHaveBeenCalled();
+    expect(getByTestId("ajustes-persona_forbidden").props.value).toBe("ab");
+  });
+
+  it("guarda la palabra de baja escrita sin pulsar Agregar", async () => {
+    configurarApi({ bajas: ["baja"] });
+    const { findByTestId, getByTestId } = await render(<AjustesTab />);
+    await findByTestId("ajustes-palabras_de_baja-frase-0");
+    await fireEvent.changeText(getByTestId("ajustes-palabras_de_baja"), "no más");
+    await fireEvent.press(getByTestId("ajustes-bajas-guardar"));
+    await waitFor(() =>
+      expect(mockPut).toHaveBeenCalledWith("/admin/settings/bajas", { palabras: ["baja", "no más"] }),
+    );
+  });
+
+  it("una palabra de baja pendiente de una letra avisa y no guarda", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId, findByText } = await render(<AjustesTab />);
+    await fireEvent.changeText(await findByTestId("ajustes-palabras_de_baja"), "x");
+    await fireEvent.press(getByTestId("ajustes-bajas-guardar"));
+    expect(await findByText(/Tienes texto sin agregar \(«x»\)/)).toBeTruthy();
+    expect(mockPut).not.toHaveBeenCalled();
+  });
+
   it("sin conexión usa el último catálogo guardado en el teléfono", async () => {
     configurarApi({ catalogo: "falla" });
     (leerAjuste as jest.Mock).mockResolvedValue(JSON.stringify(catalogo));
