@@ -52,3 +52,11 @@
 - Configuración · Cerebro y Memoria: los números aceptan coma decimal, solo dígitos y sin ceros
   a la izquierda; un campo vacío o fuera de rango se marca y no se guarda (antes pasaba como 0
   o como el valor por defecto en silencio). Los decimales usan el teclado con punto y coma.
+- Configuración · Frases prohibidas, palabras de escalamiento y palabras de baja pasan de un
+  texto separado por comas a una lista con botón Agregar (también con Enter) y ✕ para quitar:
+  ahora se pueden registrar frases con espacios y comas («no, gracias»), sin repetidas ni
+  tildes o mayúsculas distintas.
+- Configuración · Si escribes una frase en esas listas y pulsas Guardar sin tocar Agregar, la
+  frase se suma y se guarda (antes se perdía sin aviso). Si es demasiado corta o la lista está
+  llena, aparece un aviso junto al campo y no se guarda. Dos frases hechas solo de emojis o
+  símbolos ya no se toman como repetidas.

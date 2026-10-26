@@ -63,8 +63,10 @@ describe("catálogo de configuración (SPEC-37)", () => {
   });
 
   it("convierte borradores y valores de la API sin perder nada", () => {
-    expect(aEstado(opcion("persona_forbidden"), ["a", "b"])).toBe("a, b");
-    expect(deEstado(opcion("persona_forbidden"), "a, b , ")).toEqual(["a", "b"]);
+    expect(aEstado(opcion("persona_forbidden"), ["a", "b"])).toEqual(["a", "b"]);
+    expect(aEstado(opcion("persona_forbidden"), null)).toEqual([]);
+    expect(deEstado(opcion("persona_forbidden"), ["no, gracias", "sin falta"])).toEqual(["no, gracias", "sin falta"]);
+    expect(deEstado(opcion("persona_forbidden"), "texto suelto")).toEqual([]);
     expect(aEstado(opcion("business_ranges"), [{ day: 0, from: "08:00", to: "18:00" }])).toBe("0 08:00-18:00");
     expect(deEstado(opcion("business_ranges"), "0 08:00-18:00")).toEqual([{ day: 0, from: "08:00", to: "18:00" }]);
     expect(deEstado(opcion("persona_warmth"), "3")).toBe(3);

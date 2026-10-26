@@ -47,13 +47,13 @@ const identidad = {
   tono: "formal",
 };
 
-function configurarApi(opts: { catalogo?: unknown | "falla" } = {}) {
+function configurarApi(opts: { catalogo?: unknown | "falla"; bajas?: string[] } = {}) {
   mockGet.mockImplementation((path: string) => {
     if (path === "/admin/settings/catalog") {
       return opts.catalogo === "falla" ? Promise.reject(new Error("sin red")) : Promise.resolve(opts.catalogo ?? catalogo);
     }
     if (path === "/admin/settings/bajas") {
-      return Promise.resolve({ palabras: [], por_defecto: ["baja", "stop"], usa_por_defecto: true });
+      return Promise.resolve({ palabras: opts.bajas ?? [], por_defecto: ["baja", "stop"], usa_por_defecto: !opts.bajas });
     }
     if (path === "/admin/settings") {
       return Promise.resolve({
@@ -150,11 +150,88 @@ describe("AjustesTab · Identidad guiada (HU-CFG-06)", () => {
   it("guarda las palabras de baja por su endpoint", async () => {
     configurarApi();
     const { findByTestId, getByTestId } = await render(<AjustesTab />);
-    await fireEvent.changeText(await findByTestId("ajustes-palabras_de_baja"), "baja, no mas");
+    const campo = await findByTestId("ajustes-palabras_de_baja");
+    await fireEvent.changeText(campo, "baja");
+    await fireEvent.press(getByTestId("ajustes-palabras_de_baja-agregar"));
+    await fireEvent.changeText(getByTestId("ajustes-palabras_de_baja"), "no, gracias");
+    await fireEvent(getByTestId("ajustes-palabras_de_baja"), "submitEditing");
     await fireEvent.press(getByTestId("ajustes-bajas-guardar"));
     await waitFor(() =>
-      expect(mockPut).toHaveBeenCalledWith("/admin/settings/bajas", { palabras: ["baja", "no mas"] }),
+      expect(mockPut).toHaveBeenCalledWith("/admin/settings/bajas", { palabras: ["baja", "no, gracias"] }),
     );
+  });
+
+  it("las palabras de baja no repiten ni aceptan menos de 2 letras, y se pueden quitar", async () => {
+    configurarApi({ bajas: ["Cancelación"] });
+    const { findByTestId, getByTestId, queryByTestId } = await render(<AjustesTab />);
+    await findByTestId("ajustes-palabras_de_baja-frase-0");
+    await fireEvent.changeText(getByTestId("ajustes-palabras_de_baja"), "x");
+    expect(getByTestId("ajustes-palabras_de_baja-agregar").props.accessibilityState?.disabled).toBe(true);
+    await fireEvent.changeText(getByTestId("ajustes-palabras_de_baja"), "cancelacion");
+    await fireEvent.press(getByTestId("ajustes-palabras_de_baja-agregar"));
+    expect(queryByTestId("ajustes-palabras_de_baja-frase-1")).toBeNull();
+    await fireEvent.press(getByTestId("ajustes-palabras_de_baja-quitar-0"));
+    expect(queryByTestId("ajustes-palabras_de_baja-frase-0")).toBeNull();
+  });
+
+  it("registra una frase prohibida con espacios y comas y viaja intacta en el PUT de identidad", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId } = await render(<AjustesTab />);
+    await fireEvent.changeText(await findByTestId("ajustes-persona_forbidden"), "garantizado, sin falta");
+    await fireEvent.press(getByTestId("ajustes-persona_forbidden-agregar"));
+    await fireEvent.changeText(getByTestId("ajustes-escalation_keywords"), "ok");
+    await fireEvent.press(getByTestId("ajustes-escalation_keywords-agregar"));
+    await fireEvent.press(getByTestId("ajustes-guardar"));
+    await waitFor(() => expect(mockPut).toHaveBeenCalled());
+    expect(mockPut.mock.calls[0][0]).toBe("/admin/settings/identity");
+    expect(mockPut.mock.calls[0][1]).toMatchObject({
+      persona_forbidden: ["garantizado, sin falta"],
+      escalation_keywords: ["ok"],
+    });
+  });
+
+  it("guarda la frase escrita sin pulsar Agregar (y la deja en la lista)", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId, queryByText } = await render(<AjustesTab />);
+    await fireEvent.changeText(await findByTestId("ajustes-persona_forbidden"), "te lo regalo");
+    await fireEvent.changeText(getByTestId("ajustes-escalation_keywords"), "ok");
+    await fireEvent.press(getByTestId("ajustes-guardar"));
+    await waitFor(() => expect(mockPut).toHaveBeenCalled());
+    expect(mockPut.mock.calls[0][0]).toBe("/admin/settings/identity");
+    expect(mockPut.mock.calls[0][1]).toMatchObject({ persona_forbidden: ["te lo regalo"], escalation_keywords: ["ok"] });
+    await waitFor(() => expect(getByTestId("ajustes-persona_forbidden-frase-0")).toBeTruthy());
+    expect(getByTestId("ajustes-persona_forbidden").props.value).toBe("");
+    expect(queryByText(/texto sin agregar/)).toBeNull();
+  });
+
+  it("una frase pendiente demasiado corta avisa junto al campo y no guarda", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId, findByText } = await render(<AjustesTab />);
+    await fireEvent.changeText(await findByTestId("ajustes-persona_forbidden"), "ab");
+    await fireEvent.press(getByTestId("ajustes-guardar"));
+    expect(await findByText(/Tienes texto sin agregar \(«ab»\)/)).toBeTruthy();
+    expect(mockPut).not.toHaveBeenCalled();
+    expect(getByTestId("ajustes-persona_forbidden").props.value).toBe("ab");
+  });
+
+  it("guarda la palabra de baja escrita sin pulsar Agregar", async () => {
+    configurarApi({ bajas: ["baja"] });
+    const { findByTestId, getByTestId } = await render(<AjustesTab />);
+    await findByTestId("ajustes-palabras_de_baja-frase-0");
+    await fireEvent.changeText(getByTestId("ajustes-palabras_de_baja"), "no más");
+    await fireEvent.press(getByTestId("ajustes-bajas-guardar"));
+    await waitFor(() =>
+      expect(mockPut).toHaveBeenCalledWith("/admin/settings/bajas", { palabras: ["baja", "no más"] }),
+    );
+  });
+
+  it("una palabra de baja pendiente de una letra avisa y no guarda", async () => {
+    configurarApi();
+    const { findByTestId, getByTestId, findByText } = await render(<AjustesTab />);
+    await fireEvent.changeText(await findByTestId("ajustes-palabras_de_baja"), "x");
+    await fireEvent.press(getByTestId("ajustes-bajas-guardar"));
+    expect(await findByText(/Tienes texto sin agregar \(«x»\)/)).toBeTruthy();
+    expect(mockPut).not.toHaveBeenCalled();
   });
 
   it("sin conexión usa el último catálogo guardado en el teléfono", async () => {

@@ -92,12 +92,6 @@ export function dependencia(
   return { activa, motivo: activa ? "" : dep.motivo, de: dep.clave };
 }
 
-const aLista = (s: string): string[] =>
-  s
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
-
 /** Valor de la API → borrador editable. */
 export function aEstado(opcion: OpcionConfig, valor: unknown): EstadoCampo {
   switch (opcion.tipo) {
@@ -106,7 +100,7 @@ export function aEstado(opcion: OpcionConfig, valor: unknown): EstadoCampo {
     case "elegir_varias":
       return Array.isArray(valor) ? (valor as string[]) : [];
     case "lista_de_textos":
-      return Array.isArray(valor) ? (valor as string[]).join(", ") : "";
+      return Array.isArray(valor) ? (valor as string[]).filter((x) => typeof x === "string") : [];
     case "franjas":
       return aRangosTexto(Array.isArray(valor) ? (valor as Record<string, unknown>[]) : []);
     default:
@@ -121,7 +115,7 @@ export function deEstado(opcion: OpcionConfig, estado: EstadoCampo): unknown {
     case "decimal":
       return typeof estado === "string" ? (leerNumero(estado) ?? Number.NaN) : Number.NaN;
     case "lista_de_textos":
-      return typeof estado === "string" ? aLista(estado) : [];
+      return Array.isArray(estado) ? estado : [];
     case "franjas":
       return typeof estado === "string" ? textoARangos(estado) : [];
     default:
