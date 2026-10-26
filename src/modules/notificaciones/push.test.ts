@@ -54,7 +54,7 @@ describe("push (HU-APP-05)", () => {
     expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(CANALES_ANDROID.length);
   });
 
-  it("los push del centro (con categoría) no usan el banner del sistema: la app pinta el suyo", async () => {
+  it("los push del centro (con categoría) no usan el banner ni la lista del sistema: la app pinta el suyo", async () => {
     configurarPrimerPlano();
     const { handleNotification } = (Notifications.setNotificationHandler as jest.Mock).mock.calls[0][0];
     const del = (data: Record<string, unknown>) => ({ request: { content: { data } } });
@@ -64,11 +64,14 @@ describe("push (HU-APP-05)", () => {
 
     expect(await handleNotification(del({ category: "cobros", severity: "warning" }))).toMatchObject({
       shouldShowBanner: false,
-      shouldShowList: true,
+      shouldShowList: false,
       shouldPlaySound: true,
     });
     // Un push legado (sin categoría) conserva el banner del sistema.
-    expect(await handleNotification(del({ type: "core.escalation" }))).toMatchObject({ shouldShowBanner: true });
+    expect(await handleNotification(del({ type: "core.escalation" }))).toMatchObject({
+      shouldShowBanner: true,
+      shouldShowList: true,
+    });
   });
 
   it("al recibir con la app abierta entrega los datos y el título/cuerpo", () => {

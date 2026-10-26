@@ -78,9 +78,10 @@ export function esPushDelCentro(data: Record<string, unknown> | undefined): bool
 
 /**
  * Con la app abierta el sistema no muestra el aviso por defecto: se pide que lo muestre y suene.
- * Los avisos del centro NO usan el banner del sistema: la app pinta el suyo, animado
- * (`BannerNotificacion`); sí entran a la lista del sistema. Los push legados (sin categoría)
- * siguen con el banner del sistema.
+ * Los avisos del centro NO usan el banner del sistema ni la lista del sistema: con la app
+ * abierta la app pinta el suyo, animado (`BannerNotificacion`), y el aviso ya está en el centro
+ * (en Android, publicar en la lista lanzaría además el aviso flotante del sistema y se vería
+ * doble). Los push legados (sin categoría) siguen con el banner del sistema.
  */
 export function configurarPrimerPlano(): void {
   const Notifications = notificaciones();
@@ -88,12 +89,15 @@ export function configurarPrimerPlano(): void {
     return;
   }
   Notifications.setNotificationHandler({
-    handleNotification: async (n) => ({
-      shouldShowBanner: !esPushDelCentro(n.request.content.data as Record<string, unknown> | undefined),
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
+    handleNotification: async (n) => {
+      const propio = esPushDelCentro(n.request.content.data as Record<string, unknown> | undefined);
+      return {
+        shouldShowBanner: !propio,
+        shouldShowList: !propio,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      };
+    },
   });
 }
 
