@@ -78,7 +78,7 @@ import { useSession } from "../session/session-context";
 import { useCarteraActiva } from "../session/cartera-activa-context";
 import { usePagosPendientes } from "../offline/pagos-pendientes";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
-import { Badge, Button, IconButton, TextField, Toast, TOAST_DURACION_EXITO, useKit, type KitTema } from "@shared/ui";
+import { Badge, Button, IconButton, PasswordField, TextField, Toast, TOAST_DURACION_EXITO, useKit, type KitTema } from "@shared/ui";
 
 import type {
   ClienteTarjetaPublic,
@@ -1995,11 +1995,10 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
                       requiere tu contraseña y un motivo.
                     </Text>
                     <Text style={styles.label}>Password</Text>
-                    <TextField
+                    <PasswordField
                       testID="borrar-password"
                       accessibilityLabel="Password"
                       placeholder="Tu contraseña"
-                      secureTextEntry
                       value={borrarPassword}
                       onChangeText={setBorrarPassword}
                     />

@@ -37,6 +37,7 @@ import {
   type ConnectionItem,
   type PluginSummary,
 } from "../api";
+import { PasswordField } from "@shared/ui";
 
 type Pestana =
   | "colaboradores"
@@ -252,9 +253,9 @@ export function ConfiguracionScreen({
             <TextInput testID="modal-email" value={campoEmail} onChangeText={setCampoEmail}
               placeholder="Correo" placeholderTextColor={colores.textoSuave} autoCapitalize="none"
               style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
-            <TextInput testID="modal-clave" value={campoClave} onChangeText={setCampoClave}
-              placeholder="Contraseña" placeholderTextColor={colores.textoSuave} secureTextEntry
-              style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
+            <PasswordField testID="modal-clave" value={campoClave} onChangeText={setCampoClave}
+              placeholder="Contraseña"
+              style={[styles.campo, { borderColor: colores.borde, color: colores.texto, backgroundColor: "transparent" }]} />
             <View style={styles.chips}>
               {["colaborador", "owner"].map((rol) => (
                 <Pressable key={rol} onPress={() => setCampoRol(rol)} style={[styles.chip, { borderColor: campoRol === rol ? colores.acento : colores.borde }]}>

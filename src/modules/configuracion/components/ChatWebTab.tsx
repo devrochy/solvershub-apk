@@ -12,6 +12,7 @@ import {
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { cargarChatWeb, guardarChatWeb, type WebChatSettings } from "../api";
+import { PasswordField } from "@shared/ui";
 
 /** Dominios separados por línea o coma, sin vacíos (mismo criterio que el panel). */
 function aOrigenes(texto: string): string[] {
@@ -82,7 +83,7 @@ export function ChatWebTab() {
     );
   }
 
-  const estiloInput = [styles.input, { borderColor: colores.borde, color: colores.texto }];
+  const estiloInput = [styles.input, { borderColor: colores.borde, color: colores.texto, backgroundColor: "transparent" }];
 
   return (
     <View testID="chatweb-tab">
@@ -113,11 +114,11 @@ export function ChatWebTab() {
       </Text>
 
       <Text style={[styles.label, { color: colores.texto }]}>Secreto de Turnstile (opcional)</Text>
-      <TextInput
+      <PasswordField
+        etiqueta="secreto"
         testID="chatweb-turnstile"
         value={turnstile}
         onChangeText={setTurnstile}
-        secureTextEntry
         autoCapitalize="none"
         autoCorrect={false}
         style={estiloInput}

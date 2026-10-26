@@ -15,6 +15,7 @@ export { ListItem, RecordRow, type ListItemProps, type RecordRowProps } from "./
 export { NavGroup, type NavGroupProps } from "./NavGroup";
 export { curva, duracion, useReduceMotion, type CurvaMotion, type DuracionMotion } from "./motion";
 export { PageHeader, type PageHeaderProps } from "./PageHeader";
+export { PasswordField, type PasswordFieldProps } from "./PasswordField";
 export { Sheet, type SheetProps } from "./Sheet";
 export { Skeleton, type SkeletonProps, type SkeletonShape } from "./Skeleton";
 export { SyncStatus, textoSyncStatus, type SyncState, type SyncStatusProps } from "./SyncStatus";

@@ -163,4 +163,11 @@ describe("LoginUnificadoScreen (HU-APP-02/03)", () => {
     await fireEvent.press(getByTestId("login-recuperar"));
     expect(irARecuperar).toHaveBeenCalled();
   });
+
+  it("la contraseña arranca oculta y el ojo permite verla", async () => {
+    const { getByTestId } = await renderLogin();
+    expect(getByTestId("login-password").props.secureTextEntry).toBe(true);
+    await fireEvent.press(getByTestId("login-password-ojo"));
+    expect(getByTestId("login-password").props.secureTextEntry).toBe(false);
+  });
 });

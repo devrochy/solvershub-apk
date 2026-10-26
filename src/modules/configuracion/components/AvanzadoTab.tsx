@@ -10,6 +10,7 @@ import {
   guardarSpec,
   type AdvancedResponse,
 } from "../api";
+import { PasswordField } from "@shared/ui";
 
 function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   const { colores } = useTheme();
@@ -174,7 +175,7 @@ export function AvanzadoTab() {
     );
   }
 
-  const estiloInput = [styles.input, { borderColor: colores.borde, color: colores.texto }];
+  const estiloInput = [styles.input, { borderColor: colores.borde, color: colores.texto, backgroundColor: "transparent" }];
 
   return (
     <View testID="avanzado-tab">
@@ -242,11 +243,11 @@ export function AvanzadoTab() {
           style={estiloInput}
         />
         <Text style={[styles.label, { color: colores.texto }]}>Llave de API (BYOK)</Text>
-        <TextInput
+        <PasswordField
+          etiqueta="llave"
           testID="avanzado-llm-llave"
           value={llave}
           onChangeText={setLlave}
-          secureTextEntry
           autoCapitalize="none"
           style={estiloInput}
         />
