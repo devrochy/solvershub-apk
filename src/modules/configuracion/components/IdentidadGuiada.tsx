@@ -18,9 +18,13 @@ import {
   type OpcionConfig,
 } from "../catalogo";
 import { leyendaDias } from "../horarioAtencion";
-import { Campo, Chips, InputCampo } from "./campos";
+import { Campo, Chips, InputCampo, ListaDeFrases } from "./campos";
 
 const MUCHAS_OPCIONES = 6;
+/** Tope de frases por lista de Identidad, igual al del panel. */
+const MAX_FRASES = 100;
+/** Tope de palabras de baja que acepta el backend. */
+const MAX_PALABRAS_BAJA = 50;
 
 /** Una opción del catálogo con el control que corresponde a su tipo (SPEC-37, HU-CFG-06). */
 function CampoGuiado({
@@ -107,6 +111,17 @@ function CampoGuiado({
       ) : (
         chips
       );
+  } else if (opcion.tipo === "lista_de_textos") {
+    control = (
+      <ListaDeFrases
+        id={id}
+        frases={Array.isArray(estado) ? estado : []}
+        onChange={(frases) => onCambio(opcion.clave, frases)}
+        minLargo={opcion.clave === "persona_forbidden" ? 3 : 2}
+        max={MAX_FRASES}
+        deshabilitado={bloqueado}
+      />
+    );
   } else {
     control = (
       <InputCampo
@@ -193,7 +208,7 @@ function BajasSeccion({ catalogo }: { catalogo: CatalogoConfig }) {
   const api = useAdminApi();
   const opcion = catalogo.opciones.find((o) => o.clave === "palabras_de_baja");
   const [bajas, setBajas] = useState<BajasSettings | null>(null);
-  const [texto, setTexto] = useState("");
+  const [palabras, setPalabras] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>();
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -203,7 +218,7 @@ function BajasSeccion({ catalogo }: { catalogo: CatalogoConfig }) {
     cargarBajas(api)
       .then((b) => {
         setBajas(b);
-        setTexto(b.palabras.join(", "));
+        setPalabras(b.palabras);
       })
       .catch(() => setBajas(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- carga inicial
@@ -216,13 +231,7 @@ function BajasSeccion({ catalogo }: { catalogo: CatalogoConfig }) {
     setError(undefined);
     setMensaje(null);
     try {
-      await guardarBajas(
-        api,
-        texto
-          .split(",")
-          .map((x) => x.trim())
-          .filter(Boolean),
-      );
+      await guardarBajas(api, palabras);
       setMensaje("Palabras de baja guardadas.");
     } catch (e) {
       setError(
@@ -238,7 +247,7 @@ function BajasSeccion({ catalogo }: { catalogo: CatalogoConfig }) {
     <View testID="ajustes-bajas" style={{ marginTop: 8 }}>
       <Text style={{ color: colores.texto, fontSize: 14, fontWeight: "700", marginBottom: 8 }}>Darse de baja</Text>
       <Campo id="ajustes-palabras_de_baja" label={opcion.etiqueta} ayuda={`${ayudaDeOpcion(opcion)}${porDefecto}`} error={error}>
-        <InputCampo id="ajustes-palabras_de_baja" valor={texto} onChange={setTexto} />
+        <ListaDeFrases id="ajustes-palabras_de_baja" frases={palabras} onChange={setPalabras} placeholder="Por ejemplo: baja" minLargo={2} max={MAX_PALABRAS_BAJA} />
       </Campo>
       {mensaje ? <Text style={{ color: colores.acento, fontSize: 12, marginBottom: 6 }}>{mensaje}</Text> : null}
       <Pressable
