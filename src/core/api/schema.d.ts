@@ -1469,6 +1469,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/evals/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Eval Runs */
+        get: operations["eval_runs_api_v1_admin_evals_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/invitations": {
         parameters: {
             query?: never;
@@ -3486,6 +3503,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/tenants/{tenant_id}/colaboracion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Colaboracion
+         * @description Banderas de la colaboración con pila de tareas del negocio. Solo el master.
+         */
+        get: operations["get_colaboracion_api_v1_admin_platform_tenants__tenant_id__colaboracion_get"];
+        /**
+         * Put Colaboracion
+         * @description Cambia las banderas que vengan (auditado como `agent_os_colaboracion`). 409 `no_disponible`
+         *     con un valor que este despliegue todavía no aplica.
+         */
+        put: operations["put_colaboracion_api_v1_admin_platform_tenants__tenant_id__colaboracion_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/tenants/{tenant_id}/deactivate": {
         parameters: {
             query?: never;
@@ -4141,6 +4183,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/reliability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reliability */
+        get: operations["reliability_api_v1_admin_reliability_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reliability/verifier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verifier Rejections */
+        get: operations["verifier_rejections_api_v1_admin_reliability_verifier_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reliability/verifier/{turn_id}/false-positive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark False Positive */
+        post: operations["mark_false_positive_api_v1_admin_reliability_verifier__turn_id__false_positive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/settings": {
         parameters: {
             query?: never;
@@ -4702,6 +4795,23 @@ export interface paths {
         };
         /** List Tenants */
         get: operations["list_tenants_api_v1_admin_tenants_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage */
+        get: operations["usage_api_v1_admin_usage_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7356,6 +7466,26 @@ export interface components {
             /** Tool */
             tool: string;
         };
+        /** AgentReliability */
+        AgentReliability: {
+            /** Cost Usd */
+            cost_usd: number | null;
+            /** Escalated */
+            escalated: number;
+            /**
+             * Escalation Rate
+             * @description Fracción de 0 a 1; null bajo la muestra mínima.
+             */
+            escalation_rate: number | null;
+            /** Instance Id */
+            instance_id: string | null;
+            /** Name */
+            name: string;
+            /** P95 Ms */
+            p95_ms: number | null;
+            /** Turns */
+            turns: number;
+        };
         /** AgentsOverview */
         AgentsOverview: {
             /** Items */
@@ -8495,6 +8625,43 @@ export interface components {
              */
             vigentes: number;
         };
+        /** ColaboracionBanderas */
+        ColaboracionBanderas: {
+            /**
+             * Disponibles
+             * @description Los valores que este despliegue ya aplica (la HU se entrega por partes).
+             */
+            disponibles?: {
+                [key: string]: string[];
+            };
+            /**
+             * Pila
+             * @description Pila de tareas: «off», «shadow» (calcula y anota lo que abriría) o «active» (la abre).
+             * @enum {string}
+             */
+            pila: "off" | "shadow" | "active";
+            /**
+             * Verificar Horarios
+             * @description Horarios sin respaldo: «shadow» solo cuenta; «active» rechaza y reintenta.
+             * @enum {string}
+             */
+            verificar_horarios: "shadow" | "active";
+            /**
+             * Verificar Preguntas
+             * @description Más preguntas que `composition.maxQuestions`: «shadow» solo cuenta; «active» rechaza.
+             * @enum {string}
+             */
+            verificar_preguntas: "shadow" | "active";
+        };
+        /** ColaboracionBanderasIn */
+        ColaboracionBanderasIn: {
+            /** Pila */
+            pila?: ("off" | "shadow" | "active") | null;
+            /** Verificar Horarios */
+            verificar_horarios?: ("shadow" | "active") | null;
+            /** Verificar Preguntas */
+            verificar_preguntas?: ("shadow" | "active") | null;
+        };
         /** CollaboratorCreate */
         CollaboratorCreate: {
             /** Email */
@@ -8767,6 +8934,31 @@ export interface components {
             items: components["schemas"]["ConnectionTypeItem"][];
             /** Label */
             label: string;
+        };
+        /** ConnectionConsistency */
+        ConnectionConsistency: {
+            /** Below Threshold */
+            below_threshold: string[];
+            /** Connection */
+            connection: string;
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /** No Data */
+            no_data: boolean;
+            /** Procedures */
+            procedures: components["schemas"]["ProcedureConsistency"][];
+            /** Release Id */
+            release_id: string | null;
+            /**
+             * Threshold
+             * @description Umbral de pass^4 (0 a 1).
+             */
+            threshold: number;
+            /** Version */
+            version: number | null;
         };
         /** ConnectionCredentialsResponse */
         ConnectionCredentialsResponse: {
@@ -9912,6 +10104,11 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** EvalRunsResponse */
+        EvalRunsResponse: {
+            /** Items */
+            items: components["schemas"]["ReliabilityEvalRun"][];
+        };
         /** Evaluation */
         Evaluation: {
             /** Base Release Id */
@@ -10053,6 +10250,28 @@ export interface components {
             cliente: string;
             /** Motivo */
             motivo: string;
+        };
+        /** FalsePositiveIn */
+        FalsePositiveIn: {
+            /** Kind */
+            kind: string;
+            /** Note */
+            note?: string | null;
+        };
+        /** FalsePositiveOut */
+        FalsePositiveOut: {
+            /**
+             * False Positive
+             * @default true
+             */
+            false_positive: boolean;
+            /** Kind */
+            kind: string;
+            /**
+             * Turn Id
+             * Format: uuid
+             */
+            turn_id: string;
         };
         /** FlowResponse */
         FlowResponse: {
@@ -12102,6 +12321,19 @@ export interface components {
              */
             moneda: string;
         };
+        /** MinimumSample */
+        MinimumSample: {
+            /**
+             * Tasks
+             * @default 10
+             */
+            tasks: number;
+            /**
+             * Turns
+             * @default 20
+             */
+            turns: number;
+        };
         /** MissingTemplateItem */
         MissingTemplateItem: {
             /** Conversation Id */
@@ -12397,6 +12629,34 @@ export interface components {
             unidad: string;
             /** Valores */
             valores?: components["schemas"]["ValorPosible"][];
+        };
+        /** Operational */
+        Operational: {
+            /** By Agent */
+            by_agent: components["schemas"]["AgentReliability"][];
+            /** Conversations */
+            conversations: number;
+            /** Cost Per Conversation Usd */
+            cost_per_conversation_usd: number | null;
+            /** Cost Usd */
+            cost_usd: number | null;
+            /** Escalated */
+            escalated: number;
+            /** Escalated Conversations */
+            escalated_conversations: number;
+            /**
+             * Escalation Rate
+             * @description Fracción de 0 a 1; null bajo la muestra mínima.
+             */
+            escalation_rate: number | null;
+            /** Failed */
+            failed: number;
+            /** P95 Ms */
+            p95_ms: number | null;
+            /** Turns */
+            turns: number;
+            /** Without Outcome */
+            without_outcome: number;
         };
         /** OrderLine */
         OrderLine: {
@@ -13402,6 +13662,40 @@ export interface components {
             pasos: components["schemas"]["PasoOut"][];
             /** Total */
             total: number;
+        };
+        /** ProcedureCompletion */
+        ProcedureCompletion: {
+            /** Completed */
+            completed: number;
+            /** Escalated */
+            escalated: number;
+            /** Finished */
+            finished: number;
+            /** Procedure Id */
+            procedure_id: string;
+            /**
+             * Rate
+             * @description Fracción de 0 a 1; null bajo la muestra mínima.
+             */
+            rate: number | null;
+        };
+        /** ProcedureConsistency */
+        ProcedureConsistency: {
+            /** Measured In Release Id */
+            measured_in_release_id: string | null;
+            /** Measured In Version */
+            measured_in_version: number | null;
+            /** Ok */
+            ok: boolean | null;
+            /**
+             * Pass K
+             * @description Fracción de escenarios estables en k = 4 (0 a 1); null sin datos.
+             */
+            pass_k: number | null;
+            /** Procedure Id */
+            procedure_id: string;
+            /** Scenarios */
+            scenarios: number;
         };
         /** ProcedureIssue */
         ProcedureIssue: {
@@ -14675,6 +14969,64 @@ export interface components {
              */
             origin: "owner" | "platform";
         };
+        /** ReliabilityEvalRun */
+        ReliabilityEvalRun: {
+            /** Connection Id */
+            connection_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** K */
+            k: number;
+            /** Origin */
+            origin: string;
+            /** Pass 1 */
+            pass_1: number | null;
+            /** Pass K Average */
+            pass_k_average: number | null;
+            /** Passed */
+            passed: number;
+            /** Started At */
+            started_at: string | null;
+            /** Total */
+            total: number;
+            /** Version */
+            version: number | null;
+        };
+        /** ReliabilityPeriod */
+        ReliabilityPeriod: {
+            /**
+             * Desde
+             * Format: date-time
+             */
+            desde: string;
+            /**
+             * Hasta
+             * Format: date-time
+             */
+            hasta: string;
+        };
+        /** ReliabilityResponse */
+        ReliabilityResponse: {
+            /** Can See Conversations */
+            can_see_conversations: boolean;
+            /** Can See Costs */
+            can_see_costs: boolean;
+            /** Completion */
+            completion: components["schemas"]["ProcedureCompletion"][];
+            /**
+             * Consistency
+             * @description Consistencia vigente de la versión activa; no se acota al periodo, versión ni carril.
+             */
+            consistency: components["schemas"]["ConnectionConsistency"][];
+            minimum_sample?: components["schemas"]["MinimumSample"];
+            operational: components["schemas"]["Operational"];
+            period: components["schemas"]["ReliabilityPeriod"];
+            /** Verifier */
+            verifier: components["schemas"]["VerifierKind"][];
+        };
         /** ReporteDiarioOut */
         ReporteDiarioOut: {
             /** Cobrado */
@@ -15927,6 +16279,32 @@ export interface components {
              */
             hasta: string;
         };
+        /** UsageResponse */
+        UsageResponse: {
+            /** Can See Costs */
+            can_see_costs: boolean;
+            /**
+             * Group By
+             * @enum {string}
+             */
+            group_by: "connection" | "agent" | "a2a" | "day";
+            /** Items */
+            items: components["schemas"]["UsageRow"][];
+            period: components["schemas"]["ReliabilityPeriod"];
+        };
+        /** UsageRow */
+        UsageRow: {
+            /** Cost Usd */
+            cost_usd: number | null;
+            /** Key */
+            key: string | null;
+            /** Mode */
+            mode: string | null;
+            /** Name */
+            name: string;
+            /** Rows */
+            rows: number;
+        };
         /** UsageTotals */
         UsageTotals: {
             /** Cost Usd */
@@ -16029,6 +16407,41 @@ export interface components {
             name: string;
             /** Slug */
             slug: string;
+        };
+        /** VerifierKind */
+        VerifierKind: {
+            /** False Positives */
+            false_positives: number;
+            /** Kind */
+            kind: string;
+            /** Rejections */
+            rejections: number;
+        };
+        /** VerifierRejection */
+        VerifierRejection: {
+            /** Connection Id */
+            connection_id: string | null;
+            /** Conversation Id */
+            conversation_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** False Positive */
+            false_positive: boolean;
+            /** Kind */
+            kind: string;
+            /**
+             * Turn Id
+             * Format: uuid
+             */
+            turn_id: string;
+        };
+        /** VerifierRejections */
+        VerifierRejections: {
+            /** Items */
+            items: components["schemas"]["VerifierRejection"][];
         };
         /** VerifyCodeRequest */
         VerifyCodeRequest: {
@@ -19565,6 +19978,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_EscalationItem_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    eval_runs_api_v1_admin_evals_runs_get: {
+        parameters: {
+            query?: {
+                connection_id?: string | null;
+                limit?: number;
+            };
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRunsResponse"];
                 };
             };
             /** @description Validation Error */
@@ -23318,6 +23765,76 @@ export interface operations {
             };
         };
     };
+    get_colaboracion_api_v1_admin_platform_tenants__tenant_id__colaboracion_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ColaboracionBanderas"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_colaboracion_api_v1_admin_platform_tenants__tenant_id__colaboracion_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ColaboracionBanderasIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ColaboracionBanderas"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     deactivate_tenant_endpoint_api_v1_admin_platform_tenants__tenant_id__deactivate_post: {
         parameters: {
             query?: never;
@@ -24580,6 +25097,119 @@ export interface operations {
             };
         };
     };
+    reliability_api_v1_admin_reliability_get: {
+        parameters: {
+            query?: {
+                connection_id?: string | null;
+                desde?: string | null;
+                hasta?: string | null;
+                lane?: ("stable" | "canary" | "pinned" | "legacy") | null;
+                release_id?: string | null;
+            };
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReliabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verifier_rejections_api_v1_admin_reliability_verifier_get: {
+        parameters: {
+            query?: {
+                connection_id?: string | null;
+                desde?: string | null;
+                hasta?: string | null;
+                kind?: string | null;
+                lane?: ("stable" | "canary" | "pinned" | "legacy") | null;
+                limit?: number;
+                release_id?: string | null;
+            };
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerifierRejections"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_false_positive_api_v1_admin_reliability_verifier__turn_id__false_positive_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                turn_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FalsePositiveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FalsePositiveOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_settings_api_api_v1_admin_settings_get: {
         parameters: {
             query?: never;
@@ -25755,6 +26385,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_TenantOption_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_api_v1_admin_usage_get: {
+        parameters: {
+            query?: {
+                connection_id?: string | null;
+                desde?: string | null;
+                group_by?: "connection" | "agent" | "a2a" | "day";
+                hasta?: string | null;
+                lane?: ("stable" | "canary" | "pinned" | "legacy") | null;
+                release_id?: string | null;
+            };
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageResponse"];
                 };
             };
             /** @description Validation Error */
