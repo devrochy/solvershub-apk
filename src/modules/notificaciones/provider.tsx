@@ -2,7 +2,9 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import { darDeBajaPushToken, registrarPushToken } from "./api";
 import {
   addListener,
+  addRecibidaListener,
   configurarCanal,
+  configurarPrimerPlano,
   consumirRespuestaInicial,
   obtenerTokenExpo,
   solicitarPermisos,
@@ -22,6 +24,8 @@ export interface PushProviderProps {
   projectId: string;
   /** El usuario tocó la notificación: la composición decide la navegación. */
   alTocarNotificacion(datos: PushDatos): void;
+  /** Llegó una notificación con la app abierta: el centro refresca su contador. */
+  alRecibirNotificacion?(datos: PushDatos): void;
   children: ReactNode;
 }
 
@@ -39,13 +43,17 @@ export function PushProvider({
   tenantId,
   projectId,
   alTocarNotificacion,
+  alRecibirNotificacion,
   children,
 }: PushProviderProps) {
-  const [registrado, setRegistrado] = useState<{ token: string; tenantId: string } | null>(
+  // Se guarda también el token de sesión con el que se registró: la baja al cerrar sesión ya
+  // no tiene `adminToken` y necesita el suyo para autenticarse.
+  const [registrado, setRegistrado] = useState<{ token: string; tenantId: string; adminToken: string } | null>(
     null,
   );
   const [pushHabilitado, setPushHabilitado] = useState<boolean | null>(null);
   const alTocarRef = useRef(alTocarNotificacion);
+  const alRecibirRef = useRef(alRecibirNotificacion);
 
   // Opt-out local (HU-APP-21): el usuario apaga las notificaciones en Configuración.
   // Solo un "0" explícito apaga el push: si la lectura falla (base aún no lista),
@@ -71,10 +79,14 @@ export function PushProvider({
 
   useEffect(() => {
     alTocarRef.current = alTocarNotificacion;
+    alRecibirRef.current = alRecibirNotificacion;
   });
 
   useEffect(() => {
     void configurarCanal().catch(() => undefined);
+    configurarPrimerPlano();
+    const sub = addRecibidaListener((datos) => alRecibirRef.current?.((datos ?? {}) as PushDatos));
+    return () => sub.remove();
   }, []);
 
   useEffect(() => {
@@ -95,7 +107,7 @@ export function PushProvider({
       // Primero, baja del registro anterior si cambió el contexto.
       const anterior = registrado;
       if (anterior && (!adminToken || anterior.tenantId !== tenantId)) {
-        await darDeBajaPushToken(adminToken ?? "", anterior.tenantId, anterior.token).catch(
+        await darDeBajaPushToken(anterior.adminToken, anterior.tenantId, anterior.token).catch(
           () => undefined,
         );
         if (activo) {
@@ -126,7 +138,7 @@ export function PushProvider({
         console.warn("[push] no se registró el token", e instanceof Error ? e.message : String(e));
       });
       if (activo) {
-        setRegistrado({ token, tenantId });
+        setRegistrado({ token, tenantId, adminToken });
       }
     })();
     return () => {

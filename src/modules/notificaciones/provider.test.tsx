@@ -1,5 +1,7 @@
 jest.mock("./push", () => ({
   configurarCanal: jest.fn().mockResolvedValue(undefined),
+  configurarPrimerPlano: jest.fn(),
+  addRecibidaListener: jest.fn(() => ({ remove: jest.fn() })),
   solicitarPermisos: jest.fn(),
   obtenerTokenExpo: jest.fn(),
   addListener: jest.fn(() => ({ remove: jest.fn() })),
@@ -20,7 +22,13 @@ import { act, render, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { darDeBajaPushToken, registrarPushToken } from "./api";
 import { PushProvider } from "./provider";
-import { addListener, consumirRespuestaInicial, obtenerTokenExpo, solicitarPermisos } from "./push";
+import {
+  addListener,
+  addRecibidaListener,
+  consumirRespuestaInicial,
+  obtenerTokenExpo,
+  solicitarPermisos,
+} from "./push";
 
 function renderPush(adminToken: string | null, tenantId: string | null) {
   return render(
@@ -165,10 +173,51 @@ describe("PushProvider (HU-APP-05)", () => {
       </PushProvider>,
     );
 
+    await waitFor(() => expect(addListener).toHaveBeenCalled());
     const registrada = (addListener as jest.Mock).mock.calls[0][0];
-    act(() => {
+    await act(async () => {
       registrada({ type: "cobranza.sync" });
     });
     expect(alTocar).toHaveBeenCalledWith({ type: "cobranza.sync" });
+  });
+
+  it("al llegar una notificación con la app abierta avisa al compositor", async () => {
+    const alRecibir = jest.fn();
+    await render(
+      <PushProvider
+        adminToken={null}
+        tenantId={null}
+        projectId="proj-123"
+        alTocarNotificacion={jest.fn()}
+        alRecibirNotificacion={alRecibir}
+      >
+        <Text>hijo</Text>
+      </PushProvider>,
+    );
+    await waitFor(() => expect(addRecibidaListener).toHaveBeenCalled());
+    const registrada = (addRecibidaListener as jest.Mock).mock.calls[0][0];
+    await act(async () => {
+      registrada({ type: "core.escalation" });
+    });
+    expect(alRecibir).toHaveBeenCalledWith({ type: "core.escalation" });
+  });
+
+  it("al cerrar sesión da de baja el token con el token de sesión con que se registró", async () => {
+    (solicitarPermisos as jest.Mock).mockResolvedValue(true);
+    (obtenerTokenExpo as jest.Mock).mockResolvedValue("ExponentPushToken[abc]");
+
+    const { rerender } = await renderPush("t-opaco", "t-1");
+    await waitFor(() => expect(registrarPushToken).toHaveBeenCalledTimes(1));
+
+    await rerender(
+      <PushProvider adminToken={null} tenantId={null} projectId="proj-123" alTocarNotificacion={jest.fn()}>
+        <Text>hijo</Text>
+      </PushProvider>,
+    );
+
+    // Antes se llamaba con "" (Bearer vacío) y el backend lo rechazaba: el token quedaba activo.
+    await waitFor(() =>
+      expect(darDeBajaPushToken).toHaveBeenCalledWith("t-opaco", "t-1", "ExponentPushToken[abc]"),
+    );
   });
 });

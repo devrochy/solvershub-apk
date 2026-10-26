@@ -18,6 +18,21 @@ type ModuloNotificaciones = typeof import("expo-notifications");
 
 export const CANAL_DEFAULT = "solvershub-general";
 
+/**
+ * Canales de Android por categoría del centro de notificaciones (ADR-0167). El backend envía
+ * cada push con `channelId = solvershub-<categoría>`: si el canal no existe en el teléfono,
+ * Android cae al canal de respaldo de FCM, sin la importancia ni el sonido de la app. Se crean
+ * desde JS (sin build nativo). El usuario puede ajustar cada uno en los ajustes del sistema.
+ */
+export const CANALES_ANDROID: { id: string; nombre: string; importancia: "MAX" | "HIGH" | "DEFAULT" }[] = [
+  { id: CANAL_DEFAULT, nombre: "General", importancia: "MAX" },
+  { id: "solvershub-conversaciones", nombre: "Conversaciones", importancia: "MAX" },
+  { id: "solvershub-ventas", nombre: "Ventas", importancia: "HIGH" },
+  { id: "solvershub-cobros", nombre: "Cobros", importancia: "HIGH" },
+  { id: "solvershub-agenda", nombre: "Agenda", importancia: "HIGH" },
+  { id: "solvershub-sistema", nombre: "Sistema", importancia: "HIGH" },
+];
+
 /** True cuando la app corre dentro de Expo Go (sin builds propias). */
 export function enExpoGo(): boolean {
   try {
@@ -41,10 +56,44 @@ export async function configurarCanal(): Promise<void> {
   if (!Notifications || Platform.OS !== "android") {
     return;
   }
-  await Notifications.setNotificationChannelAsync(CANAL_DEFAULT, {
-    name: "General",
-    importance: Notifications.AndroidImportance.MAX,
-    sound: "default",
+  for (const canal of CANALES_ANDROID) {
+    await Notifications.setNotificationChannelAsync(canal.id, {
+      name: canal.nombre,
+      importance: Notifications.AndroidImportance[canal.importancia],
+      sound: "default",
+    });
+  }
+}
+
+/**
+ * Con la app abierta el sistema no muestra el aviso por defecto: se pide que lo muestre
+ * (banner y lista) y suene. El centro de notificaciones se actualiza con `addRecibidaListener`.
+ */
+export function configurarPrimerPlano(): void {
+  const Notifications = notificaciones();
+  if (!Notifications) {
+    return;
+  }
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
+
+/** Llega una notificación con la app abierta (no confundir con tocarla). */
+export function addRecibidaListener(
+  handler: (data: Record<string, unknown> | undefined) => void,
+): { remove(): void } {
+  const Notifications = notificaciones();
+  if (!Notifications) {
+    return { remove: () => undefined };
+  }
+  return Notifications.addNotificationReceivedListener((n) => {
+    handler(n.request.content.data as Record<string, unknown> | undefined);
   });
 }
 

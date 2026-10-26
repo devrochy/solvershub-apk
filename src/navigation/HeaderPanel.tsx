@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { shSpace, shType } from "@core/theme/tokens";
-import { IconButton, useKit } from "@shared/ui";
+import { CampanaDelPanel, IconButton, useKit } from "@shared/ui";
 import { useMenuPanel } from "./menu-panel-context";
 
 /**
@@ -47,6 +47,8 @@ export function HeaderPanel({ titulo, conBusqueda = true }: { titulo: string; co
           label={oscuro ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
           onPress={alternarTema}
         />
+        {/* Siempre al extremo derecho (ADR-0167). */}
+        <CampanaDelPanel />
       </View>
     </View>
   );

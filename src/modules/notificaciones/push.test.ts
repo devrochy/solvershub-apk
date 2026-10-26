@@ -8,14 +8,17 @@ jest.mock("expo-notifications", () => ({
   requestPermissionsAsync: jest.fn(),
   getExpoPushTokenAsync: jest.fn(),
   addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  addNotificationReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  setNotificationHandler: jest.fn(),
   getLastNotificationResponse: jest.fn(),
   clearLastNotificationResponse: jest.fn(),
-  AndroidImportance: { MAX: 5 },
+  AndroidImportance: { MAX: 5, HIGH: 4, DEFAULT: 3 },
 }));
 
 import * as Notifications from "expo-notifications";
 import {
   addListener,
+  CANALES_ANDROID,
   configurarCanal,
   consumirRespuestaInicial,
   enExpoGo,
@@ -31,12 +34,21 @@ describe("push (HU-APP-05)", () => {
     const original = Platform.OS;
     Platform.OS = "android";
     await configurarCanal();
-    expect(Notifications.setNotificationChannelAsync).toHaveBeenCalled();
+    // El general más uno por categoría del centro de notificaciones (ADR-0167).
+    expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(CANALES_ANDROID.length);
+    expect((Notifications.setNotificationChannelAsync as jest.Mock).mock.calls.map((c) => c[0])).toEqual([
+      "solvershub-general",
+      "solvershub-conversaciones",
+      "solvershub-ventas",
+      "solvershub-cobros",
+      "solvershub-agenda",
+      "solvershub-sistema",
+    ]);
     Platform.OS = original;
 
     await configurarCanal();
     // En el resto de plataformas no se vuelve a llamar.
-    expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(1);
+    expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(CANALES_ANDROID.length);
   });
 
   it("devuelve una sola vez el push que abrió la app (arranque en frío)", () => {
@@ -109,7 +121,10 @@ describe("push (HU-APP-05)", () => {
     });
     await solicitarPermisos();
     Platform.OS = original;
-    expect(orden).toEqual(["canal", "permiso"]);
+    // Un canal por categoría (+ el genérico): todos antes del diálogo de permiso.
+    expect(orden.at(-1)).toBe("permiso");
+    expect(orden.slice(0, -1).length).toBeGreaterThan(0);
+    expect(new Set(orden.slice(0, -1))).toEqual(new Set(["canal"]));
   });
 
   it("obtiene el token con el projectId de EAS", async () => {

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { SolicitudPestana } from "@shared/pestana-inicial";
-import { useKit } from "@shared/ui";
+import { CampanaDelPanel, useKit } from "@shared/ui";
 import { CobranzaAdminScreen } from "./screens/CobranzaAdminScreen";
 import { ClienteDetalleScreen } from "./screens/ClienteDetalleScreen";
 import { CarteraDetalleScreen } from "./screens/CarteraDetalleScreen";
@@ -30,6 +30,8 @@ export function CobranzaAdminNavigator({ encabezadoRaiz }: { encabezadoRaiz?: Re
         headerTintColor: c.text,
         headerTitleStyle: { color: c.text },
         headerShadowVisible: false,
+        // La campana siempre arriba a la derecha, también en los detalles (ADR-0167).
+        headerRight: () => <CampanaDelPanel />,
         contentStyle: { backgroundColor: c.bg },
       }}
     >
