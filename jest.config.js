@@ -4,6 +4,7 @@ module.exports = {
   transformIgnorePatterns: [
     "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|react-native-svg|jose))",
   ],
+  setupFiles: ["<rootDir>/node_modules/react-native-gesture-handler/jestSetup.js"],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   // Suites de pantalla flaky bajo la carga del runner de CI (timeouts de 5 s
   // documentados en el backlog): margen para el render + waitFor.

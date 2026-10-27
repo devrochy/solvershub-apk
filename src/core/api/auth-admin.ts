@@ -29,7 +29,7 @@ export class ApiAuthError extends Error {
   }
 }
 
-async function parseError(res: Response): Promise<ApiAuthError> {
+export async function parseError(res: Response): Promise<ApiAuthError> {
   let code = "error";
   let message = "Ocurrió un error. Intenta de nuevo.";
   try {

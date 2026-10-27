@@ -1,6 +1,6 @@
 # ADR-APP-07 — Kit de UI en `shared/ui`, panel con header + cajón lateral y campo de cobranza con sus vistas
 
-- **Estado:** aceptado (enmendado el 2026-10-14 y el 2026-10-19)
+- **Estado:** aceptado (enmendado el 2026-10-14, el 2026-10-19 y el 2026-10-27)
 - **Fecha:** 2026-10-10
 - **Contexto:** SPEC-29 (solvershub-docs), decisiones D-SPEC-29-5 y D-SPEC-29-6 (Diseño aprobado,
   D-32). HU-DS-09 (kit), HU-DS-10 (campo con el kit) y HU-DS-11 (shell del panel en la app).
@@ -21,6 +21,16 @@
 > compartir módulo (Equipo y Configuración) y una entrada puede abarcar dos (Configuración → Mensajes
 > fallidos vive en `herramientas`); el header toma el nombre de la entrada. «Herramientas» deja de
 > ser un grupo del cajón y la Búsqueda pasa a la lupa del header.
+
+> **Enmienda 2026-10-27 (cajón v2 y perfil propio).** El cajón arranca con los grupos plegados, abre
+> y desplaza al grupo del destino activo, estrena el logo horizontal de SolversHub y deja fija al pie
+> una tarjeta de cuenta (avatar, nombre y correo) con Perfil, Tema oscuro y Cerrar sesión. El toggle de
+> tema sale del header. Perfil deja de ser un modal y pasa a ser una ruta real del panel: un
+> `@react-navigation/stack` envuelve las pestañas (`Panel` → `Perfil`) para que el gesto de volver siga
+> el dedo y conserve la pestaña anterior. Esto **rompe la regla de “sin dependencias nuevas”** para
+> esta función: entran `react-native-gesture-handler` y `@react-native-masked-view/masked-view`
+> (nativos) y `@react-navigation/stack` (JS). Cambia el `runtimeVersion` por fingerprint: **requiere
+> una build nueva del APK**; el APK preview anterior no recibe esta función por OTA.
 
 ## Contexto
 
@@ -64,7 +74,9 @@ muscular.
    filtrados por `MeResponse.permissions`; cada entrada abre su módulo en la primera pestaña permitida
    (`pestanaInicial` con nonce, `@shared/pestana-inicial`). Por debajo sigue un `Tab.Navigator`
    sin barra (montaje perezoso, estado por módulo y el `navRef` del bus de navegación). Sin
-   `@react-navigation/drawer`: sale por EAS Update.
+   `@react-navigation/drawer`: el cajón es el `Drawer` del kit. Desde la enmienda del 2026-10-27, ese
+   `Tab.Navigator` vive dentro de un `@react-navigation/stack` para la ruta Perfil y el gesto de
+   volver; esa enmienda sí agrega dependencias nativas y exige build nueva.
 3. **D-SPEC-29-6 · El campo de cobranza conserva sus vistas**: cajón lateral, selección de cartera,
    inicio de la cartera, clientes con filtros, diario, ficha del cliente como overlay, préstamo,
    perfil, configuración y notificaciones mantienen flujo, rutas y lógica. HU-DS-10 solo cambia los
@@ -80,6 +92,7 @@ muscular.
 | `react-native-reanimated` + `gesture-handler` para `Sheet` y `Toast` | Dependencias nativas nuevas para dos animaciones cortas; `Animated` y `PanResponder` alcanzan |
 | Panel con 4 destinos + Más (D-SPEC-29-5 A, elegida el 2026-10-10) | Reemplazada por D-34: ~40 secciones no caben en 4 destinos y el dueño quiere la misma lista del panel web |
 | `@react-navigation/drawer` para el cajón del panel | Arrastra gesture-handler + reanimated: cambia el fingerprint y no sale por OTA; `Drawer` del kit (`Animated` + `Pressable`) alcanza |
+| `@react-navigation/stack` + `react-native-gesture-handler` para Perfil | **Aceptada el 2026-10-27** (enmienda): el dueño pidió que el swipe siga el dedo, no solo que dispare el back. Se asume el coste de una build nueva y del fingerprint; el cajón y el campo siguen sin depender de estas librerías |
 | Rediseñar el campo con pestañas abajo (D-SPEC-29-6 B) | Rompe la memoria muscular de los gestores y arriesga regresiones en el diferencial |
 
 ## Consecuencias
@@ -101,8 +114,12 @@ recorrido (entonces se evalúa reanimated con un ADR).
 
 - `src/shared/ui/*` (kit, `tema.ts`, `motion.ts`, `icono.tsx`, tests al lado) y
   `src/shared/ui/catalogo/CatalogoScreen.tsx`.
-- `src/navigation/PanelShell.tsx`, `HeaderPanel.tsx`, `CajonPanel.tsx`, `menu-panel.ts`,
-  `menu-panel-context.tsx`; `src/shared/ui/Drawer.tsx` y `NavGroup.tsx`; `@shared/pestana-inicial`.
-  El Catálogo de UI va en el grupo «Desarrollo» del cajón, solo con `__DEV__`.
+- `src/navigation/PanelShell.tsx`, `HeaderPanel.tsx`, `CajonPanel.tsx`, `CuentaPanel.tsx`,
+  `marca-panel.ts`, `menu-panel.ts`, `menu-panel-context.tsx`; `src/shared/ui/Drawer.tsx`,
+  `NavGroup.tsx` y `CampoTelefono.tsx`; `@shared/pestana-inicial`. El Catálogo de UI va en el grupo
+  «Desarrollo» del cajón, solo con `__DEV__`.
+- Perfil propio: `src/modules/perfil/` (pantalla e imagen), `src/core/api/perfil-admin.ts`,
+  `src/core/session/{types,admin-session-context}.ts(x)` y las rutas `Panel`/`Perfil` de
+  `PanelShell`.
 - HU-DS-10 migra las pantallas de campo al kit (mismas vistas); HU-DS-11 arma el shell con cajón
   (D-34); HU-DS-12 puede subir `motion.ts` a `src/core/theme/`.

@@ -41,12 +41,14 @@ clave de firma.
 4. Agenda → pestaña Horario (guarda los valores sin cambios → "Horario guardado.") → pestaña Google Calendar.
 5. Configuración → General → guarda Identidad sin cambios ("Identidad guardada.").
 6. Conexiones → Meta → Producción → corre las comprobaciones.
-7. El toggle de tema del header alterna y vuelve.
+7. El tema se alterna desde la tarjeta de la cuenta del cajón (`cajon-cuenta` → `cajon-tema`).
+8. Perfil se abre desde la tarjeta (`cajon-perfil`) y se vuelve con `back`.
 
 Desde HU-DS-11 (D-34) el panel en la app navega con el header (`panel-menu`,
-`panel-buscar`, `panel-tema`) y el cajón lateral. Con el menú v2 (HU-UX-11) el
+`panel-buscar`) y el cajón lateral. El tema vive en la tarjeta de la cuenta. Con el menú v2 (HU-UX-11) el
 cajón tiene grupos por tarea `cajon-grupo-<id>` (`operacion`, `asistente`,
-`negocio`, `cuenta`, `plataforma`) y una fila por entrada `cajon-item-<id>`
+`negocio`, `cuenta`, `plataforma`) que arrancan plegados (hay que abrir el grupo
+antes de buscar su `cajon-item-<id>`) y una fila por entrada `cajon-item-<id>`
 (`resumen`, `conversaciones`, `clientes`, `agentes`, `conexiones`, `agenda`,
 `ventas`, `cobranza`, `consumo`, `equipo`, `configuracion`, `negocios`). Cada
 entrada abre su primera pestaña permitida y la pantalla muestra solo las

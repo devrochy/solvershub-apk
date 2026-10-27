@@ -7,6 +7,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import type { RootStackParamList } from "./src/modules/cobranza/navigation/types";
 import { CarteraFlujo } from "./src/modules/cobranza/navigation/CarteraFlujo";
@@ -272,25 +273,27 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <AdminSessionProvider>
-          <SincronizadorProvider>
-            <PushRoot>
-            <SessionProvider>
-              <OfflineProvider>
-                <CarteraActivaProvider>
-                  <NotificacionesProvider>
-                    <RootContent />
-                  </NotificacionesProvider>
-                </CarteraActivaProvider>
-              </OfflineProvider>
-            </SessionProvider>
-            </PushRoot>
-          </SincronizadorProvider>
-        </AdminSessionProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.raiz}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AdminSessionProvider>
+            <SincronizadorProvider>
+              <PushRoot>
+                <SessionProvider>
+                  <OfflineProvider>
+                    <CarteraActivaProvider>
+                      <NotificacionesProvider>
+                        <RootContent />
+                      </NotificacionesProvider>
+                    </CarteraActivaProvider>
+                  </OfflineProvider>
+                </SessionProvider>
+              </PushRoot>
+            </SincronizadorProvider>
+          </AdminSessionProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -312,5 +315,6 @@ function RootContent() {
 }
 
 const styles = StyleSheet.create({
+  raiz: { flex: 1 },
   carga: { flex: 1, alignItems: "center", justifyContent: "center" },
 });

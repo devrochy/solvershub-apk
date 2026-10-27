@@ -34,6 +34,10 @@
 - Notificaciones push (Expo) con deep link al diario de campo.
 - Seguridad: almacenamiento local cifrado (SQLCipher), certificate pinning de la API,
   auditoría local de acciones críticas.
+- Cajón del panel: logo horizontal de SolversHub, grupos plegados con scroll a la sección
+  activa y tarjeta de cuenta fija (avatar, nombre y correo) con Perfil, tema y cerrar sesión.
+- Perfil propio en la app: nombre, usuario, teléfono, foto y cambio de contraseña, como ruta
+  del panel con gesto de volver.
 
 - Cobranza por jerarquía de datos (HU-UX-12): cinco áreas (Resumen, Carteras, Actividad,
   Equipo, Asistente) en dos niveles, en vez de 12 pastillas planas; Clientes pasa a la

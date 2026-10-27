@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { MENU_PANEL, type DestinoMenu } from "./menu-panel";
+import type { DestinoMenu } from "./menu-panel";
 
 /** Destino dentro del panel: un módulo, su pestaña interna y la entrada del cajón. */
 export type DestinoPanel = DestinoMenu;
@@ -10,7 +10,7 @@ export interface MenuPanelValue {
   cerrar(): void;
   /** Último destino al que se navegó (resalta el ítem del cajón y titula el header). */
   activo: DestinoPanel | null;
-  /** Grupos desplegados; con el menú v2 (una entrada por tarea) arrancan todos abiertos. */
+  /** Grupos desplegados; el cajón arranca con todos plegados. */
   gruposAbiertos: ReadonlySet<string>;
   alternarGrupo(id: string): void;
   /** Toca un ítem del cajón: cierra y navega. */
@@ -30,7 +30,7 @@ const MenuPanelContext = createContext<MenuPanelValue>({
 });
 
 function gruposAbiertosPorDefecto(): Set<string> {
-  return new Set(MENU_PANEL.map((g) => g.id));
+  return new Set();
 }
 
 export function MenuPanelProvider({
@@ -45,7 +45,12 @@ export function MenuPanelProvider({
   const [abierto, setAbierto] = useState(false);
   const [gruposAbiertos, setGruposAbiertos] = useState<Set<string>>(gruposAbiertosPorDefecto);
 
-  const abrir = useCallback(() => setAbierto(true), []);
+  const abrir = useCallback(() => {
+    // Cada apertura parte del menú plegado: solo el grupo activo queda abierto
+    // (lo decide el cajón con `contieneActiva`).
+    setGruposAbiertos(gruposAbiertosPorDefecto());
+    setAbierto(true);
+  }, []);
   const cerrar = useCallback(() => setAbierto(false), []);
   const alternarGrupo = useCallback((id: string) => {
     setGruposAbiertos((actual) => {
