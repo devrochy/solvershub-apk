@@ -135,7 +135,13 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
   it("los módulos visibles salen en el orden fijo del shell, con la Búsqueda", () => {
     expect(
       modulosVisibles({ settings: "write", pack_commerce: "read", dashboard: "read" }, false, { dev: false }),
-    ).toEqual(["inicio", "comercio", "configuracion", "herramientas", "busqueda"]);
+    ).toEqual(["inicio", "comercio", "agentes", "configuracion", "herramientas", "busqueda"]);
+  });
+
+  it("Agentes abre su propia pantalla (lista y asistente), con la clave de Ajustes", () => {
+    expect(modulosVisibles({ settings: "write" }, false, { dev: false })).toContain("agentes");
+    expect(modulosVisibles({ pack_commerce: "read" }, false, { dev: false })).not.toContain("agentes");
+    expect(tituloDeDestino({ modulo: "agentes" })).toBe("Agentes");
   });
 
   it("el título del header es el de la entrada; sin pestaña, el del módulo", () => {

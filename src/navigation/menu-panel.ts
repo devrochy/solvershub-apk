@@ -23,6 +23,7 @@ export type ModuloPanel =
   | "cobranza"
   | "comercio"
   | "calendario"
+  | "agentes"
   | "negocio"
   | "configuracion"
   | "herramientas"
@@ -36,6 +37,7 @@ export const ORDEN_MODULOS: readonly ModuloPanel[] = [
   "cobranza",
   "comercio",
   "calendario",
+  "agentes",
   "negocio",
   "configuracion",
   "herramientas",
@@ -54,6 +56,7 @@ export const MODULOS_PANEL: Record<ModuloPanel, { label: string; raizStack?: str
   cobranza: { label: "Cobranza", raizStack: "CobranzaAdmin" },
   comercio: { label: "Ventas" },
   calendario: { label: "Agenda" },
+  agentes: { label: "Agentes" },
   negocio: { label: "Consumo y plan" },
   configuracion: { label: "Configuración" },
   herramientas: { label: "Mensajes fallidos" },
@@ -155,11 +158,14 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
     icono: "smart-toy",
     entradas: [
       {
-        // La lista de agentes aún no tiene pantalla en la app: solo «Probar asistente».
+        // Lista mínima y asistente de creación (HU-AOS-56); lo avanzado sigue en el panel web.
         id: "agentes",
         label: "Agentes",
         icono: "smart-toy",
-        pestanas: [{ label: "Probar asistente", modulo: "conversaciones", pestana: "playground", seccion: "connections" }],
+        pestanas: [
+          { label: "Agentes", modulo: "agentes", seccion: "settings" },
+          { label: "Probar asistente", modulo: "conversaciones", pestana: "playground", seccion: "connections" },
+        ],
       },
       {
         // Plantillas, Producción y Requisitos de Meta viven dentro de la pestaña Conexiones de la app.

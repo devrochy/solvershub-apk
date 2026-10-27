@@ -1,0 +1,56 @@
+# Smoke del asistente de creación de agentes (HU-AOS-56, SPEC-39): recorre el guion de «Ventas»
+# hasta «Revisar y crear» SIN crear el agente (no escribe datos en test). Requiere un APK/OTA con
+# el módulo Agentes y el backend con `/admin/agents/from-script`. Credenciales demo: demo12345.
+appId: com.solvershub.apk
+---
+- launchApp
+- assertVisible: "SolversHub"
+- tapOn:
+    id: "login-usuario"
+- inputText: "dueno-a@demo.test"
+- tapOn:
+    id: "login-password"
+- inputText: "demo12345"
+- tapOn:
+    id: "login-entrar"
+- extendedWaitUntil:
+    visible: "Cobranza Demo"
+    timeout: 30000
+- tapOn: "Cobranza Demo"
+- extendedWaitUntil:
+    visible:
+      id: "panel-menu"
+    timeout: 20000
+- tapOn:
+    id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-agentes"
+    direction: DOWN
+- tapOn:
+    id: "cajon-item-agentes"
+- extendedWaitUntil:
+    visible:
+      id: "agentes-lista"
+    timeout: 20000
+- tapOn:
+    id: "agentes-nuevo"
+# Paso 1: sin elegir tipo no avanza.
+- tapOn: "Siguiente"
+- assertVisible: "Elige qué quieres que haga tu agente."
+- tapOn:
+    id: "asistente-tipo-ventas"
+# Preguntas del guion (valor por defecto marcado), nombre y lo ya cargado.
+- repeat:
+    while:
+      notVisible: "Crear mi agente"
+    times: 8
+    commands:
+      - tapOn: "Siguiente"
+- assertVisible:
+    id: "asistente-resumen"
+- assertVisible: "Crear mi agente"
+# Cancelar deja todo como estaba.
+- tapOn: "Cancelar"
+- assertVisible:
+    id: "agentes-lista"
