@@ -17,7 +17,7 @@ import type { LoginResult } from "@shared/types/auth";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { ApiAuthError, apiGestorToken } from "@core/api/auth-admin";
 import { biometriaDisponible, biometriaHabilitada, deshabilitarBiometria, habilitarBiometria } from "../biometria";
-import { LOGO_POR_TEMA } from "../marca";
+import { fuenteLogo } from "../marca";
 
 export interface LoginUnificadoProps {
   /** Sesión de campo lista (exchange OK): el compositor la aplica. */
@@ -133,7 +133,7 @@ export function LoginUnificadoScreen({
                 testID="login-logo"
                 accessibilityRole="image"
                 accessibilityLabel="SolversHub"
-                source={LOGO_POR_TEMA[tema]}
+                source={fuenteLogo(tema)}
                 resizeMode="contain"
                 style={styles.logo}
               />
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     height: 248,
     borderRadius: shRadius.pill,
   },
-  logo: { width: 190, aspectRatio: 2048 / 1644 },
+  logo: { width: 190, height: 152 },
   subtitulo: { textAlign: "center" },
   formulario: { gap: shSpace[3] },
   campo: { borderRadius: shRadius.md },

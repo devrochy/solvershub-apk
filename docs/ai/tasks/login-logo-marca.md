@@ -30,7 +30,9 @@ de autenticación ni los testIDs.
 
 ## Cambios de UI
 - `SafeAreaView` + `KeyboardAvoidingView` + `ScrollView` (edge-to-edge y teclado, DESIGN.md).
-- `Image` con `testID="login-logo"`, `accessibilityLabel="SolversHub"` y `aspectRatio` del set.
+- `Image` con `testID="login-logo"`, `accessibilityLabel="SolversHub"` y tamaño fijo 190×152.
+  La fuente se pasa por `Image.resolveAssetSource(...).uri` (con respaldo al `require` en tests):
+  en Android el asset local imponía su tamaño intrínseco (760×610 dp) sobre el estilo.
 - Halo decorativo con `tonos.accent.bg` (token, sin colores sueltos).
 - Campos al kit (`TextField` / `PasswordField`), botón `Button` (primary lg fullWidth) y
   enlace con `Button variant="link"`; error con `Icono` + región viva; fila de biometría con
