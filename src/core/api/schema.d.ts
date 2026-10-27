@@ -737,6 +737,72 @@ export interface paths {
         patch: operations["patch_connection_agent_api_v1_admin_connections__connection_id__agents__instance_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/connections/{connection_id}/canary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Canary
+         * @description La prueba en curso de la conexión con su muestra, la comparación por carril, el veredicto y la
+         *     señal dura; null si no hay. No escribe nada.
+         */
+        get: operations["get_canary_api_v1_admin_connections__connection_id__canary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change Canary Percent
+         * @description Cambia el porcentaje de la prueba (rige al empezar cada episodio).
+         */
+        patch: operations["change_canary_percent_api_v1_admin_connections__connection_id__canary_patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/connections/{connection_id}/canary/promote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Promote Canary
+         * @description Publica para todos la versión en prueba: exige el veredicto `listo` (o 7 días sin muestra) y
+         *     que no haya señal dura (409 `canary_peor`, `canary_sin_muestra`, `canary_senal_dura`).
+         */
+        post: operations["promote_canary_api_v1_admin_connections__connection_id__canary_promote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/{connection_id}/canary/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop Canary
+         * @description Detiene la prueba (siempre como `detenida_por_dueno`: la versión se puede volver a probar).
+         */
+        post: operations["stop_canary_api_v1_admin_connections__connection_id__canary_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/connections/{connection_id}/credentials": {
         parameters: {
             query?: never;
@@ -806,6 +872,28 @@ export interface paths {
         get: operations["get_release_api_v1_admin_connections__connection_id__releases__release_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/{connection_id}/releases/{release_id}/canary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Canary
+         * @description Prueba la versión con una parte de las conversaciones nuevas (HU-AOS-32). Mismas reglas que
+         *     publicar: dueño o master, gate aprobado si está cerrado, `aos_runtime = v3` (409 `requiere_v3`).
+         *     Si la plataforma la apagó (`CANARY_DISPONIBLE`), responde 409 `canary_no_disponible`.
+         */
+        post: operations["start_canary_api_v1_admin_connections__connection_id__releases__release_id__canary_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1038,6 +1126,26 @@ export interface paths {
         };
         /** Get Conversation */
         get: operations["get_conversation_api_v1_admin_conversations__conversation_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/conversations/{conversation_id}/in-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * In Progress
+         * @description «En curso» de la conversación para quien la toma (HU-AOS-28).
+         */
+        get: operations["in_progress_api_v1_admin_conversations__conversation_id__in_progress_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3925,6 +4033,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/qa/datos/escenarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Escenarios
+         * @description Escenarios de datos de prueba y lo que creó cada uno la última vez (HU-QA-13). 404 fuera de test.
+         */
+        get: operations["listar_escenarios_api_v1_admin_qa_datos_escenarios_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/qa/datos/escenarios/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crear Escenario
+         * @description Crea un caso nuevo del escenario en el negocio de prueba del tester, sin LLM y sin borrar nada
+         *     (HU-QA-13). 404 si no existe o fuera de test; 409 sin datos preparados, con otra corrida en curso o
+         *     si el escenario no se puede crear (el motivo va en el mensaje).
+         */
+        post: operations["crear_escenario_api_v1_admin_qa_datos_escenarios__slug__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/qa/evolution": {
         parameters: {
             query?: never;
@@ -4795,6 +4945,23 @@ export interface paths {
         };
         /** List Tenants */
         get: operations["list_tenants_api_v1_admin_tenants_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/turns/{turn_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Turn Detail */
+        get: operations["turn_detail_api_v1_admin_turns__turn_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5903,40 +6070,6 @@ export interface paths {
         put?: never;
         /** Register Owner Payment */
         post: operations["register_owner_payment_api_v1_pack_cobranza_owner_charges__charge_id__payment_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/pack/cobranza/owner-thread": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Owner Thread */
-        get: operations["owner_thread_api_v1_pack_cobranza_owner_thread_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/pack/cobranza/owner-thread/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Owner Message */
-        post: operations["create_owner_message_api_v1_pack_cobranza_owner_thread_messages_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -8270,6 +8403,133 @@ export interface components {
             to_instance_id: string | null;
             /** Tokens */
             tokens: number;
+        };
+        /** CanaryIn */
+        CanaryIn: {
+            /**
+             * Forzar
+             * @description Solo master: saltar el gate de pass^k (con motivo).
+             * @default false
+             */
+            forzar: boolean;
+            /** Motivo Forzado */
+            motivo_forzado?: string | null;
+            /**
+             * Percent
+             * @description Porcentaje de las conversaciones nuevas que prueban la versión.
+             */
+            percent: number;
+        };
+        /** CanaryLane */
+        CanaryLane: {
+            /**
+             * Completitud
+             * @description Fracción de 0 a 1 de recorridos completados (los que empezaron en la prueba).
+             */
+            completitud: number | null;
+            /** Conversaciones */
+            conversaciones: number;
+            /**
+             * Costo Por Conversacion Usd
+             * @description USD por conversación; null sin datos o sin la sección `costs` (ver `costos_visibles`).
+             */
+            costo_por_conversacion_usd: number | null;
+            /**
+             * Escalamiento
+             * @description Fracción de 0 a 1 de conversaciones que pasaron a una persona.
+             */
+            escalamiento: number | null;
+            /** P95 Ms */
+            p95_ms: number | null;
+            /** Tareas Terminadas */
+            tareas_terminadas: number;
+        };
+        /** CanaryPercentIn */
+        CanaryPercentIn: {
+            /** Percent */
+            percent: number;
+        };
+        /** CanarySignal */
+        CanarySignal: {
+            /** Activa */
+            activa: boolean;
+            /** Evaluadas */
+            evaluadas: number;
+            /** Llegaron Mal */
+            llegaron_mal: number;
+            /** Sin Resultado */
+            sin_resultado: number;
+            /** Tasa */
+            tasa: number | null;
+            /** Tasa Estable */
+            tasa_estable: number | null;
+        };
+        /** CanaryState */
+        CanaryState: {
+            /** Advertencias */
+            advertencias: ("costo" | "lentitud")[];
+            /** Base Release Id */
+            base_release_id: string | null;
+            /** Base Release Number */
+            base_release_number: number | null;
+            canary: components["schemas"]["CanaryLane"];
+            /** Costos Visibles */
+            costos_visibles: boolean;
+            /** Dias Manual */
+            dias_manual: number;
+            estable: components["schemas"]["CanaryLane"];
+            /**
+             * Horas
+             * @description Horas desde el inicio de la prueba.
+             */
+            horas: number;
+            /** Motivo No Publicar */
+            motivo_no_publicar: ("senal_dura" | "peor" | "sin_muestra") | null;
+            /** Motivos */
+            motivos: ("escalamiento" | "completitud")[];
+            /**
+             * Percent
+             * @description Porcentaje vigente de las conversaciones nuevas que prueban la versión.
+             */
+            percent: number;
+            /**
+             * Publicable Desde
+             * Format: date-time
+             * @description Desde cuándo se puede publicar a mano sin muestra.
+             */
+            publicable_desde: string;
+            /** Puede Publicar */
+            puede_publicar: boolean;
+            /**
+             * Release Id
+             * Format: uuid
+             */
+            release_id: string;
+            /** Release Number */
+            release_number: number | null;
+            senal_dura: components["schemas"]["CanarySignal"];
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Umbral Conversaciones
+             * @description Conversaciones en la versión nueva para juntar la muestra.
+             */
+            umbral_conversaciones: number;
+            /**
+             * Umbral Horas
+             * @description Horas mínimas para juntar la muestra.
+             */
+            umbral_horas: number;
+            /**
+             * Veredicto
+             * @enum {string}
+             */
+            veredicto: "sin_muestra" | "peor" | "listo";
+            /** Veredicto Guardado */
+            veredicto_guardado: boolean;
         };
         /** CargoItem */
         CargoItem: {
@@ -10760,6 +11020,134 @@ export interface components {
             /** Valor */
             valor: number;
         };
+        /** InProgress */
+        InProgress: {
+            /**
+             * Empty Reason
+             * @description Por qué `tasks` va vacío.
+             */
+            empty_reason: "sin_procedimientos" | null;
+            escalation: components["schemas"]["InProgressEscalation"] | null;
+            /** Tasks */
+            tasks: components["schemas"]["InProgressTask"][];
+        };
+        /** InProgressAction */
+        InProgressAction: {
+            /** Action */
+            action: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Ok */
+            ok: boolean;
+            /**
+             * Reason Code
+             * @description Código del fallo, si falló.
+             */
+            reason_code: string | null;
+        };
+        /** InProgressDatum */
+        InProgressDatum: {
+            /** Confirmed */
+            confirmed: boolean;
+            /** Data Class */
+            data_class: string | null;
+            /**
+             * Label
+             * @description Rótulo humano del dato (de su habilidad); si no, el nombre.
+             */
+            label: string;
+            /** Name */
+            name: string;
+            /**
+             * Value
+             * @description Los datos de pago van enmascarados.
+             */
+            value: unknown;
+        };
+        /** InProgressEscalation */
+        InProgressEscalation: {
+            /** Assigned Admin Id */
+            assigned_admin_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Reason Code
+             * @description Código del motivo (el mismo de la bandeja de escalaciones).
+             */
+            reason_code: string | null;
+            /** Status */
+            status: string;
+            /** Summary */
+            summary: string | null;
+        };
+        /** InProgressMissing */
+        InProgressMissing: {
+            /**
+             * Kind
+             * @description Qué falta: un dato (del cliente, de un botón, de un contenido o de una acción), confirmar un dato, confirmar la etapa o una acción. Los clientes deben tolerar valores nuevos.
+             * @enum {string}
+             */
+            kind: "dato_cliente" | "dato_boton" | "dato_contenido" | "dato_accion" | "confirmar_dato" | "confirmar_etapa" | "accion";
+            /**
+             * Label
+             * @description Rótulo humano del dato (de su habilidad); para `accion` y `confirmar_etapa`, el nombre con espacios.
+             */
+            label: string;
+            /** Name */
+            name: string;
+        };
+        /** InProgressTask */
+        InProgressTask: {
+            /** Data */
+            data: components["schemas"]["InProgressDatum"][];
+            /**
+             * In Focus
+             * @description ¿Es la tarea en foco de la conversación?
+             */
+            in_focus: boolean;
+            last_action: components["schemas"]["InProgressAction"] | null;
+            /** Missing */
+            missing: components["schemas"]["InProgressMissing"][];
+            /**
+             * Missing Reason
+             * @description Por qué `missing` va vacío sin que la tarea esté completa.
+             */
+            missing_reason: "definicion_no_disponible" | null;
+            /** Pending Confirmation */
+            pending_confirmation: boolean;
+            /** Procedure Id */
+            procedure_id: string;
+            /**
+             * Stage
+             * @description Etapa vigente del procedimiento (id).
+             */
+            stage: string;
+            /**
+             * Status
+             * @description active | suspended, o `escalated` (en solo lectura: se cerró al escalar la escalación activa).
+             */
+            status: string;
+            /** Status Reason */
+            status_reason: string | null;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
+            /** Title */
+            title: string | null;
+        };
         /** InstagramAccountOut */
         InstagramAccountOut: {
             /**
@@ -12030,6 +12418,11 @@ export interface components {
             template_name?: string | null;
             /** Tool Calls */
             tool_calls?: string[];
+            /**
+             * Turn Id
+             * @description Turno del agente que lo envió; null salvo en los mensajes del agente.
+             */
+            turn_id?: string | null;
         };
         /** MessagesSince */
         MessagesSince: {
@@ -12767,53 +13160,12 @@ export interface components {
             /** Links */
             links: components["schemas"]["PaymentLink"][];
         };
-        /** OwnerMessage */
-        OwnerMessage: {
-            /** Autor */
-            autor: string;
-            /** Contenido */
-            contenido: string;
-            /** Direccion */
-            direccion: string;
-            /** Fecha */
-            fecha: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Tipo */
-            tipo: string;
-        };
-        /** OwnerMessageCreate */
-        OwnerMessageCreate: {
-            /** Contenido */
-            contenido: string;
-            /**
-             * Direccion
-             * @default saliente
-             */
-            direccion: string;
-        };
         /** OwnerPayment */
         OwnerPayment: {
             /** Metodo Pago */
             metodo_pago?: string | null;
             /** Monto Pagado */
             monto_pagado: number;
-        };
-        /** OwnerThread */
-        OwnerThread: {
-            /** Abierto */
-            abierto: boolean;
-            /** Asunto */
-            asunto: string;
-            /** Estado */
-            estado: string;
-            /** Mensajes */
-            mensajes: components["schemas"]["OwnerMessage"][];
-            /** Whatsapp */
-            whatsapp: string;
         };
         /** Kpi */
         pack_cobranza__admin_api__Kpi: {
@@ -14380,6 +14732,103 @@ export interface components {
             /** Comentario */
             comentario?: string | null;
         };
+        /** QaEscenario */
+        QaEscenario: {
+            /**
+             * Agent Os
+             * @description Necesita el Agent OS listo en el negocio de prueba.
+             */
+            agent_os: boolean;
+            /** Crea */
+            crea: string;
+            /**
+             * Donde
+             * @description Sección del panel donde se ve.
+             */
+            donde: string;
+            /** Requiere */
+            requiere: string;
+            /** Ruta */
+            ruta: string;
+            /**
+             * Slug
+             * @description Fijo: el catálogo de pruebas lo cita como `datos-escenario-<slug>`.
+             */
+            slug: string;
+            /** Titulo */
+            titulo: string;
+            /** @description Lo que creó la última vez para este tester. */
+            ultimo?: components["schemas"]["QaEscenarioCreado"] | null;
+        };
+        /** QaEscenarioCreado */
+        QaEscenarioCreado: {
+            /** Conteos */
+            conteos?: {
+                [key: string]: number;
+            };
+            /** Creado En */
+            creado_en?: string | null;
+            /**
+             * Detalle
+             * @description Qué creó, en líneas legibles.
+             */
+            detalle: string[];
+            /**
+             * Ruta
+             * @description Ruta del panel donde se ve lo creado (en el negocio de prueba).
+             */
+            ruta: string;
+            /**
+             * Sufijo
+             * @description Marca corta del caso: aparece en los nombres de lo creado.
+             */
+            sufijo: string;
+        };
+        /** QaEscenarioResultado */
+        QaEscenarioResultado: {
+            /**
+             * Agent Os
+             * @description Necesita el Agent OS listo en el negocio de prueba.
+             */
+            agent_os: boolean;
+            /** Crea */
+            crea: string;
+            creado: components["schemas"]["QaEscenarioCreado"];
+            /**
+             * Donde
+             * @description Sección del panel donde se ve.
+             */
+            donde: string;
+            /**
+             * Negocio Id
+             * Format: uuid
+             * @description El negocio de prueba donde se creó (para cambiar a él y abrir la ruta).
+             */
+            negocio_id: string;
+            /** Requiere */
+            requiere: string;
+            /** Ruta */
+            ruta: string;
+            /**
+             * Slug
+             * @description Fijo: el catálogo de pruebas lo cita como `datos-escenario-<slug>`.
+             */
+            slug: string;
+            /** Titulo */
+            titulo: string;
+            /** @description Lo que creó la última vez para este tester. */
+            ultimo?: components["schemas"]["QaEscenarioCreado"] | null;
+        };
+        /** QaEscenarios */
+        QaEscenarios: {
+            /**
+             * Datos Listos
+             * @description El tester ya preparó sus datos: sin eso los escenarios dan 409.
+             */
+            datos_listos: boolean;
+            /** Escenarios */
+            escenarios: components["schemas"]["QaEscenario"][];
+        };
         /** QaEvento */
         QaEvento: {
             /** Antes */
@@ -14858,7 +15307,7 @@ export interface components {
             created_at: string;
             /**
              * Detenida
-             * @description La detuvo el dueño (no se puede activar).
+             * @description Bloqueada: la detuvo el dueño (como candidata) o el sistema la retiró de una prueba por ir peor. No se puede activar.
              * @default false
              */
             detenida: boolean;
@@ -14941,7 +15390,7 @@ export interface components {
             created_at: string;
             /**
              * Detenida
-             * @description La detuvo el dueño (no se puede activar).
+             * @description Bloqueada: la detuvo el dueño (como candidata) o el sistema la retiró de una prueba por ir peor. No se puede activar.
              * @default false
              */
             detenida: boolean;
@@ -16126,6 +16575,215 @@ export interface components {
             /** Monto */
             monto: number;
         };
+        /** TurnA2A */
+        TurnA2A: {
+            /** Calls */
+            calls: number;
+            /** Events */
+            events: components["schemas"]["TurnA2AEvent"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Mode */
+            mode: string | null;
+            /**
+             * Spent Usd
+             * @description Solo con la sección `costs`.
+             */
+            spent_usd?: number | null;
+            /** Status */
+            status: string;
+        };
+        /** TurnA2AEvent */
+        TurnA2AEvent: {
+            /**
+             * Cost Usd
+             * @description Solo con la sección `costs`.
+             */
+            cost_usd?: number | null;
+            /** From Instance Id */
+            from_instance_id: string | null;
+            /** Intent */
+            intent: string | null;
+            /** Mode */
+            mode: string | null;
+            /**
+             * Payload
+             * @description Solo la forma (redactado al escribir, HU-AOS-18).
+             */
+            payload?: unknown;
+            /** Reason */
+            reason: string | null;
+            /**
+             * Result
+             * @description Solo la forma (redactado al escribir, HU-AOS-18).
+             */
+            result?: unknown;
+            /** Seq */
+            seq: number;
+            /** To Instance Id */
+            to_instance_id: string | null;
+            /** Type */
+            type: string;
+        };
+        /** TurnAgent */
+        TurnAgent: {
+            /**
+             * Instance Id
+             * Format: uuid
+             */
+            instance_id: string;
+            /** Name */
+            name: string;
+        };
+        /** TurnCandidate */
+        TurnCandidate: {
+            /** Owner */
+            owner: string | null;
+            /** Procedure Id */
+            procedure_id: string | null;
+            /** Score */
+            score: number | null;
+        };
+        /** TurnCost */
+        TurnCost: {
+            /** Calls */
+            calls: number;
+            /**
+             * Cost Usd
+             * @description Solo con la sección `costs`.
+             */
+            cost_usd?: number | null;
+            /** Input Tokens */
+            input_tokens: number;
+            /**
+             * Kind
+             * @description turn | agent_run | classifier | composer | embedding | eval
+             */
+            kind: string;
+            /** Model */
+            model: string | null;
+            /** Output Tokens */
+            output_tokens: number;
+        };
+        /** TurnDecision */
+        TurnDecision: {
+            active_agent: components["schemas"]["TurnAgent"] | null;
+            /** Blocked By */
+            blocked_by: string | null;
+            /**
+             * Candidates
+             * @description Procedimientos candidatos con su puntaje.
+             */
+            candidates: components["schemas"]["TurnCandidate"][];
+            /** Confidence */
+            confidence: number | null;
+            /** @description Quien terminó el turno (distinto si hubo un traspaso). */
+            final_agent: components["schemas"]["TurnAgent"] | null;
+            /**
+             * Outcome
+             * @description Decisión del Coordinador: routed | blocked | escalated | ignored.
+             */
+            outcome: string;
+            /** Route Source */
+            route_source: string | null;
+            /** Rule Id */
+            rule_id: string | null;
+            /**
+             * Shadow Stack
+             * @description Plan de la pila de tareas en sombra (HU-AOS-20), si lo hubo.
+             */
+            shadow_stack?: unknown;
+        };
+        /** TurnDelivery */
+        TurnDelivery: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Error Reason */
+            error_reason: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Status */
+            status: string | null;
+            /** Template Name */
+            template_name: string | null;
+            /** Text */
+            text: string | null;
+        };
+        /** TurnDetail */
+        TurnDetail: {
+            /** A2A */
+            a2a: components["schemas"]["TurnA2A"][];
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /**
+             * Can See Costs
+             * @description ¿Tiene la sección `costs`?
+             */
+            can_see_costs: boolean;
+            /**
+             * Can See Detail
+             * @description ¿Tiene la sección `observability`?
+             */
+            can_see_detail: boolean;
+            /** Connection Id */
+            connection_id: string | null;
+            /** Conversation Id */
+            conversation_id: string | null;
+            /** Cost */
+            cost: components["schemas"]["TurnCost"][];
+            decision: components["schemas"]["TurnDecision"];
+            /** Delivery */
+            delivery: components["schemas"]["TurnDelivery"][];
+            /**
+             * Inbound Message Ids
+             * @description Mensajes del cliente que atendió el turno.
+             */
+            inbound_message_ids: string[];
+            /** Lane */
+            lane: ("stable" | "canary" | "pinned" | "legacy") | null;
+            /**
+             * Latency Ms
+             * @description Latencia del turno completo (la de la decisión si no terminó).
+             */
+            latency_ms: number | null;
+            /** Release Id */
+            release_id: string | null;
+            /** Release Number */
+            release_number: number | null;
+            /**
+             * Status
+             * @description Resultado final del turno (`turn_outcomes`): replied | neutral | escalated | silent | failed.
+             */
+            status: string | null;
+            /** Steps */
+            steps: components["schemas"]["TurnStep"][];
+            /** Task Events */
+            task_events: components["schemas"]["TurnTaskEvent"][];
+            /**
+             * Turn Id
+             * Format: uuid
+             */
+            turn_id: string;
+            /**
+             * Verifier
+             * @description Comprobaciones del verificador.
+             */
+            verifier: components["schemas"]["TurnVerifierCheck"][];
+            /** Verifier Retries */
+            verifier_retries: number;
+        };
         /** TurnIn */
         TurnIn: {
             /** Text */
@@ -16142,6 +16800,96 @@ export interface components {
             image_url?: string | null;
             /** Text */
             text: string;
+        };
+        /** TurnStep */
+        TurnStep: {
+            /**
+             * Action
+             * @description execute | denied | confirmation_required | el comando | el código del paso.
+             */
+            action: string;
+            /** Actor */
+            actor: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /**
+             * Detail Hidden
+             * @description Hay entrada o salida pero falta `observability` para verla.
+             */
+            detail_hidden: boolean;
+            /**
+             * Error Codes
+             * @description Códigos de error, sin valores (solo los que tienen forma de código).
+             */
+            error_codes: string[];
+            /**
+             * Input
+             * @description Solo con la sección `observability`; si no, null. Redactado: los datos personales van enmascarados (ADR-0169).
+             */
+            input: unknown;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "command" | "action" | "engine" | "escalation" | "verifier" | "guardrail" | "other";
+            /**
+             * Name
+             * @description Nombre de la acción, el comando o el componente.
+             */
+            name: string;
+            /**
+             * Ok
+             * @description ¿Salió bien? Visible siempre; null si el paso no lo dice.
+             */
+            ok: boolean | null;
+            /**
+             * Output
+             * @description Solo con la sección `observability`; si no, null. Redactado: los datos personales van enmascarados (ADR-0169).
+             */
+            output: unknown;
+        };
+        /** TurnTaskEvent */
+        TurnTaskEvent: {
+            /** Actor */
+            actor: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /**
+             * Data
+             * @description Los datos de pago siempre van enmascarados.
+             */
+            data: {
+                [key: string]: unknown;
+            };
+            /** Procedure Id */
+            procedure_id: string | null;
+            /** Seq */
+            seq: number;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
+            /** Type */
+            type: string;
+        };
+        /** TurnVerifierCheck */
+        TurnVerifierCheck: {
+            /** Count */
+            count: number;
+            /** Kind */
+            kind: string;
+            /**
+             * Verdict
+             * @description pass | fail | unverifiable | error
+             */
+            verdict: string;
         };
         /** TypeOut */
         TypeOut: {
@@ -18664,6 +19412,138 @@ export interface operations {
             };
         };
     };
+    get_canary_api_v1_admin_connections__connection_id__canary_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanaryState"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_canary_percent_api_v1_admin_connections__connection_id__canary_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CanaryPercentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    promote_canary_api_v1_admin_connections__connection_id__canary_promote_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseChange"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_canary_api_v1_admin_connections__connection_id__canary_stop_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     connection_credentials_api_v1_admin_connections__connection_id__credentials_get: {
         parameters: {
             query?: never;
@@ -18829,6 +19709,42 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ReleaseDetail"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_canary_api_v1_admin_connections__connection_id__releases__release_id__canary_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                release_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CanaryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -19256,6 +20172,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConversationDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    in_progress_api_v1_admin_conversations__conversation_id__in_progress_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InProgress"];
                 };
             };
             /** @description Validation Error */
@@ -24626,6 +25575,105 @@ export interface operations {
             };
         };
     };
+    listar_escenarios_api_v1_admin_qa_datos_escenarios_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QaEscenarios"];
+                };
+            };
+            /** @description Solo el admin de plataforma y los testers. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Fuera de test (`QA_TESTERS_ENABLED` apagada) o el escenario no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_escenario_api_v1_admin_qa_datos_escenarios__slug__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QaEscenarioResultado"];
+                };
+            };
+            /** @description Solo el admin de plataforma y los testers. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Fuera de test (`QA_TESTERS_ENABLED` apagada) o el escenario no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin datos preparados, otra corrida en curso o el escenario no se puede crear (motivo). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     evolution_api_v1_admin_qa_evolution_get: {
         parameters: {
             query?: never;
@@ -26385,6 +27433,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_TenantOption_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    turn_detail_api_v1_admin_turns__turn_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                turn_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TurnDetail"];
                 };
             };
             /** @description Validation Error */
@@ -28777,70 +29858,6 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["OwnerPayment"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    owner_thread_api_v1_pack_cobranza_owner_thread_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Tenant-Id"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OwnerThread"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_owner_message_api_v1_pack_cobranza_owner_thread_messages_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Tenant-Id"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OwnerMessageCreate"];
             };
         };
         responses: {
