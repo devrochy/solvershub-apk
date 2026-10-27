@@ -112,7 +112,6 @@ const COBRANZA: PestanaMenuPanel[] = [
   { label: "Clientes", modulo: "cobranza", pestana: "clientes", seccion: "pack_cobranza:clientes", sub: "Operación" },
   { label: "Pagos", modulo: "cobranza", pestana: "pagos", seccion: "pack_cobranza:cobros", sub: "Operación" },
   { label: "Promesas", modulo: "cobranza", pestana: "promesas", seccion: "pack_cobranza:promesas", sub: "Operación" },
-  { label: "Propietario", modulo: "cobranza", pestana: "propietario", seccion: "pack_cobranza:propietario", sub: "Operación" },
   { label: "Reportes", modulo: "cobranza", pestana: "reportes", seccion: "pack_cobranza:reportes", sub: "Operación" },
   { label: "Monitoreo IA", modulo: "cobranza", pestana: "monitoreo", seccion: "pack_cobranza:monitoreo", sub: "Monitoreo" },
   { label: "Reglas de negociación", modulo: "cobranza", pestana: "reglas", seccion: "pack_cobranza:reglas", sub: "Monitoreo" },
