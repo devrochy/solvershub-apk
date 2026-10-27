@@ -1,15 +1,16 @@
 import type { ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import type { SolicitudPestana } from "@shared/pestana-inicial";
+import type { EntradaPestanas, SolicitudPestana } from "@shared/pestana-inicial";
 import { CampanaDelPanel, useKit } from "@shared/ui";
 import { CobranzaAdminScreen } from "./screens/CobranzaAdminScreen";
 import { ClienteDetalleScreen } from "./screens/ClienteDetalleScreen";
 import { CarteraDetalleScreen } from "./screens/CarteraDetalleScreen";
 
 export type CobranzaAdminStackParamList = {
-  CobranzaAdmin: { pestanaInicial?: SolicitudPestana } | undefined;
-  ClienteDetalle: { id: string; titulo: string };
+  CobranzaAdmin: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } | undefined;
+  /** `carteraTitulo`: la cartera padre, que el header muestra sobre el nombre del cliente. */
+  ClienteDetalle: { id: string; titulo: string; carteraId?: string | null; carteraTitulo?: string | null };
   CarteraDetalle: { id: string; titulo: string };
 };
 
@@ -39,14 +40,23 @@ export function CobranzaAdminNavigator({ encabezadoRaiz }: { encabezadoRaiz?: Re
         {({ route }) => (
           <View style={styles.raiz}>
             {encabezadoRaiz}
-            <CobranzaAdminScreen pestanaInicial={route.params?.pestanaInicial} />
+            <CobranzaAdminScreen pestanaInicial={route.params?.pestanaInicial} entrada={route.params?.entrada} />
           </View>
         )}
       </Stack.Screen>
       <Stack.Screen
         name="ClienteDetalle"
         component={ClienteDetalleScreen}
-        options={({ route }) => ({ title: route.params.titulo })}
+        options={({ route }) => ({
+          title: route.params.titulo,
+          ...(route.params.carteraTitulo
+            ? {
+                headerTitle: () => (
+                  <TituloConPadre padre={route.params.carteraTitulo!} titulo={route.params.titulo} />
+                ),
+              }
+            : {}),
+        })}
       />
       <Stack.Screen
         name="CarteraDetalle"
@@ -57,4 +67,23 @@ export function CobranzaAdminNavigator({ encabezadoRaiz }: { encabezadoRaiz?: Re
   );
 }
 
-const styles = StyleSheet.create({ raiz: { flex: 1 } });
+/** Cartera › cliente en el header: el cliente es hijo de la cartera (HU-UX-12). */
+export function TituloConPadre({ padre, titulo }: { padre: string; titulo: string }) {
+  const { c } = useKit();
+  return (
+    <View testID="cliente-header-titulo" accessibilityLabel={`${padre}, ${titulo}`}>
+      <Text numberOfLines={1} style={[styles.padre, { color: c.textMuted }]}>
+        {padre}
+      </Text>
+      <Text numberOfLines={1} style={[styles.hijo, { color: c.text }]}>
+        {titulo}
+      </Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  raiz: { flex: 1 },
+  padre: { fontSize: 12, lineHeight: 16 },
+  hijo: { fontSize: 17, lineHeight: 22, fontWeight: "600" },
+});

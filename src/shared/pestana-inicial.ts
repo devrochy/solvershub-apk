@@ -45,6 +45,8 @@ export interface PestanaDeEntrada {
   tab: string;
   pestana: string;
   label: string;
+  /** Área de la pestaña dentro de su entrada (Cobranza); sin área = barra de un solo nivel. */
+  sub?: string;
   /** Fuera de la barra de pestañas salvo cuando es la que está en pantalla (HU-UX-08). */
   oculta?: boolean;
 }

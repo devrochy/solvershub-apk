@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
+import { usePestanaInicial, type EntradaPestanas, type SolicitudPestana } from "@shared/pestana-inicial";
+import { gruposDeMenu, pestanasDeEntrada } from "@/navigation/menu-panel";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
@@ -52,22 +53,35 @@ import { GestoresTab } from "./GestoresTab";
 type Nav = NativeStackNavigationProp<CobranzaAdminStackParamList>;
 type Pestana = "resumen" | "carteras" | "clientes" | "pagos" | "promesas" | "dispositivos" | "reportes" | "monitoreo" | "reglas" | "alertas" | "auditoria" | "gestores";
 
-const PESTANAS: { clave: Pestana; label: string; seccion: string }[] = [
-  { clave: "resumen", label: "Resumen", seccion: "pack_cobranza:resumen" },
-  { clave: "carteras", label: "Carteras", seccion: "pack_cobranza:carteras" },
-  { clave: "clientes", label: "Clientes", seccion: "pack_cobranza:clientes" },
-  { clave: "pagos", label: "Pagos", seccion: "pack_cobranza:cobros" },
-  { clave: "promesas", label: "Promesas", seccion: "pack_cobranza:promesas" },
-  { clave: "dispositivos", label: "Dispositivos", seccion: "pack_cobranza:dispositivos" },
-  { clave: "reportes", label: "Reportes", seccion: "pack_cobranza:reportes" },
-  { clave: "monitoreo", label: "Monitoreo", seccion: "pack_cobranza:monitoreo" },
-  { clave: "reglas", label: "Reglas", seccion: "pack_cobranza:reglas" },
-  { clave: "alertas", label: "Alertas", seccion: "pack_cobranza:alertas" },
-  { clave: "auditoria", label: "Auditoría", seccion: "pack_cobranza:auditoria" },
-  { clave: "gestores", label: "Gestores", seccion: "pack_cobranza:gestores" },
+const CLAVES: readonly Pestana[] = [
+  "resumen", "carteras", "clientes", "pagos", "promesas", "dispositivos",
+  "reportes", "monitoreo", "reglas", "alertas", "auditoria", "gestores",
 ];
 
-export function CobranzaAdminScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
+interface Seccion {
+  clave: Pestana;
+  label: string;
+  area: string;
+  oculta: boolean;
+}
+
+/**
+ * Secciones y áreas salen del menú del panel (`COBRANZA`, HU-UX-12): la entrada
+ * que manda el shell o, sin ella, la del propio usuario. Así la pantalla y el
+ * cajón nunca se desfasan.
+ */
+function seccionesDe(entrada: EntradaPestanas): Seccion[] {
+  return entrada.pestanas.flatMap((p) =>
+    p.tab === "cobranza" && (CLAVES as readonly string[]).includes(p.pestana)
+      ? [{ clave: p.pestana as Pestana, label: p.label, area: p.sub ?? p.label, oculta: Boolean(p.oculta) }]
+      : [],
+  );
+}
+
+export function CobranzaAdminScreen({
+  pestanaInicial,
+  entrada,
+}: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const navigation = useNavigation<Nav>();
@@ -75,12 +89,29 @@ export function CobranzaAdminScreen({ pestanaInicial }: { pestanaInicial?: Solic
   const esMaster = sesion?.role === "master";
   const permisos = sesion?.permissions ?? {};
 
-  const visibles = PESTANAS.filter((p) => esMaster || puedeVerSeccion(permisos, p.seccion, false));
-  const [pestana, setPestana] = usePestanaInicial<Pestana>(
-    "resumen",
-    visibles.map((p) => p.clave),
+  const permisosSesion = sesion?.permissions;
+  const secciones = useMemo(() => {
+    if (entrada) return seccionesDe(entrada);
+    const propia = gruposDeMenu(permisosSesion ?? {}, esMaster)
+      .flatMap((g) => g.entradas)
+      .find((e) => e.id === "cobranza");
+    return propia ? seccionesDe(pestanasDeEntrada(propia)) : [];
+  }, [entrada, permisosSesion, esMaster]);
+  const validas = useMemo(() => secciones.map((s) => s.clave), [secciones]);
+  const [elegida, setPestana] = usePestanaInicial<Pestana>(
+    validas.includes("resumen") ? "resumen" : (validas[0] ?? "resumen"),
+    validas,
     pestanaInicial,
   );
+  const pestana = validas.includes(elegida) ? elegida : (validas[0] ?? elegida);
+  const areas = useMemo(() => [...new Set(secciones.map((s) => s.area))], [secciones]);
+  const areaActual = secciones.find((s) => s.clave === pestana)?.area;
+  // Fila 2: las secciones del área; la oculta (Clientes) solo cuando está en pantalla.
+  const seccionesDelArea = secciones.filter((s) => s.area === areaActual && (!s.oculta || s.clave === pestana));
+  const abrirArea = (area: string) => {
+    const primera = secciones.find((s) => s.area === area && !s.oculta) ?? secciones.find((s) => s.area === area);
+    if (primera) setPestana(primera.clave);
+  };
   const [kpis, setKpis] = useState<Kpi[]>([]);
   const [carteras, setCarteras] = useState<PortfolioRow[]>([]);
   const [clientes, setClientes] = useState<ClientRow[]>([]);
@@ -179,7 +210,12 @@ export function CobranzaAdminScreen({ pestanaInicial }: { pestanaInicial?: Solic
   };
 
   const abrirCliente = (c: ClientRow) =>
-    navigation.navigate("ClienteDetalle", { id: c.id, titulo: `${c.nombre} ${c.apellido ?? ""}`.trim() || "Cliente" });
+    navigation.navigate("ClienteDetalle", {
+      id: c.id,
+      titulo: `${c.nombre} ${c.apellido ?? ""}`.trim() || "Cliente",
+      carteraId: c.cartera_id,
+      carteraTitulo: c.cartera,
+    });
 
   const abrirCartera = (c: PortfolioRow) =>
     navigation.navigate("CarteraDetalle", { id: c.id, titulo: c.nombre });
@@ -205,19 +241,55 @@ export function CobranzaAdminScreen({ pestanaInicial }: { pestanaInicial?: Solic
         showsHorizontalScrollIndicator={false}
         style={styles.pestanasScroll}
       >
-        {visibles.map((p) => (
-          <Pressable
-            key={p.clave}
-            testID={`cobranza-${p.clave}`}
-            onPress={() => setPestana(p.clave)}
-            style={[styles.pestana, pestana === p.clave && { borderBottomColor: colores.acento, borderBottomWidth: 2 }]}
-          >
-            <Text style={{ color: pestana === p.clave ? colores.texto : colores.textoSuave, fontSize: 11, fontWeight: "600" }}>
-              {p.label}
-            </Text>
-          </Pressable>
-        ))}
+        {areas.map((area) => {
+          const activa = area === areaActual;
+          return (
+            <Pressable
+              key={area}
+              testID={`cobranza-area-${area.toLowerCase()}`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activa }}
+              onPress={() => abrirArea(area)}
+              style={[styles.pestana, activa && { borderBottomColor: colores.acento, borderBottomWidth: 2 }]}
+            >
+              <Text style={{ color: activa ? colores.texto : colores.textoSuave, fontSize: 12, fontWeight: "700" }}>
+                {area}
+              </Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
+
+      {seccionesDelArea.length > 1 ? (
+        <ScrollView
+          testID="cobranza-secciones"
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.pestanasScroll}
+        >
+          {seccionesDelArea.map((p) => {
+            const activa = pestana === p.clave;
+            return (
+              <Pressable
+                key={p.clave}
+                testID={`cobranza-${p.clave}`}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: activa }}
+                onPress={() => setPestana(p.clave)}
+                style={[
+                  styles.seccionChip,
+                  { borderColor: activa ? colores.acento : colores.borde },
+                  activa && { backgroundColor: colores.tarjeta },
+                ]}
+              >
+                <Text style={{ color: activa ? colores.texto : colores.textoSuave, fontSize: 11, fontWeight: "600" }}>
+                  {p.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      ) : null}
 
       {error ? <Text testID="cobranza-error" style={{ color: colores.peligro, marginBottom: 8 }}>{error}</Text> : null}
 
@@ -237,6 +309,18 @@ export function CobranzaAdminScreen({ pestanaInicial }: { pestanaInicial?: Solic
           testID="cobranza-lista-carteras"
           data={carteras}
           keyExtractor={(c) => c.id}
+          ListHeaderComponent={
+            validas.includes("clientes") ? (
+              <Pressable
+                testID="cobranza-buscar-cliente"
+                accessibilityRole="button"
+                onPress={() => setPestana("clientes")}
+                style={[styles.campo, styles.buscarCliente, { borderColor: colores.borde }]}
+              >
+                <Text style={{ color: colores.textoSuave, fontSize: 14 }}>Buscar cliente</Text>
+              </Pressable>
+            ) : null
+          }
           ListEmptyComponent={<Text style={styles.vacio}>Sin carteras.</Text>}
           renderItem={({ item }) => (
             <Pressable onPress={() => abrirCartera(item)} style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
@@ -334,13 +418,16 @@ export function CobranzaAdminScreen({ pestanaInicial }: { pestanaInicial?: Solic
             <KpiMini titulo="Cumplidas" valor={String(monitoreo?.promesas_cumplidas ?? 0)} />
             <KpiMini titulo="Incumplidas" valor={String(monitoreo?.promesas_incumplidas ?? 0)} />
           </View>
-          <Text style={[styles.seccion, { color: colores.texto }]}>Últimas promesas</Text>
-          {(monitoreo?.ultimas_promesas ?? []).map((p) => (
-            <View key={p.id} style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
-              <Text style={{ color: colores.texto, flex: 1 }}>{p.cliente}</Text>
-              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{p.estado}</Text>
-            </View>
-          ))}
+          {validas.includes("promesas") ? (
+            <Pressable
+              testID="monitoreo-ver-promesas"
+              accessibilityRole="link"
+              onPress={() => setPestana("promesas")}
+              style={styles.enlace}
+            >
+              <Text style={{ color: colores.acento, fontSize: 13, fontWeight: "600" }}>Ver promesas en Actividad ›</Text>
+            </Pressable>
+          ) : null}
         </ScrollView>
       ) : pestana === "reglas" ? (
         <ScrollView testID="cobranza-reglas">
@@ -426,6 +513,8 @@ const styles = StyleSheet.create({
   kpi: { borderWidth: 1, borderRadius: 12, padding: 12, minWidth: 140, flexGrow: 1, flexBasis: "45%" },
   kpiValor: { fontSize: 20, fontWeight: "700" },
   vacio: { color: "#8695B0", textAlign: "center", marginTop: 20 },
-  seccion: { fontSize: 15, fontWeight: "700", marginTop: 10, marginBottom: 8 },
+  seccionChip: { borderWidth: 1, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12, marginRight: 8 },
+  buscarCliente: { justifyContent: "center", minHeight: 44 },
+  enlace: { paddingVertical: 12, minHeight: 44, justifyContent: "center" },
   botonGuardar: { borderRadius: 10, paddingVertical: 12, alignItems: "center", marginTop: 8 },
 });
