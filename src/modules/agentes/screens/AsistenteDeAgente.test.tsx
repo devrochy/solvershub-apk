@@ -19,6 +19,7 @@ const ventas = {
   description: "Vende por chat",
   available: true,
   missing_skills: [],
+  will_enable: ["pack_commerce"],
   superpowers: [],
   requirements: [{ skill: "pack_commerce", kind: "sin_contenido", content: "catalogo", title: "Catálogo", explanation: "" }],
   questions: [
@@ -57,6 +58,14 @@ describe("AsistenteDeAgente (HU-AOS-56)", () => {
     await fireEvent.press(api.getByText("Siguiente")); // nombre
     await fireEvent.press(api.getByText("Siguiente")); // contenido
   }
+
+  it("cada tipo dice qué activará al crearlo y el que el servicio no trae sale deshabilitado", async () => {
+    const api = await render(<AsistenteDeAgente onTerminar={jest.fn()} />);
+    await waitFor(() => api.getByTestId("asistente-tipo"));
+    expect(api.getByText(/Al crearlo activaremos: Comercio\./)).toBeTruthy();
+    expect(api.getByText("No está disponible en tu servicio por ahora.")).toBeTruthy();
+    expect(api.queryByText(/Falta activar una habilidad/)).toBeNull();
+  });
 
   it("sin elegir tipo no avanza y avisa", async () => {
     const api = await render(<AsistenteDeAgente onTerminar={jest.fn()} />);

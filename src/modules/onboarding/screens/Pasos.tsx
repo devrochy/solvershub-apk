@@ -78,6 +78,15 @@ export function PasoNegocio({ estado, cambiar, error }: PropsDePaso) {
             onPress={() => cambiar({ tipo: t.id })}
           />
         ))}
+        {estado.tipo ? (
+          <Text
+            testID="onb-tipo-activara"
+            style={[shType.body, { color: c.textMuted }]}
+          >
+            Al terminar activaremos por ti lo que ese tipo de negocio necesita.
+            Podrás configurarlo después en Habilidades.
+          </Text>
+        ) : null}
       </View>
 
       {estado.tipo === "ventas" ? (

@@ -31,6 +31,7 @@ function plantilla(n: number, extra: Partial<PlantillaAgente> = {}): PlantillaAg
     description: "",
     available: true,
     missing_skills: [],
+    will_enable: [],
     superpowers: [],
     requirements: [],
     questions: Array.from({ length: n }, (_, i) => pregunta(`q${i}`)),
@@ -61,7 +62,7 @@ describe("asistente de creación de agentes (HU-AOS-56)", () => {
     expect(estado.respuestas).toEqual({ q0: "b" });
     const [tipo, p0, nombre] = pasosDelAsistente(t);
     expect(errorDelPaso(tipo, ESTADO_INICIAL, null)).toMatch(/Elige/);
-    expect(errorDelPaso(tipo, estado, { ...t, available: false })).toMatch(/habilidad/);
+    expect(errorDelPaso(tipo, estado, { ...t, available: false })).toMatch(/no está disponible/);
     expect(errorDelPaso(p0, { ...estado, respuestas: {} }, t)).toMatch(/opciones/);
     expect(errorDelPaso(p0, estado, t)).toBeUndefined();
     expect(errorDelPaso(nombre, { ...estado, nombre: "x".repeat(121) }, t)).toMatch(/120/);

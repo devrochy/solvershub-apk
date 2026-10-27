@@ -17,6 +17,7 @@ import {
 import {
   ESTADO_INICIAL,
   NOMBRE_MAX,
+  ayudaDeLaPlantilla,
   cuerpoDeCreacion,
   elegirTipo,
   errorDelPaso,
@@ -181,7 +182,7 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
           options={plantillas.map((p) => ({
             value: p.key,
             label: p.available ? p.name : `${p.name} (no disponible)`,
-            description: p.available ? p.description : "Falta activar una habilidad en el panel web.",
+            description: ayudaDeLaPlantilla(p),
             disabled: !p.available,
           }))}
         />
