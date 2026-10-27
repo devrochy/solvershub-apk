@@ -31,19 +31,68 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
     expect(conversaciones.destino).toMatchObject({ modulo: "conversaciones", pestana: "escalaciones" });
 
     const cobranza = entradas.find((e) => e.id === "cobranza")!;
-    expect(cobranza.destino).toMatchObject({ modulo: "cobranza", pestana: "gestores", sub: "Operación" });
+    expect(cobranza.destino).toMatchObject({ modulo: "cobranza", pestana: "gestores", sub: "Equipo" });
   });
 
-  it("Cobranza agrupa sus pestañas en Operación, Monitoreo y Seguridad", () => {
+  it("Cobranza agrupa sus pestañas por jerarquía en 5 áreas, sin Cobros al propietario (HU-UX-12)", () => {
     const cobranza = gruposDeMenu({}, true, { dev: false })
       .flatMap((g) => g.entradas)
       .find((e) => e.id === "cobranza")!;
-    expect([...new Set(cobranza.pestanas.flatMap((p) => (p.sub ? [p.sub] : [])))]).toEqual([
-      "Operación",
-      "Monitoreo",
-      "Seguridad",
-    ]);
+    const porArea = Object.fromEntries(
+      [...new Set(cobranza.pestanas.map((p) => p.sub))].map((sub) => [
+        sub,
+        cobranza.pestanas.filter((p) => p.sub === sub).map((p) => p.label),
+      ]),
+    );
+    expect(porArea).toEqual({
+      Resumen: ["Resumen"],
+      Carteras: ["Carteras", "Clientes"],
+      Actividad: ["Pagos", "Promesas", "Reportes"],
+      Equipo: ["Gestores", "Dispositivos", "Alertas de acceso", "Auditoría"],
+      Asistente: ["Monitoreo IA", "Reglas de negociación"],
+    });
+    expect(Object.keys(porArea)).toEqual(["Resumen", "Carteras", "Actividad", "Equipo", "Asistente"]);
+    expect(cobranza.pestanas.every((p) => p.sub)).toBe(true);
+    expect(cobranza.pestanas.map((p) => p.label.toLowerCase()).join(" ")).not.toContain("propietario");
     expect(cobranza.destino).toMatchObject({ pestana: "resumen" });
+  });
+
+  it("Clientes es oculta pero conserva su clave RBAC y su destino; Pagos conserva `cobros`", () => {
+    const cobranza = gruposDeMenu({}, true, { dev: false })
+      .flatMap((g) => g.entradas)
+      .find((e) => e.id === "cobranza")!;
+    expect(cobranza.pestanas.find((p) => p.pestana === "clientes")).toMatchObject({
+      seccion: "pack_cobranza:clientes",
+      oculta: true,
+    });
+    expect(cobranza.pestanas.find((p) => p.pestana === "pagos")).toMatchObject({ seccion: "pack_cobranza:cobros" });
+    expect(cobranza.pestanas.filter((p) => !p.oculta)).toHaveLength(11);
+    // Quien solo puede ver Clientes sigue entrando a Cobranza, directo a esa pestaña.
+    const soloClientes = gruposDeMenu({ "pack_cobranza:clientes": "read" }, false, { dev: false })
+      .flatMap((g) => g.entradas)
+      .find((e) => e.id === "cobranza")!;
+    expect(soloClientes.destino).toMatchObject({ pestana: "clientes", sub: "Carteras" });
+    expect(entradaDeDestino({}, true, { modulo: "cobranza", pestana: "clientes" })).toMatchObject({ id: "cobranza" });
+  });
+
+  it("pestanasDeEntrada lleva el área (`sub`) y la marca de oculta de Cobranza", () => {
+    const cobranza = gruposDeMenu({}, true, { dev: false })
+      .flatMap((g) => g.entradas)
+      .find((e) => e.id === "cobranza")!;
+    const { pestanas } = pestanasDeEntrada(cobranza);
+    expect(pestanas.find((p) => p.pestana === "alertas")).toEqual({
+      tab: "cobranza",
+      pestana: "alertas",
+      label: "Alertas de acceso",
+      sub: "Equipo",
+    });
+    expect(pestanas.find((p) => p.pestana === "clientes")).toEqual({
+      tab: "cobranza",
+      pestana: "clientes",
+      label: "Clientes",
+      sub: "Carteras",
+      oculta: true,
+    });
   });
 
   it("Agenda usa `pack_calendar:configuracion` para el Horario", () => {

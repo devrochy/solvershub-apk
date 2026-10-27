@@ -36,7 +36,7 @@ clave de firma.
 ### Panel del dueño (`smoke-panel-dueno.yaml`)
 
 1. Login del dueño (`dueno-a@demo.test`) → selector de negocio → "Cobranza Demo".
-2. Cobranza → pestaña Gestores (modal con permisos finos, sin guardar) → pestaña Propietario.
+2. Cobranza → área Equipo → Gestores (modal con permisos finos, sin guardar).
 3. Ventas → Resumen con KPIs.
 4. Agenda → pestaña Horario (guarda los valores sin cambios → "Horario guardado.") → pestaña Google Calendar.
 5. Configuración → General → guarda Identidad sin cambios ("Identidad guardada.").
@@ -52,8 +52,10 @@ cajón tiene grupos por tarea `cajon-grupo-<id>` (`operacion`, `asistente`,
 entrada abre su primera pestaña permitida y la pantalla muestra solo las
 pestañas de esa entrada (Equipo → Colaboradores, sin barra; Configuración →
 General, Habilidades, Push y `config-fallos`, que abre Mensajes fallidos); las
-demás se tocan dentro de la pantalla (en Cobranza hay que deslizar
-`cobranza-pestanas`).
+demás se tocan dentro de la pantalla. Cobranza va en dos niveles (HU-UX-12): las
+áreas Resumen, Carteras, Actividad, Equipo y Asistente son `cobranza-area-<area>`
+(fila `cobranza-pestanas`) y las secciones del área, `cobranza-<seccion>` (fila
+`cobranza-secciones`, solo si el área tiene más de una).
 
 ## Estado
 

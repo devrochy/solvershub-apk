@@ -75,7 +75,7 @@ export interface PestanaMenuPanel {
    * `soloDev`/`soloMaster`).
    */
   seccion: string | null;
-  /** Subgrupo de pestañas (Cobranza: Operación, Monitoreo y Seguridad). */
+  /** Área de la pestaña (Cobranza: Resumen, Carteras, Actividad, Equipo y Asistente). */
   sub?: string;
   soloMaster?: boolean;
   /**
@@ -108,19 +108,26 @@ export interface GrupoMenuPanel {
   entradas: EntradaMenuPanel[];
 }
 
+/**
+ * Cobranza por jerarquía de datos (HU-UX-12): cinco áreas (`sub`) y, dentro de
+ * cada una, sus secciones. Mismo árbol que el panel web. Clientes es hijo de la
+ * cartera: va oculta (se abre desde Carteras, la búsqueda o un push) y conserva
+ * su clave RBAC. Las claves de pestaña no cambian: los push siguen cayendo en
+ * el área que contiene su pestaña.
+ */
 const COBRANZA: PestanaMenuPanel[] = [
-  { label: "Resumen", modulo: "cobranza", pestana: "resumen", seccion: "pack_cobranza:resumen" },
-  { label: "Gestores", modulo: "cobranza", pestana: "gestores", seccion: "pack_cobranza:gestores", sub: "Operación" },
-  { label: "Carteras", modulo: "cobranza", pestana: "carteras", seccion: "pack_cobranza:carteras", sub: "Operación" },
-  { label: "Clientes", modulo: "cobranza", pestana: "clientes", seccion: "pack_cobranza:clientes", sub: "Operación" },
-  { label: "Pagos", modulo: "cobranza", pestana: "pagos", seccion: "pack_cobranza:cobros", sub: "Operación" },
-  { label: "Promesas", modulo: "cobranza", pestana: "promesas", seccion: "pack_cobranza:promesas", sub: "Operación" },
-  { label: "Reportes", modulo: "cobranza", pestana: "reportes", seccion: "pack_cobranza:reportes", sub: "Operación" },
-  { label: "Monitoreo IA", modulo: "cobranza", pestana: "monitoreo", seccion: "pack_cobranza:monitoreo", sub: "Monitoreo" },
-  { label: "Reglas de negociación", modulo: "cobranza", pestana: "reglas", seccion: "pack_cobranza:reglas", sub: "Monitoreo" },
-  { label: "Alertas de acceso", modulo: "cobranza", pestana: "alertas", seccion: "pack_cobranza:alertas", sub: "Seguridad" },
-  { label: "Auditoría", modulo: "cobranza", pestana: "auditoria", seccion: "pack_cobranza:auditoria", sub: "Seguridad" },
-  { label: "Dispositivos", modulo: "cobranza", pestana: "dispositivos", seccion: "pack_cobranza:dispositivos", sub: "Seguridad" },
+  { label: "Resumen", modulo: "cobranza", pestana: "resumen", seccion: "pack_cobranza:resumen", sub: "Resumen" },
+  { label: "Carteras", modulo: "cobranza", pestana: "carteras", seccion: "pack_cobranza:carteras", sub: "Carteras" },
+  { label: "Clientes", modulo: "cobranza", pestana: "clientes", seccion: "pack_cobranza:clientes", sub: "Carteras", oculta: true },
+  { label: "Pagos", modulo: "cobranza", pestana: "pagos", seccion: "pack_cobranza:cobros", sub: "Actividad" },
+  { label: "Promesas", modulo: "cobranza", pestana: "promesas", seccion: "pack_cobranza:promesas", sub: "Actividad" },
+  { label: "Reportes", modulo: "cobranza", pestana: "reportes", seccion: "pack_cobranza:reportes", sub: "Actividad" },
+  { label: "Gestores", modulo: "cobranza", pestana: "gestores", seccion: "pack_cobranza:gestores", sub: "Equipo" },
+  { label: "Dispositivos", modulo: "cobranza", pestana: "dispositivos", seccion: "pack_cobranza:dispositivos", sub: "Equipo" },
+  { label: "Alertas de acceso", modulo: "cobranza", pestana: "alertas", seccion: "pack_cobranza:alertas", sub: "Equipo" },
+  { label: "Auditoría", modulo: "cobranza", pestana: "auditoria", seccion: "pack_cobranza:auditoria", sub: "Equipo" },
+  { label: "Monitoreo IA", modulo: "cobranza", pestana: "monitoreo", seccion: "pack_cobranza:monitoreo", sub: "Asistente" },
+  { label: "Reglas de negociación", modulo: "cobranza", pestana: "reglas", seccion: "pack_cobranza:reglas", sub: "Asistente" },
 ];
 
 export const MENU_PANEL: GrupoMenuPanel[] = [
@@ -417,7 +424,15 @@ export function pestanasDeEntrada(entrada: Pick<EntradaMenuPanel, "id" | "pestan
     const clave = `${p.modulo}/${p.pestana}`;
     if (vistas.has(clave)) return [];
     vistas.add(clave);
-    return [{ tab: p.modulo, pestana: p.pestana, label: p.label, ...(p.oculta ? { oculta: true } : {}) }];
+    return [
+      {
+        tab: p.modulo,
+        pestana: p.pestana,
+        label: p.label,
+        ...(p.sub ? { sub: p.sub } : {}),
+        ...(p.oculta ? { oculta: true } : {}),
+      },
+    ];
   });
   return { id: entrada.id, pestanas };
 }

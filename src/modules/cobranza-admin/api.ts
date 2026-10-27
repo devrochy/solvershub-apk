@@ -46,8 +46,8 @@ export async function cargarResumen(api: ClienteAdmin): Promise<{ kpis: Kpi[] }>
   return api.get("/pack/cobranza/summary");
 }
 
-export async function cargarClientes(api: ClienteAdmin, q?: string): Promise<ClientRow[]> {
-  return api.get("/pack/cobranza/clients", { q });
+export async function cargarClientes(api: ClienteAdmin, q?: string, carteraId?: string): Promise<ClientRow[]> {
+  return api.get("/pack/cobranza/clients", { q, cartera_id: carteraId });
 }
 
 export async function cargarDetalleCliente(api: ClienteAdmin, id: string): Promise<ClientDetail> {
@@ -185,7 +185,7 @@ export async function cargarAlertas(api: ClienteAdmin): Promise<Alertas> {
   return api.get("/pack/cobranza/alerts");
 }
 
-// ---------------- Cierre de réplica: Gestores y cobros al propietario ----------------
+// ---------------- Cierre de réplica: Gestores ----------------
 
 export interface GestorOut {
   id: string;
@@ -199,15 +199,6 @@ export interface GestorOut {
 export interface PermisosGestor {
   catalogo: string[];
   activos: string[];
-}
-
-export interface OwnerCharge {
-  id: string;
-  periodo: string;
-  monto: number;
-  pagado: number | null;
-  vence: string;
-  estado: string;
 }
 
 export async function cargarGestores(api: ClienteAdmin): Promise<GestorOut[]> {
@@ -246,25 +237,4 @@ export async function guardarPermisosGestor(
   permisos: string[],
 ): Promise<PermisosGestor> {
   return api.put<PermisosGestor>(`/pack/cobranza/collectors/${id}/permissions`, { permisos });
-}
-
-export async function cargarCobrosPropietario(
-  api: ClienteAdmin,
-): Promise<{ cobros: OwnerCharge[] }> {
-  return api.get<{ cobros: OwnerCharge[] }>("/pack/cobranza/owner-charges");
-}
-
-export async function crearCobroPropietario(
-  api: ClienteAdmin,
-  datos: { periodo: string; monto: number; fecha_vencimiento: string },
-): Promise<void> {
-  await api.post("/pack/cobranza/owner-charges", datos);
-}
-
-export async function registrarPagoPropietario(
-  api: ClienteAdmin,
-  id: string,
-  datos: { monto_pagado: number; metodo_pago?: string },
-): Promise<void> {
-  await api.post(`/pack/cobranza/owner-charges/${id}/payment`, datos);
 }

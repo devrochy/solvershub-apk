@@ -81,7 +81,23 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await fireEvent.press(getByTestId("cajon-item-cobranza"));
 
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Cobranza"));
-    await waitFor(() => expect(getByTestId("cobranza-alertas")).toHaveStyle({ borderBottomWidth: 2 }));
+    await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toHaveStyle({ borderBottomWidth: 2 }));
+  });
+
+  it("un push a Alertas de acceso abre el área Equipo con la sección en pantalla", async () => {
+    mockSesionValue = {
+      ...DUENO,
+      permissions: { "pack_cobranza:resumen": "read", "pack_cobranza:alertas": "read", "pack_cobranza:auditoria": "read" },
+    };
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await act(async () => {
+      emitirNavegacion({ tab: "cobranza", pestana: "alertas" });
+    });
+
+    await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toHaveStyle({ borderBottomWidth: 2 }));
+    expect(getByTestId("cobranza-alertas").props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("el bus de navegación (push, Búsqueda) lleva al módulo y a la pestaña pedida", async () => {

@@ -35,6 +35,12 @@
 - Seguridad: almacenamiento local cifrado (SQLCipher), certificate pinning de la API,
   auditoría local de acciones críticas.
 
+- Cobranza por jerarquía de datos (HU-UX-12): cinco áreas (Resumen, Carteras, Actividad,
+  Equipo, Asistente) en dos niveles, en vez de 12 pastillas planas; Clientes pasa a la
+  cartera (la ficha de cartera lista sus clientes y el header muestra cartera › cliente);
+  Monitoreo IA ya no repite la lista de promesas y Cobranza ya no incluye «Cobros al
+  propietario» (lo maneja el agente de suscripciones).
+
 ### Campo (sin regresiones)
 
 - Diario, clientes, visitas pago/no-pago, gastos con evidencias, trayectoria GPS,
