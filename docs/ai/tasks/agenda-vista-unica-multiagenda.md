@@ -1,14 +1,15 @@
 ---
-estado: en-curso
+estado: en-revision
 tags: [agenda, calendario, hu-cal-08, multi-agenda]
 ---
 
 # Agenda en una sola vista y varias agendas (HU-CAL-08)
 
 - **Origen:** [HU-CAL-08](../../../../solvershub-docs/04-fase-1-competir/SPEC-24-agenda-y-citas/hu/HU-CAL-08-multi-agenda.md) y el panel de `feat/hu-cal-08-agenda-unica` (PR #147).
-- **Backend:** `feat/hu-cal-08-multi-agenda` (agent-core PR #583). No está en `develop`: los tipos se generaron con
-  `API_TYPES_REF=origin/feat/hu-cal-08-multi-agenda npm run api:types`. Antes del merge hay que rebasar y regenerar.
-- **Estado:** implementado el corte funcional; falta QA visual/gestual en dev build y el merge del backend para CI.
+- **Backend:** agent-core #583 ya está en `develop` (`b279205a`); la app usa el contrato de `develop`
+  (`/pack/calendar/calendars`, `calendar_ids`, `calendar_id`), sin `API_TYPES_REF`.
+- **PR:** [solvershub-apk #192](https://github.com/devrochy/solvershub-apk/pull/192), en borrador y con CI en verde.
+- **Estado:** implementado y verificado en CI; falta QA visual/gestual en dev build para marcar el PR listo.
 
 ## Qué se hizo
 
@@ -41,8 +42,8 @@ tags: [agenda, calendario, hu-cal-08, multi-agenda]
 
 ## Verificación
 
-- `npx tsc --noEmit` en verde.
-- `npx eslint` sin errores en los módulos tocados.
-- `npx jest` con las suites nuevas y existentes; `colores-pendientes.json` bajó al quitar los hex de la pantalla.
-- Pendiente: `npm run check` completo (fallará el `api:types:check` hasta que agent-core PR #583 esté en `develop`),
-  QA en dev build (picker nativo, gestos, OAuth en el panel) y capturas para la evidencia de la HU.
+- `npm run lint`, `npm run typecheck` y `npm test -- --silent`: **164 suites / 1077 tests** en verde.
+- CI `build-and-test` del PR #192 en verde (lint + typecheck + tests + gitleaks).
+- Fronteras de módulos OK; `colores-pendientes.json` bajó al quitar los hex de la pantalla.
+- Pendiente: build nuevo de EAS (`datetimepicker` es nativo), QA en dispositivo (picker, gestos, OAuth,
+  1 vs. 2+ agendas) y capturas para la evidencia de la HU.
