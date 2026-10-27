@@ -12,24 +12,21 @@ import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { puedeVerSeccion } from "@core/permisos";
-import { cargarDashboard, cargarResumenCobranza, type DashboardResponse } from "../api";
+import { emitirNavegacion } from "@shared/navegacion-evento";
+import { KpiTile } from "@shared/ui";
+import {
+  cargarDashboard,
+  cargarResumenAgentes,
+  cargarResumenCobranza,
+  type DashboardResponse,
+  type ResumenPorAgente,
+} from "../api";
+import { ResumenAgentes, tieneResumen } from "./ResumenAgentes";
 
-function StatCard({
-  titulo,
-  valor,
-  destacado,
-}: {
-  titulo: string;
-  valor: string;
-  destacado?: boolean;
-}) {
-  const { colores } = useTheme();
+function StatCard({ titulo, valor, onPress }: { titulo: string; valor: string; onPress?: () => void }) {
   return (
-    <View style={[styles.card, { backgroundColor: colores.tarjeta, borderColor: colores.borde }]}>
-      <Text style={[styles.cardValor, { color: destacado ? colores.peligro : colores.texto }]}>
-        {valor}
-      </Text>
-      <Text style={[styles.cardTitulo, { color: colores.textoSuave }]}>{titulo}</Text>
+    <View style={styles.celda}>
+      <KpiTile label={titulo} value={valor} onPress={onPress} />
     </View>
   );
 }
@@ -40,6 +37,7 @@ export function DashboardScreen() {
   const api = useAdminApi();
   const [datos, setDatos] = useState<DashboardResponse | null>(null);
   const [cobranza, setCobranza] = useState<{ label: string; value: string }[]>([]);
+  const [porAgente, setPorAgente] = useState<ResumenPorAgente | null>(null);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,9 +51,16 @@ export function DashboardScreen() {
       const principal = await cargarDashboard(api);
       setError(null);
       setDatos(principal);
-      if (verCobranza) {
+      // El Resumen por agente reemplaza las tarjetas del negocio; si falla o llega vacío, quedan
+      // las de siempre (y el bloque de Cobranza) para no dejar la pantalla sin cifras.
+      const agentes = await cargarResumenAgentes(api).catch(() => null);
+      const completo = tieneResumen(agentes) ? agentes : null;
+      setPorAgente(completo);
+      if (verCobranza && !completo) {
         const resumen = await cargarResumenCobranza(api).catch(() => null);
         setCobranza(resumen?.kpis ?? []);
+      } else {
+        setCobranza([]);
       }
     } catch {
       setError("No pudimos cargar tu resumen. Revisa tu conexión e intenta de nuevo.");
@@ -122,30 +127,48 @@ export function DashboardScreen() {
         {sesion?.tenantName ?? "Tu negocio"}
       </Text>
 
-      <View style={styles.grid}>
-        <StatCard titulo="Conversaciones · 7 días" valor={String(kpi?.conversations_7d ?? 0)} />
-        <StatCard titulo="Mensajes · 7 días" valor={String(kpi?.messages_7d ?? 0)} />
-        <StatCard
-          titulo="Escalaciones pendientes"
-          valor={String(kpi?.pending_escalations ?? 0)}
-          destacado={(kpi?.pending_escalations ?? 0) > 0}
-        />
-        <StatCard titulo="Costo IA · 30 días" valor={`US$ ${(kpi?.cost_30d ?? 0).toFixed(2)}`} />
-        <StatCard titulo="Asistente" valor={datos?.bot_paused ? "Pausado" : "Activo"} />
-        <StatCard titulo="Modelo" valor={datos?.llm_label ?? "—"} />
-        <StatCard titulo="Habilidades activas" valor={String(kpi?.active_plugins ?? 0)} />
-      </View>
-
-      {verCobranza && cobranza.length > 0 ? (
+      {porAgente ? (
         <>
-          <Text style={[styles.seccion, { color: colores.texto }]}>Cobranza</Text>
+          <ResumenAgentes datos={porAgente} />
+          <Text style={[styles.seccion, { color: colores.texto }]}>Estado del asistente</Text>
           <View style={styles.grid}>
-            {cobranza.map((k) => (
-              <StatCard key={k.label} titulo={k.label} valor={k.value} />
-            ))}
+            <StatCard titulo="Asistente" valor={datos?.bot_paused ? "Pausado" : "Activo"} />
+            <StatCard titulo="Modelo" valor={datos?.llm_label ?? "—"} />
+            <StatCard titulo="Habilidades activas" valor={String(kpi?.active_plugins ?? 0)} />
           </View>
         </>
-      ) : null}
+      ) : (
+        <>
+          <View style={styles.grid}>
+            <StatCard
+              titulo="Conversaciones · 7 días"
+              valor={String(kpi?.conversations_7d ?? 0)}
+              onPress={() => emitirNavegacion({ tab: "conversaciones", pestana: "conversaciones" })}
+            />
+            <StatCard titulo="Mensajes · 7 días" valor={String(kpi?.messages_7d ?? 0)} />
+            <StatCard
+              titulo="Escalaciones pendientes"
+              valor={String(kpi?.pending_escalations ?? 0)}
+              onPress={() => emitirNavegacion({ tab: "conversaciones", pestana: "escalaciones" })}
+            />
+            <StatCard titulo="Costo IA · 30 días" valor={`US$ ${(kpi?.cost_30d ?? 0).toFixed(2)}`} />
+            <StatCard titulo="Asistente" valor={datos?.bot_paused ? "Pausado" : "Activo"} />
+            <StatCard titulo="Modelo" valor={datos?.llm_label ?? "—"} />
+            <StatCard titulo="Habilidades activas" valor={String(kpi?.active_plugins ?? 0)} />
+          </View>
+
+          {verCobranza && cobranza.length > 0 ? (
+            <>
+              <Text style={[styles.seccion, { color: colores.texto }]}>Cobranza</Text>
+              <View style={styles.grid}>
+                {cobranza.map((k) => (
+                  <StatCard key={k.label} titulo={k.label} valor={k.value} />
+                ))}
+              </View>
+            </>
+          ) : null}
+        </>
+      )}
 
       {datos?.recent?.length ? (
         <>
@@ -175,16 +198,7 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 24, fontWeight: "700" },
   subtitulo: { fontSize: 14, marginBottom: 14 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  card: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    minWidth: 140,
-    flexGrow: 1,
-    flexBasis: "45%",
-  },
-  cardValor: { fontSize: 22, fontWeight: "700" },
-  cardTitulo: { fontSize: 12, marginTop: 4 },
+  celda: { minWidth: 140, flexGrow: 1, flexBasis: "45%" },
   seccion: { fontSize: 16, fontWeight: "700", marginTop: 20, marginBottom: 10 },
   reciente: {
     borderWidth: 1,
