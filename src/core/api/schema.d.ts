@@ -398,6 +398,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/from-script": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create From Script
+         * @description Crea el borrador de un especialista (sin publicar) desde las respuestas del guion de su
+         *     plantilla. 409 `key_taken` (con el `agent_id` existente) si el negocio ya tiene ese agente; 422
+         *     por pregunta si una respuesta no está en las opciones, sin crear nada.
+         */
+        post: operations["create_from_script_api_v1_admin_agents_from_script_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/overview": {
         parameters: {
             query?: never;
@@ -5425,6 +5447,73 @@ export interface paths {
         patch: operations["patch_block_api_v1_pack_calendar_blocks__block_id__patch"];
         trace?: never;
     };
+    "/api/v1/pack/calendar/calendars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Calendars
+         * @description Agendas del negocio con el nombre que el asistente le dice al cliente.
+         */
+        get: operations["list_calendars_api_v1_pack_calendar_calendars_get"];
+        put?: never;
+        /**
+         * Create Calendar
+         * @description Crea una agenda interna (sin cuenta de Google). Las de Google nacen al conectar la cuenta.
+         */
+        post: operations["create_calendar_api_v1_pack_calendar_calendars_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/calendar/calendars/{calendar_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Calendar
+         * @description Edita una agenda: nombre visible, descripción, alias, color, horario, zona, orden y estado.
+         */
+        put: operations["update_calendar_api_v1_pack_calendar_calendars__calendar_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/calendar/calendars/{calendar_id}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Calendar
+         * @description Elimina (suave) una agenda. No borra la cuenta de Google: eso va en Conexiones.
+         *
+         *     La principal no se elimina. Si tiene citas futuras, hay que pasar `move_to` (otra agenda)
+         *     para moverlas; si no, 409.
+         */
+        post: operations["delete_calendar_api_v1_pack_calendar_calendars__calendar_id__delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/calendar/events": {
         parameters: {
             query?: never;
@@ -5482,6 +5571,9 @@ export interface paths {
         /**
          * Oauth Start
          * @description Inicia el OAuth2 de Google (302 a accounts.google.com).
+         *
+         *     Con `connection_id` se reconecta esa cuenta (HU-CAL-08): se sugiere su correo a Google y
+         *     el callback verifica que sea la misma cuenta antes de guardar.
          *
          *     Deja dos cookies httponly que el panel reenvía al navegador: `oauth_state`
          *     (anti-CSRF, D-SPEC-24-12) y `oauth_next` (a dónde volver). El retorno de Google
@@ -7707,12 +7799,18 @@ export interface components {
             name: string;
             /** Optional Skills */
             optional_skills: string[];
+            /** Questions */
+            questions: components["schemas"]["Question"][];
             /** Requirements */
             requirements: components["schemas"]["Requirement"][];
+            /** Section */
+            section: string;
             /** Skills */
             skills: string[];
             /** Superpowers */
             superpowers: components["schemas"]["Superpower"][];
+            /** Tools */
+            tools: string[];
         };
         /** AgentUsage */
         AgentUsage: {
@@ -7905,6 +8003,8 @@ export interface components {
              * @default
              */
             attendee_email: string;
+            /** Calendar Id */
+            calendar_id?: string | null;
             /** Customer Id */
             customer_id?: string | null;
             /**
@@ -7933,6 +8033,8 @@ export interface components {
             asignado_admin_id?: string | null;
             /** Attendee Email */
             attendee_email: string | null;
+            /** Calendar Id */
+            calendar_id?: string | null;
             /** Created By */
             created_by: string;
             /** Customer Id */
@@ -8135,6 +8237,8 @@ export interface components {
         };
         /** BlockIn */
         BlockIn: {
+            /** Calendar Id */
+            calendar_id?: string | null;
             /**
              * End At
              * Format: date-time
@@ -8153,6 +8257,8 @@ export interface components {
         };
         /** BlockOut */
         BlockOut: {
+            /** Calendar Id */
+            calendar_id?: string | null;
             /**
              * End At
              * Format: date-time
@@ -8340,10 +8446,134 @@ export interface components {
              */
             warnings: string[];
         };
+        /** CalendarDelete */
+        CalendarDelete: {
+            /** Move To */
+            move_to?: string | null;
+        };
+        /** CalendarIn */
+        CalendarIn: {
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases: string[];
+            /** Business Hours */
+            business_hours?: string | null;
+            /** Color */
+            color?: string | null;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Name */
+            name: string;
+            /** Responsable Admin Id */
+            responsable_admin_id?: string | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
+        /** CalendarListOut */
+        CalendarListOut: {
+            /** Calendars */
+            calendars: components["schemas"]["CalendarOut"][];
+            /** Multi Activo */
+            multi_activo: boolean;
+            /** Multi Agenda Modo */
+            multi_agenda_modo: string;
+        };
+        /** CalendarOut */
+        CalendarOut: {
+            /**
+             * Account Email
+             * @default
+             */
+            account_email: string;
+            /** Active */
+            active: boolean;
+            /** Aliases */
+            aliases: string[];
+            /** Business Hours */
+            business_hours?: string | null;
+            /** Color */
+            color: string;
+            /**
+             * Connected
+             * @default true
+             */
+            connected: boolean;
+            /** Connection Id */
+            connection_id?: string | null;
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Default */
+            is_default: boolean;
+            /** Name */
+            name: string;
+            /** Own Timezone */
+            own_timezone?: string | null;
+            /** Responsable Admin Id */
+            responsable_admin_id?: string | null;
+            /** Sort Order */
+            sort_order: number;
+            /** Source */
+            source: string;
+            /** Timezone */
+            timezone: string;
+        };
+        /** CalendarPatch */
+        CalendarPatch: {
+            /** Active */
+            active?: boolean | null;
+            /** Aliases */
+            aliases?: string[] | null;
+            /** Business Hours */
+            business_hours?: string | null;
+            /**
+             * Clear Responsable
+             * @default false
+             */
+            clear_responsable: boolean;
+            /** Color */
+            color?: string | null;
+            /** Description */
+            description?: string | null;
+            /**
+             * Inherit Business Hours
+             * @default false
+             */
+            inherit_business_hours: boolean;
+            /**
+             * Inherit Timezone
+             * @default false
+             */
+            inherit_timezone: boolean;
+            /** Is Default */
+            is_default?: boolean | null;
+            /** Name */
+            name?: string | null;
+            /** Responsable Admin Id */
+            responsable_admin_id?: string | null;
+            /** Sort Order */
+            sort_order?: number | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
         /** CalendarStatus */
         CalendarStatus: {
             /** Account Email */
             account_email: string;
+            /**
+             * Calendars
+             * @default []
+             */
+            calendars: components["schemas"]["CalendarSummary"][];
             /** Configured */
             configured: boolean;
             /** Connected */
@@ -8352,8 +8582,43 @@ export interface components {
             connection_label: string;
             /** Default Duration Minutes */
             default_duration_minutes: number;
+            /**
+             * Multi Activo
+             * @default false
+             */
+            multi_activo: boolean;
+            /**
+             * Multi Agenda Modo
+             * @default cliente_elige
+             */
+            multi_agenda_modo: string;
             /** Timezone */
             timezone: string;
+        };
+        /** CalendarSummary */
+        CalendarSummary: {
+            /**
+             * Account Email
+             * @default
+             */
+            account_email: string;
+            /** Active */
+            active: boolean;
+            /** Color */
+            color: string;
+            /** Connected */
+            connected: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Default */
+            is_default: boolean;
+            /** Name */
+            name: string;
+            /** Source */
+            source: string;
         };
         /** Call */
         Call: {
@@ -10184,6 +10449,8 @@ export interface components {
             connections: components["schemas"]["PublishedConnection"][];
             /** Created */
             created: boolean;
+            /** General Updated */
+            general_updated?: number | null;
             version: components["schemas"]["AgentVersionSummary"];
             /** Warnings */
             warnings: string[];
@@ -10571,6 +10838,33 @@ export interface components {
             modo: string;
             /** Titulo */
             titulo: string;
+        };
+        /**
+         * FromScriptIn
+         * @description Respuestas del guion de una plantilla: `answers` es `id de la pregunta` → id de la opción
+         *     (o el texto, en la de nombre). Lo que no se contesta toma el valor por defecto del guion.
+         */
+        FromScriptIn: {
+            /** Answers */
+            answers?: {
+                [key: string]: string;
+            };
+            /** Name */
+            name?: string | null;
+            /** Template Key */
+            template_key: string;
+        };
+        /**
+         * FromScriptOut
+         * @description El borrador creado (sin publicar) y lo que le falta al negocio configurar para que funcione.
+         */
+        FromScriptOut: {
+            agent: components["schemas"]["AgentSummary"];
+            draft: components["schemas"]["AgentDraft"];
+            /** Requirements */
+            requirements: components["schemas"]["Requirement"][];
+            /** Warnings */
+            warnings: string[];
         };
         /** FromTemplateIn */
         FromTemplateIn: {
@@ -15193,6 +15487,37 @@ export interface components {
             version: number;
         };
         /**
+         * Question
+         * @description Pregunta del guion del asistente de creación (HU-AOS-48). `type` «option» elige entre
+         *     `options` (`default` es la que se aplica sin respuesta); «text» es el nombre del agente.
+         */
+        Question: {
+            /** Default */
+            default: string | null;
+            /** Help */
+            help: string;
+            /** Id */
+            id: string;
+            /** Options */
+            options: components["schemas"]["QuestionOption"][];
+            /** Text */
+            text: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "option" | "text";
+        };
+        /** QuestionOption */
+        QuestionOption: {
+            /** Help */
+            help: string;
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
+        };
+        /**
          * ReadinessItem
          * @description Un ítem del checklist. `ok`: `None` = no se pudo evaluar.
          */
@@ -18667,6 +18992,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentUsage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_from_script_api_v1_admin_agents_from_script_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FromScriptIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FromScriptOut"];
                 };
             };
             /** @description Validation Error */
@@ -28415,9 +28775,149 @@ export interface operations {
             };
         };
     };
+    list_calendars_api_v1_pack_calendar_calendars_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarListOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_calendar_api_v1_pack_calendar_calendars_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_calendar_api_v1_pack_calendar_calendars__calendar_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                calendar_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_calendar_api_v1_pack_calendar_calendars__calendar_id__delete_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                calendar_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CalendarDelete"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     calendar_events_api_v1_pack_calendar_events_get: {
         parameters: {
             query?: {
+                /** @description IDs de agenda separados por coma */
+                calendar_ids?: string | null;
                 end?: string | null;
                 start?: string | null;
             };
@@ -28489,6 +28989,7 @@ export interface operations {
     oauth_start_api_v1_pack_calendar_oauth_start_get: {
         parameters: {
             query?: {
+                connection_id?: string | null;
                 next?: string;
             };
             header?: {

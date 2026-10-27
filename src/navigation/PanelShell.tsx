@@ -14,6 +14,7 @@ import { OperacionNavigator } from "../modules/operacion";
 import { CobranzaAdminNavigator } from "../modules/cobranza-admin";
 import { ComercioScreen } from "../modules/comercio";
 import { CalendarioScreen } from "../modules/calendario";
+import { AgentesScreen } from "../modules/agentes";
 import { NegocioScreen } from "../modules/negocio";
 import { ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
@@ -95,6 +96,12 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
       return (
         <ConHeader modulo={modulo}>
           <CalendarioScreen pestanaInicial={pestanaInicial} entrada={entrada} />
+        </ConHeader>
+      );
+    case "agentes":
+      return (
+        <ConHeader modulo={modulo}>
+          <AgentesScreen />
         </ConHeader>
       );
     case "negocio":
