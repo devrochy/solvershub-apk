@@ -185,7 +185,7 @@ export async function cargarAlertas(api: ClienteAdmin): Promise<Alertas> {
   return api.get("/pack/cobranza/alerts");
 }
 
-// ---------------- Cierre de réplica: Gestores y Propietario ----------------
+// ---------------- Cierre de réplica: Gestores y cobros al propietario ----------------
 
 export interface GestorOut {
   id: string;
@@ -208,23 +208,6 @@ export interface OwnerCharge {
   pagado: number | null;
   vence: string;
   estado: string;
-}
-
-export interface MensajePropietario {
-  id: string;
-  direccion: string;
-  tipo: string;
-  autor: string;
-  contenido: string;
-  fecha: string;
-}
-
-export interface HiloPropietario {
-  whatsapp: string;
-  asunto: string;
-  estado: string;
-  abierto: boolean;
-  mensajes: MensajePropietario[];
 }
 
 export async function cargarGestores(api: ClienteAdmin): Promise<GestorOut[]> {
@@ -284,15 +267,4 @@ export async function registrarPagoPropietario(
   datos: { monto_pagado: number; metodo_pago?: string },
 ): Promise<void> {
   await api.post(`/pack/cobranza/owner-charges/${id}/payment`, datos);
-}
-
-export async function cargarHiloPropietario(api: ClienteAdmin): Promise<HiloPropietario> {
-  return api.get<HiloPropietario>("/pack/cobranza/owner-thread");
-}
-
-export async function enviarMensajePropietario(
-  api: ClienteAdmin,
-  contenido: string,
-): Promise<void> {
-  await api.post("/pack/cobranza/owner-thread/messages", { contenido, direccion: "saliente" });
 }
