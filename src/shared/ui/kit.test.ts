@@ -33,6 +33,10 @@ describe("kit shared/ui", () => {
       "KpiTile",
       "PageHeader",
       "SyncStatus",
+      "Stepper",
+      "Checkbox",
+      "Switch",
+      "RadioGroup",
     ]) {
       expect({ nombre, existe: typeof (kit as Record<string, unknown>)[nombre] }).toEqual({
         nombre,

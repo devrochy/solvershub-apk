@@ -7,6 +7,7 @@ import {
   Avatar,
   Badge,
   Button,
+  Checkbox,
   Drawer,
   EmptyState,
   Field,
@@ -16,9 +17,12 @@ import {
   ListItem,
   NavGroup,
   PageHeader,
+  RadioGroup,
   RecordRow,
   Sheet,
   Skeleton,
+  Stepper,
+  Switch,
   SyncStatus,
   TextField,
   ToastProvider,
@@ -51,6 +55,9 @@ function Catalogo() {
   const [cajonAbierto, setCajonAbierto] = useState(false);
   const [grupoAbierto, setGrupoAbierto] = useState(true);
   const [nombre, setNombre] = useState("");
+  const [acepta, setAcepta] = useState(false);
+  const [avisos, setAvisos] = useState(true);
+  const [tipo, setTipo] = useState<string | undefined>("soporte");
   const [cargando, setCargando] = useState(false);
 
   return (
@@ -154,6 +161,30 @@ function Catalogo() {
           <Badge tone="warning" icon="schedule" label="Pendiente" />
           <Badge tone="danger" icon="error-outline" label="En mora" size="md" />
         </Fila>
+      </Seccion>
+
+      <Seccion titulo="Stepper y controles">
+        <Stepper
+          label="Crear agente"
+          steps={[
+            { id: "negocio", title: "Tu negocio", state: "complete" },
+            { id: "canal", title: "Canal", state: "error" },
+            { id: "horario", title: "Horario", state: "current" },
+            { id: "tono", title: "Tono", state: "upcoming" },
+          ]}
+        />
+        <Checkbox label="Acepto los términos" checked={acepta} onCheckedChange={setAcepta} />
+        <Switch label="Avisos por WhatsApp" description="Te escribimos un día antes" value={avisos} onValueChange={setAvisos} />
+        <RadioGroup
+          label="¿Para qué lo usarás?"
+          value={tipo}
+          onValueChange={setTipo}
+          options={[
+            { value: "ventas", label: "Ventas" },
+            { value: "soporte", label: "Soporte", description: "Atiende dudas de clientes" },
+            { value: "cobranza", label: "Cobranza", disabled: true },
+          ]}
+        />
       </Seccion>
 
       <Seccion titulo="Avatar">
