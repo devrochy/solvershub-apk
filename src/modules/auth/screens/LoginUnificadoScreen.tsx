@@ -39,7 +39,7 @@ export function LoginUnificadoScreen({
   irARecuperarContrasena,
 }: LoginUnificadoProps) {
   const { tema, colores } = useTheme();
-  const { c, tonos } = useKit();
+  const { c } = useKit();
   const { login: loginAdmin } = useAdminSession();
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
@@ -128,7 +128,6 @@ export function LoginUnificadoScreen({
         >
           <View style={styles.columna}>
             <View style={styles.marca}>
-              <View style={[styles.halo, { backgroundColor: tonos.accent.bg }]} />
               <Image
                 testID="login-logo"
                 accessibilityRole="image"
@@ -138,10 +137,6 @@ export function LoginUnificadoScreen({
                 style={styles.logo}
               />
             </View>
-
-            <Text style={[shType.body, styles.subtitulo, { color: colores.textoSuave }]}>
-              Un solo login para todo tu negocio
-            </Text>
 
             <View style={styles.formulario}>
               <TextField
@@ -230,14 +225,7 @@ const styles = StyleSheet.create({
   },
   columna: { width: "100%", maxWidth: 420, alignSelf: "center", gap: shSpace[4] },
   marca: { alignItems: "center", justifyContent: "center", paddingVertical: shSpace[4] },
-  halo: {
-    position: "absolute",
-    width: 248,
-    height: 248,
-    borderRadius: shRadius.pill,
-  },
   logo: { width: 190, height: 152 },
-  subtitulo: { textAlign: "center" },
   formulario: { gap: shSpace[3] },
   campo: { borderRadius: shRadius.md },
   error: { flexDirection: "row", alignItems: "center", gap: shSpace[1] },

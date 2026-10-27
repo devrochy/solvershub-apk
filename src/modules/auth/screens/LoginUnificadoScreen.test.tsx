@@ -91,6 +91,7 @@ describe("LoginUnificadoScreen (HU-APP-02/03)", () => {
     expect(logo.props.accessibilityLabel).toBe("SolversHub");
     expect(logo.props.source).toBe(LOGO_POR_TEMA.claro);
     expect(queryByText("SolversHub")).toBeNull();
+    expect(queryByText("Un solo login para todo tu negocio")).toBeNull();
   });
 
   it("usa el logo oscuro con el tema oscuro por defecto", async () => {

@@ -33,7 +33,9 @@ de autenticación ni los testIDs.
 - `Image` con `testID="login-logo"`, `accessibilityLabel="SolversHub"` y tamaño fijo 190×152.
   La fuente se pasa por `Image.resolveAssetSource(...).uri` (con respaldo al `require` en tests):
   en Android el asset local imponía su tamaño intrínseco (760×610 dp) sobre el estilo.
-- Halo decorativo con `tonos.accent.bg` (token, sin colores sueltos).
+- Logo directo sobre el fondo de la pantalla: el PNG es transparente y **sin halo** ni otra capa,
+  así se ve un solo fondo.
+- Sin el texto informativo «Un solo login para todo tu negocio».
 - Campos al kit (`TextField` / `PasswordField`), botón `Button` (primary lg fullWidth) y
   enlace con `Button variant="link"`; error con `Icono` + región viva; fila de biometría con
   roles del kit.
