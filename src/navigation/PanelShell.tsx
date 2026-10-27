@@ -19,6 +19,7 @@ import { NegocioScreen } from "../modules/negocio";
 import { ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
+import { OnboardingProvider, RecorridoScreen, useOnboarding } from "../modules/onboarding";
 import { CajonPanel } from "./CajonPanel";
 import { HeaderPanel } from "./HeaderPanel";
 import {
@@ -137,7 +138,20 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
   }
 }
 
+/**
+ * Panel con el primer uso a pantalla completa (HU-APP-22): si el servidor pide abrirlo, el asistente se
+ * dibuja encima del shell sin desmontarlo (se conserva la navegación) y el aviso fijo vive en el header.
+ */
 export function PanelShell() {
+  return (
+    <OnboardingProvider>
+      <PanelShellInterno />
+    </OnboardingProvider>
+  );
+}
+
+function PanelShellInterno() {
+  const { abierto } = useOnboarding();
   const { colores, tema } = useTheme();
   const { sesion } = useAdminSession();
   const esMaster = sesion?.role === "master";
@@ -214,6 +228,7 @@ export function PanelShell() {
           />
         </View>
         <CajonPanel />
+        {abierto && <RecorridoScreen />}
       </MenuPanelProvider>
     );
   }
@@ -257,6 +272,7 @@ export function PanelShell() {
         </Tab.Navigator>
       </NavigationContainer>
       <CajonPanel />
+      {abierto && <RecorridoScreen />}
     </MenuPanelProvider>
   );
 }
