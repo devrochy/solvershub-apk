@@ -20,9 +20,12 @@ jest.mock("@core/api/auth-admin", () => ({
   },
 }));
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { apiGestorToken } from "@core/api/auth-admin";
 import { useAdminSession } from "@core/session/admin-session-context";
+import { CLAVE_TEMA, ThemeProvider } from "@core/theme/theme-context";
+import { LOGO_POR_TEMA } from "../marca";
 import { LoginUnificadoScreen } from "./LoginUnificadoScreen";
 
 const mockUseAdminSession = useAdminSession as jest.Mock;
@@ -53,15 +56,25 @@ function dadoMe(me: Record<string, unknown>) {
   });
 }
 
+function propsDeLogin(extra: Partial<Record<string, jest.Mock>> = {}) {
+  return {
+    onAutenticado: extra.onAutenticado ?? jest.fn().mockResolvedValue(undefined),
+    onFlujoLegado: extra.onFlujoLegado ?? jest.fn(),
+    alSeleccionarNegocios: extra.alSeleccionarNegocios ?? jest.fn(),
+    onEntrarPanel: extra.onEntrarPanel ?? jest.fn(),
+    irARecuperarContrasena: extra.irARecuperarContrasena ?? jest.fn(),
+  };
+}
+
 function renderLogin(extra: Partial<Record<string, jest.Mock>> = {}) {
+  return render(<LoginUnificadoScreen {...propsDeLogin(extra)} />);
+}
+
+function renderLoginConTema(extra: Partial<Record<string, jest.Mock>> = {}) {
   return render(
-    <LoginUnificadoScreen
-      onAutenticado={extra.onAutenticado ?? jest.fn().mockResolvedValue(undefined)}
-      onFlujoLegado={extra.onFlujoLegado ?? jest.fn()}
-      alSeleccionarNegocios={extra.alSeleccionarNegocios ?? jest.fn()}
-      onEntrarPanel={extra.onEntrarPanel ?? jest.fn()}
-      irARecuperarContrasena={extra.irARecuperarContrasena ?? jest.fn()}
-    />,
+    <ThemeProvider>
+      <LoginUnificadoScreen {...propsDeLogin(extra)} />
+    </ThemeProvider>,
   );
 }
 
@@ -69,6 +82,33 @@ describe("LoginUnificadoScreen (HU-APP-02/03)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     dadoMe(ME_UN_NEGOCIO);
+  });
+
+  it("reemplaza el texto de marca por el logo definitivo", async () => {
+    const { getByTestId, queryByText } = await renderLogin();
+    const logo = getByTestId("login-logo");
+
+    expect(logo.props.accessibilityLabel).toBe("SolversHub");
+    expect(logo.props.source).toBe(LOGO_POR_TEMA.claro);
+    expect(queryByText("SolversHub")).toBeNull();
+    expect(queryByText("Un solo login para todo tu negocio")).toBeNull();
+  });
+
+  it("usa el logo oscuro con el tema oscuro por defecto", async () => {
+    await AsyncStorage.clear();
+    const { getByTestId } = await renderLoginConTema();
+
+    await waitFor(() =>
+      expect(getByTestId("login-logo").props.source).toBe(LOGO_POR_TEMA.oscuro),
+    );
+  });
+
+  it("usa el logo claro cuando el tema guardado es claro", async () => {
+    await AsyncStorage.setItem(CLAVE_TEMA, "claro");
+    const { getByTestId } = await renderLoginConTema();
+
+    await waitFor(() => expect(getByTestId("login-logo").props.source).toBe(LOGO_POR_TEMA.claro));
+    await AsyncStorage.clear();
   });
 
   it("con un solo negocio intercambia tokens de campo y aplica la sesión", async () => {
