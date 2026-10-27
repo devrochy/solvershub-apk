@@ -1,19 +1,23 @@
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Pressable,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@core/theme/theme-context";
-import { PasswordField, useKit } from "@shared/ui";
+import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Button, Icono, PasswordField, TextField, useKit } from "@shared/ui";
 import type { LoginResult } from "@shared/types/auth";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { ApiAuthError, apiGestorToken } from "@core/api/auth-admin";
 import { biometriaDisponible, biometriaHabilitada, deshabilitarBiometria, habilitarBiometria } from "../biometria";
+import { LOGO_POR_TEMA } from "../marca";
 
 export interface LoginUnificadoProps {
   /** Sesión de campo lista (exchange OK): el compositor la aplica. */
@@ -34,8 +38,8 @@ export function LoginUnificadoScreen({
   onEntrarPanel,
   irARecuperarContrasena,
 }: LoginUnificadoProps) {
-  const { colores } = useTheme();
-  const { relleno } = useKit();
+  const { tema, colores } = useTheme();
+  const { c, tonos } = useKit();
   const { login: loginAdmin } = useAdminSession();
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
@@ -109,93 +113,143 @@ export function LoginUnificadoScreen({
   };
 
   return (
-    <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
-      <Text style={[styles.titulo, { color: colores.texto }]}>SolversHub</Text>
-      <Text style={[styles.subtitulo, { color: colores.textoSuave }]}>
-        Un solo login para todo tu negocio
-      </Text>
-
-      <TextInput
-        testID="login-usuario"
-        value={usuario}
-        onChangeText={setUsuario}
-        placeholder="Correo o usuario"
-        placeholderTextColor={colores.textoSuave}
-        autoCapitalize="none"
-        autoCorrect={false}
-        style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
-      />
-      <PasswordField
-        testID="login-password"
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Contraseña"
-        style={[styles.campo, { borderColor: colores.borde, color: colores.texto, backgroundColor: "transparent" }]}
-      />
-
-      {error ? (
-        <Text testID="login-error" style={[styles.error, { color: colores.peligro }]}>
-          {error}
-        </Text>
-      ) : null}
-
-      <Pressable
-        testID="login-entrar"
-        disabled={cargando}
-        onPress={() => void entrar()}
-        style={({ pressed }) => [
-          styles.boton,
-          { backgroundColor: relleno.primario },
-          pressed && styles.presionado,
-        ]}
+    <SafeAreaView
+      edges={["top", "left", "right", "bottom"]}
+      style={[styles.pantalla, { backgroundColor: colores.fondo }]}
+    >
+      <KeyboardAvoidingView
+        style={styles.pantalla}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {cargando ? (
-          <ActivityIndicator color={relleno.sobrePrimario} />
-        ) : (
-          <Text style={[styles.botonTexto, { color: relleno.sobrePrimario }]}>Entrar</Text>
-        )}
-      </Pressable>
+        <ScrollView
+          contentContainerStyle={styles.contenido}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.columna}>
+            <View style={styles.marca}>
+              <View style={[styles.halo, { backgroundColor: tonos.accent.bg }]} />
+              <Image
+                testID="login-logo"
+                accessibilityRole="image"
+                accessibilityLabel="SolversHub"
+                source={LOGO_POR_TEMA[tema]}
+                resizeMode="contain"
+                style={styles.logo}
+              />
+            </View>
 
-      <Pressable testID="login-recuperar" onPress={irARecuperarContrasena}>
-        <Text style={[styles.recuperar, { color: colores.acento }]}>
-          ¿Olvidaste tu contraseña?
-        </Text>
-      </Pressable>
+            <Text style={[shType.body, styles.subtitulo, { color: colores.textoSuave }]}>
+              Un solo login para todo tu negocio
+            </Text>
 
-      {puedeBiometria ? (
-        <View style={styles.biometria}>
-          <Text style={{ color: colores.texto }}>Desbloquear con biometría</Text>
-          <Switch
-            testID="login-biometria"
-            value={biometriaOn}
-            onValueChange={(v) => void alternarBiometria(v)}
-          />
-        </View>
-      ) : null}
-    </View>
+            <View style={styles.formulario}>
+              <TextField
+                testID="login-usuario"
+                value={usuario}
+                onChangeText={setUsuario}
+                placeholder="Correo o usuario"
+                accessibilityLabel="Correo o usuario"
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+                style={styles.campo}
+              />
+              <PasswordField
+                testID="login-password"
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Contraseña"
+                accessibilityLabel="Contraseña"
+                returnKeyType="go"
+                onSubmitEditing={() => void entrar()}
+                style={styles.campo}
+              />
+
+              {error ? (
+                <View
+                  testID="login-error"
+                  accessibilityRole="alert"
+                  accessibilityLiveRegion="polite"
+                  style={styles.error}
+                >
+                  <Icono name="error-outline" size={16} color={c.statusDangerFg} />
+                  <Text style={[shType.caption, styles.errorTexto, { color: c.statusDangerFg }]}>
+                    {error}
+                  </Text>
+                </View>
+              ) : null}
+
+              <Button
+                testID="login-entrar"
+                fullWidth
+                size="lg"
+                loading={cargando}
+                onPress={() => void entrar()}
+              >
+                Entrar
+              </Button>
+
+              <Button
+                testID="login-recuperar"
+                variant="link"
+                onPress={irARecuperarContrasena}
+                style={styles.recuperar}
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
+            </View>
+
+            {puedeBiometria ? (
+              <View
+                style={[styles.biometria, { backgroundColor: c.surface, borderColor: c.border }]}
+              >
+                <Text style={[shType.body, { color: c.text }]}>Desbloquear con biometría</Text>
+                <Switch
+                  testID="login-biometria"
+                  value={biometriaOn}
+                  onValueChange={(v) => void alternarBiometria(v)}
+                  trackColor={{ false: c.border, true: c.link }}
+                />
+              </View>
+            ) : null}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  contenedor: { flex: 1, justifyContent: "center", padding: 28, gap: 14 },
-  titulo: { fontSize: 30, fontWeight: "700", textAlign: "center" },
-  subtitulo: { fontSize: 14, textAlign: "center", marginBottom: 18 },
-  campo: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
+  pantalla: { flex: 1 },
+  contenido: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: shSpace[6],
+    paddingVertical: shSpace[8],
   },
-  error: { fontSize: 13 },
-  boton: { borderRadius: 12, paddingVertical: 14, alignItems: "center" },
-  botonTexto: { fontWeight: "700", fontSize: 16 },
-  presionado: { opacity: 0.85 },
-  recuperar: { textAlign: "center", fontSize: 14 },
+  columna: { width: "100%", maxWidth: 420, alignSelf: "center", gap: shSpace[4] },
+  marca: { alignItems: "center", justifyContent: "center", paddingVertical: shSpace[4] },
+  halo: {
+    position: "absolute",
+    width: 248,
+    height: 248,
+    borderRadius: shRadius.pill,
+  },
+  logo: { width: 190, aspectRatio: 2048 / 1644 },
+  subtitulo: { textAlign: "center" },
+  formulario: { gap: shSpace[3] },
+  campo: { borderRadius: shRadius.md },
+  error: { flexDirection: "row", alignItems: "center", gap: shSpace[1] },
+  errorTexto: { flexShrink: 1 },
+  recuperar: { alignSelf: "center" },
   biometria: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 12,
+    minHeight: 56,
+    paddingHorizontal: shSpace[4],
+    borderRadius: shRadius.md,
+    borderWidth: 1,
   },
 });
