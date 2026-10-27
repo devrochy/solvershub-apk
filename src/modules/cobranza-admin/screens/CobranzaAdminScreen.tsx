@@ -13,7 +13,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { usePestanaInicial, type EntradaPestanas, type SolicitudPestana } from "@shared/pestana-inicial";
-import { gruposDeMenu, pestanasDeEntrada } from "@/navigation/menu-panel";
+import { gruposDeMenu, pestanasDeEntrada } from "../../../navigation/menu-panel";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
