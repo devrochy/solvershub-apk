@@ -3818,6 +3818,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/tenants/{tenant_id}/opciones-directas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Opciones Directas
+         * @description Bandera de las opciones directas del negocio (apagada por defecto). Solo el master.
+         */
+        get: operations["get_opciones_directas_api_v1_admin_platform_tenants__tenant_id__opciones_directas_get"];
+        /**
+         * Put Opciones Directas
+         * @description Enciende o apaga las opciones directas del negocio (auditado como `opciones_directas_bandera`). Idempotente:
+         *     repetir el mismo valor deja el mismo estado. Solo el master; es por negocio y no toca ningún otro.
+         */
+        put: operations["put_opciones_directas_api_v1_admin_platform_tenants__tenant_id__opciones_directas_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/tenants/{tenant_id}/plan": {
         parameters: {
             query?: never;
@@ -7161,6 +7186,237 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plantillas-opciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar */
+        get: operations["listar_api_v1_plantillas_opciones_get"];
+        put?: never;
+        /**
+         * Crear
+         * @description Crea un borrador. 409 `clave_repetida` si el negocio ya tiene una plantilla viva con esa clave.
+         */
+        post: operations["crear_api_v1_plantillas_opciones_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/{clave}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtener */
+        get: operations["obtener_api_v1_plantillas_opciones__clave__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar
+         * @description Borra (lógicamente) una plantilla que nunca se publicó o ya está retirada y libera su clave. 409 si está publicada.
+         */
+        delete: operations["eliminar_api_v1_plantillas_opciones__clave__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/{clave}/borrador": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Guardar Borrador
+         * @description Reemplaza el borrador. Las versiones publicadas no cambian. 422 `definicion_invalida` si la forma falla.
+         */
+        put: operations["guardar_borrador_api_v1_plantillas_opciones__clave__borrador_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/{clave}/enviar-prueba": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enviar Prueba
+         * @description Envía la versión vigente a UNA conversación del negocio (nunca a un número libre), por la vía que
+         *     corresponda. Es un mensaje real a ese cliente: el panel debe pedir confirmación.
+         */
+        post: operations["enviar_prueba_api_v1_plantillas_opciones__clave__enviar_prueba_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/{clave}/publicar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publicar
+         * @description Congela el borrador como la versión siguiente (inmutable). 422 `definicion_con_errores` con los hallazgos si
+         *     falla el lint: no cambia nada. 409 `sin_cambios` si el borrador es igual a la versión vigente. Con `meta`, encadena
+         *     la alta de la versión como plantilla de Meta (`<clave>_v<n>`); si Meta falla, la versión SIGUE publicada y el
+         *     resultado va en `meta` (se reintenta en `/versiones/{n}/publicar-en-meta`). 422 si la categoría o el idioma son inválidos.
+         */
+        post: operations["publicar_api_v1_plantillas_opciones__clave__publicar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/{clave}/retirar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retirar
+         * @description Retira la plantilla publicada: deja de enviarse y sus botones en vuelo responden «ya no está disponible».
+         */
+        post: operations["retirar_api_v1_plantillas_opciones__clave__retirar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/{clave}/versiones/{version_n}/publicar-en-meta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publicar Version En Meta
+         * @description Alta, o reintento, de UNA versión ya publicada como plantilla de Meta. Repetirla es seguro: no duplica la
+         *     plantilla ni gasta otra creación. Nunca se edita una plantilla aprobada: una versión nueva es otra plantilla.
+         *     Responde 200 con el resultado (`ok`, `outcome`, `reintentable`); 404 si la versión no existe, 409 si está retirada.
+         */
+        post: operations["publicar_version_en_meta_api_v1_plantillas_opciones__clave__versiones__version_n__publicar_en_meta_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/catalogo-acciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Catalogo Acciones
+         * @description Las tools que el negocio puede usar como acción de una opción: elegibles (marca de su autor, pack activo,
+         *     binding explícito y habilitado, sin gobernar por un procedimiento), con su JSON Schema y si son sensibles.
+         */
+        get: operations["catalogo_acciones_api_v1_plantillas_opciones_catalogo_acciones_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/catalogo-variables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Catalogo Variables
+         * @description Las variables que el servidor resuelve y el dueño puede citar en el cuerpo (`{cliente.nombre}`) y en
+         *     `args_contexto`.
+         */
+        get: operations["catalogo_variables_api_v1_plantillas_opciones_catalogo_variables_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/validar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validar
+         * @description Lint de una definición sin guardar nada. Siempre 200: los hallazgos (`error` y `warning`) son el resultado.
+         */
+        post: operations["validar_api_v1_plantillas_opciones_validar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plantillas-opciones/vista-previa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vista Previa
+         * @description Lo que saldría por cada vía con valores de muestra, sin enviar nada. 422 con los hallazgos si la
+         *     definición tiene errores.
+         */
+        post: operations["vista_previa_api_v1_plantillas_opciones_vista_previa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/web-chat/{key}/config": {
         parameters: {
             query?: never;
@@ -7321,6 +7577,50 @@ export interface components {
             motivo: string;
             /** Resultado */
             resultado: string;
+        };
+        /**
+         * Accion
+         * @description La tool que ejecuta la opción. Los argumentos salen SOLO de aquí: `args_fijos` (los escribe el
+         *     dueño) y `args_contexto` (argumento → ruta de variable que arma el servidor). Nunca del texto del
+         *     cliente ni del LLM (invariante 7, ADR-0108).
+         */
+        Accion: {
+            /** Args Contexto */
+            args_contexto?: {
+                [key: string]: string;
+            };
+            /** Args Fijos */
+            args_fijos?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Confirmar
+             * @default false
+             */
+            confirmar: boolean;
+            /** Tool */
+            tool: string;
+        };
+        /** AccionDelCatalogoOut */
+        AccionDelCatalogoOut: {
+            /**
+             * Confirmacion Obligatoria
+             * @description El cliente confirmará (`optc`/`optn`) aunque la opción no lo pida.
+             */
+            confirmacion_obligatoria: boolean;
+            /** Descripcion */
+            descripcion: string;
+            /**
+             * Parameters
+             * @description JSON Schema de los argumentos: de ahí sale el formulario de `args_fijos`.
+             */
+            parameters: {
+                [key: string]: unknown;
+            };
+            /** Sensible */
+            sensible: boolean;
+            /** Tool */
+            tool: string;
         };
         /** AccionOut */
         AccionOut: {
@@ -7892,6 +8192,8 @@ export interface components {
             superpowers: components["schemas"]["Superpower"][];
             /** Tools */
             tools: string[];
+            /** Will Enable */
+            will_enable: string[];
         };
         /** AgentUsage */
         AgentUsage: {
@@ -10312,6 +10614,27 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /** Definicion */
+        Definicion: {
+            /** Body */
+            body: string;
+            /**
+             * Exclusivo
+             * @default true
+             */
+            exclusivo: boolean;
+            /** Footer */
+            footer?: string | null;
+            /** Opciones */
+            opciones: components["schemas"]["OpcionDeLaPlantilla"][];
+            /**
+             * Ttl Horas
+             * @default 24
+             */
+            ttl_horas: number;
+            /** Variables */
+            variables?: string[];
+        };
         /** DejarListoIn */
         DejarListoIn: {
             /**
@@ -10998,6 +11321,8 @@ export interface components {
         FromScriptOut: {
             agent: components["schemas"]["AgentSummary"];
             draft: components["schemas"]["AgentDraft"];
+            /** Enabled Skills */
+            enabled_skills: string[];
             /** Requirements */
             requirements: components["schemas"]["Requirement"][];
             /** Warnings */
@@ -11012,6 +11337,8 @@ export interface components {
         FromTemplateOut: {
             agent: components["schemas"]["AgentSummary"];
             draft: components["schemas"]["AgentDraft"];
+            /** Enabled Skills */
+            enabled_skills: string[];
             /** Warnings */
             warnings: string[];
         };
@@ -13209,6 +13536,8 @@ export interface components {
         };
         /** MissingTemplateItem */
         MissingTemplateItem: {
+            /** Clave */
+            clave?: string | null;
             /** Conversation Id */
             conversation_id: string;
             /**
@@ -13218,6 +13547,12 @@ export interface components {
             created_at: string;
             /** Detail */
             detail: string;
+            /**
+             * Tipo
+             * @default evento
+             * @enum {string}
+             */
+            tipo: "evento" | "opcion";
         };
         /** MissingTemplates */
         MissingTemplates: {
@@ -13225,6 +13560,16 @@ export interface components {
             recent: components["schemas"]["MissingTemplateItem"][];
             /** Total 7D */
             total_7d: number;
+            /**
+             * Total Eventos 7D
+             * @default 0
+             */
+            total_eventos_7d: number;
+            /**
+             * Total Opciones 7D
+             * @default 0
+             */
+            total_opciones_7d: number;
         };
         /** MobileEvent */
         MobileEvent: {
@@ -13516,6 +13861,396 @@ export interface components {
             unidad: string;
             /** Valores */
             valores?: components["schemas"]["ValorPosible"][];
+        };
+        /** OpcionDeLaPlantilla */
+        OpcionDeLaPlantilla: {
+            accion: components["schemas"]["Accion"];
+            /** Id */
+            id: string;
+            /** Respuesta Error */
+            respuesta_error: string;
+            /** Respuesta Ok */
+            respuesta_ok: string;
+            /** Result Keys */
+            result_keys?: string[];
+            /** Titulo */
+            titulo: string;
+        };
+        /** OpcionesAccionesOut */
+        OpcionesAccionesOut: {
+            /** Acciones */
+            acciones: components["schemas"]["AccionDelCatalogoOut"][];
+        };
+        /** OpcionesBorradorIn */
+        OpcionesBorradorIn: {
+            /**
+             * Definicion
+             * @description Reemplaza el borrador. Solo se valida la forma; el lint completo corre al publicar.
+             */
+            definicion: {
+                [key: string]: unknown;
+            };
+            /** Nombre */
+            nombre?: string | null;
+        };
+        /** OpcionesCrearIn */
+        OpcionesCrearIn: {
+            /**
+             * Clave
+             * @description Única entre las plantillas vivas del negocio.
+             */
+            clave: string;
+            /**
+             * Definicion
+             * @description Borrador inicial (forma de `Definicion`).
+             */
+            definicion?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Nombre
+             * @default
+             */
+            nombre: string;
+        };
+        /** OpcionesDefinicionIn */
+        OpcionesDefinicionIn: {
+            /** Definicion */
+            definicion: {
+                [key: string]: unknown;
+            };
+        };
+        /** OpcionesDetallesDeError */
+        OpcionesDetallesDeError: {
+            /** Hallazgos */
+            hallazgos?: components["schemas"]["OpcionesHallazgoOut"][];
+            /** Motivo */
+            motivo?: string | null;
+        };
+        /** OpcionesDirectasBandera */
+        OpcionesDirectasBandera: {
+            /**
+             * Habilitada
+             * @description Si las plantillas con opciones que ejecutan una tool están encendidas para el negocio. Apagada: toda la API `/plantillas-opciones` responde 404 `opciones_directas_no_habilitadas`.
+             */
+            habilitada: boolean;
+        };
+        /** OpcionesDirectasBanderaIn */
+        OpcionesDirectasBanderaIn: {
+            /** Habilitada */
+            habilitada: boolean;
+        };
+        /** OpcionesEnviarPruebaIn */
+        OpcionesEnviarPruebaIn: {
+            /**
+             * Clave Idempotencia
+             * @description Repetir la misma clave no duplica el envío.
+             */
+            clave_idempotencia: string;
+            /**
+             * Conversation Id
+             * Format: uuid
+             * @description Una conversación de este negocio. Nunca un número libre.
+             */
+            conversation_id: string;
+        };
+        /** OpcionesError */
+        OpcionesError: {
+            /** Code */
+            code: string;
+            details?: components["schemas"]["OpcionesDetallesDeError"] | null;
+            /** Fields */
+            fields?: {
+                [key: string]: string;
+            } | null;
+            /** Message */
+            message: string;
+        };
+        /**
+         * OpcionesErrorOut
+         * @description El sobre de error de la API (`{error: {code, message, details?}}`). En un 422 de esta API,
+         *     `error.details.hallazgos` trae los mismos `{path, code, severity, mensaje}` del lint.
+         */
+        OpcionesErrorOut: {
+            error: components["schemas"]["OpcionesError"];
+        };
+        /** OpcionesHallazgoOut */
+        OpcionesHallazgoOut: {
+            /** Code */
+            code: string;
+            /** Mensaje */
+            mensaje: string;
+            /**
+             * Path
+             * @description Dónde está la falla, p. ej. `opciones[1].accion.tool`.
+             */
+            path: string;
+            /**
+             * Severity
+             * @description Un `error` impide publicar; un `warning` solo informa.
+             * @enum {string}
+             */
+            severity: "error" | "warning";
+        };
+        /**
+         * OpcionesMetaEstadoOut
+         * @description Lo que Meta dice de la plantilla de una versión. Se lee de `message_templates` (lo escriben los webhooks de
+         *     estado y de categoría), no se guarda aparte.
+         */
+        OpcionesMetaEstadoOut: {
+            /**
+             * Categoria
+             * @description La que tiene la plantilla ahora (Meta puede recategorizarla).
+             */
+            categoria: string | null;
+            /** Categoria Anterior */
+            categoria_anterior: string | null;
+            /**
+             * Error De Publicacion
+             * @description El último error al crearla en Meta; vacío si no hubo.
+             */
+            error_de_publicacion: string | null;
+            /**
+             * Estado
+             * @description `DRAFT` (reservada, aún sin respuesta de Meta), `PENDING`, `APPROVED`, `REJECTED`, `PAUSED`…
+             */
+            estado: string;
+            /**
+             * Message Template Id
+             * Format: uuid
+             */
+            message_template_id: string;
+            /** Motivo Rechazo */
+            motivo_rechazo: string | null;
+            /**
+             * Nombre
+             * @description `<clave>_v<n>`: cada versión es una plantilla nueva de Meta.
+             */
+            nombre: string;
+            /** Recomendacion */
+            recomendacion: string | null;
+        };
+        /**
+         * OpcionesMetaIn
+         * @description Publicar la versión como plantilla de Meta: en qué conexión (su WABA), con qué categoría (la elige el dueño y
+         *     cambia el costo y la aprobación) e idioma, y un valor de muestra por variable del cuerpo (Meta los revisa).
+         */
+        OpcionesMetaIn: {
+            /**
+             * Categoria
+             * @enum {string}
+             */
+            categoria: "UTILITY" | "MARKETING";
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /**
+             * Ejemplos
+             * @description `ruta de variable → valor de muestra` (hasta 60 caracteres, nunca datos de un cliente).
+             */
+            ejemplos?: {
+                [key: string]: string;
+            };
+            /**
+             * Idioma
+             * @default es
+             */
+            idioma: string;
+        };
+        /**
+         * OpcionesMetaOut
+         * @description Resultado de publicar una versión en Meta. Un fallo NO revierte la versión publicada: `ok` falso con `outcome`.
+         */
+        OpcionesMetaOut: {
+            /** Categoria */
+            categoria: string | null;
+            /** Estado */
+            estado: string | null;
+            /** Message Template Id */
+            message_template_id: string | null;
+            /** Meta Template Id */
+            meta_template_id: string | null;
+            /**
+             * Motivo
+             * @description Texto acotado del motivo (de Meta si rechazó); nunca datos de un cliente.
+             */
+            motivo: string | null;
+            /** Nombre */
+            nombre: string | null;
+            /** Ok */
+            ok: boolean;
+            /**
+             * Outcome
+             * @description `published`, `already_published`, `network_error`, `rate_limited`, `in_progress`, `internal_error` (reintentables) o `meta_rejected`, `invalid_definition`, `name_taken`, `other_account`, `template_deleted`, `meta_id_taken`, `connection_not_ready`, `template_quota_full`, `version_retired`, `version_not_found`, `invalid_category`, `invalid_language`.
+             */
+            outcome: string;
+            /**
+             * Reintentable
+             * @description Repetir la misma petición puede resolverlo y no duplica la plantilla en Meta.
+             */
+            reintentable: boolean;
+        };
+        /** OpcionesPlantillaOut */
+        OpcionesPlantillaOut: {
+            /**
+             * Actualizada En
+             * Format: date-time
+             */
+            actualizada_en: string;
+            borrador: components["schemas"]["Definicion"] | null;
+            /** Clave */
+            clave: string;
+            /**
+             * Creada En
+             * Format: date-time
+             */
+            creada_en: string;
+            definicion_vigente: components["schemas"]["Definicion"] | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "draft" | "published" | "retired";
+            /** Nombre */
+            nombre: string;
+            /** Tiene Borrador Sin Publicar */
+            tiene_borrador_sin_publicar: boolean;
+            /** Version Vigente */
+            version_vigente: number | null;
+            /** Versiones */
+            versiones: components["schemas"]["OpcionesVersionOut"][];
+        };
+        /** OpcionesPlantillaResumen */
+        OpcionesPlantillaResumen: {
+            /**
+             * Actualizada En
+             * Format: date-time
+             */
+            actualizada_en: string;
+            /** Clave */
+            clave: string;
+            /**
+             * Creada En
+             * Format: date-time
+             */
+            creada_en: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "draft" | "published" | "retired";
+            /** Nombre */
+            nombre: string;
+            /** Tiene Borrador Sin Publicar */
+            tiene_borrador_sin_publicar: boolean;
+            /** Version Vigente */
+            version_vigente: number | null;
+        };
+        /** OpcionesPlantillasOut */
+        OpcionesPlantillasOut: {
+            /** Plantillas */
+            plantillas: components["schemas"]["OpcionesPlantillaResumen"][];
+        };
+        /** OpcionesPruebaOut */
+        OpcionesPruebaOut: {
+            /** Degradado */
+            degradado: boolean;
+            /**
+             * Ejecucion Directa
+             * @description El cliente puede tocar una opción (interactivo o plantilla).
+             */
+            ejecucion_directa: boolean;
+            /** Enviado */
+            enviado: boolean;
+            /** Send Id */
+            send_id: string | null;
+            /** Via */
+            via: ("interactivo" | "plantilla" | "texto") | null;
+            /**
+             * Ya Enviado
+             * @description La clave de idempotencia ya había enviado este mensaje.
+             */
+            ya_enviado: boolean;
+        };
+        /** OpcionesPublicadaOut */
+        OpcionesPublicadaOut: {
+            /** Clave */
+            clave: string;
+            /** Definition Hash */
+            definition_hash: string;
+            /** Hallazgos */
+            hallazgos: components["schemas"]["OpcionesHallazgoOut"][];
+            /**
+             * Message Template Id
+             * @description La plantilla de Meta ligada si se pidió publicar en Meta; si no, nulo.
+             */
+            message_template_id: string | null;
+            /** @description Resultado de la publicación en Meta; nulo si no se pidió. */
+            meta: components["schemas"]["OpcionesMetaOut"] | null;
+            /**
+             * Publicada En
+             * Format: date-time
+             */
+            publicada_en: string;
+            /** Version N */
+            version_n: number;
+        };
+        /** OpcionesPublicarIn */
+        OpcionesPublicarIn: {
+            /** @description Si llega, encadena la alta de la versión en Meta; si no, solo congela la versión. */
+            meta?: components["schemas"]["OpcionesMetaIn"] | null;
+        };
+        /** OpcionesValidacionOut */
+        OpcionesValidacionOut: {
+            /** Hallazgos */
+            hallazgos: components["schemas"]["OpcionesHallazgoOut"][];
+            /**
+             * Valida
+             * @description Sin hallazgos de severidad `error`.
+             */
+            valida: boolean;
+        };
+        /** OpcionesVariableOut */
+        OpcionesVariableOut: {
+            /** Descripcion */
+            descripcion: string;
+            /**
+             * Origen
+             * @enum {string}
+             */
+            origen: "conversacion" | "servidor";
+            /** Ruta */
+            ruta: string;
+        };
+        /** OpcionesVariablesOut */
+        OpcionesVariablesOut: {
+            /** Variables */
+            variables: components["schemas"]["OpcionesVariableOut"][];
+        };
+        /** OpcionesVersionOut */
+        OpcionesVersionOut: {
+            /** Definition Hash */
+            definition_hash: string;
+            /**
+             * Message Template Id
+             * @description Plantilla de Meta de esta versión; la fija la publicación a Meta.
+             */
+            message_template_id: string | null;
+            /** @description Estado de la plantilla de Meta; nulo si la versión no se publicó en Meta. */
+            meta: components["schemas"]["OpcionesMetaEstadoOut"] | null;
+            /**
+             * Publicada En
+             * Format: date-time
+             */
+            publicada_en: string;
+            /** Retirada En */
+            retirada_en: string | null;
+            /** Version N */
+            version_n: number;
+            /** Vigente */
+            vigente: boolean;
         };
         /** Operational */
         Operational: {
@@ -17775,6 +18510,54 @@ export interface components {
             variables?: {
                 [key: string]: components["schemas"]["VariableIn"];
             };
+        };
+        /** VistaPreviaOpcionesIn */
+        VistaPreviaOpcionesIn: {
+            /** Definicion */
+            definicion: {
+                [key: string]: unknown;
+            };
+            /**
+             * Ejemplos
+             * @description Valor de muestra por ruta de variable; si falta se usa uno genérico.
+             */
+            ejemplos?: {
+                [key: string]: string;
+            };
+        };
+        /** VistaPreviaOpcionesOut */
+        VistaPreviaOpcionesOut: {
+            /**
+             * Cabe En Whatsapp
+             * @description El interactivo cumple los topes de Meta; si no, saldría el texto de respaldo.
+             */
+            cabe_en_whatsapp: boolean;
+            /**
+             * Componentes Meta
+             * @description Componentes de la plantilla de Meta (ventana cerrada).
+             */
+            componentes_meta: {
+                [key: string]: unknown;
+            }[];
+            /** Cuerpo Meta Renderizado */
+            cuerpo_meta_renderizado: string;
+            /**
+             * Hallazgos
+             * @description Solo avisos: con errores la ruta responde 422.
+             */
+            hallazgos: components["schemas"]["OpcionesHallazgoOut"][];
+            /**
+             * Interactivo
+             * @description Mensaje interactivo de WhatsApp (ventana de 24 h abierta), con ids de relleno.
+             */
+            interactivo: {
+                [key: string]: unknown;
+            };
+            /**
+             * Texto De Respaldo
+             * @description Canal sin botones: el cuerpo y las opciones numeradas, sin ejecución directa.
+             */
+            texto_de_respaldo: string;
         };
         /** VistaPreviaOut */
         VistaPreviaOut: {
@@ -25684,6 +26467,112 @@ export interface operations {
             };
         };
     };
+    get_opciones_directas_api_v1_admin_platform_tenants__tenant_id__opciones_directas_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesDirectasBandera"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_opciones_directas_api_v1_admin_platform_tenants__tenant_id__opciones_directas_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpcionesDirectasBanderaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesDirectasBandera"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_tenant_plan_api_v1_admin_platform_tenants__tenant_id__plan_post: {
         parameters: {
             query?: never;
@@ -32795,6 +33684,504 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_api_v1_plantillas_opciones_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesPlantillasOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_api_v1_plantillas_opciones_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpcionesCrearIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesPlantillaOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
+    obtener_api_v1_plantillas_opciones__clave__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesPlantillaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    eliminar_api_v1_plantillas_opciones__clave__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    guardar_borrador_api_v1_plantillas_opciones__clave__borrador_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpcionesBorradorIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesPlantillaOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
+    enviar_prueba_api_v1_plantillas_opciones__clave__enviar_prueba_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpcionesEnviarPruebaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesPruebaOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
+    publicar_api_v1_plantillas_opciones__clave__publicar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OpcionesPublicarIn"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesPublicadaOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
+    retirar_api_v1_plantillas_opciones__clave__retirar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesPlantillaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publicar_version_en_meta_api_v1_plantillas_opciones__clave__versiones__version_n__publicar_en_meta_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+                version_n: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpcionesMetaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesMetaOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
+    catalogo_acciones_api_v1_plantillas_opciones_catalogo_acciones_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesAccionesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    catalogo_variables_api_v1_plantillas_opciones_catalogo_variables_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesVariablesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validar_api_v1_plantillas_opciones_validar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpcionesDefinicionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesValidacionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vista_previa_api_v1_plantillas_opciones_vista_previa_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VistaPreviaOpcionesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VistaPreviaOpcionesOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
                 };
             };
         };

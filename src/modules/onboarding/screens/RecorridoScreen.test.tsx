@@ -84,6 +84,16 @@ describe("RecorridoScreen (HU-APP-22)", () => {
     expect(api.getByText("Paso 2 de 6")).toBeTruthy();
   });
 
+  it("elegir un tipo de negocio no pide activar nada antes: avisa que se activa al terminar", async () => {
+    responder(nuevo);
+    const api = await render(<RecorridoScreen />);
+    await waitFor(() => api.getByTestId("onb-tipo-ventas"));
+    expect(api.queryByTestId("onb-tipo-activara")).toBeNull();
+    await fireEvent.press(api.getByTestId("onb-tipo-ventas"));
+    expect(api.getByTestId("onb-tipo-activara")).toBeTruthy();
+    expect(api.queryByText(/Falta activar una habilidad/)).toBeNull();
+  });
+
   it("«Lo hago después» pide confirmación y deja el recorrido omitido", async () => {
     responder(nuevo);
     const alerta = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);

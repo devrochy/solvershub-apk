@@ -9,6 +9,30 @@ import type { components } from "@core/api/schema";
 export type PlantillaAgente = components["schemas"]["AgentTemplate"];
 export type PreguntaDeAgente = components["schemas"]["Question"];
 
+/** Nombre visible de las habilidades que una plantilla activa al crear el agente (el mismo del panel). */
+const HABILIDADES: Record<string, string> = {
+  pack_calendar: "Calendario",
+  pack_cobranza: "Cobranza",
+  pack_commerce: "Comercio",
+  pack_subscriptions: "Suscripciones",
+};
+
+export function nombreDeHabilidad(id: string): string {
+  return HABILIDADES[id] ?? id.replace(/^pack_/, "");
+}
+
+/**
+ * Texto de ayuda de un tipo de agente. Elegirlo ACTIVA sus habilidades (`will_enable`): ya no hay que
+ * activarlas antes. Solo queda fuera un tipo que el servicio no trae (`available` falso).
+ */
+export function ayudaDeLaPlantilla(plantilla: PlantillaAgente): string {
+  if (!plantilla.available) return "No está disponible en tu servicio por ahora.";
+  const activara = plantilla.will_enable ?? [];
+  return activara.length > 0
+    ? `${plantilla.description} Al crearlo activaremos: ${activara.map(nombreDeHabilidad).join(", ")}.`
+    : plantilla.description;
+}
+
 /** Máximo de pasos, contando elegir el tipo, el nombre, lo cargado, revisar y publicar (ADR-0171). */
 export const MAX_PASOS = 10;
 export const NOMBRE_MAX = 120;
@@ -67,7 +91,7 @@ export function errorDelPaso(
 ): string | undefined {
   if (paso.id === "tipo") {
     if (!plantilla) return "Elige qué quieres que haga tu agente.";
-    if (!plantilla.available) return "Para este tipo de agente falta activar una habilidad.";
+    if (!plantilla.available) return "Este tipo de agente no está disponible en tu servicio por ahora.";
     return undefined;
   }
   if (paso.id === "nombre") {
