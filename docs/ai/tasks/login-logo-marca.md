@@ -40,7 +40,18 @@ de autenticación ni los testIDs.
 - Se conservan lógica, props y testIDs (`login-usuario`, `login-password`, `login-error`,
   `login-entrar`, `login-recuperar`, `login-biometria`).
 
+## Incidencia detectada en el dispositivo
+En el primer OTA el `Image` se pintó a su tamaño intrínseco (760×610 dp) y el wordmark salía
+recortado: en Android el asset local (`require`) antepone su `width/height` al estilo del
+componente. Se resolvió con `fuenteLogo(tema)`, que pasa el asset por
+`Image.resolveAssetSource(...).uri` (con respaldo al `require` cuando no hay `uri`, p. ej. en
+Jest) y deja mandar al `width: 190, height: 152` del estilo.
+
 ## Resultado final
+- Verificado en **OPPO CPH2603** (Android 16) con el APK `preview` y la OTA
+  `ab1b41ae-683f-4e94-9c19-901a014ca319` (runtime `68a78b8e34b89255e8b8f0310bee6040be994b44`):
+  logo a 190×152 dp (bounds 484×388 px), sin recortes, con tema oscuro y el resto de la pantalla
+  completo.
 - Comandos ejecutados: `npm run lint` (verde), `npm run typecheck` (verde),
   `node scripts/check-module-boundaries.mjs` (verde), `npm test` → **147 suites / 949 tests en verde**.
 - `npm run check` se detiene en el paso `api:types`: el `src/core/api/schema.d.ts` commiteado está
