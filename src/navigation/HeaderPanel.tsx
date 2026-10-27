@@ -4,6 +4,7 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { shSpace, shType } from "@core/theme/tokens";
 import { CampanaDelPanel, IconButton, useKit } from "@shared/ui";
+import { AvisoDeOnboarding } from "../modules/onboarding";
 import { useMenuPanel } from "./menu-panel-context";
 
 /**
@@ -22,35 +23,38 @@ export function HeaderPanel({ titulo, conBusqueda = true }: { titulo: string; co
   const oscuro = tema === "oscuro";
 
   return (
-    <View
-      testID="panel-header"
-      style={[styles.banda, { backgroundColor: c.surface, borderBottomColor: c.border, paddingTop: insets.top }]}
-    >
-      <View style={styles.fila}>
-        <IconButton testID="panel-menu" icon="menu" label="Abrir menú" onPress={abrir} />
-        <View style={styles.titulos}>
-          <Text testID="panel-titulo" accessibilityRole="header" style={[styles.titulo, { color: c.text }]} numberOfLines={1}>
-            {titulo}
-          </Text>
-          {sesion?.tenantName ? (
-            <Text testID="panel-negocio" style={[shType.caption, { color: c.textMuted }]} numberOfLines={1}>
-              {sesion.tenantName}
+    <>
+      <View
+        testID="panel-header"
+        style={[styles.banda, { backgroundColor: c.surface, borderBottomColor: c.border, paddingTop: insets.top }]}
+      >
+        <View style={styles.fila}>
+          <IconButton testID="panel-menu" icon="menu" label="Abrir menú" onPress={abrir} />
+          <View style={styles.titulos}>
+            <Text testID="panel-titulo" accessibilityRole="header" style={[styles.titulo, { color: c.text }]} numberOfLines={1}>
+              {titulo}
             </Text>
+            {sesion?.tenantName ? (
+              <Text testID="panel-negocio" style={[shType.caption, { color: c.textMuted }]} numberOfLines={1}>
+                {sesion.tenantName}
+              </Text>
+            ) : null}
+          </View>
+          {conBusqueda ? (
+            <IconButton testID="panel-buscar" icon="search" label="Buscar" onPress={() => irA({ modulo: "busqueda" })} />
           ) : null}
+          <IconButton
+            testID="panel-tema"
+            icon={oscuro ? "light-mode" : "dark-mode"}
+            label={oscuro ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+            onPress={alternarTema}
+          />
+          {/* Siempre al extremo derecho (ADR-0167). */}
+          <CampanaDelPanel />
         </View>
-        {conBusqueda ? (
-          <IconButton testID="panel-buscar" icon="search" label="Buscar" onPress={() => irA({ modulo: "busqueda" })} />
-        ) : null}
-        <IconButton
-          testID="panel-tema"
-          icon={oscuro ? "light-mode" : "dark-mode"}
-          label={oscuro ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-          onPress={alternarTema}
-        />
-        {/* Siempre al extremo derecho (ADR-0167). */}
-        <CampanaDelPanel />
       </View>
-    </View>
+      <AvisoDeOnboarding />
+    </>
   );
 }
 
