@@ -29,6 +29,11 @@ export function valorDeKpi(k: Pick<KpiResumen, "valor" | "unidad">): string {
   }
 }
 
+/** «frente a los 7 días anteriores», pero «frente al mes anterior» (nunca «a el»). */
+function frenteA(versus: string): string {
+  return versus.startsWith("el ") ? `frente al ${versus.slice(3)}` : `frente a ${versus}`;
+}
+
 export interface PropsDeKpi {
   label: string;
   value: string;
@@ -46,7 +51,7 @@ export function propsDeKpi(k: KpiResumen): PropsDeKpi {
     label: k.label,
     value: valorDeKpi(k),
     delta: hayDelta ? k.delta_pct! : undefined,
-    period: hayDelta ? `frente a ${k.versus ?? VERSUS_POR_DEFECTO}` : undefined,
+    period: hayDelta ? frenteA(k.versus ?? VERSUS_POR_DEFECTO) : undefined,
     polarity: k.polaridad,
     onPress: destino ? () => emitirNavegacion(destino) : undefined,
   };

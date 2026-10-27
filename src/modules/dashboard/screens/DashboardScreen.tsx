@@ -56,7 +56,12 @@ export function DashboardScreen() {
       const agentes = await cargarResumenAgentes(api).catch(() => null);
       const completo = tieneResumen(agentes) ? agentes : null;
       setPorAgente(completo);
-      if (verCobranza && !completo) {
+      // Quien ve Cobranza pero no la sección de agentes no recibe el módulo en el Resumen por
+      // agente: conserva su bloque de siempre.
+      const cobranzaEnResumen = completo?.agentes.some((a) =>
+        a.modulos.some((m) => m.id === "pack_cobranza"),
+      );
+      if (verCobranza && !cobranzaEnResumen) {
         const resumen = await cargarResumenCobranza(api).catch(() => null);
         setCobranza(resumen?.kpis ?? []);
       } else {
@@ -130,6 +135,16 @@ export function DashboardScreen() {
       {porAgente ? (
         <>
           <ResumenAgentes datos={porAgente} />
+          {verCobranza && cobranza.length > 0 ? (
+            <>
+              <Text style={[styles.seccion, { color: colores.texto }]}>Cobranza</Text>
+              <View style={styles.grid}>
+                {cobranza.map((k) => (
+                  <StatCard key={k.label} titulo={k.label} valor={k.value} />
+                ))}
+              </View>
+            </>
+          ) : null}
           <Text style={[styles.seccion, { color: colores.texto }]}>Estado del asistente</Text>
           <View style={styles.grid}>
             <StatCard titulo="Asistente" valor={datos?.bot_paused ? "Pausado" : "Activo"} />

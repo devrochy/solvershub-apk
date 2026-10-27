@@ -41,7 +41,7 @@ describe("propsDeKpi", () => {
     expect(p.polarity).toBe("up-bad");
     expect(p.period).toBe("frente a los 7 días anteriores");
     expect(propsDeKpi(kpi({ delta_pct: 5, versus: "el mes anterior" })).period).toBe(
-      "frente a el mes anterior",
+      "frente al mes anterior",
     );
   });
 

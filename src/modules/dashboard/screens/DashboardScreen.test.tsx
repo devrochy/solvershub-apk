@@ -243,12 +243,38 @@ describe("DashboardScreen (HU-APP-04)", () => {
       expect(queryByTestId("resumen-agentes")).toBeNull();
     });
 
-    it("con el resumen por agente no pide el de cobranza (ya viene en el módulo)", async () => {
+    it("con el módulo de cobranza ya en el resumen por agente no pide el de cobranza", async () => {
       mockSesion = { ...SESION, permissions: { "pack_cobranza:resumen": "read" } };
-      respuestas(POR_AGENTE);
+      respuestas({
+        ...POR_AGENTE,
+        agentes: [
+          ...POR_AGENTE.agentes.slice(0, 1),
+          {
+            ...POR_AGENTE.agentes[1],
+            modulos: [
+              { id: "pack_cobranza", nombre: "Cobranza", kpis: [kpi({ id: "recaudo", label: "Recaudo" })] },
+            ],
+          },
+        ],
+      });
       const { getByTestId } = await render(<DashboardScreen />);
       await waitFor(() => expect(getByTestId("resumen-agentes")).toBeTruthy());
       expect(mockGet).not.toHaveBeenCalledWith("/pack/cobranza/summary");
+    });
+
+    it("quien ve Cobranza pero no recibe su módulo en el resumen conserva el bloque de siempre", async () => {
+      mockSesion = { ...SESION, permissions: { "pack_cobranza:resumen": "read" } };
+      mockGet.mockImplementation((path: string) =>
+        path === "/admin/dashboard"
+          ? Promise.resolve(DASHBOARD)
+          : path === "/admin/dashboard/agents"
+            ? Promise.resolve({ ...POR_AGENTE, agentes: [] })
+            : Promise.resolve({ kpis: [{ label: "Caja actual", value: "1.200.000" }] }),
+      );
+      const { getByTestId, getByText } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("resumen-agentes")).toBeTruthy());
+      await waitFor(() => expect(getByText("Caja actual")).toBeTruthy());
+      expect(getByText("1.200.000")).toBeTruthy();
     });
   });
 });
