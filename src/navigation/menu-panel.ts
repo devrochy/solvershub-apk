@@ -185,14 +185,10 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         label: "Agenda",
         icono: "event",
         pack: "pack_calendar",
+        // HU-CAL-08: una sola vista con el calendario y un cajón de ajustes. Google
+        // Calendar se administra en Conexiones.
         pestanas: [
-          { label: "Calendario", modulo: "calendario", pestana: "semana", seccion: "pack_calendar:citas" },
-          { label: "Tipos de cita", modulo: "calendario", pestana: "tipos", seccion: "pack_calendar:tipos" },
-          { label: "Horario", modulo: "calendario", pestana: "horario", seccion: "pack_calendar:configuracion" },
-          { label: "Google Calendar", modulo: "calendario", pestana: "conexion", seccion: "pack_calendar:conexion" },
-          // HU-UX-08: en el panel web los bloqueos se crean y se arrastran en el Calendario. Va al
-          // final para que la entrada nunca abra en ella si el usuario ve el Calendario.
-          { label: "Bloqueos", modulo: "calendario", pestana: "bloqueos", seccion: "pack_calendar:bloqueos", oculta: true },
+          { label: "Agenda", modulo: "calendario", pestana: "agenda", seccion: "pack_calendar:citas" },
         ],
       },
       {
@@ -377,6 +373,8 @@ export interface DestinoMenu {
   pestana?: string;
   /** `id` de la entrada por la que se llegó; manda sobre el módulo y la pestaña. */
   entrada?: string;
+  /** Sección del cajón de ajustes de Agenda que se abre al llegar (HU-CAL-08). */
+  ajustes?: string;
 }
 
 /**

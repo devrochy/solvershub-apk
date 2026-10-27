@@ -6,6 +6,8 @@ export interface DestinoNavegacion {
   tab: string;
   /** Pestaña interna del módulo, si se quiere abrir una concreta. */
   pestana?: string;
+  /** Sección de ajustes que debe abrir la pantalla de Agenda (HU-CAL-08). */
+  ajustes?: string;
 }
 
 type Oyente = (destino: DestinoNavegacion) => void;

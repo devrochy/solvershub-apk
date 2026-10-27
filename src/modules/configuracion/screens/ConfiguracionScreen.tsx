@@ -19,8 +19,10 @@ import {
 } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { useAdminSession } from "@core/session/admin-session-context";
 import { CLAVE_PUSH_HABILITADO, guardarAjuste, leerAjuste } from "@data/ajustes";
 import { AjustesTab } from "../components/AjustesTab";
+import { GoogleCalendarCard } from "../components/GoogleCalendarCard";
 import { MetaChecklist } from "../components/MetaChecklist";
 import {
   accionHabilidad,
@@ -53,6 +55,9 @@ export function ConfiguracionScreen({
 }: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
+  const { sesion } = useAdminSession();
+  const esMaster = sesion?.role === "master";
+  const puedeEditarConexiones = esMaster || sesion?.permissions?.connections === "write";
   // Solo las pestañas de la entrada del cajón (Equipo, Conexiones, Configuración);
   // las de otra pantalla (Mensajes fallidos) se abren por el bus.
   const { pestana, setPestana, propias, ajenas } = usePestanasDeEntrada<Pestana>(
@@ -77,6 +82,8 @@ export function ConfiguracionScreen({
   const [plantillasCargando, setPlantillasCargando] = useState(false);
   const [pushOn, setPushOn] = useState(true);
   const [subConexiones, setSubConexiones] = useState<"canales" | "meta">("canales");
+  const google = conexiones.filter((conexion) => conexion.type_id === "google_calendar");
+  const canales = conexiones.filter((conexion) => conexion.type_id !== "google_calendar");
 
   const cargar = useCallback(async () => {
     try {
@@ -375,11 +382,18 @@ export function ConfiguracionScreen({
           ) : (
             <FlatList
               testID="config-lista-conexiones"
-              data={conexiones}
+              data={canales}
               keyExtractor={(c) => c.id}
+              ListHeaderComponent={
+                <GoogleCalendarCard
+                  conexiones={google}
+                  tenantId={sesion?.tenantId ?? null}
+                  puedeEditar={puedeEditarConexiones}
+                />
+              }
               ListEmptyComponent={
                 <Text style={{ color: colores.textoSuave, textAlign: "center", marginTop: 20 }}>
-                  Sin conexiones.
+                  Sin otros canales.
                 </Text>
               }
               renderItem={({ item }) => (

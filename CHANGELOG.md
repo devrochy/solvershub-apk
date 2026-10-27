@@ -15,8 +15,9 @@
   escalaciones, clientes), Cobranza admin (resumen, clientes con ficha y cambios, pagos,
   promesas, dispositivos, auditoría, gestores con permisos finos y propietario con cargos y
   mensajes), Comercio (resumen con KPIs, pedidos con cambio de estado, productos,
-  promociones, categorías), Calendario (semana, tipos, bloqueos, horario de atención y
-  conexión con Google), Negocio (plan/consumo, costos IA), Configuración (colaboradores,
+  promociones, categorías), Agenda en una sola vista (varias agendas con chips y filtros,
+  línea del día con arrastre y redimensión, y cajón de ajustes de tipos, horario y agendas;
+  Google Calendar se conecta desde Conexiones), Negocio (plan/consumo, costos IA), Configuración (colaboradores,
   habilidades, conexiones con checklist de Meta, ajustes del agente: identidad, cerebro y
   memoria) y Herramientas/Plataforma (DLQ, negocios para master).
 - Búsqueda global con resultados por sección (y fallback local sin red).

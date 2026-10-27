@@ -1,7 +1,10 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
 jest.mock("@core/session/admin-session-context", () => ({
-  useAdminSession: () => ({ sesion: { token: "t", role: "owner", permissions: {}, tenantId: "tenant-1" }, loading: false }),
+  useAdminSession: () => ({
+    sesion: { token: "t", role: "owner", permissions: { connections: "write" }, tenantId: "tenant-1" },
+    loading: false,
+  }),
 }));
 jest.mock("@data/ajustes", () => ({
   CLAVE_PUSH_HABILITADO: "push_habilitado",
@@ -9,7 +12,8 @@ jest.mock("@data/ajustes", () => ({
   guardarAjuste: jest.fn(() => Promise.resolve()),
 }));
 
-import { Alert } from "react-native";
+import { Alert, Linking } from "react-native";
+import { apiRoot } from "@core/config";
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { guardarAjuste as mockGuardarAjuste } from "@data/ajustes";
@@ -74,6 +78,19 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
               external_id: "123",
               active: true,
               is_primary: true,
+              created_at: "2026-10-01T00:00:00Z",
+              coexistence: false,
+            },
+            {
+              id: "google-1",
+              kind: "google_calendar",
+              type_id: "google_calendar",
+              origin: "oauth",
+              channel: "",
+              label: "Agenda de Ana",
+              external_id: "ana@demo.test",
+              active: true,
+              is_primary: false,
               created_at: "2026-10-01T00:00:00Z",
               coexistence: false,
             },
@@ -231,6 +248,19 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
 
     await fireEvent(getByTestId("push-toggle"), "valueChange", false);
     await waitFor(() => expect(mockGuardarAjuste).toHaveBeenCalledWith("push_habilitado", "0"));
+  });
+
+  it("muestra Google Calendar en Conexiones y abre el panel (HU-CAL-08)", async () => {
+    const abrir = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
+    await waitFor(() => expect(getByTestId("config-conexiones")).toBeTruthy());
+    await fireEvent.press(getByTestId("config-conexiones"));
+
+    await waitFor(() => expect(getByTestId("google-calendar")).toBeTruthy());
+    expect(getByText("Agenda de Ana")).toBeTruthy();
+    await fireEvent.press(getByTestId("google-conectar"));
+    expect(abrir).toHaveBeenCalledWith(`${apiRoot()}/calendario?ajustes=agendas&tenant=tenant-1`);
+    abrir.mockRestore();
   });
 
   it("abre plantillas de una conexión y sincroniza (HU-APP-21)", async () => {

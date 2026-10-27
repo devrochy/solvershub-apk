@@ -48,7 +48,13 @@ export { catalogoDisponible, seccionesDeMenu } from "./menu-panel";
 const Tab = createBottomTabNavigator();
 
 type ParamsModulo =
-  | { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas; screen?: string; params?: object }
+  | {
+      pestanaInicial?: SolicitudPestana;
+      ajustesInicial?: string;
+      entrada?: EntradaPestanas;
+      screen?: string;
+      params?: object;
+    }
   | undefined;
 
 /**
@@ -94,7 +100,11 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
     case "calendario":
       return (
         <ConHeader modulo={modulo}>
-          <CalendarioScreen pestanaInicial={pestanaInicial} entrada={entrada} />
+          <CalendarioScreen
+            pestanaInicial={pestanaInicial}
+            ajustesInicial={params?.ajustesInicial}
+            entrada={entrada}
+          />
         </ConHeader>
       );
     case "negocio":
@@ -171,6 +181,7 @@ export function PanelShell() {
       const entrada = visible ? pestanasDeEntrada(visible) : undefined;
       const params = {
         ...(destino.pestana ? { pestanaInicial: { pestana: destino.pestana, n } } : {}),
+        ...(destino.ajustes ? { ajustesInicial: destino.ajustes } : {}),
         entrada,
       };
       const raiz = MODULOS_PANEL[destino.modulo].raizStack;
@@ -186,7 +197,11 @@ export function PanelShell() {
   useEffect(() => {
     // Deep link desde módulos anidados (HU-APP-21) y push tocados.
     return suscribirNavegacion((destino) =>
-      navegar({ modulo: destino.tab as ModuloPanel, pestana: destino.pestana }),
+      navegar({
+        modulo: destino.tab as ModuloPanel,
+        pestana: destino.pestana,
+        ajustes: destino.ajustes,
+      }),
     );
   }, [navegar]);
 

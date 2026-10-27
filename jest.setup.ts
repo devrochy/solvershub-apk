@@ -67,6 +67,34 @@ jest.mock("react-native-safe-area-context", () => {
   };
 });
 
+
+jest.mock("@react-native-community/datetimepicker", () => {
+  const React = require("react");
+  const { View, Pressable, Text } = require("react-native");
+  const Picker = (props: {
+    value?: Date;
+    onChange?: (evento: { type: string }, fecha?: Date) => void;
+    testID?: string;
+  }) =>
+    React.createElement(
+      View,
+      { testID: props.testID ?? "datetimepicker" },
+      React.createElement(
+        Pressable,
+        {
+          testID: `${props.testID ?? "datetimepicker"}-confirmar`,
+          onPress: () => props.onChange?.({ type: "set" }, props.value ?? new Date()),
+        },
+        React.createElement(Text, null, "OK"),
+      ),
+    );
+  return {
+    __esModule: true,
+    default: Picker,
+    DateTimePickerAndroid: { open: jest.fn(), dismiss: jest.fn() },
+  };
+});
+
 export {};
 
 jest.mock("@react-navigation/native", () => {
