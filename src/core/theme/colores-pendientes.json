@@ -1,5 +1,4 @@
 {
-  "src/modules/calendario/screens/CalendarioScreen.tsx": 5,
   "src/modules/cobranza-admin/screens/CarteraDetalleScreen.tsx": 2,
   "src/modules/cobranza-admin/screens/CobranzaAdminScreen.tsx": 2,
   "src/modules/cobranza-admin/screens/GestoresTab.tsx": 5,

@@ -57,6 +57,16 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
     expect(cobranza.destino).toMatchObject({ pestana: "resumen" });
   });
 
+  it("Agenda es una sola vista y se abre con `pack_calendar:citas` (HU-CAL-08)", () => {
+    expect(seccionesDeMenu({ "pack_calendar:citas": "read" }, false, { dev: false })).toEqual([
+      expect.objectContaining({ entrada: "agenda", modulo: "calendario", pestana: "agenda", grupo: "Negocio" }),
+    ]);
+    // Los ajustes ya no son entradas propias: viven dentro de Agenda.
+    expect(seccionesDeMenu({ "pack_calendar:configuracion": "write" }, false, { dev: false })).toEqual([]);
+    expect(seccionesDeMenu({ "pack_calendar:conexion": "write" }, false, { dev: false })).toEqual([]);
+    expect(seccionesDeMenu({ "pack_calendar:bloqueos": "write" }, false, { dev: false })).toEqual([]);
+  });
+
   it("Clientes es oculta pero conserva su clave RBAC y su destino; Pagos conserva `cobros`", () => {
     const cobranza = gruposDeMenu({}, true, { dev: false })
       .flatMap((g) => g.entradas)
@@ -95,43 +105,15 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
     });
   });
 
-  it("Agenda usa `pack_calendar:configuracion` para el Horario", () => {
-    const items = seccionesDeMenu({ "pack_calendar:configuracion": "write" }, false, { dev: false });
-    expect(items).toEqual([
-      expect.objectContaining({ entrada: "agenda", modulo: "calendario", pestana: "horario", grupo: "Negocio" }),
-    ]);
-    expect(seccionesDeMenu({ "pack_calendar:conexion": "write" }, false, { dev: false })).toEqual([
-      expect.objectContaining({ entrada: "agenda", label: "Google Calendar", pestana: "conexion" }),
-    ]);
-  });
-
-  it("Agenda: Calendario · Tipos de cita · Horario · Google Calendar; Bloqueos oculta al final (HU-UX-08)", () => {
+  it("Agenda: una entrada y una pestaña, sin Google ni Bloqueos (HU-CAL-08)", () => {
     const agenda = gruposDeMenu({}, true, { dev: false })
       .flatMap((g) => g.entradas)
       .find((e) => e.id === "agenda")!;
-    expect(agenda.pestanas.filter((p) => !p.oculta).map((p) => p.label)).toEqual([
-      "Calendario",
-      "Tipos de cita",
-      "Horario",
-      "Google Calendar",
+    expect(agenda.pestanas.map((p) => p.label)).toEqual(["Agenda"]);
+    expect(agenda.destino).toMatchObject({ pestana: "agenda", seccion: "pack_calendar:citas" });
+    expect(pestanasDeEntrada(agenda).pestanas).toEqual([
+      { tab: "calendario", pestana: "agenda", label: "Agenda" },
     ]);
-    expect(agenda.pestanas.at(-1)).toMatchObject({ pestana: "bloqueos", seccion: "pack_calendar:bloqueos", oculta: true });
-    expect(agenda.destino).toMatchObject({ pestana: "semana" });
-    expect(pestanasDeEntrada(agenda).pestanas.at(-1)).toEqual({
-      tab: "calendario",
-      pestana: "bloqueos",
-      label: "Bloqueos",
-      oculta: true,
-    });
-
-    // El push y la Búsqueda siguen llegando a Bloqueos por su pestaña.
-    expect(entradaDeDestino({}, true, { modulo: "calendario", pestana: "bloqueos" })).toMatchObject({ id: "agenda" });
-
-    // Con permiso solo en Bloqueos, la entrada sigue y abre en ella (como el panel web).
-    const soloBloqueos = gruposDeMenu({ "pack_calendar:bloqueos": "write" }, false, { dev: false })
-      .flatMap((g) => g.entradas)
-      .find((e) => e.id === "agenda");
-    expect(soloBloqueos?.destino).toMatchObject({ pestana: "bloqueos" });
   });
 
   it("Configuración absorbe Mensajes fallidos; Equipo es Colaboradores", () => {
@@ -240,6 +222,6 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
     const agenda = entradaDeDestino({ "pack_calendar:citas": "read", "pack_calendar:tipos": "read" }, false, {
       modulo: "calendario",
     });
-    expect(pestanasDeEntrada(agenda!).pestanas.map((p) => p.pestana)).toEqual(["semana", "tipos"]);
+    expect(pestanasDeEntrada(agenda!).pestanas.map((p) => p.pestana)).toEqual(["agenda"]);
   });
 });
