@@ -39,7 +39,7 @@ const CAMPO_RESULT = {
 };
 
 const ME_UN_NEGOCIO = {
-  tenantCount: 1,
+  tenant_count: 1,
   tenant: { id: "t-1", name: "Mi Negocio", role: "owner", active: true },
 };
 
@@ -127,7 +127,7 @@ describe("LoginUnificadoScreen (HU-APP-02/03)", () => {
   });
 
   it("con cero negocios delega al flujo legado (invitaciones ADR-0081)", async () => {
-    dadoMe({ tenantCount: 0, tenant: null });
+    dadoMe({ tenant_count: 0, tenant: null });
     const onFlujoLegado = jest.fn().mockResolvedValue(undefined);
     const onAutenticado = jest.fn();
 
@@ -142,7 +142,7 @@ describe("LoginUnificadoScreen (HU-APP-02/03)", () => {
 
   it("con varios negocios abre el selector admin (HU-APP-03)", async () => {
     dadoMe({
-      tenantCount: 2,
+      tenant_count: 2,
       tenant: { id: "t-1", name: "A", role: "owner", active: true },
     });
     const alSeleccionarNegocios = jest.fn();

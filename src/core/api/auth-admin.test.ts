@@ -47,7 +47,7 @@ describe("api admin (ADR-0094)", () => {
 
   it("me envía Bearer y X-Tenant-Id cuando hay negocio elegido", async () => {
     fetchMock.mockResolvedValueOnce(
-      jsonResponse(200, { adminId: "a-1", email: "e", role: "owner", tenantCount: 1 }),
+      jsonResponse(200, { admin_id: "a-1", email: "e", role: "owner", tenant_count: 1 }),
     );
     await apiMeAdmin("t-opaco", "t-1");
     const [url, init] = fetchMock.mock.calls[0];

@@ -20,7 +20,7 @@ import * as Location from "expo-location";
 import { apiErrorStatus, esErrorDeRed } from "@core/api/client";
 import { Avatar } from "../components/Avatar";
 import { HeaderApp } from "../components/HeaderApp";
-import { CampoTelefono } from "../components/CampoTelefono";
+import { CampoTelefono } from "@shared/ui";
 import { CargaError } from "../components/CargaError";
 import { BannerMensaje } from "../components/BannerMensaje";
 import { ColorBadge, colorDeEstado } from "../components/ColorBadge";

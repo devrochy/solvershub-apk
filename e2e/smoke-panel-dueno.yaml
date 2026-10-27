@@ -35,6 +35,17 @@ appId: com.solvershub.apk
 #    (HU-UX-12): fila 1 `cobranza-area-<area>`, fila 2 `cobranza-<seccion>`.
 - tapOn:
     id: "panel-menu"
+- assertVisible:
+    id: "cajon-marca"
+- assertVisible:
+    id: "cajon-cuenta"
+# Los grupos arrancan plegados: abrir Negocio antes de buscar Cobranza.
+- scrollUntilVisible:
+    element:
+      id: "cajon-grupo-negocio"
+    direction: DOWN
+- tapOn:
+    id: "cajon-grupo-negocio"
 - scrollUntilVisible:
     element:
       id: "cajon-item-cobranza"
@@ -58,6 +69,7 @@ appId: com.solvershub.apk
     id: "permiso-generar_reporte"
 - tapOn: "Cancelar"
 # 3. Ventas → Resumen con KPIs (su primera pestaña)
+#    Negocio sigue abierto porque Cobranza (la sección activa) vive en ese grupo.
 - tapOn:
     id: "panel-menu"
 - scrollUntilVisible:
@@ -71,6 +83,7 @@ appId: com.solvershub.apk
       id: "comercio-kpi-.*"
     timeout: 20000
 # 4. Agenda → Horario (guardar sin cambios) y Google Calendar, como pestañas de la entrada
+#    Negocio sigue abierto porque Ventas (la sección activa) vive en ese grupo.
 - tapOn:
     id: "panel-menu"
 - scrollUntilVisible:
@@ -112,6 +125,12 @@ appId: com.solvershub.apk
     id: "panel-menu"
 - scrollUntilVisible:
     element:
+      id: "cajon-grupo-cuenta"
+    direction: DOWN
+- tapOn:
+    id: "cajon-grupo-cuenta"
+- scrollUntilVisible:
+    element:
       id: "cajon-item-configuracion"
     direction: DOWN
 - tapOn:
@@ -141,6 +160,12 @@ appId: com.solvershub.apk
     id: "panel-menu"
 - scrollUntilVisible:
     element:
+      id: "cajon-grupo-asistente"
+    direction: DOWN
+- tapOn:
+    id: "cajon-grupo-asistente"
+- scrollUntilVisible:
+    element:
       id: "cajon-item-conexiones"
     direction: DOWN
 - tapOn:
@@ -165,10 +190,26 @@ appId: com.solvershub.apk
     visible:
       id: "checklist-checks"
     timeout: 30000
-# 7. Tema: el toggle del header alterna (oscuro por defecto → claro) y vuelve
+# 7. Tema: vive en la tarjeta de la cuenta del cajón.
 - tapOn:
-    id: "panel-tema"
+    id: "panel-menu"
+- tapOn:
+    id: "cajon-cuenta"
+- tapOn:
+    id: "cajon-tema"
 - assertVisible:
-    id: "panel-tema"
+    id: "cajon-cuenta-submenu"
 - tapOn:
-    id: "panel-tema"
+    id: "cajon-tema"
+# 8. Perfil: ruta real del stack; el gesto de volver se prueba a mano.
+- tapOn:
+    id: "cajon-perfil"
+- extendedWaitUntil:
+    visible:
+      id: "perfil-admin"
+    timeout: 20000
+- back
+- extendedWaitUntil:
+    visible:
+      id: "panel-menu"
+    timeout: 10000

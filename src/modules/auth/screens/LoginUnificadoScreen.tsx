@@ -72,11 +72,11 @@ export function LoginUnificadoScreen({
     setError(null);
     try {
       const { sesion, me } = await loginAdmin(usuario.trim(), password);
-      if (me.tenantCount === 0) {
+      if (me.tenant_count === 0) {
         await onFlujoLegado(usuario.trim(), password);
         return;
       }
-      if (me.tenantCount === 1 && me.tenant) {
+      if (me.tenant_count === 1 && me.tenant) {
         try {
           const campo = await apiGestorToken(sesion.token, me.tenant.id);
           await onAutenticado(campo);

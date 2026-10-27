@@ -4,10 +4,28 @@ jest.mock("expo-status-bar", () => {
   const { Text } = require("react-native");
   return { StatusBar: (props: { style: string }) => React.createElement(Text, { testID: "status-bar" }, props.style) };
 });
+jest.mock("../modules/perfil", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  return {
+    PerfilAdminScreen: ({ onBack }: { onBack: () => void }) =>
+      React.createElement(Text, { testID: "perfil-admin", onPress: onBack }, "Perfil"),
+  };
+});
 
 let mockSesionValue: unknown = null;
+let mockPerfilValue: unknown = null;
+const mockRefrescarPerfil = jest.fn().mockResolvedValue(undefined);
+const mockAplicarPerfil = jest.fn().mockResolvedValue(undefined);
 jest.mock("@core/session/admin-session-context", () => ({
-  useAdminSession: () => ({ sesion: mockSesionValue, loading: false, logout: jest.fn() }),
+  useAdminSession: () => ({
+    sesion: mockSesionValue,
+    perfil: mockPerfilValue,
+    loading: false,
+    refrescarPerfil: mockRefrescarPerfil,
+    aplicarPerfil: mockAplicarPerfil,
+    logout: jest.fn(),
+  }),
 }));
 
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
@@ -23,9 +41,18 @@ async function renderShell() {
   );
 }
 
+type ResultadoRender = Awaited<ReturnType<typeof render>>;
+
+async function abrirGrupo(getByTestId: ResultadoRender["getByTestId"], grupo: string) {
+  await fireEvent.press(getByTestId(`cajon-grupo-${grupo}`));
+}
+
 const DUENO = {
   token: "t",
   adminId: "a-1",
+  email: "dueno-a@demo.test",
+  nombre: "Dueño Demo",
+  username: "dueno",
   role: "owner",
   tenantName: "Cobranza Demo",
   permissions: {
@@ -37,10 +64,21 @@ const DUENO = {
   },
 };
 
+const PERFIL = {
+  nombre: "Dueño Demo",
+  username: "dueno",
+  telefono: null,
+  avatarUrl: null,
+  email: "dueno-a@demo.test",
+  role: "owner",
+  tenantName: "Cobranza Demo",
+};
+
 describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSesionValue = null;
+    mockPerfilValue = PERFIL;
   });
 
   it("dueño con cobranza y comercio: header del módulo y cajón solo con sus secciones", async () => {
@@ -51,11 +89,17 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await fireEvent.press(getByTestId("panel-menu"));
     expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "auto");
     expect(getByTestId("cajon-grupo-operacion")).toBeTruthy();
-    expect(getByTestId("cajon-item-cobranza")).toBeTruthy();
-    expect(getByTestId("cajon-item-ventas")).toBeTruthy();
+    expect(getByTestId("cajon-grupo-negocio")).toBeTruthy();
+    expect(getByTestId("cajon-cuenta")).toBeTruthy();
     // Agenda y Cuenta sin permiso → no aparecen.
     expect(queryByTestId("cajon-item-agenda")).toBeNull();
     expect(queryByTestId("cajon-grupo-cuenta")).toBeNull();
+
+    // Los grupos arrancan plegados.
+    expect(queryByTestId("cajon-item-cobranza")).toBeNull();
+    await abrirGrupo(getByTestId, "negocio");
+    expect(getByTestId("cajon-item-cobranza")).toBeTruthy();
+    expect(getByTestId("cajon-item-ventas")).toBeTruthy();
   });
 
   it("una entrada del cajón abre el módulo en su primera pestaña permitida", async () => {
@@ -64,6 +108,7 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await findByTestId("panel-menu");
 
     await fireEvent.press(getByTestId("panel-menu"));
+    await abrirGrupo(getByTestId, "negocio");
     await fireEvent.press(getByTestId("cajon-item-ventas"));
 
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Ventas"));
@@ -78,6 +123,7 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await findByTestId("panel-menu");
 
     await fireEvent.press(getByTestId("panel-menu"));
+    await abrirGrupo(getByTestId, "negocio");
     await fireEvent.press(getByTestId("cajon-item-cobranza"));
 
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Cobranza"));
@@ -119,10 +165,12 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await findByTestId("panel-menu");
 
     await fireEvent.press(getByTestId("panel-menu"));
+    await abrirGrupo(getByTestId, "cuenta");
     await fireEvent.press(getByTestId("cajon-item-equipo"));
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Equipo"));
 
     await fireEvent.press(getByTestId("panel-menu"));
+    await abrirGrupo(getByTestId, "cuenta");
     await fireEvent.press(getByTestId("cajon-item-configuracion"));
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Configuración"));
     await waitFor(() => expect(getByTestId("config-ajustes")).toBeTruthy());
@@ -138,6 +186,7 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
 
     // Equipo: solo Colaboradores, sin barra de pestañas.
     await fireEvent.press(getByTestId("panel-menu"));
+    await abrirGrupo(getByTestId, "cuenta");
     await fireEvent.press(getByTestId("cajon-item-equipo"));
     await waitFor(() => expect(getByTestId("config-invitar")).toBeTruthy());
     expect(queryByTestId("config-colaboradores")).toBeNull();
@@ -145,13 +194,13 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
 
     // Configuración: General, Habilidades, Push y Mensajes fallidos (otra pantalla).
     await fireEvent.press(getByTestId("panel-menu"));
+    await abrirGrupo(getByTestId, "cuenta");
     await fireEvent.press(getByTestId("cajon-item-configuracion"));
     await waitFor(() => expect(getByTestId("config-ajustes")).toHaveStyle({ borderBottomWidth: 2 }));
     expect(getByTestId("config-habilidades")).toBeTruthy();
     expect(getByTestId("config-notificaciones")).toBeTruthy();
     expect(queryByTestId("config-colaboradores")).toBeNull();
     expect(queryByTestId("config-conexiones")).toBeNull();
-    // La pestaña Plan de Configuración ya no existe (la eliminación de negocios está en Plataforma).
     expect(queryByTestId("config-plan")).toBeNull();
 
     // Mensajes fallidos abre Herramientas por el bus, sin salir de la entrada.
@@ -177,7 +226,6 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     expect(queryByTestId("pestana-leads")).toBeNull();
     expect(queryByTestId("pestana-playground")).toBeNull();
 
-    // Búsqueda / push: `{tab, pestana}` sin entrada → la que contiene el destino.
     await act(async () => {
       emitirNavegacion({ tab: "conversaciones", pestana: "leads" });
     });
@@ -194,12 +242,47 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await waitFor(() => expect(getByTestId("cobranza-pestanas")).toBeTruthy());
   });
 
-  it("la barra de estado sigue al tema (oscuro por defecto → íconos claros)", async () => {
+  it("la barra de estado sigue al tema y el toggle vive en la tarjeta de la cuenta", async () => {
     mockSesionValue = DUENO;
     const { findByTestId, getByTestId } = await renderShell();
     expect((await findByTestId("status-bar")).props.children).toBe("light");
-    await fireEvent.press(getByTestId("panel-tema"));
+
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-cuenta"));
+    await fireEvent(getByTestId("cajon-tema"), "valueChange", false);
     expect(getByTestId("status-bar").props.children).toBe("dark");
+  });
+
+  it("abre la ruta Perfil desde el submenú y vuelve al panel", async () => {
+    mockSesionValue = DUENO;
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-cuenta"));
+    await fireEvent.press(getByTestId("cajon-perfil"));
+
+    await waitFor(() => expect(getByTestId("perfil-admin")).toBeTruthy());
+    await fireEvent.press(getByTestId("perfil-admin"));
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Resumen"));
+  });
+
+  it("un push recibido en Perfil vuelve al panel y abre el módulo pedido", async () => {
+    mockSesionValue = DUENO;
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await fireEvent.press(getByTestId("panel-menu"));
+    await fireEvent.press(getByTestId("cajon-cuenta"));
+    await fireEvent.press(getByTestId("cajon-perfil"));
+    await waitFor(() => expect(getByTestId("perfil-admin")).toBeTruthy());
+
+    await act(async () => {
+      emitirNavegacion({ tab: "comercio", pestana: "productos" });
+    });
+
+    await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Ventas"));
+    await waitFor(() => expect(getByTestId("comercio-productos")).toHaveStyle({ borderBottomWidth: 2 }));
   });
 
   it("colaborador sin permisos ve el estado vacío y el cajón sin secciones", async () => {
@@ -221,22 +304,23 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
 
   it("master ve Plataforma en el cajón; un no-master nunca ve Negocios", async () => {
     mockSesionValue = { token: "t", adminId: "a-3", role: "master", permissions: {} };
-    const { findByTestId, getByTestId, unmount } = await renderShell();
+    const { findByTestId, getByTestId } = await renderShell();
     await findByTestId("panel-menu");
     await fireEvent.press(getByTestId("panel-menu"));
     expect(getByTestId("cajon-grupo-plataforma")).toBeTruthy();
+    await abrirGrupo(getByTestId, "plataforma");
     expect(getByTestId("cajon-item-negocios")).toBeTruthy();
-    // Negocios abre la lista de la plataforma (desde ahí se suspende o elimina un negocio).
     await fireEvent.press(getByTestId("cajon-item-negocios"));
     await waitFor(() => expect(getByTestId("herramientas-lista-negocios")).toBeTruthy());
     expect(getByTestId("panel-titulo").props.children).toBe("Negocios");
-    unmount();
+  });
 
+  it("un no-master nunca ve Negocios", async () => {
     mockSesionValue = { token: "t", adminId: "a-4", role: "owner", permissions: { tenants: "write", dashboard: "read" } };
-    const segundo = await renderShell();
-    await segundo.findByTestId("panel-menu");
-    await fireEvent.press(segundo.getByTestId("panel-menu"));
-    expect(segundo.queryByTestId("cajon-grupo-plataforma")).toBeNull();
+    const { findByTestId, getByTestId, queryByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+    await fireEvent.press(getByTestId("panel-menu"));
+    expect(queryByTestId("cajon-grupo-plataforma")).toBeNull();
   });
 
   it("en desarrollo el cajón ofrece el Catálogo de UI (HU-DS-09)", async () => {
@@ -245,7 +329,8 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await findByTestId("panel-menu");
     await fireEvent.press(getByTestId("panel-menu"));
     expect(getByTestId("cajon-grupo-desarrollo")).toBeTruthy();
-    expect(getByTestId("cajon-item-catalogo")).toBeTruthy();
+    await abrirGrupo(getByTestId, "desarrollo");
+    await waitFor(() => expect(getByTestId("cajon-item-catalogo")).toBeTruthy());
   });
 
   it("el catálogo solo existe en builds de desarrollo", () => {

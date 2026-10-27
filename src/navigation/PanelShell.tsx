@@ -1,5 +1,10 @@
 import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import {
+  CardStyleInterpolators,
+  createStackNavigator,
+  type StackNavigationOptions,
+} from "@react-navigation/stack";
 import { StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -20,6 +25,7 @@ import { ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
 import { OnboardingProvider, RecorridoScreen, useOnboarding } from "../modules/onboarding";
+import { PerfilAdminScreen } from "../modules/perfil";
 import { CajonPanel } from "./CajonPanel";
 import { HeaderPanel } from "./HeaderPanel";
 import {
@@ -45,9 +51,19 @@ export { catalogoDisponible, seccionesDeMenu } from "./menu-panel";
  * `@shared/navegacion-evento`). Cada ítem del cajón abre su módulo en la
  * pestaña interna pedida (`pestanaInicial`) y le pasa las pestañas de la
  * entrada (`entrada`): la pantalla muestra solo esas (Equipo → Colaboradores).
+ *
+ * Encima hay un stack con dos rutas: `Panel` (las pestañas) y `Perfil` (la
+ * cuenta del usuario). El stack permite que el gesto de volver siga el dedo y
+ * revele la sección anterior, y el `Tab.Navigator` conserva la pestaña activa.
  */
 
 const Tab = createBottomTabNavigator();
+const PanelStack = createStackNavigator<PanelStackParamList>();
+
+export interface PanelStackParamList extends Record<string, object | undefined> {
+  Panel: { screen?: ModuloPanel; params?: object } | undefined;
+  Perfil: undefined;
+}
 
 type ParamsModulo =
   | {
@@ -148,10 +164,54 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
   }
 }
 
-/**
- * Panel con el primer uso a pantalla completa (HU-APP-22): si el servidor pide abrirlo, el asistente se
- * dibuja encima del shell sin desmontarlo (se conserva la navegación) y el aviso fijo vive en el header.
- */
+function SinSecciones() {
+  const { colores } = useTheme();
+  return (
+    <View style={[styles.modulo, { backgroundColor: colores.fondo }]}>
+      <HeaderPanel titulo="SolversHub" conBusqueda={false} />
+      <EmptyState
+        testID="panel-sin-secciones"
+        icon="lock-outline"
+        title="Sin secciones asignadas"
+        description="Pide al dueño del negocio que te dé acceso a alguna sección."
+        secondaryAction={{ label: "Entendido", onPress: () => undefined }}
+      />
+    </View>
+  );
+}
+
+function PanelPrincipal({
+  modulos,
+  paramsIniciales,
+}: {
+  modulos: ModuloPanel[];
+  paramsIniciales: Partial<Record<ModuloPanel, { entrada: EntradaPestanas }>>;
+}) {
+  if (modulos.length === 0) {
+    return <SinSecciones />;
+  }
+  return (
+    <Tab.Navigator tabBar={() => null} screenOptions={{ headerShown: false }} backBehavior="history">
+      {modulos.map((modulo) => (
+        <Tab.Screen key={modulo} name={modulo} initialParams={paramsIniciales[modulo]}>
+          {({ route }) => <ContenidoDeModulo modulo={modulo} params={route.params as ParamsModulo} />}
+        </Tab.Screen>
+      ))}
+    </Tab.Navigator>
+  );
+}
+
+const OPCIONES_PERFIL: StackNavigationOptions = {
+  gestureEnabled: true,
+  gestureDirection: "horizontal",
+  gestureResponseDistance: 30,
+  transitionSpec: {
+    open: { animation: "timing", config: { duration: 220 } },
+    close: { animation: "timing", config: { duration: 220 } },
+  },
+  cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+};
+
 export function PanelShell() {
   return (
     <OnboardingProvider>
@@ -167,8 +227,6 @@ function PanelShellInterno() {
   const esMaster = sesion?.role === "master";
   const permisos = useMemo(() => sesion?.permissions ?? {}, [sesion?.permissions]);
   const modulos = useMemo(() => modulosVisibles(permisos, esMaster), [permisos, esMaster]);
-  // Sin destino del cajón (arranque, módulo abierto por primera vez con back),
-  // cada módulo muestra las pestañas de su primera entrada visible.
   const paramsIniciales = useMemo(
     () =>
       Object.fromEntries(
@@ -180,13 +238,13 @@ function PanelShellInterno() {
     [modulos, permisos, esMaster],
   );
 
-  const navRef = useRef(createNavigationContainerRef());
+  const navRef = useRef(createNavigationContainerRef<PanelStackParamList>());
   const contador = useRef(0);
   const [activo, setActivo] = useState<DestinoPanel | null>(() =>
     modulos[0] ? { modulo: modulos[0], entrada: paramsIniciales[modulos[0]]?.entrada.id } : null,
   );
-  // Destino que llegó antes de que la navegación estuviera lista (push en frío).
   const destinoPendiente = useRef<DestinoPanel | null>(null);
+  const perfilPendiente = useRef(false);
 
   const navegar = useCallback(
     (destino: DestinoPanel) => {
@@ -196,8 +254,6 @@ function PanelShellInterno() {
         return;
       }
       const n = ++contador.current;
-      // La entrada del cajón (o la que contiene el destino del bus) decide qué
-      // pestañas muestra la pantalla y el título del header.
       const visible = entradaDeDestino(permisos, esMaster, destino);
       const entrada = visible ? pestanasDeEntrada(visible) : undefined;
       const params = {
@@ -206,17 +262,24 @@ function PanelShellInterno() {
         entrada,
       };
       const raiz = MODULOS_PANEL[destino.modulo].raizStack;
-      // Con stack propio, el `screen` anidado además vuelve a la raíz del módulo;
-      // `entrada` va también arriba, donde la lee el shell (header y back).
-      const navegarA = navRef.current.navigate as (nombre: string, params?: object) => void;
-      navegarA(destino.modulo, raiz ? { screen: raiz, params, entrada } : params);
+      navRef.current.navigate("Panel", {
+        screen: destino.modulo,
+        params: raiz ? { screen: raiz, params, entrada } : params,
+      });
       setActivo({ ...destino, entrada: visible?.id });
     },
     [modulos, permisos, esMaster],
   );
 
+  const abrirPerfil = useCallback(() => {
+    if (!navRef.current?.isReady()) {
+      perfilPendiente.current = true;
+      return;
+    }
+    navRef.current.navigate("Perfil");
+  }, []);
+
   useEffect(() => {
-    // Deep link desde módulos anidados (HU-APP-21) y push tocados.
     return suscribirNavegacion((destino) =>
       navegar({
         modulo: destino.tab as ModuloPanel,
@@ -228,34 +291,16 @@ function PanelShellInterno() {
 
   const barra = <StatusBar style={tema === "oscuro" ? "light" : "dark"} />;
 
-  if (modulos.length === 0) {
-    return (
-      <MenuPanelProvider activo={null} alNavegar={navegar}>
-        {barra}
-        <View style={[styles.modulo, { backgroundColor: colores.fondo }]}>
-          <HeaderPanel titulo="SolversHub" conBusqueda={false} />
-          <EmptyState
-            testID="panel-sin-secciones"
-            icon="lock-outline"
-            title="Sin secciones asignadas"
-            description="Pide al dueño del negocio que te dé acceso a alguna sección."
-            secondaryAction={{ label: "Entendido", onPress: () => undefined }}
-          />
-        </View>
-        <CajonPanel />
-        {abierto && <RecorridoScreen />}
-      </MenuPanelProvider>
-    );
-  }
-
   return (
     <MenuPanelProvider activo={activo} alNavegar={navegar}>
-      {/* El panel no tiene banda navy: la barra de estado sigue al tema. Al
-          desmontar, RN restaura el `light` de App.tsx (login y campo). */}
       {barra}
       <NavigationContainer
         ref={navRef}
         onReady={() => {
+          if (perfilPendiente.current) {
+            perfilPendiente.current = false;
+            navRef.current?.navigate("Perfil");
+          }
           if (destinoPendiente.current) {
             const destino = destinoPendiente.current;
             destinoPendiente.current = null;
@@ -263,30 +308,41 @@ function PanelShellInterno() {
           }
         }}
         onStateChange={() => {
-          // Back del sistema u otro cambio fuera del cajón: el header y el
-          // ítem resaltado siguen al módulo que quedó en pantalla.
           const estado = navRef.current?.getRootState();
           const ruta = estado?.routes[estado.index];
-          const nombre = ruta?.name as ModuloPanel | undefined;
-          if (nombre) {
-            // La entrada sale de los params del módulo: el header sigue a la
-            // entrada cuyas pestañas están en pantalla.
-            const entrada = (ruta?.params as ParamsModulo)?.entrada?.id;
-            setActivo((actual) =>
-              actual?.modulo === nombre && actual.entrada === entrada ? actual : { modulo: nombre, entrada },
-            );
+          if (ruta?.name === "Perfil") {
+            setActivo(null);
+            return;
           }
+          if (ruta?.name !== "Panel") return;
+          const tabs = ruta.state;
+          if (!tabs) {
+            setActivo(null);
+            return;
+          }
+          const indice = tabs.index ?? 0;
+          const tab = tabs.routes[indice];
+          const nombre = tab?.name as ModuloPanel | undefined;
+          if (!nombre) return;
+          const entrada = (tab.params as ParamsModulo)?.entrada?.id;
+          setActivo((actual) =>
+            actual?.modulo === nombre && actual.entrada === entrada ? actual : { modulo: nombre, entrada },
+          );
         }}
       >
-        <Tab.Navigator tabBar={() => null} screenOptions={{ headerShown: false }}>
-          {modulos.map((modulo) => (
-            <Tab.Screen key={modulo} name={modulo} initialParams={paramsIniciales[modulo]}>
-              {({ route }) => <ContenidoDeModulo modulo={modulo} params={route.params as ParamsModulo} />}
-            </Tab.Screen>
-          ))}
-        </Tab.Navigator>
+        <PanelStack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: colores.fondo } }}>
+          <PanelStack.Screen
+            name="Panel"
+            options={{ gestureEnabled: false, cardStyle: { backgroundColor: colores.fondo } }}
+          >
+            {() => <PanelPrincipal modulos={modulos} paramsIniciales={paramsIniciales} />}
+          </PanelStack.Screen>
+          <PanelStack.Screen name="Perfil" options={OPCIONES_PERFIL}>
+            {() => <PerfilAdminScreen onBack={() => navRef.current?.goBack()} />}
+          </PanelStack.Screen>
+        </PanelStack.Navigator>
       </NavigationContainer>
-      <CajonPanel />
+      <CajonPanel onAbrirPerfil={abrirPerfil} />
       {abierto && <RecorridoScreen />}
     </MenuPanelProvider>
   );

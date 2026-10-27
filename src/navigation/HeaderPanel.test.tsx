@@ -44,16 +44,9 @@ describe("HeaderPanel (HU-DS-11)", () => {
     expect(getByTestId("estado-cajon").props.children).toBe("abierto");
   });
 
-  it("el toggle de tema alterna y cambia de ícono, como la topbar del panel", async () => {
-    const { getByTestId, queryByTestId } = await renderHeader();
-    // Oscuro por defecto: ofrece pasar a claro con el sol.
-    expect(getByTestId("icono-light-mode")).toBeTruthy();
-    expect(getByTestId("panel-tema")).toHaveProp("accessibilityLabel", "Cambiar a tema claro");
-
-    await fireEvent.press(getByTestId("panel-tema"));
-    expect(queryByTestId("icono-light-mode")).toBeNull();
-    expect(getByTestId("icono-dark-mode")).toBeTruthy();
-    expect(getByTestId("panel-tema")).toHaveProp("accessibilityLabel", "Cambiar a tema oscuro");
+  it("ya no lleva el toggle de tema: vive en la tarjeta de la cuenta del cajón", async () => {
+    const { queryByTestId } = await renderHeader();
+    expect(queryByTestId("panel-tema")).toBeNull();
   });
 
   it("reserva el área segura superior (edge-to-edge)", async () => {

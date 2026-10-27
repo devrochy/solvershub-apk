@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
-import { useKit, type KitTema } from "@shared/ui";
+import { nombreDeCampo, useField } from "./Field";
+import { useKit, type KitTema } from "./tema";
 import {
   PAISES_TELEFONO,
   PAIS_DEFECTO_TELEFONO,
@@ -44,6 +45,8 @@ export function CampoTelefono({
   );
   const kit = useKit();
   const { c } = kit;
+  const campo = useField();
+  const etiqueta = campo ? nombreDeCampo(campo) : "Teléfono";
   const styles = useMemo(() => crearEstilos(kit), [kit]);
   // Fuente de verdad: el país explícitamente elegido; si no se ha elegido uno,
   // se infiere del número (y ante prefijos compartidos +1 se resuelve al país
@@ -67,6 +70,8 @@ export function CampoTelefono({
     <View style={styles.contenedor}>
       <Pressable
         testID={`${testID}-pais`}
+        accessibilityRole="button"
+        accessibilityLabel={`${etiqueta}, país ${pais.nombre}`}
         style={styles.botonPais}
         onPress={() => setListaAbierta(true)}
       >
@@ -76,6 +81,7 @@ export function CampoTelefono({
       </Pressable>
       <TextInput
         testID={`${testID}-numero`}
+        accessibilityLabel={etiqueta}
         style={styles.input}
         placeholder={placeholder}
         placeholderTextColor={c.textSoft}
