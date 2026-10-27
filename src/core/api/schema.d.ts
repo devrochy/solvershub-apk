@@ -398,6 +398,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/from-script": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create From Script
+         * @description Crea el borrador de un especialista (sin publicar) desde las respuestas del guion de su
+         *     plantilla. 409 `key_taken` (con el `agent_id` existente) si el negocio ya tiene ese agente; 422
+         *     por pregunta si una respuesta no está en las opciones, sin crear nada.
+         */
+        post: operations["create_from_script_api_v1_admin_agents_from_script_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/overview": {
         parameters: {
             query?: never;
@@ -7812,12 +7834,18 @@ export interface components {
             name: string;
             /** Optional Skills */
             optional_skills: string[];
+            /** Questions */
+            questions: components["schemas"]["Question"][];
             /** Requirements */
             requirements: components["schemas"]["Requirement"][];
+            /** Section */
+            section: string;
             /** Skills */
             skills: string[];
             /** Superpowers */
             superpowers: components["schemas"]["Superpower"][];
+            /** Tools */
+            tools: string[];
         };
         /** AgentUsage */
         AgentUsage: {
@@ -10476,6 +10504,8 @@ export interface components {
             connections: components["schemas"]["PublishedConnection"][];
             /** Created */
             created: boolean;
+            /** General Updated */
+            general_updated?: number | null;
             version: components["schemas"]["AgentVersionSummary"];
             /** Warnings */
             warnings: string[];
@@ -10863,6 +10893,33 @@ export interface components {
             modo: string;
             /** Titulo */
             titulo: string;
+        };
+        /**
+         * FromScriptIn
+         * @description Respuestas del guion de una plantilla: `answers` es `id de la pregunta` → id de la opción
+         *     (o el texto, en la de nombre). Lo que no se contesta toma el valor por defecto del guion.
+         */
+        FromScriptIn: {
+            /** Answers */
+            answers?: {
+                [key: string]: string;
+            };
+            /** Name */
+            name?: string | null;
+            /** Template Key */
+            template_key: string;
+        };
+        /**
+         * FromScriptOut
+         * @description El borrador creado (sin publicar) y lo que le falta al negocio configurar para que funcione.
+         */
+        FromScriptOut: {
+            agent: components["schemas"]["AgentSummary"];
+            draft: components["schemas"]["AgentDraft"];
+            /** Requirements */
+            requirements: components["schemas"]["Requirement"][];
+            /** Warnings */
+            warnings: string[];
         };
         /** FromTemplateIn */
         FromTemplateIn: {
@@ -15562,6 +15619,37 @@ export interface components {
             version: number;
         };
         /**
+         * Question
+         * @description Pregunta del guion del asistente de creación (HU-AOS-48). `type` «option» elige entre
+         *     `options` (`default` es la que se aplica sin respuesta); «text» es el nombre del agente.
+         */
+        Question: {
+            /** Default */
+            default: string | null;
+            /** Help */
+            help: string;
+            /** Id */
+            id: string;
+            /** Options */
+            options: components["schemas"]["QuestionOption"][];
+            /** Text */
+            text: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "option" | "text";
+        };
+        /** QuestionOption */
+        QuestionOption: {
+            /** Help */
+            help: string;
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
+        };
+        /**
          * ReadinessItem
          * @description Un ítem del checklist. `ok`: `None` = no se pudo evaluar.
          */
@@ -19045,6 +19133,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentUsage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_from_script_api_v1_admin_agents_from_script_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FromScriptIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FromScriptOut"];
                 };
             };
             /** @description Validation Error */
