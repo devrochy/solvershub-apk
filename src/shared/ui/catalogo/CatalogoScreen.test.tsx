@@ -10,6 +10,7 @@ describe("CatalogoScreen (HU-DS-09)", () => {
       "IconButton",
       "Field + TextField",
       "Badge",
+      "Stepper y controles",
       "Avatar",
       "Skeleton",
       "KpiTile",
@@ -20,6 +21,8 @@ describe("CatalogoScreen (HU-DS-09)", () => {
     ]) {
       expect(screen.getByRole("header", { name: seccion })).toBeTruthy();
     }
+    expect(screen.getByText("Paso 3 de 4")).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "Soporte" }).props.accessibilityState.checked).toBe(true);
     expect(screen.getByText("Sin conexión · 3 cambios por enviar")).toBeTruthy();
     expect(screen.getByText("+12 % frente a los 7 días anteriores")).toBeTruthy();
   });

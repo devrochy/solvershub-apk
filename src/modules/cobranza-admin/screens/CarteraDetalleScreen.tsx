@@ -11,18 +11,21 @@ import {
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { ListItem } from "@shared/ui";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import {
   abrirCaja,
   ajustarCaja,
   cargarCaja,
+  cargarClientes,
   cargarRuta,
   cerrarCaja,
   inyectarCapital,
   liquidarCartera,
   optimizarRuta,
   type CarteraCaja,
+  type ClientRow,
   type Ruta,
 } from "../api";
 import type { CobranzaAdminStackParamList } from "../navigation";
@@ -31,12 +34,14 @@ type Props = NativeStackScreenProps<CobranzaAdminStackParamList, "CarteraDetalle
 
 type ModalActivo = "ninguno" | "ajuste" | "inyeccion";
 
-export function CarteraDetalleScreen({ route }: Props) {
+export function CarteraDetalleScreen({ route, navigation }: Props) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const { id, titulo } = route.params;
   const [caja, setCaja] = useState<CarteraCaja | null>(null);
   const [ruta, setRuta] = useState<Ruta | null>(null);
+  // null = sin permiso de Clientes (o sin red): la sección no se muestra.
+  const [clientes, setClientes] = useState<ClientRow[] | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalActivo>("ninguno");
@@ -47,12 +52,14 @@ export function CarteraDetalleScreen({ route }: Props) {
   const cargar = useCallback(async () => {
     setError(null);
     try {
-      const [c, r] = await Promise.all([
+      const [c, r, cl] = await Promise.all([
         cargarCaja(api, id),
         cargarRuta(api, id).catch(() => null),
+        cargarClientes(api, undefined, id).catch(() => null),
       ]);
       setCaja(c);
       setRuta(r);
+      setClientes(cl);
     } catch {
       setError("No pudimos cargar la cartera.");
     }
@@ -140,6 +147,39 @@ export function CarteraDetalleScreen({ route }: Props) {
         <Boton label="Optimizar ruta" onPress={() => void ejecutar(() => optimizarRuta(api, id), "Ruta optimizada.")} />
       </View>
 
+      {clientes ? (
+        <View testID="cartera-clientes" style={styles.bloque}>
+          <Text style={[styles.seccion, { color: colores.texto }]}>Clientes</Text>
+          {clientes.length === 0 ? (
+            <Text style={{ color: colores.textoSuave, textAlign: "center", marginVertical: 12 }}>
+              Sin clientes en esta cartera.
+            </Text>
+          ) : (
+            clientes.map((cl) => {
+              const nombre = `${cl.nombre} ${cl.apellido ?? ""}`.trim() || "Cliente";
+              return (
+                <ListItem
+                  key={cl.id}
+                  testID={`cartera-cliente-${cl.id}`}
+                  title={nombre}
+                  subtitle={cl.numero_documento ?? cl.telefono ?? undefined}
+                  meta={cl.color_riesgo}
+                  onPress={() =>
+                    navigation.navigate("ClienteDetalle", {
+                      id: cl.id,
+                      titulo: nombre,
+                      carteraId: id,
+                      carteraTitulo: titulo,
+                    })
+                  }
+                  style={styles.filaCliente}
+                />
+              );
+            })
+          )}
+        </View>
+      ) : null}
+
       <Text style={[styles.seccion, { color: colores.texto }]}>Ruta del día</Text>
       {ruta?.plan ? (
         <Text style={{ color: colores.textoSuave, fontSize: 12, marginBottom: 6 }}>
@@ -225,6 +265,8 @@ const styles = StyleSheet.create({
   botones: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 14 },
   boton: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
   seccion: { fontSize: 15, fontWeight: "700", marginBottom: 8 },
+  bloque: { marginBottom: 14 },
+  filaCliente: { marginBottom: 6 },
   fila: { borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 6 },
   modalFondo: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 },
   modalCaja: { borderRadius: 14, padding: 18, gap: 10 },

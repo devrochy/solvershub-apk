@@ -398,6 +398,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/from-script": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create From Script
+         * @description Crea el borrador de un especialista (sin publicar) desde las respuestas del guion de su
+         *     plantilla. 409 `key_taken` (con el `agent_id` existente) si el negocio ya tiene ese agente; 422
+         *     por pregunta si una respuesta no está en las opciones, sin crear nada.
+         */
+        post: operations["create_from_script_api_v1_admin_agents_from_script_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/overview": {
         parameters: {
             query?: never;
@@ -1472,6 +1494,23 @@ export interface paths {
         };
         /** Get Dashboard */
         get: operations["get_dashboard_api_v1_admin_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dashboard/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard Agents */
+        get: operations["dashboard_agents_api_v1_admin_dashboard_agents_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3278,6 +3317,107 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/onboarding/avanzar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Avanzar Recorrido
+         * @description Guarda el paso del asistente donde va la persona (y retoma un recorrido omitido).
+         */
+        post: operations["avanzar_recorrido_api_v1_admin_onboarding_avanzar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/onboarding/dejar-listo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dejar Listo
+         * @description Deja el agente del asistente listo para probar, de una vez y sin abrirlo a clientes: prepara un
+         *     chat web cerrado, publica el agente ahí y activa su versión. Es idempotente y se puede
+         *     reintentar. Si el gate de pass^k del negocio está cerrado, la activación queda
+         *     `pendiente_de_revision` (no es un error: el agente queda publicado). Dueño o master.
+         */
+        post: operations["dejar_listo_api_v1_admin_onboarding_dejar_listo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/onboarding/finalizar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finalizar Recorrido
+         * @description Da por completo el recorrido. Lo valida el servidor con el estado real: 409 `faltan_pasos`
+         *     (`details.faltan`) si no hay datos del negocio, agente publicado o una prueba con él.
+         */
+        post: operations["finalizar_recorrido_api_v1_admin_onboarding_finalizar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/onboarding/omitir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Omitir Recorrido
+         * @description «Lo hago después»: el panel deja de abrir el asistente y muestra el aviso persistente.
+         */
+        post: operations["omitir_recorrido_api_v1_admin_onboarding_omitir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/onboarding/reanudar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reanudar Recorrido */
+        post: operations["reanudar_recorrido_api_v1_admin_onboarding_reanudar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/plan": {
         parameters: {
             query?: never;
@@ -4027,6 +4167,48 @@ export interface paths {
          * @description Contraseñas nuevas para las tres cuentas de prueba; cierra sus sesiones.
          */
         post: operations["contrasenas_nuevas_api_v1_admin_qa_datos_contrasenas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/qa/datos/escenarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Escenarios
+         * @description Escenarios de datos de prueba y lo que creó cada uno la última vez (HU-QA-13). 404 fuera de test.
+         */
+        get: operations["listar_escenarios_api_v1_admin_qa_datos_escenarios_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/qa/datos/escenarios/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crear Escenario
+         * @description Crea un caso nuevo del escenario en el negocio de prueba del tester, sin LLM y sin borrar nada
+         *     (HU-QA-13). 404 si no existe o fuera de test; 409 sin datos preparados, con otra corrida en curso o
+         *     si el escenario no se puede crear (el motivo va en el mensaje).
+         */
+        post: operations["crear_escenario_api_v1_admin_qa_datos_escenarios__slug__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6049,61 +6231,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/pack/cobranza/owner-charges": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Owner Charges */
-        get: operations["list_owner_charges_api_v1_pack_cobranza_owner_charges_get"];
-        put?: never;
-        /** Create Owner Charge */
-        post: operations["create_owner_charge_api_v1_pack_cobranza_owner_charges_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/pack/cobranza/owner-charges/{charge_id}/links": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Payment Link
-         * @description Crea un link de pago para el cobro del propietario (monto = cobro calculado).
-         */
-        post: operations["create_payment_link_api_v1_pack_cobranza_owner_charges__charge_id__links_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/pack/cobranza/owner-charges/{charge_id}/payment": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register Owner Payment */
-        post: operations["register_owner_payment_api_v1_pack_cobranza_owner_charges__charge_id__payment_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/pack/cobranza/payments": {
         parameters: {
             query?: never;
@@ -7475,6 +7602,24 @@ export interface components {
              */
             updated_at: string;
         };
+        /** AgenteResumen */
+        AgenteResumen: {
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string;
+            /** Kpis */
+            kpis: components["schemas"]["KpiOut"][];
+            /** Modulos */
+            modulos: components["schemas"]["ModuloOut"][];
+            /** Name */
+            name: string;
+            /**
+             * Ref
+             * @description Id del agente o el literal `general`, como en `/admin/agents/{ref}`.
+             */
+            ref: string;
+        };
         /**
          * AgentOSBanderas
          * @description Estado de las banderas del Agent OS de un negocio (ADR-0112, ADR-0138).
@@ -7735,12 +7880,18 @@ export interface components {
             name: string;
             /** Optional Skills */
             optional_skills: string[];
+            /** Questions */
+            questions: components["schemas"]["Question"][];
             /** Requirements */
             requirements: components["schemas"]["Requirement"][];
+            /** Section */
+            section: string;
             /** Skills */
             skills: string[];
             /** Superpowers */
             superpowers: components["schemas"]["Superpower"][];
+            /** Tools */
+            tools: string[];
         };
         /** AgentUsage */
         AgentUsage: {
@@ -8098,6 +8249,14 @@ export interface components {
             /** Operacion */
             operacion: string;
         };
+        /** AvanzarIn */
+        AvanzarIn: {
+            /**
+             * Paso
+             * @description Paso al que llega la persona.
+             */
+            paso: number;
+        };
         /** AvisoOut */
         AvisoOut: {
             /**
@@ -8215,6 +8374,11 @@ export interface components {
             reason?: string | null;
             /** Start At */
             start_at?: string | null;
+        };
+        /** BloqueGeneral */
+        BloqueGeneral: {
+            /** Kpis */
+            kpis: components["schemas"]["KpiOut"][];
         };
         /** Body_import_products_csv_api_v1_pack_commerce_products_import_post */
         Body_import_products_csv_api_v1_pack_commerce_products_import_post: {
@@ -10148,6 +10312,34 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /** DejarListoIn */
+        DejarListoIn: {
+            /**
+             * Agent Id
+             * Format: uuid
+             * @description Agente (borrador) que el asistente creó con `from-script`.
+             */
+            agent_id: string;
+        };
+        /** DejarListoOut */
+        DejarListoOut: {
+            /**
+             * Conexion Id
+             * Format: uuid
+             * @description Conexión de chat web (sin abrir al público) donde queda para probar.
+             */
+            conexion_id: string;
+            /**
+             * Listo
+             * @description El agente quedó activo y se puede probar con `POST /admin/playground/message`.
+             */
+            listo: boolean;
+            /** Pasos */
+            pasos: components["schemas"]["SubPasoOut"][];
+            recorrido: components["schemas"]["RecorridoOut"];
+            /** Release Id */
+            release_id?: string | null;
+        };
         /**
          * Dependencia
          * @description La opción solo tiene efecto si se cumple una condición sobre otra.
@@ -10169,6 +10361,21 @@ export interface components {
         DescartarIn: {
             /** Motivo */
             motivo: string;
+        };
+        /**
+         * DestinoOut
+         * @description A dónde lleva un KPI: una ruta lógica y sus filtros; cada cliente la traduce a su navegación.
+         */
+        DestinoOut: {
+            /** Params */
+            params?: {
+                [key: string]: string;
+            };
+            /**
+             * Ruta
+             * @description Ruta lógica: `conversaciones`, `agente`, `comercio.pedidos`, …
+             */
+            ruta: string;
         };
         /** DeviceCreate */
         DeviceCreate: {
@@ -10379,6 +10586,8 @@ export interface components {
             connections: components["schemas"]["PublishedConnection"][];
             /** Created */
             created: boolean;
+            /** General Updated */
+            general_updated?: number | null;
             version: components["schemas"]["AgentVersionSummary"];
             /** Warnings */
             warnings: string[];
@@ -10767,6 +10976,33 @@ export interface components {
             /** Titulo */
             titulo: string;
         };
+        /**
+         * FromScriptIn
+         * @description Respuestas del guion de una plantilla: `answers` es `id de la pregunta` → id de la opción
+         *     (o el texto, en la de nombre). Lo que no se contesta toma el valor por defecto del guion.
+         */
+        FromScriptIn: {
+            /** Answers */
+            answers?: {
+                [key: string]: string;
+            };
+            /** Name */
+            name?: string | null;
+            /** Template Key */
+            template_key: string;
+        };
+        /**
+         * FromScriptOut
+         * @description El borrador creado (sin publicar) y lo que le falta al negocio configurar para que funcione.
+         */
+        FromScriptOut: {
+            agent: components["schemas"]["AgentSummary"];
+            draft: components["schemas"]["AgentDraft"];
+            /** Requirements */
+            requirements: components["schemas"]["Requirement"][];
+            /** Warnings */
+            warnings: string[];
+        };
         /** FromTemplateIn */
         FromTemplateIn: {
             /** Name */
@@ -11001,6 +11237,13 @@ export interface components {
             /** Business Description */
             business_description: string;
             /**
+             * Business Hours Mode
+             * @description `bloquea`: fuera del horario el asistente no atiende y responde el mensaje fuera de horario (comportamiento de siempre). `informativo`: el horario es el del equipo humano del comercio, el asistente responde 24/7 y lo conoce para informarlo (HU-AOS-58).
+             * @default bloquea
+             * @enum {string}
+             */
+            business_hours_mode: "bloquea" | "informativo";
+            /**
              * Business Ranges
              * @description Franjas del horario de atención: [{day, from, to}]. `day` va de 0=lunes a 6=domingo (criterio de `datetime.weekday()`); `from`/`to` en HH:MM, hora local de `business_tz`.
              */
@@ -11086,6 +11329,8 @@ export interface components {
              * @default
              */
             business_description: string;
+            /** Business Hours Mode */
+            business_hours_mode?: ("bloquea" | "informativo") | null;
             /**
              * Business Ranges
              * @description Franjas del horario de atención: [{day, from, to}]. `day` va de 0=lunes a 6=domingo (criterio de `datetime.weekday()`); `from`/`to` en HH:MM, hora local de `business_tz`.
@@ -11687,6 +11932,46 @@ export interface components {
             tipo: string;
             /** Titulo */
             titulo: string;
+        };
+        /** KpiOut */
+        KpiOut: {
+            /**
+             * Delta Pct
+             * @description Variación contra el período anterior; `null` si no se puede calcular.
+             */
+            delta_pct: number | null;
+            destino?: components["schemas"]["DestinoOut"] | null;
+            /** Hint */
+            hint?: string | null;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Polaridad
+             * @enum {string}
+             */
+            polaridad: "up-good" | "up-bad";
+            /**
+             * Previo
+             * @description Mismo KPI en el período anterior; `null` si es una foto de hoy.
+             */
+            previo: number | null;
+            /**
+             * Unidad
+             * @enum {string}
+             */
+            unidad: "count" | "pct" | "usd" | "money" | "ms";
+            /**
+             * Valor
+             * @description `null` si no hay datos suficientes.
+             */
+            valor: number | null;
+            /**
+             * Versus
+             * @description Contra qué se compara `previo` («los 7 días anteriores», «el mes anterior»).
+             */
+            versus?: string | null;
         };
         /**
          * LeadAgentData
@@ -13000,6 +13285,20 @@ export interface components {
             /** Tokens Out */
             tokens_out: number;
         };
+        /** ModuloOut */
+        ModuloOut: {
+            /**
+             * Error
+             * @description El módulo no pudo calcularse; el resto del Resumen sí.
+             */
+            error?: string | null;
+            /** Id */
+            id: string;
+            /** Kpis */
+            kpis: components["schemas"]["KpiOut"][];
+            /** Nombre */
+            nombre: string;
+        };
         /**
          * ModulosOut
          * @description Módulos opcionales del pack encendidos en el negocio (el panel decide qué mostrar).
@@ -13314,53 +13613,6 @@ export interface components {
             id: string;
             /** Rol */
             rol: string;
-        };
-        /** OwnerCharge */
-        OwnerCharge: {
-            /** Estado */
-            estado: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Monto */
-            monto: number;
-            /** Pagado */
-            pagado: number | null;
-            /** Periodo */
-            periodo: string;
-            /**
-             * Vence
-             * Format: date
-             */
-            vence: string;
-        };
-        /** OwnerChargeCreate */
-        OwnerChargeCreate: {
-            /**
-             * Fecha Vencimiento
-             * Format: date
-             */
-            fecha_vencimiento: string;
-            /** Monto */
-            monto: number;
-            /** Periodo */
-            periodo: string;
-        };
-        /** OwnerCharges */
-        OwnerCharges: {
-            /** Cobros */
-            cobros: components["schemas"]["OwnerCharge"][];
-            /** Links */
-            links: components["schemas"]["PaymentLink"][];
-        };
-        /** OwnerPayment */
-        OwnerPayment: {
-            /** Metodo Pago */
-            metodo_pago?: string | null;
-            /** Monto Pagado */
-            monto_pagado: number;
         };
         /** Kpi */
         pack_cobranza__admin_api__Kpi: {
@@ -13726,24 +13978,6 @@ export interface components {
             /** Valor */
             valor: number;
         };
-        /** PaymentLink */
-        PaymentLink: {
-            /** Estado */
-            estado: string;
-            /** Monto */
-            monto: number;
-            /** Referencia */
-            referencia: string;
-            /** Url */
-            url: string;
-        };
-        /** PaymentLinkIn */
-        PaymentLinkIn: {
-            /** Referencia */
-            referencia: string;
-            /** Url */
-            url: string;
-        };
         /** PendingResponse */
         PendingResponse: {
             /** Items */
@@ -13759,6 +13993,29 @@ export interface components {
             telefono?: string | null;
             /** Username */
             username?: string | null;
+        };
+        /** PeriodoOut */
+        PeriodoOut: {
+            /**
+             * Desde
+             * Format: date-time
+             */
+            desde: string;
+            /**
+             * Hasta
+             * Format: date-time
+             */
+            hasta: string;
+            /**
+             * Previo Desde
+             * Format: date-time
+             */
+            previo_desde: string;
+            /**
+             * Previo Hasta
+             * Format: date-time
+             */
+            previo_hasta: string;
         };
         /** PermissionChange */
         PermissionChange: {
@@ -14207,6 +14464,7 @@ export interface components {
             origen: "aprovisionamiento" | "manual";
             /** Pasos */
             pasos: components["schemas"]["PasoOut"][];
+            recorrido: components["schemas"]["RecorridoOut"];
             /** Total */
             total: number;
         };
@@ -14927,6 +15185,103 @@ export interface components {
             /** Comentario */
             comentario?: string | null;
         };
+        /** QaEscenario */
+        QaEscenario: {
+            /**
+             * Agent Os
+             * @description Necesita el Agent OS listo en el negocio de prueba.
+             */
+            agent_os: boolean;
+            /** Crea */
+            crea: string;
+            /**
+             * Donde
+             * @description Sección del panel donde se ve.
+             */
+            donde: string;
+            /** Requiere */
+            requiere: string;
+            /** Ruta */
+            ruta: string;
+            /**
+             * Slug
+             * @description Fijo: el catálogo de pruebas lo cita como `datos-escenario-<slug>`.
+             */
+            slug: string;
+            /** Titulo */
+            titulo: string;
+            /** @description Lo que creó la última vez para este tester. */
+            ultimo?: components["schemas"]["QaEscenarioCreado"] | null;
+        };
+        /** QaEscenarioCreado */
+        QaEscenarioCreado: {
+            /** Conteos */
+            conteos?: {
+                [key: string]: number;
+            };
+            /** Creado En */
+            creado_en?: string | null;
+            /**
+             * Detalle
+             * @description Qué creó, en líneas legibles.
+             */
+            detalle: string[];
+            /**
+             * Ruta
+             * @description Ruta del panel donde se ve lo creado (en el negocio de prueba).
+             */
+            ruta: string;
+            /**
+             * Sufijo
+             * @description Marca corta del caso: aparece en los nombres de lo creado.
+             */
+            sufijo: string;
+        };
+        /** QaEscenarioResultado */
+        QaEscenarioResultado: {
+            /**
+             * Agent Os
+             * @description Necesita el Agent OS listo en el negocio de prueba.
+             */
+            agent_os: boolean;
+            /** Crea */
+            crea: string;
+            creado: components["schemas"]["QaEscenarioCreado"];
+            /**
+             * Donde
+             * @description Sección del panel donde se ve.
+             */
+            donde: string;
+            /**
+             * Negocio Id
+             * Format: uuid
+             * @description El negocio de prueba donde se creó (para cambiar a él y abrir la ruta).
+             */
+            negocio_id: string;
+            /** Requiere */
+            requiere: string;
+            /** Ruta */
+            ruta: string;
+            /**
+             * Slug
+             * @description Fijo: el catálogo de pruebas lo cita como `datos-escenario-<slug>`.
+             */
+            slug: string;
+            /** Titulo */
+            titulo: string;
+            /** @description Lo que creó la última vez para este tester. */
+            ultimo?: components["schemas"]["QaEscenarioCreado"] | null;
+        };
+        /** QaEscenarios */
+        QaEscenarios: {
+            /**
+             * Datos Listos
+             * @description El tester ya preparó sus datos: sin eso los escenarios dan 409.
+             */
+            datos_listos: boolean;
+            /** Escenarios */
+            escenarios: components["schemas"]["QaEscenario"][];
+        };
         /** QaEvento */
         QaEvento: {
             /** Antes */
@@ -15291,6 +15646,37 @@ export interface components {
             version: number;
         };
         /**
+         * Question
+         * @description Pregunta del guion del asistente de creación (HU-AOS-48). `type` «option» elige entre
+         *     `options` (`default` es la que se aplica sin respuesta); «text» es el nombre del agente.
+         */
+        Question: {
+            /** Default */
+            default: string | null;
+            /** Help */
+            help: string;
+            /** Id */
+            id: string;
+            /** Options */
+            options: components["schemas"]["QuestionOption"][];
+            /** Text */
+            text: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "option" | "text";
+        };
+        /** QuestionOption */
+        QuestionOption: {
+            /** Help */
+            help: string;
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
+        };
+        /**
          * ReadinessItem
          * @description Un ítem del checklist. `ok`: `None` = no se pudo evaluar.
          */
@@ -15337,6 +15723,56 @@ export interface components {
             status: string;
             /** Total */
             total: number;
+        };
+        /** RecorridoOut */
+        RecorridoOut: {
+            /**
+             * Abrir
+             * @description El panel debe abrir el asistente solo: nunca se tocó y quien consulta es propietario del negocio.
+             */
+            abrir: boolean;
+            /**
+             * Agente Id
+             * @description Agente que creó el asistente.
+             */
+            agente_id?: string | null;
+            /**
+             * Aplica
+             * @description El recorrido es del negocio (si no, el panel no muestra nada).
+             */
+            aplica: boolean;
+            /**
+             * Avisar
+             * @description Aviso persistente: empezó o saltó el recorrido y no lo terminó.
+             */
+            avisar: boolean;
+            /** Completado En */
+            completado_en?: string | null;
+            /**
+             * Conexion Id
+             * @description Conexión de pruebas donde quedó publicado.
+             */
+            conexion_id?: string | null;
+            /**
+             * Estado
+             * @description pendiente | en_curso | omitido | completo | no_aplica (negocio anterior al corte o función apagada).
+             * @enum {string}
+             */
+            estado: "pendiente" | "en_curso" | "omitido" | "completo" | "no_aplica";
+            /** Omitido En */
+            omitido_en?: string | null;
+            /**
+             * Paso
+             * @description Paso del asistente donde va (1 a `total_pasos`).
+             */
+            paso: number;
+            /**
+             * Probado En
+             * @description Primera prueba con ese agente.
+             */
+            probado_en?: string | null;
+            /** Total Pasos */
+            total_pasos: number;
         };
         /** ReenvioOut */
         ReenvioOut: {
@@ -15683,6 +16119,15 @@ export interface components {
             /** Seccion */
             seccion: string;
         };
+        /** ResumenPorAgente */
+        ResumenPorAgente: {
+            /** Agentes */
+            agentes: components["schemas"]["AgenteResumen"][];
+            general: components["schemas"]["BloqueGeneral"];
+            periodo: components["schemas"]["PeriodoOut"];
+            /** Runtime */
+            runtime: string;
+        };
         /** RevealCredentialsRequest */
         RevealCredentialsRequest: {
             /**
@@ -15998,6 +16443,21 @@ export interface components {
             is_active: boolean;
             /** Version */
             version: string;
+        };
+        /** SubPasoOut */
+        SubPasoOut: {
+            /**
+             * Clave
+             * @enum {string}
+             */
+            clave: "conexion" | "publicar" | "activar";
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "hecho" | "ya_estaba" | "pendiente_de_revision";
+            /** Mensaje */
+            mensaje?: string | null;
         };
         /** SubscribeRequest */
         SubscribeRequest: {
@@ -16884,6 +17344,11 @@ export interface components {
         };
         /** TurnIn */
         TurnIn: {
+            /**
+             * Connection Id
+             * @description Conexión del negocio por cuya release se prueba (HU-AOS-57): el turno corre por el agente publicado ahí. Sin ella, la prueba de siempre (sin release). Sigue siendo del canal `test`.
+             */
+            connection_id?: string | null;
             /** Text */
             text: string;
         };
@@ -18765,6 +19230,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentUsage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_from_script_api_v1_admin_agents_from_script_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FromScriptIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FromScriptOut"];
                 };
             };
             /** @description Validation Error */
@@ -20865,6 +21365,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DashboardResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dashboard_agents_api_v1_admin_dashboard_agents_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumenPorAgente"];
                 };
             };
             /** @description Validation Error */
@@ -24165,6 +24696,176 @@ export interface operations {
             };
         };
     };
+    avanzar_recorrido_api_v1_admin_onboarding_avanzar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvanzarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecorridoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dejar_listo_api_v1_admin_onboarding_dejar_listo_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DejarListoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DejarListoOut"];
+                };
+            };
+            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finalizar_recorrido_api_v1_admin_onboarding_finalizar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecorridoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    omitir_recorrido_api_v1_admin_onboarding_omitir_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecorridoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reanudar_recorrido_api_v1_admin_onboarding_reanudar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecorridoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_plan_api_v1_admin_plan_get: {
         parameters: {
             query?: never;
@@ -25055,7 +25756,10 @@ export interface operations {
     };
     playground_history_api_v1_admin_playground_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Historial de la prueba por esa conexión. */
+                connection_id?: string | null;
+            };
             header?: {
                 "X-Tenant-Id"?: string | null;
             };
@@ -25121,7 +25825,10 @@ export interface operations {
     };
     playground_reset_api_v1_admin_playground_reset_post: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Reinicia la prueba de esa conexión. */
+                connection_id?: string | null;
+            };
             header?: {
                 "X-Tenant-Id"?: string | null;
             };
@@ -25661,6 +26368,105 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["QaDatos"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_escenarios_api_v1_admin_qa_datos_escenarios_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QaEscenarios"];
+                };
+            };
+            /** @description Solo el admin de plataforma y los testers. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Fuera de test (`QA_TESTERS_ENABLED` apagada) o el escenario no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_escenario_api_v1_admin_qa_datos_escenarios__slug__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QaEscenarioResultado"];
+                };
+            };
+            /** @description Solo el admin de plataforma y los testers. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Fuera de test (`QA_TESTERS_ENABLED` apagada) o el escenario no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin datos preparados, otra corrida en curso o el escenario no se puede crear (motivo). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -29862,144 +30668,6 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_owner_charges_api_v1_pack_cobranza_owner_charges_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Tenant-Id"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OwnerCharges"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_owner_charge_api_v1_pack_cobranza_owner_charges_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Tenant-Id"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OwnerChargeCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OwnerCharge"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_payment_link_api_v1_pack_cobranza_owner_charges__charge_id__links_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Tenant-Id"?: string | null;
-            };
-            path: {
-                charge_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PaymentLinkIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaymentLink"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    register_owner_payment_api_v1_pack_cobranza_owner_charges__charge_id__payment_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Tenant-Id"?: string | null;
-            };
-            path: {
-                charge_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OwnerPayment"];
-            };
-        };
         responses: {
             /** @description Successful Response */
             204: {

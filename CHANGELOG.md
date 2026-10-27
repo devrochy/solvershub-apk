@@ -20,6 +20,10 @@
   Google Calendar se conecta desde Conexiones), Negocio (plan/consumo, costos IA), Configuración (colaboradores,
   habilidades, conexiones con checklist de Meta, ajustes del agente: identidad, cerebro y
   memoria) y Herramientas/Plataforma (DLQ, negocios para master).
+- Resumen por agente (ADR-0171): el Resumen muestra los KPIs del agente general y, en una
+  sección plegable por especialista, los de su actividad y los de su módulo (pedidos, citas,
+  recaudo…), siempre contra los 7 días previos. Cada cifra con pantalla en la app lleva a ella; si
+  el servicio no responde, quedan las tarjetas de siempre. Las tarjetas usan el `KpiTile` del kit.
 - Búsqueda global con resultados por sección (y fallback local sin red).
 - Cobranza admin profunda: detalle de cartera (caja, ajustes, liquidación por período, ruta
   optimizada), reportes consolidados, monitoreo IA, reglas de negociación y alertas de acceso.
@@ -31,6 +35,12 @@
 - Notificaciones push (Expo) con deep link al diario de campo.
 - Seguridad: almacenamiento local cifrado (SQLCipher), certificate pinning de la API,
   auditoría local de acciones críticas.
+
+- Cobranza por jerarquía de datos (HU-UX-12): cinco áreas (Resumen, Carteras, Actividad,
+  Equipo, Asistente) en dos niveles, en vez de 12 pastillas planas; Clientes pasa a la
+  cartera (la ficha de cartera lista sus clientes y el header muestra cartera › cliente);
+  Monitoreo IA ya no repite la lista de promesas y Cobranza ya no incluye «Cobros al
+  propietario» (lo maneja el agente de suscripciones).
 
 ### Campo (sin regresiones)
 

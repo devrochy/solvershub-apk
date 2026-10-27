@@ -31,7 +31,8 @@ appId: com.solvershub.apk
     visible:
       id: "panel-menu"
     timeout: 20000
-# 2. Cobranza → Gestores (solo lectura) y Propietario, como pestañas de la entrada.
+# 2. Cobranza → área Equipo → Gestores (solo lectura). Cobranza va por áreas
+#    (HU-UX-12): fila 1 `cobranza-area-<area>`, fila 2 `cobranza-<seccion>`.
 - tapOn:
     id: "panel-menu"
 - scrollUntilVisible:
@@ -44,16 +45,8 @@ appId: com.solvershub.apk
     visible:
       id: "cobranza-pestanas"
     timeout: 20000
-- repeat:
-    while:
-      notVisible:
-        id: "cobranza-gestores"
-    times: 6
-    commands:
-      - swipe:
-          from:
-            id: "cobranza-pestanas"
-          direction: LEFT
+- tapOn:
+    id: "cobranza-area-equipo"
 - tapOn:
     id: "cobranza-gestores"
 - extendedWaitUntil:
@@ -64,22 +57,6 @@ appId: com.solvershub.apk
 - assertVisible:
     id: "permiso-generar_reporte"
 - tapOn: "Cancelar"
-- repeat:
-    while:
-      notVisible:
-        id: "cobranza-propietario"
-    times: 6
-    commands:
-      - swipe:
-          from:
-            id: "cobranza-pestanas"
-          direction: LEFT
-- tapOn:
-    id: "cobranza-propietario"
-- extendedWaitUntil:
-    visible:
-      id: "propietario-contenedor"
-    timeout: 20000
 # 3. Ventas → Resumen con KPIs (su primera pestaña)
 - tapOn:
     id: "panel-menu"

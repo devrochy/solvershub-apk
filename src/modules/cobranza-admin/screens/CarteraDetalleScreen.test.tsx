@@ -12,7 +12,8 @@ const mockPost = jest.fn();
 const cliente = { get: mockGet, post: mockPost, put: jest.fn(), patch: jest.fn(), del: jest.fn() };
 
 const route = { params: { id: "car-1", titulo: "Cobranza Demo" } } as never;
-const navigation = { navigate: jest.fn() } as never;
+const mockNavigate = jest.fn();
+const navigation = { navigate: mockNavigate } as never;
 
 describe("CarteraDetalleScreen (HU-APP-19)", () => {
   beforeEach(() => {
@@ -29,8 +30,37 @@ describe("CarteraDetalleScreen (HU-APP-19)", () => {
           plan: { orden: ["c-1"], distancia_km: 1.5, tiempo_min: 12, fecha: "2026-10-06" },
         });
       }
+      if (path === "/pack/cobranza/clients") {
+        return Promise.resolve([
+          { id: "c-1", nombre: "Juana", apellido: "Perez", telefono: null, tipo_documento: null, numero_documento: "555", negocio: null, cartera: "Cobranza Demo", cartera_id: "car-1", tope_maximo_deuda: null, color_riesgo: "blanco" },
+        ]);
+      }
       return Promise.reject(new Error("no mockeado"));
     });
+  });
+
+  it("lista los clientes de la cartera y abre su ficha con la cartera como padre", async () => {
+    const { getByTestId } = await render(<CarteraDetalleScreen route={route} navigation={navigation} />);
+    await waitFor(() => expect(getByTestId("cartera-cliente-c-1")).toBeTruthy());
+    expect(mockGet).toHaveBeenCalledWith("/pack/cobranza/clients", expect.objectContaining({ cartera_id: "car-1" }));
+
+    await fireEvent.press(getByTestId("cartera-cliente-c-1"));
+    expect(mockNavigate).toHaveBeenCalledWith("ClienteDetalle", {
+      id: "c-1",
+      titulo: "Juana Perez",
+      carteraId: "car-1",
+      carteraTitulo: "Cobranza Demo",
+    });
+  });
+
+  it("sin permiso de Clientes la ficha no muestra la sección ni se rompe", async () => {
+    const base = mockGet.getMockImplementation()!;
+    mockGet.mockImplementation((path: string, ...resto: unknown[]) =>
+      path === "/pack/cobranza/clients" ? Promise.reject(new Error("403")) : base(path, ...resto),
+    );
+    const { getByText, queryByTestId } = await render(<CarteraDetalleScreen route={route} navigation={navigation} />);
+    await waitFor(() => expect(getByText("$1200")).toBeTruthy());
+    expect(queryByTestId("cartera-clientes")).toBeNull();
   });
 
   it("muestra la caja y la ruta del día", async () => {
