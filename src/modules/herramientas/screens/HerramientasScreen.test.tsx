@@ -6,7 +6,7 @@ jest.mock("@core/session/admin-session-context", () => ({
 }));
 
 import { Alert } from "react-native";
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { HerramientasScreen } from "./HerramientasScreen";
 
@@ -57,6 +57,14 @@ describe("HerramientasScreen (HU-APP-13)", () => {
           total: 2,
         });
       }
+      if (path === "/admin/plan") {
+        return Promise.resolve({
+          plans: [
+            { id: "p1", name: "Negocio", price_cop: 199000, is_free: false, current: true, limits: {}, features: {} },
+            { id: "p2", name: "Pro", price_cop: 399000, is_free: false, current: false, limits: {}, features: {} },
+          ],
+        });
+      }
       return Promise.reject(new Error("no mockeado"));
     });
   });
@@ -87,24 +95,73 @@ describe("HerramientasScreen (HU-APP-13)", () => {
 
     await fireEvent.press(getByTestId("herramientas-negocios"));
     await waitFor(() => expect(getByText("Negocio Uno")).toBeTruthy());
-    await fireEvent.press(getByTestId("negocio-plataforma-uno"));
+    await fireEvent.press(getByTestId("negocio-estado-uno"));
 
     await waitFor(() =>
       expect(mockPost).toHaveBeenCalledWith("/admin/platform/tenants/t-1/deactivate"),
     );
     alertSpy.mockRestore();
   });
-  it("master elimina un negocio suspendido con la frase exacta", async () => {
+
+  it("master activa un negocio suspendido", async () => {
     mockSesion = { token: "t", role: "master", permissions: {} };
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
-      botones?.find((b) => b.text === "Eliminar…")?.onPress?.();
+      botones?.find((b) => b.text === "Activar")?.onPress?.();
     });
 
     const { getByTestId, getByText } = await render(
       <HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />,
     );
     await waitFor(() => expect(getByText("Negocio Dos")).toBeTruthy());
-    await fireEvent.press(getByTestId("negocio-plataforma-dos"));
+    await fireEvent.press(getByTestId("negocio-estado-dos"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/admin/platform/tenants/t-2/activate"),
+    );
+    alertSpy.mockRestore();
+  });
+
+  it("master cambia el plan desde el badge", async () => {
+    mockSesion = { token: "t", role: "master", permissions: {} };
+    const { getByTestId, getByText } = await render(
+      <HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByText("Negocio Uno")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("negocio-plan-uno"));
+    await waitFor(() => expect(getByTestId("plan-negocio-p2")).toBeTruthy());
+    await fireEvent.press(getByTestId("plan-negocio-p2"));
+    await fireEvent.press(getByTestId("aplicar-plan-negocio"));
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/admin/platform/tenants/t-1/plan", {
+        plan_id: "p2",
+        extend_days: 0,
+      }),
+    );
+  });
+
+  it("abre el detalle del negocio sin salir de la lista", async () => {
+    mockSesion = { token: "t", role: "master", permissions: {} };
+    const { getByTestId, getByText } = await render(
+      <HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByText("Negocio Uno")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("negocio-detalle-uno"));
+    await waitFor(() => expect(getByTestId("detalle-negocio")).toBeTruthy());
+    expect(getByText("Creado")).toBeTruthy();
+    expect(within(getByTestId("detalle-negocio")).getByText("Activo")).toBeTruthy();
+  });
+
+  it("master elimina un negocio suspendido con la frase exacta", async () => {
+    mockSesion = { token: "t", role: "master", permissions: {} };
+
+    const { getByTestId, getByText } = await render(
+      <HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByText("Negocio Dos")).toBeTruthy());
+    await fireEvent.press(getByTestId("negocio-eliminar-dos"));
 
     await waitFor(() => expect(getByTestId("eliminar-negocio-frase")).toBeTruthy());
     expect(getByTestId("eliminar-negocio-confirmar")).toBeDisabled();
@@ -118,25 +175,20 @@ describe("HerramientasScreen (HU-APP-13)", () => {
         confirm_phrase: "ELIMINAR dos",
       }),
     );
-    alertSpy.mockRestore();
   });
 
   it("un negocio activo pide suspenderlo antes de eliminarlo", async () => {
     mockSesion = { token: "t", role: "master", permissions: {} };
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
-      botones?.find((b) => b.text === "Eliminar…")?.onPress?.();
-    });
 
     const { getByTestId, getByText, queryByTestId } = await render(
       <HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />,
     );
     await waitFor(() => expect(getByText("Negocio Uno")).toBeTruthy());
-    await fireEvent.press(getByTestId("negocio-plataforma-uno"));
+    await fireEvent.press(getByTestId("negocio-eliminar-uno"));
 
     await waitFor(() => expect(getByTestId("eliminar-negocio-aviso")).toBeTruthy());
     expect(queryByTestId("eliminar-negocio-frase")).toBeNull();
     expect(mockPost).not.toHaveBeenCalledWith(expect.stringContaining("/purge"), expect.anything());
-    alertSpy.mockRestore();
   });
 
   it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
