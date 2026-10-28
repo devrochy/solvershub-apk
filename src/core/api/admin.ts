@@ -19,23 +19,84 @@ export class AdminApiError extends Error {
   }
 }
 
+export type ParametroApi = string | number | boolean | (string | number)[] | null | undefined;
+
+export interface TextoDescargado {
+  texto: string;
+  nombreArchivo?: string;
+}
+
 export interface ClienteAdmin {
-  get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T>;
-  post<T>(path: string, body?: unknown): Promise<T>;
+  get<T>(path: string, params?: Record<string, ParametroApi>): Promise<T>;
+  /** Respuesta de texto plano (CSV) con el nombre sugerido por el servidor. */
+  getTexto?(path: string, params?: Record<string, ParametroApi>): Promise<TextoDescargado>;
+  post<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T>;
   put<T>(path: string, body?: unknown): Promise<T>;
   patch<T>(path: string, body?: unknown): Promise<T>;
   del<T>(path: string, body?: unknown): Promise<T>;
 }
 
-function conQuery(path: string, params?: Record<string, string | number | undefined>): string {
+function conQuery(path: string, params?: Record<string, ParametroApi>): string {
   if (!params) {
     return path;
   }
-  const query = Object.entries(params)
-    .filter(([, v]) => v !== undefined)
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
-    .join("&");
-  return query ? `${path}?${query}` : path;
+  const pares = Object.entries(params).flatMap(([k, v]) => {
+    if (v === undefined || v === null) return [];
+    const valores = Array.isArray(v) ? v : [v];
+    return valores.map((valor) => `${encodeURIComponent(k)}=${encodeURIComponent(String(valor))}`);
+  });
+  return pares.length > 0 ? `${path}?${pares.join("&")}` : path;
+}
+
+function cabecerasDe(sesion: AdminSesion | null, extra?: Record<string, string>, conCuerpo = false): Record<string, string> {
+  if (!sesion) {
+    throw new AdminApiError(401, "sin_sesion", "Sesión requerida.");
+  }
+  const headers: Record<string, string> = { Authorization: `Bearer ${sesion.token}`, ...extra };
+  if (sesion.tenantId) {
+    headers["X-Tenant-Id"] = sesion.tenantId;
+  }
+  if (conCuerpo) {
+    headers["Content-Type"] = "application/json";
+  }
+  return headers;
+}
+
+function nombreDesdeCabecera(res: Response): string | undefined {
+  const disposicion = res.headers.get("content-disposition") ?? "";
+  const coincidencia = /filename="?([^";]+)"?/i.exec(disposicion);
+  return coincidencia?.[1];
+}
+
+async function pedirTexto(
+  sesion: AdminSesion | null,
+  path: string,
+): Promise<TextoDescargado> {
+  const res = await fetch(apiV1(path), { method: "GET", headers: cabecerasDe(sesion) });
+  if (!res.ok) {
+    throw await errorDeRespuesta(res);
+  }
+  return { texto: await res.text(), nombreArchivo: nombreDesdeCabecera(res) };
+}
+
+async function errorDeRespuesta(res: Response): Promise<AdminApiError> {
+  let code = String(res.status);
+  let message = "Ocurrió un error. Intenta de nuevo.";
+  let fields: Record<string, string> | undefined;
+  try {
+    const data = (await res.json()) as {
+      error?: { code?: string; message?: string; fields?: Record<string, unknown> };
+    };
+    code = data.error?.code ?? code;
+    message = data.error?.message ?? message;
+    const campos = Object.entries(data.error?.fields ?? {}).filter(
+      (par): par is [string, string] => typeof par[1] === "string",
+    );
+    if (campos.length > 0) fields = Object.fromEntries(campos);
+  } catch {
+    // sin cuerpo JSON
+  }
+  return new AdminApiError(res.status, code, message, fields);
 }
 
 async function pedir<T>(
@@ -43,40 +104,16 @@ async function pedir<T>(
   method: string,
   path: string,
   body?: unknown,
+  extraHeaders?: Record<string, string>,
 ): Promise<T> {
-  if (!sesion) {
-    throw new AdminApiError(401, "sin_sesion", "Sesión requerida.");
-  }
-  const headers: Record<string, string> = { Authorization: `Bearer ${sesion.token}` };
-  if (sesion.tenantId) {
-    headers["X-Tenant-Id"] = sesion.tenantId;
-  }
-  if (body !== undefined) {
-    headers["Content-Type"] = "application/json";
-  }
+  const headers = cabecerasDe(sesion, extraHeaders, body !== undefined);
   const res = await fetch(apiV1(path), {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
-    let code = String(res.status);
-    let message = "Ocurrió un error. Intenta de nuevo.";
-    let fields: Record<string, string> | undefined;
-    try {
-      const data = (await res.json()) as {
-        error?: { code?: string; message?: string; fields?: Record<string, unknown> };
-      };
-      code = data.error?.code ?? code;
-      message = data.error?.message ?? message;
-      const campos = Object.entries(data.error?.fields ?? {}).filter(
-        (par): par is [string, string] => typeof par[1] === "string",
-      );
-      if (campos.length > 0) fields = Object.fromEntries(campos);
-    } catch {
-      // sin cuerpo JSON
-    }
-    throw new AdminApiError(res.status, code, message, fields);
+    throw await errorDeRespuesta(res);
   }
   if (res.status === 204) {
     return undefined as T;
@@ -87,7 +124,8 @@ async function pedir<T>(
 export function crearClienteAdmin(sesion: AdminSesion | null): ClienteAdmin {
   return {
     get: (path, params) => pedir(sesion, "GET", conQuery(path, params)),
-    post: (path, body) => pedir(sesion, "POST", path, body),
+    getTexto: (path, params) => pedirTexto(sesion, conQuery(path, params)),
+    post: (path, body, headers) => pedir(sesion, "POST", path, body, headers),
     put: (path, body) => pedir(sesion, "PUT", path, body),
     patch: (path, body) => pedir(sesion, "PATCH", path, body),
     del: (path, body) => pedir(sesion, "DELETE", path, body),

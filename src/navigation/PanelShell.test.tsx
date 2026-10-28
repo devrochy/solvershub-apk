@@ -230,7 +230,7 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
       emitirNavegacion({ tab: "conversaciones", pestana: "leads" });
     });
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Clientes"));
-    await waitFor(() => expect(getByTestId("operacion-busqueda-leads")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("clientes-busqueda")).toBeTruthy());
     expect(queryByTestId("pestana-conversaciones")).toBeNull();
   });
 

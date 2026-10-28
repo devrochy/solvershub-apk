@@ -7,6 +7,7 @@ import {
   Avatar,
   Badge,
   Button,
+  Card,
   Checkbox,
   Drawer,
   EmptyState,
@@ -245,6 +246,17 @@ function Catalogo() {
           />
           <ListItem title="Solo lectura" subtitle="Sin acción" />
         </View>
+      </Seccion>
+
+      <Seccion titulo="Card">
+        <Card accentColor={c.statusSuccessFg} accessibilityLabel="Cliente Laura" onPress={noop}>
+          <Text style={[shType.block, { color: c.text }]}>Laura Martínez</Text>
+          <Text style={[shType.dense, { color: c.textMuted }]}>WhatsApp · $ 120.000</Text>
+          <Badge tone="success" icon="check-circle" label="Al día" />
+        </Card>
+        <Card>
+          <Text style={[shType.body, { color: c.text }]}>Tarjeta sin acción</Text>
+        </Card>
       </Seccion>
 
       <Seccion titulo="SyncStatus">

@@ -20,6 +20,8 @@ export interface AdminSesion {
   role: string;
   tenantId: string | null;
   tenantName: string | null;
+  /** Rol dentro del negocio activo (`owner`, `admin`, `colaborador`). */
+  tenantRole?: string | null;
   permissions: Record<string, string | null>;
 }
 

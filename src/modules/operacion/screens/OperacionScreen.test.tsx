@@ -1,7 +1,13 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
+jest.mock("@core/session/admin-session-context", () => ({
+  useAdminSession: () => ({
+    sesion: { token: "t", role: "master", tenantRole: "owner", permissions: {} },
+    loading: false,
+  }),
+}));
 
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { OperacionScreen } from "./OperacionScreen";
 
@@ -61,6 +67,7 @@ describe("OperacionScreen (HU-APP-08)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAdminApi.mockReturnValue(cliente);
+    mockPost.mockResolvedValue({ bot_paused: true });
     mockGet.mockImplementation((path: string) => {
       if (path === "/admin/conversations") {
         return Promise.resolve(PAGINA_CONVERSACIONES);
@@ -91,11 +98,28 @@ describe("OperacionScreen (HU-APP-08)", () => {
       if (path === "/admin/leads") {
         return Promise.resolve({
           items: [
-            { id: "l-1", cliente: "Lead Uno", canal: "whatsapp", alta: "2026-10-01", extras: {} },
+            {
+              id: "l-1",
+              cliente: "Lead Uno",
+              canal: "whatsapp",
+              telefono: "+57 300 111 2233",
+              alta: "2026-10-01",
+              extras: {},
+              agentes: ["general"],
+              bot_paused: false,
+              perfil: {
+                nombre_visible: "Lead Uno",
+                phone_indicativo: "+57",
+                phone_local: "300 111 2233",
+                clasificacion: "cliente",
+              },
+            },
           ],
           page: 1,
           total: 1,
           has_more: false,
+          agents: [{ key: "general", name: "General", columns: [] }],
+          filters: [],
         });
       }
       if (path === "/admin/playground") {
@@ -307,6 +331,77 @@ describe("OperacionScreen (HU-APP-08)", () => {
     await fireEvent.press(getByTestId("pestana-leads"));
     await waitFor(() => expect(getByTestId("lista-leads")).toBeTruthy());
     expect(getByText("Lead Uno")).toBeTruthy();
+  });
+
+  it("filtra clientes por texto y canal contra la API", async () => {
+    const { getByTestId } = await render(
+      <OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByTestId("lista-leads")).toBeTruthy());
+
+    await fireEvent.changeText(getByTestId("clientes-busqueda"), "juana");
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenCalledWith("/admin/leads", expect.objectContaining({ q: "juana" })),
+    );
+
+    await fireEvent.press(getByTestId("clientes-filtros"));
+    await fireEvent.press(getByTestId("filtro-canal-whatsapp"));
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenCalledWith(
+        "/admin/leads",
+        expect.objectContaining({ channel: "whatsapp" }),
+      ),
+    );
+  });
+
+  it("pausa el bot desde la tarjeta del cliente", async () => {
+    const { getByTestId } = await render(
+      <OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByTestId("lista-leads")).toBeTruthy());
+    await fireEvent.press(getByTestId("lead-bot-l-1"));
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/admin/leads/l-1/toggle-bot"),
+    );
+  });
+
+  it("pide la página siguiente al llegar al final", async () => {
+    mockGet.mockImplementation((path: string, params?: { page?: number }) => {
+      if (path === "/admin/conversations/connections") return Promise.resolve([]);
+      if (path === "/admin/leads") {
+        const pagina = params?.page ?? 1;
+        return Promise.resolve({
+          items: [
+            {
+              id: `l-${pagina}`,
+              cliente: `Cliente ${pagina}`,
+              canal: "whatsapp",
+              alta: "2026-10-01",
+              extras: {},
+              agentes: ["general"],
+              bot_paused: false,
+              perfil: { nombre_visible: `Cliente ${pagina}` },
+            },
+          ],
+          page: pagina,
+          total: 2,
+          has_more: pagina === 1,
+          agents: [{ key: "general", name: "General", columns: [] }],
+          filters: [],
+        });
+      }
+      return Promise.resolve({ turns: [] });
+    });
+    const { getByTestId } = await render(
+      <OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByTestId("lista-leads")).toBeTruthy());
+    await act(async () => {
+      getByTestId("lista-leads").props.onEndReached();
+    });
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenCalledWith("/admin/leads", expect.objectContaining({ page: 2 })),
+    );
   });
 
   it("muestra el playground y reinicia la demo (HU-APP-21)", async () => {
