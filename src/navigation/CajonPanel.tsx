@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
-import { Image, ScrollView, StyleSheet, View } from "react-native";
+import { Image, ScrollView, StyleSheet, View, type ScrollViewInstance } from "react-native";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { shSpace } from "@core/theme/tokens";
@@ -39,7 +39,7 @@ export function CajonPanel({ onAbrirPerfil }: { onAbrirPerfil?: () => void }) {
     [grupos, activo],
   );
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const offsets = useRef<Record<string, number>>({});
 
   const desplazar = useCallback(() => {

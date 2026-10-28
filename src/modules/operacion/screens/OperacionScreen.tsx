@@ -365,7 +365,7 @@ export function OperacionScreen({
               ListFooterComponent={
                 hayMasLeads ? (
                   <ActivityIndicator style={styles.pieLista} color={colores.acento} />
-                ) : null
+                ) : undefined
               }
               onEndReachedThreshold={0.4}
               onEndReached={() => {

@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type ScrollViewInstance,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AdminApiError } from "@core/api/admin";
@@ -101,7 +102,7 @@ export function RecorridoScreen() {
     "inactivo" | "creando" | "dejando-listo" | "error" | "listo"
   >("inactivo");
   const [revision, setRevision] = useState(false);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
 
   const guardarBorrador = useCallback(
     (e: EstadoDelAsistente) => {

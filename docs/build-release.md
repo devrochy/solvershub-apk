@@ -22,6 +22,11 @@ Cada perfil de `eas.json` compila contra una API y escucha un **canal** de EAS U
   en el `CHANGELOG.md`.
 - `runtimeVersion` usa la política **fingerprint**: se deriva del código nativo (dependencias,
   plugins, `app.json`). Un OTA solo llega a los binarios con el mismo fingerprint.
+- SDK 58 activa **R8** en release. El perfil `preview` lo apaga (`SOLVERSHUB_DISABLE_R8=1` en
+  `eas.json`, aplicado en `app.config.js`) para que el APK de QA no dependa de keep rules;
+  `staging` y `production` lo conservan y se validan en su ciclo.
+- Expo Go solo acepta **SDK 58**, pero no aplica SQLCipher, pinning ni push: para QA usa el APK
+  `preview`, no Expo Go.
 
 ## Comandos
 
@@ -79,7 +84,8 @@ antes y después; si el hash cambia, va AAB.
 ## Reproducibilidad
 
 - `package-lock.json` commiteado; `npm ci` en CI (`.npmrc` con `legacy-peer-deps`).
-- SDK de Expo pineado (`expo ~57.x`), con las versiones de `expo-*` alineadas (`npx expo install --check`).
+- SDK de Expo pineado (`expo ~58.x`), con las versiones de `expo-*` alineadas (`npx expo install --check`).
+- Node 22.13+ o 24.3+ (las versiones impares no están soportadas); la máquina de build y EAS lo cumplen.
 - Tipos de API commiteados (`npm run api:types` desde `origin/develop` del backend).
 - `npm run check` en verde antes de cualquier build de release.
 
@@ -123,3 +129,5 @@ antes y después; si el hash cambia, va AAB.
      "Resumen".
   El bundle publicado lleva la API de test y no la de `.env.local`.
 - Pendiente: la cuenta de Play Console (pasos de arriba).
+- 2026-10-28: migración a Expo SDK 58 (RN 0.88, React 19.3) y Strict TypeScript API; R8
+  apagado solo en `preview`; `expo-doctor` 20/20 y 1208 tests en verde.

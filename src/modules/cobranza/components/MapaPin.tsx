@@ -57,7 +57,7 @@ export function MapaPin({
 }: MapaPinProps) {
   const { c } = useKit();
   const html = useMemo(() => htmlMapaPin(latitud, longitud), [latitud, longitud]);
-  const webviewRef = useRef<WebView | null>(null);
+  const webviewRef = useRef<InstanceType<typeof WebView> | null>(null);
   const primerRender = useRef(true);
 
   useEffect(() => {

@@ -399,7 +399,7 @@ export function CobranzaAdminScreen({
               >
                 <Text style={{ color: colores.textoSuave, fontSize: 14 }}>Buscar cliente</Text>
               </Pressable>
-            ) : null
+            ) : undefined
           }
           ListEmptyComponent={<Text style={styles.vacio}>Sin carteras.</Text>}
           renderItem={({ item }) => (
@@ -571,7 +571,7 @@ export function CobranzaAdminScreen({
         />
       ) : pestana === "dispositivos" ? (
         <FlatList testID="cobranza-lista-dispositivos" data={dispositivos?.dispositivos ?? []} keyExtractor={(d) => d.id}
-          ListHeaderComponent={(dispositivos?.pendientes ?? 0) > 0 ? <Text style={{ color: colores.peligro, fontSize: 13, marginBottom: 8 }}>{dispositivos?.pendientes} pendiente(s) de aprobación</Text> : null}
+          ListHeaderComponent={(dispositivos?.pendientes ?? 0) > 0 ? <Text style={{ color: colores.peligro, fontSize: 13, marginBottom: 8 }}>{dispositivos?.pendientes} pendiente(s) de aprobación</Text> : undefined}
           ListEmptyComponent={<Text style={styles.vacio}>Sin dispositivos.</Text>}
           renderItem={({ item }) => (
             <Pressable onPress={() => cambiarDispositivo(item)} style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
