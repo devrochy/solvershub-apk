@@ -41,6 +41,8 @@ EAS Update.
   `react-native-gesture-handler ~3.3.0`, `react-native-webview 14.0.1`,
   `react-native-view-shot 6.1.1`.
 - `runtimeVersion` (fingerprint android): `51f01ec4b96508870b32f0edd5c0d0344e167150`.
+  `fingerprint.config.js` suma `**/eas-environment-secrets/**` para que `eas build --local`
+  (que copia el proyecto a un temporal) calcule el mismo hash que el build y el OTA.
 - `npm test`: 188 suites, 1208 tests en verde.
 - `scripts/check.sh` se detiene en fronteras de módulos por 5 imports preexistentes de
   `modules/datos-prueba` en `develop` (HU-QA-10); no los introduce esta tarea. CI no ejecuta
