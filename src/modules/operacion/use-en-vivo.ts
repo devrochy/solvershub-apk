@@ -10,7 +10,7 @@ import {
   type FiltroConversaciones,
   type MessageItem,
 } from "./api";
-import { actividadDe } from "./presentacion";
+import { ordenarPorLlegada } from "./presentacion";
 
 /** Bandeja en vivo (como el panel): solo con la pantalla enfocada y la app en primer plano. */
 export const INTERVALO_HILO_MS = 4_000;
@@ -91,9 +91,7 @@ export function unirConversaciones(
 ): ConversationSummary[] {
   const porId = new Map(actuales.map((c) => [c.id, c]));
   for (const chat of nuevas) porId.set(chat.id, chat);
-  return [...porId.values()]
-    .filter((chat) => coincideConFiltros(chat, filtros))
-    .sort((a, b) => actividadDe(b).localeCompare(actividadDe(a)) || b.id.localeCompare(a.id));
+  return ordenarPorLlegada([...porId.values()].filter((chat) => coincideConFiltros(chat, filtros)));
 }
 
 function claveDeFiltros(filtros: FiltroConversaciones): string {
@@ -164,7 +162,7 @@ export function useConversacionesEnVivo(
           setItems((actuales) =>
             modo === "silencioso" && paginaRef.current > 1
               ? unirConversaciones(actuales, paginaNueva.items, filtrosRef.current)
-              : paginaNueva.items,
+              : ordenarPorLlegada(paginaNueva.items),
           );
           setPagina(1);
           paginaRef.current = 1;

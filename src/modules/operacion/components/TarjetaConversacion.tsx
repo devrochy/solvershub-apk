@@ -6,11 +6,13 @@ import { BadgeEstado } from "./BadgeEstado";
 import {
   actividadDe,
   conexionDelChat,
+  contadorPendientes,
   estadoDeConversacion,
   formatearHoraChat,
   iconoDelCanal,
   nombreDelChat,
   PREFIJO_REMITENTE,
+  textoPendientes,
   tipoDelChat,
 } from "../presentacion";
 
@@ -34,13 +36,16 @@ export function TarjetaConversacion({
   chat: ConversationSummary;
   onPress: () => void;
 }) {
-  const { c, ripple } = useKit();
+  const { c, ripple, relleno } = useKit();
   const nombre = nombreDelChat(chat);
   const estado = estadoDeConversacion(chat.status);
   const tipo = tipoDelChat(chat);
   const sinMensajes = chat.last_message == null;
+  const pendientes = chat.pending_count ?? 0;
+  const esperando = pendientes > 0;
   const etiqueta = [
     nombre,
+    esperando ? textoPendientes(pendientes) : null,
     estado.label,
     chat.bot_paused ? "agente pausado" : null,
     vistaPrevia(chat),
@@ -65,7 +70,10 @@ export function TarjetaConversacion({
       <Avatar name={nombre} size="md" status={estadoDelAvatar(chat)} />
       <View style={styles.cuerpo}>
         <View style={styles.filaSuperior}>
-          <Text style={[shType.label, styles.nombre, { color: c.text }]} numberOfLines={1}>
+          <Text
+            style={[shType.label, styles.nombre, { color: c.text }, esperando && styles.nombreEsperando]}
+            numberOfLines={1}
+          >
             {nombre}
           </Text>
           <Text
@@ -76,12 +84,34 @@ export function TarjetaConversacion({
           </Text>
         </View>
 
-        <Text
-          style={[shType.dense, { color: sinMensajes ? c.textSoft : c.textMuted }, sinMensajes && styles.sinMensajes]}
-          numberOfLines={2}
-        >
-          {vistaPrevia(chat)}
-        </Text>
+        <View style={styles.filaVista}>
+          <Text
+            style={[
+              shType.dense,
+              styles.vista,
+              { color: sinMensajes ? c.textSoft : esperando ? c.text : c.textMuted },
+              sinMensajes && styles.sinMensajes,
+            ]}
+            numberOfLines={2}
+          >
+            {vistaPrevia(chat)}
+          </Text>
+          {esperando && (
+            <View
+              testID={`pendientes-${chat.id}`}
+              pointerEvents="none"
+              accessible={false}
+              style={[styles.pendientes, { backgroundColor: relleno.primario }]}
+            >
+              <Text
+                style={[styles.pendientesTexto, { color: relleno.sobrePrimario }]}
+                maxFontSizeMultiplier={1.6}
+              >
+                {contadorPendientes(pendientes)}
+              </Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.meta}>
           <View style={styles.canal}>
@@ -114,7 +144,19 @@ const styles = StyleSheet.create({
   cuerpo: { flex: 1, gap: 2 },
   filaSuperior: { flexDirection: "row", alignItems: "baseline", gap: shSpace[2] },
   nombre: { flex: 1, fontFamily: shType.block.fontFamily, fontSize: shType.label.fontSize },
+  nombreEsperando: { fontFamily: "Montserrat_700Bold" },
   hora: { fontVariant: ["tabular-nums"] },
+  filaVista: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
+  vista: { flex: 1 },
+  pendientes: {
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 5,
+    borderRadius: shRadius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pendientesTexto: { fontSize: 11, lineHeight: 14, fontWeight: "700", fontVariant: ["tabular-nums"] },
   sinMensajes: { fontStyle: "italic" },
   meta: { flexDirection: "row", alignItems: "center", gap: shSpace[2], marginTop: 2, flexWrap: "wrap" },
   canal: { flexDirection: "row", alignItems: "center", gap: shSpace[1], flexShrink: 1, minWidth: 96 },

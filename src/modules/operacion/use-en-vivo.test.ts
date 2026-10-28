@@ -62,6 +62,12 @@ describe("use-en-vivo", () => {
     expect(unidas.map((c) => c.id)).toEqual(["c"]);
   });
 
+  it("ordena por llegada al unir la lista", () => {
+    const viejo = chat("a", { last_message_at: "2026-10-06T10:00:00Z" });
+    const nuevo = chat("b", { last_message_at: "2026-10-06T11:00:00Z" });
+    expect(unirConversaciones([viejo, nuevo], [], {}).map((c) => c.id)).toEqual(["b", "a"]);
+  });
+
   it("consulta cada intervalo sin solapar y se detiene al desmontar", async () => {
     jest.useFakeTimers();
     const tarea = jest.fn(async () => undefined);

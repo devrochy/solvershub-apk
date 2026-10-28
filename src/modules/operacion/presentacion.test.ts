@@ -1,5 +1,6 @@
 import {
   conexionDelChat,
+  contadorPendientes,
   estadoDeConversacion,
   estadoDeEscalacion,
   etiquetaDelMotivo,
@@ -7,6 +8,8 @@ import {
   formatearDia,
   formatearHoraChat,
   nombreDelChat,
+  ordenarPorLlegada,
+  textoPendientes,
   tipoDelChat,
   tonoDelMotivo,
 } from "./presentacion";
@@ -51,5 +54,27 @@ describe("presentación de la bandeja", () => {
 
   it("resume costo y tokens", () => {
     expect(formatearCostoYTokens(0.02, 1500)).toContain("1.500 tokens");
+  });
+});
+
+describe("pendientes y orden", () => {
+  it("usa el número y tope 99+ en la píldora", () => {
+    expect(contadorPendientes(0)).toBe("0");
+    expect(contadorPendientes(7)).toBe("7");
+    expect(contadorPendientes(100)).toBe("99+");
+  });
+
+  it("concuerda en singular y plural en el texto accesible", () => {
+    expect(textoPendientes(1)).toBe("1 mensaje sin responder");
+    expect(textoPendientes(3)).toBe("3 mensajes sin responder");
+    expect(textoPendientes(100)).toBe("Más de 99 mensajes sin responder");
+  });
+
+  it("pone primero el último mensaje y desempata por id", () => {
+    const base = { customer_name: null, external_id: null, channel: "whatsapp", status: "open", bot_paused: false, started_at: "2026-10-06T00:00:00Z" };
+    const viejo = { ...base, id: "a", last_message_at: "2026-10-06T10:00:00Z" };
+    const nuevo = { ...base, id: "b", last_message_at: "2026-10-06T11:00:00Z" };
+    expect(ordenarPorLlegada([viejo, nuevo]).map((c) => c.id)).toEqual(["b", "a"]);
+    expect(ordenarPorLlegada([viejo, { ...viejo, id: "c" }]).map((c) => c.id)).toEqual(["c", "a"]);
   });
 });
