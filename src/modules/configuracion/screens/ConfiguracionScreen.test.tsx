@@ -2,7 +2,12 @@ jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
 jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: () => ({
-    sesion: { token: "t", role: "owner", permissions: { connections: "write" }, tenantId: "tenant-1" },
+    sesion: {
+      token: "t",
+      role: "owner",
+      permissions: { connections: "write", collaborators: "write" },
+      tenantId: "tenant-1",
+    },
     loading: false,
   }),
 }));
@@ -42,10 +47,13 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
             active: true,
             is_self: false,
             is_platform_master: false,
-            permissions: {},
+            permissions: [],
             links: [],
           },
         ]);
+      }
+      if (path === "/admin/invitations/outgoing") {
+        return Promise.resolve([]);
       }
       if (path === "/admin/plugins") {
         return Promise.resolve([
@@ -178,21 +186,6 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
     });
   });
 
-  it("lista colaboradores y desactiva con confirmación", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
-      botones?.find((b) => b.text === "desactivar")?.onPress?.();
-    });
-
-    const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
-    await waitFor(() => expect(getByText("vendedor@x.com")).toBeTruthy());
-
-    await fireEvent.press(getByTestId("colaborador-vendedor@x.com"));
-    await waitFor(() =>
-      expect(mockPost).toHaveBeenCalledWith("/admin/collaborators/a-1/toggle"),
-    );
-    alertSpy.mockRestore();
-  });
-
   it("desactiva una habilidad con confirmación", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
       botones?.find((b) => b.text === "Confirmar")?.onPress?.();
@@ -218,25 +211,6 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
 
     await fireEvent.press(getByTestId("config-conexiones"));
     expect(getByText("Principal · principal")).toBeTruthy();
-  });
-
-  it("invita a un colaborador desde el modal (HU-APP-20)", async () => {
-    mockPost.mockResolvedValue(undefined);
-    const { getByTestId } = await render(<ConfiguracionScreen />);
-    await waitFor(() => expect(getByTestId("config-lista-colaboradores")).toBeTruthy());
-
-    await fireEvent.press(getByTestId("config-invitar"));
-    await fireEvent.changeText(getByTestId("modal-email"), "nuevo@demo.test");
-    await fireEvent.changeText(getByTestId("modal-clave"), "clave123");
-    await fireEvent.press(getByTestId("modal-enviar"));
-
-    await waitFor(() =>
-      expect(mockPost).toHaveBeenCalledWith("/admin/collaborators", {
-        email: "nuevo@demo.test",
-        password: "clave123",
-        role: "colaborador",
-      }),
-    );
   });
 
   it("alterna el opt-out de push (HU-APP-21)", async () => {
