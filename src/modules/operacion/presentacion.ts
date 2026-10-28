@@ -150,6 +150,29 @@ export function actividadDe(chat: { last_message_at?: string | null; started_at:
   return chat.last_message_at ?? chat.started_at;
 }
 
+/** Orden de la bandeja como en las apps de chat: lo último que llegó, primero. */
+export function ordenarPorLlegada<T extends { id: string; last_message_at?: string | null; started_at: string }>(
+  chats: T[],
+): T[] {
+  const momento = (chat: T) => {
+    const ms = Date.parse(actividadDe(chat));
+    return Number.isFinite(ms) ? ms : 0;
+  };
+  return [...chats].sort((a, b) => momento(b) - momento(a) || b.id.localeCompare(a.id));
+}
+
+/** Número de la píldora de pendientes: tope `99+` como en las apps de chat. */
+export function contadorPendientes(n: number): string {
+  return n > 99 ? "99+" : String(Math.max(0, n));
+}
+
+/** Texto accesible de los mensajes que esperan respuesta. */
+export function textoPendientes(n: number): string {
+  if (n > 99) return "Más de 99 mensajes sin responder";
+  if (n === 1) return "1 mensaje sin responder";
+  return `${n} mensajes sin responder`;
+}
+
 const NUMERO = new Intl.NumberFormat("es-CO");
 const USD = new Intl.NumberFormat("es-CO", {
   style: "currency",

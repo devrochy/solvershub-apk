@@ -42,6 +42,7 @@ const PAGINA_CONVERSACIONES = {
       last_message_at: "2026-10-06T00:10:00Z",
       last_message_sender: "customer",
       started_at: "2026-10-06T00:00:00Z",
+      pending_count: 3,
     },
     {
       id: "cv-2",
@@ -56,6 +57,7 @@ const PAGINA_CONVERSACIONES = {
       last_message_at: "2026-10-06T01:00:00Z",
       last_message_sender: "agent",
       started_at: "2026-10-06T01:00:00Z",
+      pending_count: 0,
     },
   ],
   page: 1,
@@ -130,11 +132,15 @@ describe("OperacionScreen (HU-APP-08)", () => {
   });
 
   it("carga conversaciones con tarjeta informativa y busca con debounce", async () => {
-    const { getByTestId, getByText } = await render(<OperacionScreen />);
+    const { getAllByTestId, getByTestId, getByText, queryByTestId } = await render(<OperacionScreen />);
     await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
     expect(getByText("Juanita")).toBeTruthy();
     expect(getByText("Quiero hablar con alguien")).toBeTruthy();
     expect(getByText("WhatsApp Cloud · Ventas")).toBeTruthy();
+    expect(getByTestId("pendientes-cv-1")).toBeTruthy();
+    expect(queryByTestId("pendientes-cv-2")).toBeNull();
+    expect(getByTestId("conversacion-cv-1").props.accessibilityLabel).toContain("3 mensajes sin responder");
+    expect(getAllByTestId(/^conversacion-/)[0].props.testID).toBe("conversacion-cv-2");
 
     await fireEvent.changeText(getByTestId("operacion-busqueda"), "juan");
     await waitFor(() =>
