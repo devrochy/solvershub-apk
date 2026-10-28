@@ -1,10 +1,7 @@
 import type { ClienteAdmin } from "@core/api/admin";
 import type { components } from "@core/api/schema";
 
-export type ConversationSummary = components["schemas"]["ConversationSummary"] & {
-  /** Mensajes del cliente después de la última respuesta entregada (backend nuevo; local hasta regenerar). */
-  pending_count?: number;
-};
+export type ConversationSummary = components["schemas"]["ConversationSummary"];
 export type ConversationDetail = components["schemas"]["ConversationDetail"];
 export type ConversationConnection = components["schemas"]["ConversationConnection"];
 export type MessageItem = components["schemas"]["MessageItem"];

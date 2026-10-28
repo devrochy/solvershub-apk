@@ -1665,6 +1665,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/datos-de-prueba/{modulo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado Modulo
+         * @description Estado de los datos de prueba del módulo (Ventas, Agenda, Cobranza o Suscripciones).
+         */
+        get: operations["estado_modulo_api_v1_admin_datos_de_prueba__modulo__get"];
+        put?: never;
+        /**
+         * Generar Modulo
+         * @description Genera los datos del módulo según la descripción del negocio y reemplaza el lote anterior.
+         */
+        post: operations["generar_modulo_api_v1_admin_datos_de_prueba__modulo__post"];
+        /**
+         * Borrar Modulo
+         * @description Retira todos los datos de prueba del módulo; lo creado a mano no se toca.
+         */
+        delete: operations["borrar_modulo_api_v1_admin_datos_de_prueba__modulo__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/dlq": {
         parameters: {
             query?: never;
@@ -11770,6 +11798,26 @@ export interface components {
              * @description Por qué el agente no tiene datos que generar.
              */
             motivo?: string | null;
+        };
+        /** EstadoDatosDePruebaModulo */
+        EstadoDatosDePruebaModulo: {
+            /** Disponible */
+            disponible: boolean;
+            /**
+             * Falta Descripcion
+             * @description El negocio no tiene descripción propia: hay que escribirla antes.
+             */
+            falta_descripcion: boolean;
+            lote: components["schemas"]["LoteDePrueba"] | null;
+            /** Modulo */
+            modulo: string;
+            /**
+             * Motivo
+             * @description Por qué el módulo no tiene datos que generar.
+             */
+            motivo?: string | null;
+            /** Titulo */
+            titulo: string;
         };
         /** EvalRunItem */
         EvalRunItem: {
@@ -23713,6 +23761,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResumenPorAgente"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    estado_modulo_api_v1_admin_datos_de_prueba__modulo__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                modulo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstadoDatosDePruebaModulo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generar_modulo_api_v1_admin_datos_de_prueba__modulo__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                modulo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoteGenerado"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_modulo_api_v1_admin_datos_de_prueba__modulo__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                modulo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatosRetirados"];
                 };
             };
             /** @description Validation Error */
