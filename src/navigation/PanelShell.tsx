@@ -12,6 +12,10 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { EmptyState } from "@shared/ui";
 import { suscribirNavegacion } from "@shared/navegacion-evento";
+import {
+  suscribirAperturaColaborador,
+  type ColaboradorEquipo,
+} from "@shared/equipo-evento";
 import type { EntradaPestanas, SolicitudPestana } from "@shared/pestana-inicial";
 import { CatalogoScreen } from "@shared/ui/catalogo/CatalogoScreen";
 import { DashboardScreen } from "../modules/dashboard";
@@ -21,7 +25,7 @@ import { ComercioScreen } from "../modules/comercio";
 import { CalendarioScreen } from "../modules/calendario";
 import { AgentesScreen } from "../modules/agentes";
 import { NegocioScreen } from "../modules/negocio";
-import { ConfiguracionScreen } from "../modules/configuracion";
+import { ColaboradorDetalleScreen, ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
 import { OnboardingProvider, RecorridoScreen, useOnboarding } from "../modules/onboarding";
@@ -63,6 +67,7 @@ const PanelStack = createStackNavigator<PanelStackParamList>();
 export interface PanelStackParamList extends Record<string, object | undefined> {
   Panel: { screen?: ModuloPanel; params?: object } | undefined;
   Perfil: undefined;
+  ColaboradorDetalle: { colaborador: ColaboradorEquipo };
 }
 
 type ParamsModulo =
@@ -245,6 +250,7 @@ function PanelShellInterno() {
   );
   const destinoPendiente = useRef<DestinoPanel | null>(null);
   const perfilPendiente = useRef(false);
+  const colaboradorPendiente = useRef<ColaboradorEquipo | null>(null);
 
   const navegar = useCallback(
     (destino: DestinoPanel) => {
@@ -289,6 +295,16 @@ function PanelShellInterno() {
     );
   }, [navegar]);
 
+  useEffect(() => {
+    return suscribirAperturaColaborador((colaborador) => {
+      if (!navRef.current?.isReady()) {
+        colaboradorPendiente.current = colaborador;
+        return;
+      }
+      navRef.current.navigate("ColaboradorDetalle", { colaborador });
+    });
+  }, []);
+
   const barra = <StatusBar style={tema === "oscuro" ? "light" : "dark"} />;
 
   return (
@@ -301,6 +317,11 @@ function PanelShellInterno() {
             perfilPendiente.current = false;
             navRef.current?.navigate("Perfil");
           }
+          if (colaboradorPendiente.current) {
+            const colaborador = colaboradorPendiente.current;
+            colaboradorPendiente.current = null;
+            navRef.current?.navigate("ColaboradorDetalle", { colaborador });
+          }
           if (destinoPendiente.current) {
             const destino = destinoPendiente.current;
             destinoPendiente.current = null;
@@ -310,7 +331,7 @@ function PanelShellInterno() {
         onStateChange={() => {
           const estado = navRef.current?.getRootState();
           const ruta = estado?.routes[estado.index];
-          if (ruta?.name === "Perfil") {
+          if (ruta?.name === "Perfil" || ruta?.name === "ColaboradorDetalle") {
             setActivo(null);
             return;
           }
@@ -339,6 +360,14 @@ function PanelShellInterno() {
           </PanelStack.Screen>
           <PanelStack.Screen name="Perfil" options={OPCIONES_PERFIL}>
             {() => <PerfilAdminScreen onBack={() => navRef.current?.goBack()} />}
+          </PanelStack.Screen>
+          <PanelStack.Screen name="ColaboradorDetalle" options={OPCIONES_PERFIL}>
+            {({ route }) => (
+              <ColaboradorDetalleScreen
+                colaborador={route.params.colaborador}
+                onBack={() => navRef.current?.goBack()}
+              />
+            )}
           </PanelStack.Screen>
         </PanelStack.Navigator>
       </NavigationContainer>
