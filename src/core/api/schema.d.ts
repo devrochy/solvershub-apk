@@ -7335,6 +7335,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pack/pack_subscriptions/planes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Planes
+         * @description Catálogo de planes del negocio (sin los borrados), en el orden en que se ofrecen.
+         */
+        get: operations["listar_planes_api_v1_pack_pack_subscriptions_planes_get"];
+        put?: never;
+        /**
+         * Crear Plan
+         * @description Crea un plan. Código repetido → 409 `codigo_duplicado`; prueba en un plan de pago → 422.
+         */
+        post: operations["crear_plan_api_v1_pack_pack_subscriptions_planes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/pack_subscriptions/planes/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Editar Plan
+         * @description Reemplaza un plan. Las suscripciones ya inscritas conservan su snapshot (precio y nombre de cuando entraron).
+         */
+        put: operations["editar_plan_api_v1_pack_pack_subscriptions_planes__plan_id__put"];
+        post?: never;
+        /**
+         * Borrar Plan
+         * @description Borra el plan (lógico): deja de ofrecerse; las suscripciones vivas siguen cobrándose.
+         */
+        delete: operations["borrar_plan_api_v1_pack_pack_subscriptions_planes__plan_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/pack_subscriptions/suscripciones": {
         parameters: {
             query?: never;
@@ -7350,7 +7398,10 @@ export interface paths {
         put?: never;
         /**
          * Crear Suscripcion Manual
-         * @description Crea (o reutiliza) la suscripción de un `Customer` a un plan.
+         * @description Inscribe a un `Customer` en un plan del catálogo (o, camino anterior, crea la suscripción de un plan libre).
+         *
+         *     Con `plan_codigo`: un plan de $0 nace activa (o en prueba); uno de pago nace `pendiente_pago` con su
+         *     cobro y su link (o las instrucciones de transferencia). Repetir la petición devuelve la misma inscripción.
          */
         post: operations["crear_suscripcion_manual_api_v1_pack_pack_subscriptions_suscripciones_post"];
         delete?: never;
@@ -7393,6 +7444,29 @@ export interface paths {
          * @description Termina la suscripción (no se puede reanudar) y deja de generar cargos. Auditada.
          */
         post: operations["cancelar_suscripcion_api_v1_pack_pack_subscriptions_suscripciones__subscription_id__cancelar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/pack_subscriptions/suscripciones/{subscription_id}/confirmar-pago": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar Pago De Inscripcion
+         * @description Confirma a mano el pago por transferencia de una inscripción `pendiente_pago` (o de un cambio de plan).
+         *
+         *     Activa por el mismo camino que el webhook del pago en línea; repetir con la misma referencia responde
+         *     `ya_confirmado`. Queda auditado con el usuario.
+         */
+        post: operations["confirmar_pago_de_inscripcion_api_v1_pack_pack_subscriptions_suscripciones__subscription_id__confirmar_pago_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -10283,6 +10357,14 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** ConfirmarPagoBody */
+        ConfirmarPagoBody: {
+            /**
+             * Referencia
+             * @description Número del comprobante o referencia del pago.
+             */
+            referencia: string;
+        };
         /** ConnectedPageOut */
         ConnectedPageOut: {
             /**
@@ -10872,6 +10954,11 @@ export interface components {
             /** Notes */
             notes?: components["schemas"]["ConversationNote"][];
             /**
+             * Pending Count
+             * @description Mensajes entrantes después de la última respuesta entregada.
+             */
+            pending_count?: number;
+            /**
              * Started At
              * Format: date-time
              */
@@ -10934,6 +11021,11 @@ export interface components {
              * @description customer | agent | human
              */
             last_message_sender?: string | null;
+            /**
+             * Pending Count
+             * @description Mensajes entrantes después de la última respuesta entregada.
+             */
+            pending_count?: number;
             /**
              * Started At
              * Format: date-time
@@ -11007,7 +11099,11 @@ export interface components {
             /** Total Turns */
             total_turns: number;
         };
-        /** CrearSuscripcionBody */
+        /**
+         * CrearSuscripcionBody
+         * @description Con `plan_codigo` se inscribe al cliente en un plan del catálogo (SPEC-43). Los campos de plan
+         *     libre (`nombre`, `precio`, ...) son el camino anterior, que se retira con commerce sin planes (PR-4).
+         */
         CrearSuscripcionBody: {
             /**
              * Customer Id
@@ -11016,20 +11112,38 @@ export interface components {
              */
             customer_id: string;
             /**
+             * Datos Alta
+             * @description Datos del cliente para el alta (nombre, email, teléfono, negocio, vertical).
+             */
+            datos_alta?: {
+                [key: string]: string;
+            } | null;
+            /**
+             * Metodo Pago
+             * @default pago_en_linea
+             * @enum {string}
+             */
+            metodo_pago: "pago_en_linea" | "transferencia";
+            /**
              * Moneda
              * @default COP
              */
             moneda: string;
             /**
              * Nombre
-             * @description Nombre del plan.
+             * @description Camino anterior: nombre del plan.
              */
-            nombre: string;
+            nombre?: string | null;
             /**
              * Periodicidad
              * @default mensual
              */
             periodicidad: string;
+            /**
+             * Plan Codigo
+             * @description Código del plan del catálogo.
+             */
+            plan_codigo?: string | null;
             /**
              * Precio
              * @description Valor del período.
@@ -11044,7 +11158,7 @@ export interface components {
             trial_dias: number;
             /**
              * Variant Id
-             * @description Variante de commerce (si aplica).
+             * @description Camino anterior: variante de commerce.
              */
             variant_id?: string | null;
         };
@@ -14147,7 +14261,7 @@ export interface components {
             canceladas: number;
             /**
              * Churn Mes
-             * @description Bajas del mes ÷ suscripciones vivas al inicio del mes (0–1).
+             * @description Bajas del mes ÷ suscripciones vivas al inicio del mes (0 a 1).
              */
             churn_mes?: number | null;
             /** Cohortes */
@@ -14180,6 +14294,12 @@ export interface components {
             otras_monedas: number;
             /** Pausadas */
             pausadas: number;
+            /**
+             * Pendientes De Pago
+             * @description Inscripciones esperando su primer pago: no son suscripciones vivas y no suman a nada.
+             * @default 0
+             */
+            pendientes_de_pago: number;
             /** Vencidas */
             vencidas: number;
         };
@@ -15299,6 +15419,28 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /** PagoConfirmadoOut */
+        PagoConfirmadoOut: {
+            /**
+             * Cargo Id
+             * Format: uuid
+             */
+            cargo_id: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "confirmado" | "ya_confirmado";
+            /** Numero Publico */
+            numero_publico?: string | null;
+            /** Suscripcion Estado */
+            suscripcion_estado: string;
+            /**
+             * Suscripcion Id
+             * Format: uuid
+             */
+            suscripcion_id: string;
+        };
         /** PagoRegistradoOut */
         PagoRegistradoOut: {
             /**
@@ -15496,6 +15638,62 @@ export interface components {
             /** Verified Name */
             verified_name: string | null;
         };
+        /** PlanBody */
+        PlanBody: {
+            /**
+             * Activo
+             * @default true
+             */
+            activo: boolean;
+            /**
+             * Codigo
+             * @description SKU del plan, único por negocio.
+             */
+            codigo: string;
+            /**
+             * Descripcion
+             * @default
+             */
+            descripcion: string;
+            /**
+             * Entitlements
+             * @description Lo que incluye el plan (objeto).
+             */
+            entitlements?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Moneda
+             * @default COP
+             */
+            moneda: string;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Orden
+             * @default 0
+             */
+            orden: number;
+            /**
+             * Periodicidad
+             * @default mensual
+             * @enum {string}
+             */
+            periodicidad: "mensual" | "trimestral" | "anual";
+            /**
+             * Plan Plataforma
+             * @description Plan de la plataforma que vende.
+             */
+            plan_plataforma?: string | null;
+            /** Precio */
+            precio: number;
+            /**
+             * Trial Dias
+             * @description Solo un plan de $0 tiene prueba (D-16).
+             * @default 0
+             */
+            trial_dias: number;
+        };
         /** PlanInfo */
         PlanInfo: {
             /** Current */
@@ -15518,6 +15716,71 @@ export interface components {
             name: string;
             /** Price Cop */
             price_cop: number;
+        };
+        /** PlanOut */
+        PlanOut: {
+            /**
+             * Activo
+             * @default true
+             */
+            activo: boolean;
+            /** Actualizado */
+            actualizado?: string | null;
+            /**
+             * Codigo
+             * @description SKU del plan, único por negocio.
+             */
+            codigo: string;
+            /** Creado */
+            creado?: string | null;
+            /**
+             * Descripcion
+             * @default
+             */
+            descripcion: string;
+            /**
+             * Entitlements
+             * @description Lo que incluye el plan (objeto).
+             */
+            entitlements?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Moneda
+             * @default COP
+             */
+            moneda: string;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Orden
+             * @default 0
+             */
+            orden: number;
+            /**
+             * Periodicidad
+             * @default mensual
+             * @enum {string}
+             */
+            periodicidad: "mensual" | "trimestral" | "anual";
+            /**
+             * Plan Plataforma
+             * @description Plan de la plataforma que vende.
+             */
+            plan_plataforma?: string | null;
+            /** Precio */
+            precio: number;
+            /**
+             * Trial Dias
+             * @description Solo un plan de $0 tiene prueba (D-16).
+             * @default 0
+             */
+            trial_dias: number;
         };
         /** PlanOverview */
         PlanOverview: {
@@ -18186,6 +18449,22 @@ export interface components {
             creada: boolean;
             /** Estado */
             estado: string;
+            /**
+             * Inscripcion
+             * @description nueva | repetida | cambio_de_plan
+             */
+            inscripcion?: string | null;
+            /** Instrucciones Transferencia */
+            instrucciones_transferencia?: string | null;
+            /** Link Pago */
+            link_pago?: string | null;
+            /**
+             * Monto
+             * @description Valor del cobro de inscripción, si lo hay.
+             */
+            monto?: number | null;
+            /** Numero Publico */
+            numero_publico?: string | null;
             /** Plan */
             plan: string;
             /**
@@ -35007,7 +35286,7 @@ export interface operations {
                 page_size?: number;
                 q?: string | null;
                 suscripcion_id?: string | null;
-                tipo?: ("periodo" | "cambio_plan") | null;
+                tipo?: ("periodo" | "cambio_plan" | "inscripcion") | null;
                 /** @description Solo pendientes con vencimiento cumplido. */
                 vencidos?: boolean;
             };
@@ -35217,6 +35496,143 @@ export interface operations {
             };
         };
     };
+    listar_planes_api_v1_pack_pack_subscriptions_planes_get: {
+        parameters: {
+            query?: {
+                /** @description Incluye los planes apagados. */
+                incluir_inactivos?: boolean;
+            };
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_plan_api_v1_pack_pack_subscriptions_planes_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    editar_plan_api_v1_pack_pack_subscriptions_planes__plan_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_plan_api_v1_pack_pack_subscriptions_planes__plan_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     listar_suscripciones_api_v1_pack_pack_subscriptions_suscripciones_get: {
         parameters: {
             query?: {
@@ -35224,7 +35640,7 @@ export interface operations {
                 cliente_id?: string | null;
                 /** @description Solo con algún cargo vencido sin pagar. */
                 con_mora?: boolean;
-                estado?: ("trialing" | "activa" | "pausada" | "vencida" | "cancelada") | null;
+                estado?: ("pendiente_pago" | "trialing" | "activa" | "pausada" | "vencida" | "cancelada") | null;
                 page?: number;
                 page_size?: number;
                 periodicidad?: ("mensual" | "trimestral" | "anual") | null;
@@ -35357,6 +35773,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirmar_pago_de_inscripcion_api_v1_pack_pack_subscriptions_suscripciones__subscription_id__confirmar_pago_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmarPagoBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagoConfirmadoOut"];
                 };
             };
             /** @description Validation Error */
