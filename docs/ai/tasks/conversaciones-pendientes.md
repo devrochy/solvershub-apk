@@ -41,12 +41,9 @@ muestra una píldora con el número de mensajes pendientes.
   «N mensajes sin responder».
 
 ## Resultado final
-- `npm run typecheck`: verde.
-- `npm run lint`: verde.
-- `npm test`: **170 suites / 1133 tests en verde**.
-- `npm run check` se detiene en la frontera de módulos por una importación preexistente de
-  `cobranza-admin` a `navigation/menu-panel` (ya estaba en la rama base
-  `feature/conversaciones-paridad-panel`); no viene de esta tarea.
+- `npm run check`: **verde** (fronteras, tipos de API, lint, typecheck y
+  **174 suites / 1153 tests**). La rama ya parte de un `develop` con las fronteras y los
+  tipos de API al día.
 - Archivos:
   - `src/modules/operacion/api.ts`
   - `src/modules/operacion/presentacion.ts` (+ `.test.ts`)
