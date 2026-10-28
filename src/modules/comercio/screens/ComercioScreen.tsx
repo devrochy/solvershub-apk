@@ -14,6 +14,7 @@ import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import NetInfo from "@react-native-community/netinfo";
 import { baseActual } from "@data/bootstrap";
+import { TarjetaDatosDePrueba } from "../../datos-prueba";
 import { cambiarEstadoPedidoConOffline } from "../offline";
 import { crearCategoria, crearProducto, crearPromocion, editarProducto } from "../api";
 import { FOTO_URL_MAX, esFotoValida } from "../foto";
@@ -336,6 +337,9 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
           testID="comercio-lista-productos"
           data={productos}
           keyExtractor={(p) => p.id}
+          ListHeaderComponent={
+            <TarjetaDatosDePrueba api={api} modulo="ventas" testID="datos-prueba-ventas" />
+          }
           ListEmptyComponent={
             <Text style={{ color: colores.textoSuave, textAlign: "center", marginTop: 20 }}>
               Sin productos.

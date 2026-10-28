@@ -23,6 +23,7 @@ export type ModuloPanel =
   | "cobranza"
   | "comercio"
   | "calendario"
+  | "suscripciones"
   | "agentes"
   | "negocio"
   | "configuracion"
@@ -37,6 +38,7 @@ export const ORDEN_MODULOS: readonly ModuloPanel[] = [
   "cobranza",
   "comercio",
   "calendario",
+  "suscripciones",
   "agentes",
   "negocio",
   "configuracion",
@@ -56,6 +58,7 @@ export const MODULOS_PANEL: Record<ModuloPanel, { label: string; raizStack?: str
   cobranza: { label: "Cobranza", raizStack: "CobranzaAdmin" },
   comercio: { label: "Ventas" },
   calendario: { label: "Agenda" },
+  suscripciones: { label: "Suscripciones" },
   agentes: { label: "Agentes" },
   negocio: { label: "Consumo y plan" },
   configuracion: { label: "Configuración" },
@@ -92,7 +95,7 @@ export interface EntradaMenuPanel {
   label: string;
   icono: Icono;
   /** Pack del negocio: si no está habilitado, la entrada queda con candado. */
-  pack?: "pack_cobranza" | "pack_commerce" | "pack_calendar";
+  pack?: "pack_cobranza" | "pack_commerce" | "pack_calendar" | "pack_subscriptions";
   soloMaster?: boolean;
   soloDev?: boolean;
   /** En orden: tocar la entrada abre la primera permitida. */
@@ -218,6 +221,17 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         ],
       },
       { id: "cobranza", label: "Cobranza", icono: "payments", pack: "pack_cobranza", pestanas: COBRANZA },
+      {
+        id: "suscripciones",
+        label: "Suscripciones",
+        icono: "autorenew",
+        pack: "pack_subscriptions",
+        pestanas: [
+          { label: "Resumen", modulo: "suscripciones", pestana: "resumen", seccion: "pack_subscriptions:suscripciones" },
+          { label: "Suscripciones", modulo: "suscripciones", pestana: "suscripciones", seccion: "pack_subscriptions:suscripciones" },
+          { label: "Pagos", modulo: "suscripciones", pestana: "pagos", seccion: "pack_subscriptions:suscripciones" },
+        ],
+      },
     ],
   },
   {

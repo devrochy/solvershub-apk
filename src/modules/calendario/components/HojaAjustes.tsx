@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useAdminApi } from "@core/session/use-admin-api";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Button, Icono, Sheet, useKit, type IconName } from "@shared/ui";
+import { TarjetaDatosDePrueba } from "../../datos-prueba";
 
 import type { CalendarListOut, CollaboratorItem, TypeOut } from "../api";
 import { SeccionAgendas } from "./secciones/SeccionAgendas";
@@ -47,6 +49,7 @@ export function HojaAjustes({
   onRefrescar: () => void;
 }) {
   const { c } = useKit();
+  const api = useAdminApi();
   const [seccion, setSeccion] = useState<SeccionAjustes | null>(esSeccionAjustes(seccionInicial) ? seccionInicial : null);
 
   useEffect(() => {
@@ -86,6 +89,7 @@ export function HojaAjustes({
 
   return (
     <Sheet visible={visible} onClose={onCerrar} title={titulo} description={descripcion} testID="hoja-ajustes">
+      <>
       {actual ? (
         <View style={styles.contenedor}>
           <Button variant="ghost" size="sm" onPress={() => setSeccion(null)} testID="ajustes-volver">
@@ -147,6 +151,10 @@ export function HojaAjustes({
           ))}
         </View>
       )}
+      {visible ? (
+        <TarjetaDatosDePrueba api={api} modulo="agenda" testID="datos-prueba-agenda" />
+      ) : null}
+      </>
     </Sheet>
   );
 }

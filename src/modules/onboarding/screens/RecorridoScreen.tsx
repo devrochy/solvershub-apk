@@ -32,6 +32,15 @@ import {
   type TurnoDePrueba,
 } from "../api";
 import { Chip } from "../components/Elegible";
+import {
+  cargarDatosDePrueba,
+  conteoLegible,
+  generarDatosDePrueba,
+  MODULOS_DE_PRUEBA,
+  resumenDelLote,
+  type EstadoDatosDePruebaModulo,
+  type ModuloDatosDePrueba,
+} from "../../datos-prueba";
 import { LogoHorizontal } from "../components/LogoHorizontal";
 import { TarjetaDelAgente } from "../components/TarjetaDelAgente";
 import { useOnboarding } from "../contexto";
@@ -591,7 +600,20 @@ function PasoConocimiento({
   alIr: () => void;
 }) {
   const { c } = useKit();
+  const api = useAdminApi();
   const tipo = TIPOS_DE_NEGOCIO.find((t) => t.id === estado.tipo);
+  const moduloPrueba: ModuloDatosDePrueba | null =
+    tipo?.contenido === "catalogo"
+      ? "ventas"
+      : tipo?.contenido === "servicios"
+        ? "agenda"
+        : tipo?.contenido === "cartera"
+          ? "cobranza"
+          : tipo?.id === "suscripciones"
+            ? "suscripciones"
+            : null;
+  const [prueba, setPrueba] = useState<EstadoDatosDePruebaModulo | null>(null);
+  const [generandoPrueba, setGenerandoPrueba] = useState(false);
   const destinos = {
     catalogo: {
       titulo: "Carga tu catálogo",
@@ -613,6 +635,48 @@ function PasoConocimiento({
     },
   } as const;
   const destino = tipo?.contenido ? destinos[tipo.contenido] : null;
+
+  useEffect(() => {
+    let vivo = true;
+    if (!moduloPrueba) {
+      return;
+    }
+    cargarDatosDePrueba(api, moduloPrueba)
+      .then((estado) => {
+        if (vivo) setPrueba(estado);
+      })
+      .catch(() => {
+        if (vivo) setPrueba(null);
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [api, moduloPrueba]);
+
+  async function generarPrueba() {
+    if (!moduloPrueba || !prueba) return;
+    if (prueba.falta_descripcion) {
+      Alert.alert(
+        "Falta la descripción de tu negocio",
+        "Escríbela en Configuración › Identidad y vuelve a intentarlo.",
+      );
+      return;
+    }
+    setGenerandoPrueba(true);
+    try {
+      const lote = await generarDatosDePrueba(api, moduloPrueba);
+      setPrueba(await cargarDatosDePrueba(api, moduloPrueba));
+      Alert.alert("Datos de prueba listos", resumenDelLote(lote));
+    } catch (e) {
+      Alert.alert(
+        "No se pudieron generar los datos",
+        e instanceof AdminApiError ? e.message : "Revisa tu conexión e inténtalo de nuevo.",
+      );
+    } finally {
+      setGenerandoPrueba(false);
+    }
+  }
+
   return (
     <View style={styles.bloque}>
       <Text style={[shType.body, { color: c.text }]}>
@@ -653,6 +717,31 @@ function PasoConocimiento({
           información. Puedes seguir.
         </Text>
       )}
+      {prueba?.disponible && moduloPrueba ? (
+        <View style={[styles.aviso, { borderColor: c.border, backgroundColor: c.surface }]}>
+          <Text style={[shType.label, { color: c.text }]}>
+            Datos de prueba de {MODULOS_DE_PRUEBA[moduloPrueba].titulo}
+          </Text>
+          <Text style={[shType.body, { color: c.textMuted }]}>
+            {MODULOS_DE_PRUEBA[moduloPrueba].aviso}
+          </Text>
+          {prueba.lote ? (
+            <Text style={[shType.caption, { color: c.textSoft }]}>
+              Ya hay {conteoLegible(prueba.lote.conteos)}. Puedes reemplazarlos.
+            </Text>
+          ) : null}
+          <Button
+            variant="secondary"
+            iconLeft="auto-awesome"
+            testID="onb-conocimiento-prueba"
+            loading={generandoPrueba}
+            disabled={generandoPrueba}
+            onPress={() => void generarPrueba()}
+          >
+            Generar datos de prueba
+          </Button>
+        </View>
+      ) : null}
     </View>
   );
 }
