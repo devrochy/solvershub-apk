@@ -19,9 +19,10 @@ EAS Update.
 ## Decisiones
 
 - Build en la nube con EAS (`--profile preview`); no se toca iOS ni Play.
-- R8 (activo por defecto en release desde SDK 58) se apaga **solo** en `preview` mediante
-  `SOLVERSHUB_DISABLE_R8=1` en `eas.json` y `app.config.js`; `staging`/`production` conservan
-  el default para validarlo en su ciclo.
+- R8 queda con el default de SDK 58. Se intentó apagarlo solo en `preview` con
+  `SOLVERSHUB_DISABLE_R8`, pero un config condicionado por entorno cambia el fingerprint y el
+  `runtimeVersion` del APK deja de coincidir con el que calcula el OTA; se descartó.
+  Si una librería con reflexión falla, se usa `android.extraProguardRules`.
 - Se migra al Strict TypeScript API (sin el opt-out de `customConditions`).
 
 ## Bloques (checklist)
@@ -29,9 +30,9 @@ EAS Update.
 - [x] Bloque 1: worktree limpio desde develop y `npm ci`.
 - [x] Bloque 2: `npx expo install expo@^58.0.0 --fix` + alineación manual.
 - [x] Bloque 3: migración Strict TS (refs y `List*Component` sin `null`).
-- [x] Bloque 4: `expo-asset` y `expo-status-bar` como plugins; R8 scoped a preview.
+- [x] Bloque 4: `expo-asset` y `expo-status-bar` como plugins; R8 con el default del SDK.
 - [x] Bloque 5: verificación local (lint, typecheck, 1208 tests, expo-doctor 20/20).
-- [ ] Bloque 6: build `preview` en EAS, instalación y smoke en dispositivo.
+- [ ] Bloque 6: build `preview` (nube sin cupo: `eas build --local`), instalación y smoke.
 - [ ] Bloque 7: docs + CHANGELOG + PR.
 
 ## Resultado final
@@ -40,7 +41,6 @@ EAS Update.
   `react-native-gesture-handler ~3.3.0`, `react-native-webview 14.0.1`,
   `react-native-view-shot 6.1.1`.
 - `runtimeVersion` (fingerprint android): `51f01ec4b96508870b32f0edd5c0d0344e167150`.
-- `expo-doctor`: 20/20.
 - `npm test`: 188 suites, 1208 tests en verde.
 - `scripts/check.sh` se detiene en fronteras de módulos por 5 imports preexistentes de
   `modules/datos-prueba` en `develop` (HU-QA-10); no los introduce esta tarea. CI no ejecuta

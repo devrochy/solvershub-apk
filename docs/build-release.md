@@ -22,9 +22,10 @@ Cada perfil de `eas.json` compila contra una API y escucha un **canal** de EAS U
   en el `CHANGELOG.md`.
 - `runtimeVersion` usa la política **fingerprint**: se deriva del código nativo (dependencias,
   plugins, `app.json`). Un OTA solo llega a los binarios con el mismo fingerprint.
-- SDK 58 activa **R8** en release. El perfil `preview` lo apaga (`SOLVERSHUB_DISABLE_R8=1` en
-  `eas.json`, aplicado en `app.config.js`) para que el APK de QA no dependa de keep rules;
-  `staging` y `production` lo conservan y se validan en su ciclo.
+- SDK 58 activa **R8** en release (recomendado). Si una librería con reflexión falla en
+  runtime, se agregan keep rules con `android.extraProguardRules` de `expo-build-properties`;
+  no se cambia el `runtimeVersion` por entorno (un config condicionado por env rompe el
+  fingerprint y el OTA no llega al binario).
 - Expo Go solo acepta **SDK 58**, pero no aplica SQLCipher, pinning ni push: para QA usa el APK
   `preview`, no Expo Go.
 

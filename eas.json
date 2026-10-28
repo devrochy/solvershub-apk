@@ -19,8 +19,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://test.solvershub.site/api/pack/pack_cobranza",
-        "SOLVERSHUB_DISABLE_R8": "1"
+        "EXPO_PUBLIC_API_URL": "https://test.solvershub.site/api/pack/pack_cobranza"
       },
       "channel": "preview"
     },
