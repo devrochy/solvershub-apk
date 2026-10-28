@@ -42,14 +42,14 @@ muestra una píldora con el número de mensajes pendientes.
 
 ## Resultado final
 - `npm run check`: **verde** (fronteras, tipos de API, lint, typecheck y
-  **174 suites / 1153 tests**). La rama ya parte de un `develop` con las fronteras y los
-  tipos de API al día.
+  **185 suites / 1196 tests**) tras regenerar `schema.d.ts` con `origin/develop` del backend.
 - Archivos:
   - `src/modules/operacion/api.ts`
   - `src/modules/operacion/presentacion.ts` (+ `.test.ts`)
   - `src/modules/operacion/use-en-vivo.ts` (+ `.test.ts`)
   - `src/modules/operacion/components/TarjetaConversacion.tsx`
   - `src/modules/operacion/screens/OperacionScreen.test.tsx`
+  - `src/core/api/schema.d.ts` (regenerado)
   - `docs/ai/tasks/conversaciones-pendientes.md`
-- Pendiente/seguimiento: regenerar `schema.d.ts` y quitar la extensión local de
-  `pending_count` cuando el backend con el campo esté en `origin/develop`.
+- Pendiente/seguimiento: quitar la extensión local de `pending_count` cuando el backend con
+  el campo esté en `origin/develop`.
