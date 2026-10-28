@@ -8313,6 +8313,28 @@ export interface components {
             /** Turns */
             turns: number;
         };
+        /**
+         * AgentCost
+         * @description Consumo de un agente en 30 días (HU-AOS-35). `agent_id` null = filas sin agente (legacy o
+         *     anteriores a las versiones). `cached_pct` = leído de la caché / entrada, solo sobre filas
+         *     desde la migración 0114; null si no hay ninguna medible.
+         */
+        AgentCost: {
+            /** Agent Id */
+            agent_id: string | null;
+            /** Agent Name */
+            agent_name: string | null;
+            /** Cached Pct */
+            cached_pct: number | null;
+            /** Cached Tokens */
+            cached_tokens: number;
+            /** Cost */
+            cost: number;
+            /** Tokens In */
+            tokens_in: number;
+            /** Turns */
+            turns: number;
+        };
         /** AgentCreate */
         AgentCreate: {
             /**
@@ -10968,6 +10990,11 @@ export interface components {
         };
         /** CostsResponse */
         CostsResponse: {
+            /**
+             * By Agent
+             * @default []
+             */
+            by_agent: components["schemas"]["AgentCost"][];
             /** By Conversation */
             by_conversation: components["schemas"]["ConversationCost"][];
             /** By Model */
