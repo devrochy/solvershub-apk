@@ -188,7 +188,7 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await fireEvent.press(getByTestId("panel-menu"));
     await abrirGrupo(getByTestId, "cuenta");
     await fireEvent.press(getByTestId("cajon-item-equipo"));
-    await waitFor(() => expect(getByTestId("config-invitar")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("equipo-tab")).toBeTruthy());
     expect(queryByTestId("config-colaboradores")).toBeNull();
     expect(queryByTestId("config-ajustes")).toBeNull();
 
