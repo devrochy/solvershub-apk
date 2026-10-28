@@ -23,6 +23,7 @@ import { OperacionNavigator } from "../modules/operacion";
 import { CobranzaAdminNavigator } from "../modules/cobranza-admin";
 import { ComercioScreen } from "../modules/comercio";
 import { CalendarioScreen } from "../modules/calendario";
+import { SuscripcionesScreen } from "../modules/suscripciones";
 import { AgentesScreen } from "../modules/agentes";
 import { NegocioScreen } from "../modules/negocio";
 import { ColaboradorDetalleScreen, ConfiguracionScreen } from "../modules/configuracion";
@@ -128,6 +129,12 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
             ajustesInicial={params?.ajustesInicial}
             entrada={entrada}
           />
+        </ConHeader>
+      );
+    case "suscripciones":
+      return (
+        <ConHeader modulo={modulo}>
+          <SuscripcionesScreen pestanaInicial={pestanaInicial} />
         </ConHeader>
       );
     case "agentes":

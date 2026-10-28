@@ -53,6 +53,7 @@ import {
 import type { CobranzaAdminStackParamList } from "../navigation";
 import { ClienteCobranzaCard } from "../components/ClienteCard";
 import { ClienteFormSheet } from "../components/ClienteFormSheet";
+import { TarjetaDatosDePrueba } from "../../datos-prueba";
 import { GestoresTab } from "./GestoresTab";
 
 type Nav = NativeStackNavigationProp<CobranzaAdminStackParamList>;
@@ -372,13 +373,16 @@ export function CobranzaAdminScreen({
       {cargando ? (
         <ActivityIndicator size="large" style={{ marginTop: 30 }} />
       ) : pestana === "resumen" ? (
-        <View style={styles.grid}>
-          {kpis.map((k) => (
-            <View key={k.label} style={[styles.kpi, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
-              <Text style={[styles.kpiValor, { color: colores.texto }]}>{k.value}</Text>
-              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{k.label}</Text>
-            </View>
-          ))}
+        <View style={{ gap: 12 }}>
+          <TarjetaDatosDePrueba api={api} modulo="cobranza" testID="datos-prueba-cobranza" />
+          <View style={styles.grid}>
+            {kpis.map((k) => (
+              <View key={k.label} style={[styles.kpi, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+                <Text style={[styles.kpiValor, { color: colores.texto }]}>{k.value}</Text>
+                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{k.label}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       ) : pestana === "carteras" ? (
         <FlatList

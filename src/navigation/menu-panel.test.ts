@@ -13,7 +13,7 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
     expect(grupos.map((g) => [g.label, g.entradas.map((e) => e.label)])).toEqual([
       ["Operación", ["Resumen", "Conversaciones", "Clientes"]],
       ["Tu asistente", ["Agentes", "Conexiones"]],
-      ["Negocio", ["Agenda", "Ventas", "Cobranza"]],
+      ["Negocio", ["Agenda", "Ventas", "Cobranza", "Suscripciones"]],
       ["Cuenta", ["Consumo y plan", "Equipo", "Configuración"]],
       ["Plataforma", ["Negocios"]],
     ]);
