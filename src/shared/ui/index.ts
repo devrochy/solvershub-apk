@@ -5,6 +5,7 @@
 export { Avatar, iniciales, type AvatarProps, type AvatarSize, type AvatarStatus } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeSize } from "./Badge";
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from "./Button";
+export { Card, type CardProps } from "./Card";
 export { CampanaDelPanel, CampanaNotificaciones, textoContador, type CampanaNotificacionesProps } from "./CampanaNotificaciones";
 export { CampoTelefono } from "./CampoTelefono";
 export { Checkbox, type CheckboxProps } from "./Checkbox";

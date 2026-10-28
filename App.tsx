@@ -49,6 +49,7 @@ import { emitirNavegacion } from "@shared/navegacion-evento";
 import { ThemeProvider } from "@core/theme/theme-context";
 import { inicializarBase } from "./src/data/bootstrap";
 import { SincronizadorProvider } from "./src/data/SincronizadorProvider";
+import { ToastProvider } from "@shared/ui";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -276,21 +277,23 @@ export default function App() {
     <GestureHandlerRootView style={styles.raiz}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <AdminSessionProvider>
-            <SincronizadorProvider>
-              <PushRoot>
-                <SessionProvider>
-                  <OfflineProvider>
-                    <CarteraActivaProvider>
-                      <NotificacionesProvider>
-                        <RootContent />
-                      </NotificacionesProvider>
-                    </CarteraActivaProvider>
-                  </OfflineProvider>
-                </SessionProvider>
-              </PushRoot>
-            </SincronizadorProvider>
-          </AdminSessionProvider>
+          <ToastProvider>
+            <AdminSessionProvider>
+              <SincronizadorProvider>
+                <PushRoot>
+                  <SessionProvider>
+                    <OfflineProvider>
+                      <CarteraActivaProvider>
+                        <NotificacionesProvider>
+                          <RootContent />
+                        </NotificacionesProvider>
+                      </CarteraActivaProvider>
+                    </OfflineProvider>
+                  </SessionProvider>
+                </PushRoot>
+              </SincronizadorProvider>
+            </AdminSessionProvider>
+          </ToastProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

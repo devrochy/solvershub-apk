@@ -10,7 +10,7 @@ import { ConversacionDetalleScreen } from "./screens/ConversacionDetalleScreen";
 export type OperacionStackParamList = {
   Operacion: { pestanaInicial?: SolicitudPestana } | undefined;
   ConversacionDetalle: { id: string; titulo: string };
-  ClienteDetalle: { id: string; titulo: string };
+  ClienteDetalle: { id: string; titulo: string; editar?: boolean };
 };
 
 const Stack = createNativeStackNavigator<OperacionStackParamList>();

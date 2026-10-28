@@ -20,6 +20,13 @@
   Google Calendar se conecta desde Conexiones), Negocio (plan/consumo, costos IA), Configuración (colaboradores,
   habilidades, conexiones con checklist de Meta, ajustes del agente: identidad, cerebro y
   memoria) y Herramientas/Plataforma (DLQ, negocios para master).
+- Clientes con paridad al panel: tarjetas con avatar, clasificación, canal,
+  teléfono, ubicación, agentes y estado del bot; filtros por canal, conexión y
+  packs, paginación, exportación CSV y envío de plantilla desde la tarjeta. La
+  ficha del CRM suma perfil editable, pestañas por agente, geocodificación y
+  consentimiento. En Cobranza, los clientes de cartera estrenan tarjetas,
+  filtro por cartera, alta/edición/eliminación y ficha con préstamos,
+  pagos/abonos, cuotas y movimientos.
 - Resumen por agente (ADR-0171): el Resumen muestra los KPIs del agente general y, en una
   sección plegable por especialista, los de su actividad y los de su módulo (pedidos, citas,
   recaudo…), siempre contra los 7 días previos. Cada cifra con pantalla en la app lleva a ella; si

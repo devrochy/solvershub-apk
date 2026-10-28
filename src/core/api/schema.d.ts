@@ -4,6 +4,152 @@
  */
 
 export interface paths {
+    "/api/v1/access/device-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Device Session
+         * @description Registra (o consulta) el equipo de la APK para la cuenta que llama y dice si puede operar.
+         *
+         *     Sirve a cualquier rol del negocio, pero solo para SU propio `admin_id` (el del token): nadie registra un
+         *     equipo en nombre de otro. El equipo pendiente o bloqueado también puede llamarla (ruta exenta de la
+         *     dependencia del principal): así consulta su estado y puede cerrar sesión. Con la política abierta el
+         *     alta es automática; con la restringida queda `pendiente` hasta que un admin lo apruebe.
+         */
+        post: operations["device_session_api_v1_access_device_session_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Devices */
+        get: operations["list_devices_api_v1_access_devices_get"];
+        put?: never;
+        /** Create Device */
+        post: operations["create_device_api_v1_access_devices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices/{device_row_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Device */
+        get: operations["get_device_api_v1_access_devices__device_row_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices/{device_row_id}/aprobar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Device */
+        post: operations["approve_device_api_v1_access_devices__device_row_id__aprobar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices/{device_row_id}/bloquear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Block Device */
+        post: operations["block_device_api_v1_access_devices__device_row_id__bloquear_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices/{device_row_id}/dar-de-baja": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove Device */
+        post: operations["remove_device_api_v1_access_devices__device_row_id__dar_de_baja_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Events */
+        get: operations["list_events_api_v1_access_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Policy */
+        get: operations["get_policy_api_v1_access_policy_get"];
+        /** Update Policy */
+        put: operations["update_policy_api_v1_access_policy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/a2a/calls": {
         parameters: {
             query?: never;
@@ -3676,7 +3822,11 @@ export interface paths {
         put?: never;
         /**
          * Create Tenant
-         * @description Alta de un negocio (master): tenant + asistente + cuenta admin opcional.
+         * @description Alta de un negocio (master): tenant + asistente + acceso del dueño por correo.
+         *
+         *     Con `admin_email` la cuenta del dueño nace sin contraseña y le llega un enlace de un solo
+         *     uso para definirla (ADR-0175). Si el correo no sale, el negocio se crea igual y la
+         *     respuesta lo dice (`invitation.estado`); se reenvía con `owner-invitation/resend`.
          */
         post: operations["create_tenant_api_v1_admin_platform_tenants_post"];
         delete?: never;
@@ -3843,6 +3993,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/tenants/{tenant_id}/owner-invitation/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reenvía el acceso al dueño del negocio
+         * @description Reenvía el correo de acceso a la cuenta de la invitación `owner` pendiente del negocio
+         *     (ADR-0175). El destinatario no se recibe: es el de la invitación. Reusa el enlace mientras
+         *     vigente y lo renueva si venció.
+         */
+        post: operations["resend_owner_invitation_api_v1_admin_platform_tenants__tenant_id__owner_invitation_resend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/tenants/{tenant_id}/plan": {
         parameters: {
             query?: never;
@@ -3926,6 +4098,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/playground/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Playground Options
+         * @description Envía la plantilla con opciones `clave` a la conversación de prueba, con `send_options_to_conversation`: crea el
+         *     `option_sends` con sus payloads firmados y guarda el mensaje con los botones, sin Meta ni cola. Los errores son
+         *     los de `POST /plantillas-opciones/{clave}/enviar-prueba` (404 si la bandera está apagada o la clave no existe,
+         *     409 si no está publicada, 422 si falta contexto).
+         */
+        post: operations["playground_options_api_v1_admin_playground_options_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/playground/reset": {
         parameters: {
             query?: never;
@@ -3940,6 +4135,28 @@ export interface paths {
          * @description Cierra la prueba actual y arranca una nueva desde cero.
          */
         post: operations["playground_reset_api_v1_admin_playground_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/playground/tap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Playground Tap
+         * @description Simula el toque de un botón de la conversación de prueba con el MISMO resolver que atiende WhatsApp: firma
+         *     por negocio y conversación, vigencia, una sola ejecución y autorización de la tool, sin LLM. Devuelve el
+         *     `outcome` y los mensajes que produjo. **Ejecuta la tool de verdad.** Un payload que no es de opciones es 422.
+         */
+        post: operations["playground_tap_api_v1_admin_playground_tap_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5438,6 +5655,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mensajes/catalogo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Catalogo
+         * @description Los mensajes del negocio activo en una sola lista, de solo lectura. No sincroniza con Meta (muestra lo último
+         *     guardado) y no descifra nada fuera de la lectura de configuración de los packs. 403 si no se puede leer
+         *     ninguna de las fuentes; 400 `no_tenant` si no hay un negocio seleccionado.
+         */
+        get: operations["catalogo_api_v1_mensajes_catalogo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/calendar/appointments": {
         parameters: {
             query?: never;
@@ -5834,7 +6073,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Alerts */
+        /**
+         * List Alerts
+         * @deprecated
+         * @description Wrapper de `GET /api/v1/access/events` con la forma anterior (ADR-0174).
+         */
         get: operations["list_alerts_api_v1_pack_cobranza_alerts_get"];
         put?: never;
         post?: never;
@@ -6042,7 +6285,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Devices */
+        /**
+         * List Devices
+         * @deprecated
+         * @description Wrapper de `GET /api/v1/access/devices` con la forma anterior (ADR-0174): los equipos de los
+         *     gestores salen del core (ids del core) y los dispositivos v1 (código + API key) siguen en el pack.
+         */
         get: operations["list_devices_api_v1_pack_cobranza_devices_get"];
         put?: never;
         /**
@@ -6068,7 +6316,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set Device Status */
+        /**
+         * Set Device Status
+         * @deprecated
+         * @description Wrapper de las acciones de `/api/v1/access/devices/{id}` (ADR-0174): `activo` aprueba o reactiva,
+         *     `bloqueado` bloquea la cuenta en ese equipo. El id es el de la fila del core (o el de un dispositivo v1).
+         */
         post: operations["set_device_status_api_v1_pack_cobranza_devices__device_id__status_post"];
         delete?: never;
         options?: never;
@@ -7563,6 +7816,20 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** AccessAccountRef */
+        AccessAccountRef: {
+            /** Email */
+            email: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nombre */
+            nombre: string | null;
+            /** Rol */
+            rol: ("master" | "owner" | "colaborador") | null;
+        };
         /** AccessAttempt */
         AccessAttempt: {
             /** Critico */
@@ -7577,6 +7844,237 @@ export interface components {
             motivo: string;
             /** Resultado */
             resultado: string;
+        };
+        /** AccessDeviceBlock */
+        AccessDeviceBlock: {
+            /**
+             * Alcance
+             * @default cuenta
+             * @enum {string}
+             */
+            alcance: "cuenta" | "equipo";
+            /**
+             * Esperado
+             * @default activo
+             * @enum {string}
+             */
+            esperado: "pendiente" | "activo" | "bloqueado";
+            /** Motivo */
+            motivo?: string | null;
+        };
+        /** AccessDeviceCreate */
+        AccessDeviceCreate: {
+            /**
+             * Admin Id
+             * Format: uuid
+             */
+            admin_id: string;
+            /** Device Id */
+            device_id: string;
+            /** Label */
+            label?: string | null;
+            /**
+             * Plataforma
+             * @default android
+             * @enum {string}
+             */
+            plataforma: "android" | "ios";
+        };
+        /**
+         * AccessDeviceDetail
+         * @description El detalle muestra el identificador completo: hay que compararlo al aprobar.
+         */
+        AccessDeviceDetail: {
+            /** Aprobado At */
+            aprobado_at: string | null;
+            /** Bloqueado At */
+            bloqueado_at: string | null;
+            /** Bloqueo Equipo */
+            bloqueo_equipo: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            cuenta: components["schemas"]["AccessAccountRef"] | null;
+            /** Device Id */
+            device_id: string | null;
+            /** Device Id Corto */
+            device_id_corto: string | null;
+            /** Device Label */
+            device_label: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "pendiente" | "activo" | "bloqueado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Legacy */
+            legacy: boolean;
+            /** Motivo */
+            motivo: string | null;
+            /**
+             * Origen
+             * @enum {string}
+             */
+            origen: "autoregistro" | "politica_abierta" | "alta_manual" | "migrado_pack";
+            /**
+             * Plataforma
+             * @enum {string}
+             */
+            plataforma: "android" | "ios";
+            /** Rol Al Registrar */
+            rol_al_registrar: ("owner" | "colaborador" | "gestor") | null;
+            /** Ultima Ip */
+            ultima_ip: string | null;
+            /** Ultimo Uso At */
+            ultimo_uso_at: string | null;
+        };
+        /** AccessDeviceOut */
+        AccessDeviceOut: {
+            /** Aprobado At */
+            aprobado_at: string | null;
+            /** Bloqueado At */
+            bloqueado_at: string | null;
+            /** Bloqueo Equipo */
+            bloqueo_equipo: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            cuenta: components["schemas"]["AccessAccountRef"] | null;
+            /** Device Id Corto */
+            device_id_corto: string | null;
+            /** Device Label */
+            device_label: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "pendiente" | "activo" | "bloqueado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Legacy */
+            legacy: boolean;
+            /** Motivo */
+            motivo: string | null;
+            /**
+             * Origen
+             * @enum {string}
+             */
+            origen: "autoregistro" | "politica_abierta" | "alta_manual" | "migrado_pack";
+            /**
+             * Plataforma
+             * @enum {string}
+             */
+            plataforma: "android" | "ios";
+            /** Rol Al Registrar */
+            rol_al_registrar: ("owner" | "colaborador" | "gestor") | null;
+            /** Ultima Ip */
+            ultima_ip: string | null;
+            /** Ultimo Uso At */
+            ultimo_uso_at: string | null;
+        };
+        /** AccessDevicePage */
+        AccessDevicePage: {
+            /** Items */
+            items: components["schemas"]["AccessDeviceOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** AccessDeviceTransition */
+        AccessDeviceTransition: {
+            /**
+             * Esperado
+             * @enum {string}
+             */
+            esperado: "pendiente" | "activo" | "bloqueado";
+        };
+        /** AccessEventOut */
+        AccessEventOut: {
+            /**
+             * Canal
+             * @enum {string}
+             */
+            canal: "campo" | "panel_apk" | "campo_v1";
+            cuenta: components["schemas"]["AccessAccountRef"] | null;
+            /** Detalle */
+            detalle: {
+                [key: string]: unknown;
+            } | null;
+            /** Device Id Corto */
+            device_id_corto: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Ip */
+            ip: string | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Rol */
+            rol: ("owner" | "colaborador" | "gestor") | null;
+            /**
+             * Severidad
+             * @enum {string}
+             */
+            severidad: "info" | "aviso" | "critico";
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "login_fallido" | "login_bloqueado" | "dispositivo_nuevo" | "dispositivo_pendiente" | "dispositivo_aprobado" | "dispositivo_bloqueado_usado" | "acceso_denegado_politica" | "dispositivo_sin_id" | "dispositivo_compartido" | "politica_cambiada" | "acceso_master" | "legado_pack";
+        };
+        /** AccessEventPage */
+        AccessEventPage: {
+            /** Items */
+            items: components["schemas"]["AccessEventOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** AccessPolicyOut */
+        AccessPolicyOut: {
+            /**
+             * Colaborador
+             * @enum {string}
+             */
+            colaborador: "abierto" | "restringido";
+            /**
+             * Gestor
+             * @enum {string}
+             */
+            gestor: "abierto" | "restringido";
+            /**
+             * Owner
+             * @enum {string}
+             */
+            owner: "abierto" | "restringido";
+        };
+        /** AccessPolicyUpdate */
+        AccessPolicyUpdate: {
+            /** Colaborador */
+            colaborador?: ("abierto" | "restringido") | null;
+            /**
+             * Confirmar
+             * @default false
+             */
+            confirmar: boolean;
+            /** Gestor */
+            gestor?: ("abierto" | "restringido") | null;
+            /** Owner */
+            owner?: ("abierto" | "restringido") | null;
         };
         /**
          * Accion
@@ -7812,6 +8310,28 @@ export interface components {
             last_turn_at: string;
             /** Status */
             status: string | null;
+            /** Turns */
+            turns: number;
+        };
+        /**
+         * AgentCost
+         * @description Consumo de un agente en 30 días (HU-AOS-35). `agent_id` null = filas sin agente (legacy o
+         *     anteriores a las versiones). `cached_pct` = leído de la caché / entrada, solo sobre filas
+         *     desde la migración 0114; null si no hay ninguna medible.
+         */
+        AgentCost: {
+            /** Agent Id */
+            agent_id: string | null;
+            /** Agent Name */
+            agent_name: string | null;
+            /** Cached Pct */
+            cached_pct: number | null;
+            /** Cached Tokens */
+            cached_tokens: number;
+            /** Cost */
+            cost: number;
+            /** Tokens In */
+            tokens_in: number;
             /** Turns */
             turns: number;
         };
@@ -9247,6 +9767,21 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** CatalogoDeMensajesOut */
+        CatalogoDeMensajesOut: {
+            /** Mensajes */
+            mensajes: components["schemas"]["MensajeDelCatalogo"][];
+            /**
+             * Omitidas
+             * @description Tipos que no se listan y por qué.
+             */
+            omitidas: components["schemas"]["MensajeOmitido"][];
+            /**
+             * Truncado
+             * @description Tipos que pasaron el tope por tipo: la lista está recortada.
+             */
+            truncado: ("meta" | "evento" | "opciones" | "texto_pack")[];
+        };
         /** CatalogResponse */
         CatalogResponse: {
             /** Categories */
@@ -10455,6 +10990,11 @@ export interface components {
         };
         /** CostsResponse */
         CostsResponse: {
+            /**
+             * By Agent
+             * @default []
+             */
+            by_agent: components["schemas"]["AgentCost"][];
             /** By Conversation */
             by_conversation: components["schemas"]["ConversationCost"][];
             /** By Model */
@@ -10758,6 +11298,43 @@ export interface components {
             intentos: components["schemas"]["AttemptRow"][];
             /** Pendientes */
             pendientes: number;
+        };
+        /**
+         * DeviceSessionIn
+         * @description Check-in del equipo de la APK (camelCase: es el contrato de la app, HU-ACC-03).
+         */
+        DeviceSessionIn: {
+            /** Appversion */
+            appVersion?: string | null;
+            /** Deviceid */
+            deviceId: string;
+            /** Label */
+            label?: string | null;
+            /**
+             * Plataforma
+             * @default android
+             * @enum {string}
+             */
+            plataforma: "android" | "ios";
+        };
+        /** DeviceSessionOut */
+        DeviceSessionOut: {
+            /** Dispositivoid */
+            dispositivoId?: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "activo" | "pendiente" | "bloqueado" | "none";
+            /** Permitido */
+            permitido: boolean;
+            /**
+             * Politica
+             * @enum {string}
+             */
+            politica: "abierto" | "restringido" | "plataforma";
+            /** Requierevinculacion */
+            requiereVinculacion: boolean;
         };
         /** DeviceStatusUpdate */
         DeviceStatusUpdate: {
@@ -11341,6 +11918,47 @@ export interface components {
             enabled_skills: string[];
             /** Warnings */
             warnings: string[];
+        };
+        /**
+         * FuenteDeMensaje
+         * @description Dónde se edita: el panel arma el enlace con estos ids. Solo vienen los del tipo (el resto es nulo).
+         */
+        FuenteDeMensaje: {
+            /**
+             * Campo
+             * @description `texto_pack`: el campo de la configuración del pack.
+             */
+            campo?: string | null;
+            /**
+             * Clave
+             * @description `opciones`: clave de la plantilla con opciones.
+             */
+            clave?: string | null;
+            /**
+             * Connection Id
+             * @description `meta`: la conexión de la WABA que tiene la plantilla.
+             */
+            connection_id?: string | null;
+            /**
+             * Editor
+             * @enum {string}
+             */
+            editor: "meta" | "evento" | "opciones" | "texto_pack";
+            /**
+             * Evento
+             * @description `evento`: clave del evento.
+             */
+            evento?: string | null;
+            /**
+             * Message Template Id
+             * @description `meta`: la fila de `message_templates`.
+             */
+            message_template_id?: string | null;
+            /**
+             * Plugin Id
+             * @description `texto_pack`: el pack dueño del texto.
+             */
+            plugin_id?: string | null;
         };
         /** GateBandera */
         GateBandera: {
@@ -13160,6 +13778,77 @@ export interface components {
             /** Short Term Turns */
             short_term_turns: number;
         };
+        /** MensajeDelCatalogo */
+        MensajeDelCatalogo: {
+            /**
+             * Actualizado En
+             * @description `meta`: la última sincronización con Meta (el estado puede estar desfasado: no se sincroniza al listar); `opciones`: la última edición. Nulo en `evento` y `texto_pack`.
+             */
+            actualizado_en: string | null;
+            /**
+             * Canales Soportados
+             * @description Canales por los que sale hoy (constante por tipo hasta la pista C1).
+             */
+            canales_soportados: string[];
+            /** Clave */
+            clave: string;
+            /**
+             * Dialecto Variables
+             * @enum {string}
+             */
+            dialecto_variables: "meta_posicionales" | "meta_nombradas" | "llaves_con_ruta";
+            /**
+             * Estado
+             * @description `meta`: el de Meta (`APPROVED`, `PENDING`…); `evento`: `sin_mapear`, `mapeado` o `plantilla_no_aprobada`; `opciones`: `draft`, `published` o `retired`; `texto_pack`: `por_defecto`, `personalizado` o `config_invalida`.
+             */
+            estado: string;
+            /**
+             * Estado Detalle
+             * @description `meta`: categoría; `evento`: plantilla mapeada; `opciones`: estado de su plantilla en Meta si se publicó allí; `texto_pack`: nombre del pack.
+             */
+            estado_detalle: string | null;
+            fuente: components["schemas"]["FuenteDeMensaje"];
+            /**
+             * Id
+             * @description Estable y único en el catálogo (`<tipo>:<…>`).
+             */
+            id: string;
+            /**
+             * Idioma
+             * @description `meta`: idioma de la plantilla; `evento`: el del mapeo, si hay.
+             */
+            idioma: string | null;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Resumen
+             * @description Primeros ~160 caracteres del texto propio del negocio (nunca datos de un cliente).
+             */
+            resumen: string | null;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "meta" | "evento" | "opciones" | "texto_pack";
+            /**
+             * Variables
+             * @description Tal como las usa la fuente, sin normalizar: marcadores de Meta, rutas permitidas del evento, variables de la definición o llaves del texto.
+             */
+            variables: string[];
+        };
+        /** MensajeOmitido */
+        MensajeOmitido: {
+            /**
+             * Motivo
+             * @enum {string}
+             */
+            motivo: "sin_permiso" | "bandera_apagada";
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "meta" | "evento" | "opciones" | "texto_pack";
+        };
         /** MeResponse */
         MeResponse: {
             /**
@@ -14936,6 +15625,98 @@ export interface components {
             slug: string;
             /** Status */
             status: string;
+        };
+        /** PlaygroundMensajeOut */
+        PlaygroundMensajeOut: {
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Direction
+             * @description `outbound` (lo que el sistema le dijo al cliente de prueba) o `inbound`.
+             */
+            direction: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Interactive
+             * @description Botones o lista del mensaje (payload de WhatsApp) con los ids firmados que `/tap` recibe.
+             */
+            interactive?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** PlaygroundOpcionesIn */
+        PlaygroundOpcionesIn: {
+            /**
+             * Clave
+             * @description Clave de la plantilla con opciones (versión vigente publicada).
+             */
+            clave: string;
+            /**
+             * Connection Id
+             * @description Conexión por cuya release se prueba, como en `/message`. Sin ella, la de siempre.
+             */
+            connection_id?: string | null;
+        };
+        /** PlaygroundOpcionesOut */
+        PlaygroundOpcionesOut: {
+            /** Degradado */
+            degradado: boolean;
+            /** Ejecucion Directa */
+            ejecucion_directa: boolean;
+            /** Enviado */
+            enviado: boolean;
+            /**
+             * Mensajes
+             * @description Los mensajes del envío, listos para pintar.
+             */
+            mensajes: components["schemas"]["PlaygroundMensajeOut"][];
+            /** Send Id */
+            send_id?: string | null;
+            /**
+             * Via
+             * @description `interactivo` (botones) o `texto`.
+             */
+            via?: ("interactivo" | "texto") | null;
+            /**
+             * Ya Enviado
+             * @default false
+             */
+            ya_enviado: boolean;
+        };
+        /** PlaygroundToqueIn */
+        PlaygroundToqueIn: {
+            /**
+             * Connection Id
+             * @description La misma conexión con la que se envió.
+             */
+            connection_id?: string | null;
+            /**
+             * Payload
+             * @description `id` de un botón del mensaje (`opt:…`, `optc:…` o `optn:…`), tal cual lo devolvió `/options` o `/tap`.
+             */
+            payload: string;
+        };
+        /** PlaygroundToqueOut */
+        PlaygroundToqueOut: {
+            /**
+             * Mensajes
+             * @description Lo que el toque produjo: respuesta fija o botones de confirmación.
+             */
+            mensajes: components["schemas"]["PlaygroundMensajeOut"][];
+            /**
+             * Outcome
+             * @description Resultado del resolver (`ok`, `tool_error`, `denied`, `confirm_requested`, `cancelled`, `expired`, `duplicate`, `bad_signature`, `unknown_send`, `foreign_conversation`, …). Un payload manipulado, de otro negocio o de otra conversación se descarta sin mensajes: `mensajes` vacío.
+             */
+            outcome: string;
         };
         /** PluginAction */
         PluginAction: {
@@ -17648,6 +18429,7 @@ export interface components {
             admin_email: string;
             /**
              * Admin Password
+             * @deprecated
              * @default
              */
             admin_password: string;
@@ -17686,6 +18468,7 @@ export interface components {
         };
         /** TenantCreated */
         TenantCreated: {
+            invitation?: components["schemas"]["TenantOwnerInvitation"] | null;
             /** Slug */
             slug: string;
             /** Steps */
@@ -17721,6 +18504,24 @@ export interface components {
             name: string;
             /** Role */
             role: string;
+        };
+        /**
+         * TenantOwnerInvitation
+         * @description Qué pasó con el acceso del dueño (ADR-0175). Nunca lleva el enlace ni el token.
+         */
+        TenantOwnerInvitation: {
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "enviado" | "sin_smtp" | "fallido" | "ya_emitida" | "ya_es_miembro";
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "enlace" | "app";
         };
         /** TenantPlanUpdate */
         TenantPlanUpdate: {
@@ -18990,6 +19791,368 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    device_session_api_v1_access_device_session_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceSessionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_devices_api_v1_access_devices_get: {
+        parameters: {
+            query?: {
+                admin_id?: string | null;
+                cursor?: string | null;
+                estado?: ("pendiente" | "activo" | "bloqueado") | null;
+                limit?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDevicePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_device_api_v1_access_devices_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessDeviceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDeviceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_device_api_v1_access_devices__device_row_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                device_row_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDeviceDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_device_api_v1_access_devices__device_row_id__aprobar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                device_row_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessDeviceTransition"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDeviceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    block_device_api_v1_access_devices__device_row_id__bloquear_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                device_row_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessDeviceBlock"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDeviceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_device_api_v1_access_devices__device_row_id__dar_de_baja_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                device_row_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessDeviceTransition"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_events_api_v1_access_events_get: {
+        parameters: {
+            query?: {
+                admin_id?: string | null;
+                cursor?: string | null;
+                desde?: string | null;
+                limit?: number;
+                severidad?: ("info" | "aviso" | "critico") | null;
+                tipo?: ("login_fallido" | "login_bloqueado" | "dispositivo_nuevo" | "dispositivo_pendiente" | "dispositivo_aprobado" | "dispositivo_bloqueado_usado" | "acceso_denegado_politica" | "dispositivo_sin_id" | "dispositivo_compartido" | "politica_cambiada" | "acceso_master" | "legado_pack") | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessEventPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_policy_api_v1_access_policy_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessPolicyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_policy_api_v1_access_policy_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessPolicyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessPolicyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_calls_api_v1_admin_a2a_calls_get: {
         parameters: {
             query: {
@@ -18998,6 +20161,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19029,6 +20193,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19060,6 +20225,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19097,6 +20263,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19128,6 +20295,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19166,6 +20334,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19202,6 +20371,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19236,6 +20406,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19267,6 +20438,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19304,6 +20476,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19335,6 +20508,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19370,6 +20544,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19403,6 +20578,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19440,6 +20616,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19473,6 +20650,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19506,6 +20684,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19539,6 +20718,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19572,6 +20752,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19615,6 +20796,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19662,6 +20844,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19698,6 +20881,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19731,6 +20915,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19764,6 +20949,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19801,6 +20987,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19841,6 +21028,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19880,6 +21068,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19920,6 +21109,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19960,6 +21150,7 @@ export interface operations {
                 state?: ("open" | "closed") | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19997,6 +21188,7 @@ export interface operations {
                 hasta?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20030,6 +21222,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20065,6 +21258,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20098,6 +21292,7 @@ export interface operations {
                 todos?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20129,6 +21324,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20171,6 +21367,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20204,6 +21401,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20239,6 +21437,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20274,6 +21473,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20311,6 +21511,7 @@ export interface operations {
                 tenant?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20344,6 +21545,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20379,6 +21581,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20414,6 +21617,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20452,6 +21656,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20489,6 +21694,7 @@ export interface operations {
                 email: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20520,6 +21726,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20553,6 +21760,7 @@ export interface operations {
                 username: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20584,6 +21792,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20615,6 +21824,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20650,6 +21860,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20683,6 +21894,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20727,6 +21939,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20759,6 +21972,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20797,6 +22011,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20830,6 +22045,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20865,6 +22081,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20898,6 +22115,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20929,6 +22147,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20962,6 +22181,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21002,6 +22222,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21035,6 +22256,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21072,6 +22294,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21106,6 +22329,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21144,6 +22368,7 @@ export interface operations {
                 against?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21178,6 +22403,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21221,6 +22447,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21255,6 +22482,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21293,6 +22521,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21327,6 +22556,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21364,6 +22594,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -21398,6 +22629,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -21429,6 +22661,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -21464,6 +22697,7 @@ export interface operations {
                 connection_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21506,6 +22740,7 @@ export interface operations {
                 status?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -21537,6 +22772,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21570,6 +22806,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21606,6 +22843,7 @@ export interface operations {
                 after?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21639,6 +22877,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21674,6 +22913,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21711,6 +22951,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21742,6 +22983,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21773,6 +23015,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21806,6 +23049,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21842,6 +23086,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21876,6 +23121,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21911,6 +23157,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21944,6 +23191,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21977,6 +23225,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22008,6 +23257,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22039,6 +23289,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22070,6 +23321,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22103,6 +23355,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22134,6 +23387,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22165,6 +23419,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22196,6 +23451,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22227,6 +23483,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22258,6 +23515,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22289,6 +23547,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22325,6 +23584,7 @@ export interface operations {
                 reason_code?: ("solicitud_cliente" | "queja" | "fuera_de_alcance" | "intentos_fallidos" | "monto_alto" | "palabra_clave" | "accion_habilidad" | "regla_negocio" | "verificacion" | "frase_prohibida" | "falla_ia" | "rechazo_ia" | "envio_fallido" | "sin_resolver" | "limite_iteraciones" | "otro") | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22359,6 +23619,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22390,6 +23651,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22430,6 +23692,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22461,6 +23724,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22492,6 +23756,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22523,6 +23788,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22556,6 +23822,7 @@ export interface operations {
                 tenant?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22587,6 +23854,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22629,6 +23897,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22660,6 +23929,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22693,6 +23963,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22730,6 +24001,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22763,6 +24035,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22800,6 +24073,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22833,6 +24107,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22866,6 +24141,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22903,6 +24179,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22935,6 +24212,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22973,6 +24251,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23014,6 +24293,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23047,6 +24327,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23080,6 +24361,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23114,6 +24396,7 @@ export interface operations {
             query?: never;
             header: {
                 "Idempotency-Key": string;
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23147,6 +24430,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23186,6 +24470,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23227,6 +24512,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23256,6 +24542,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23287,6 +24574,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23322,6 +24610,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23353,6 +24642,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23388,6 +24678,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23417,6 +24708,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23450,6 +24742,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23485,6 +24778,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23520,6 +24814,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23551,6 +24846,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23582,6 +24878,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23613,6 +24910,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23646,6 +24944,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23681,6 +24980,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23714,6 +25014,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23747,6 +25048,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23784,6 +25086,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23817,6 +25120,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23852,6 +25156,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23888,6 +25193,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23924,6 +25230,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23960,6 +25267,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23993,6 +25301,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24026,6 +25335,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24059,6 +25369,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24092,6 +25403,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24129,6 +25441,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24162,6 +25475,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24195,6 +25509,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24232,6 +25547,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24264,6 +25580,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24295,6 +25612,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24328,6 +25646,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24365,6 +25684,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24396,6 +25716,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24427,6 +25748,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24462,6 +25784,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24493,6 +25816,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24524,6 +25848,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24555,6 +25880,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24588,6 +25914,7 @@ export interface operations {
                 since: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24621,6 +25948,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24654,6 +25982,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24685,6 +26014,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24720,6 +26050,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24755,6 +26086,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24790,6 +26122,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24821,6 +26154,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24858,6 +26192,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24889,6 +26224,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24920,6 +26256,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24955,6 +26292,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24990,6 +26328,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25021,6 +26360,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25050,6 +26390,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25079,6 +26420,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25110,6 +26452,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25143,6 +26486,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25174,6 +26518,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25209,6 +26554,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25244,6 +26590,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25279,6 +26626,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25314,6 +26662,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25349,6 +26698,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25386,6 +26736,7 @@ export interface operations {
                 environment?: "sandbox" | "production";
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25417,6 +26768,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25452,6 +26804,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25483,6 +26836,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25518,6 +26872,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25560,6 +26915,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25591,6 +26947,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25622,6 +26979,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25653,6 +27011,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25684,6 +27043,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25719,6 +27079,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25753,6 +27114,7 @@ export interface operations {
                 limite?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25786,6 +27148,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25820,6 +27183,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25858,6 +27222,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25891,6 +27256,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25928,6 +27294,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25965,6 +27332,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25996,6 +27364,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26027,6 +27396,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26060,6 +27430,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26096,6 +27467,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26127,6 +27499,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26162,6 +27535,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26193,6 +27567,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26226,6 +27601,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26263,6 +27639,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26300,6 +27677,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26333,6 +27711,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26370,6 +27749,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26401,6 +27781,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26434,6 +27815,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26471,6 +27853,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26522,6 +27905,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26573,10 +27957,44 @@ export interface operations {
             };
         };
     };
+    resend_owner_invitation_api_v1_admin_platform_tenants__tenant_id__owner_invitation_resend_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenantOwnerInvitation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_tenant_plan_api_v1_admin_platform_tenants__tenant_id__plan_post: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26612,6 +28030,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26650,6 +28069,7 @@ export interface operations {
                 connection_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26681,6 +28101,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26712,6 +28133,60 @@ export interface operations {
             };
         };
     };
+    playground_options_api_v1_admin_playground_options_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaygroundOpcionesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaygroundOpcionesOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
     playground_reset_api_v1_admin_playground_reset_post: {
         parameters: {
             query?: {
@@ -26719,6 +28194,7 @@ export interface operations {
                 connection_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26744,10 +28220,65 @@ export interface operations {
             };
         };
     };
+    playground_tap_api_v1_admin_playground_tap_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaygroundToqueIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaygroundToqueOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
     list_plugins_api_v1_admin_plugins_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26779,6 +28310,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26821,6 +28353,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26854,6 +28387,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26898,6 +28432,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26938,6 +28473,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26969,6 +28505,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27002,6 +28539,7 @@ export interface operations {
                 seccion?: ("pruebas" | "test" | "prod" | "datos") | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27033,6 +28571,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27068,6 +28607,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27105,6 +28645,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27136,6 +28677,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27171,6 +28713,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27202,6 +28745,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27242,6 +28786,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27273,6 +28818,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27318,6 +28864,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27372,6 +28919,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27405,6 +28953,7 @@ export interface operations {
                 cycle_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27440,6 +28989,7 @@ export interface operations {
                 cycle_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27471,6 +29021,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27504,6 +29055,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27537,6 +29089,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27568,6 +29121,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27603,6 +29157,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27640,6 +29195,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27678,6 +29234,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27709,6 +29266,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27744,6 +29302,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27775,6 +29334,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27810,6 +29370,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27849,6 +29410,7 @@ export interface operations {
                 release_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27888,6 +29450,7 @@ export interface operations {
                 release_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27919,6 +29482,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27956,6 +29520,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27987,6 +29552,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28018,6 +29584,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28053,6 +29620,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28088,6 +29656,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28119,6 +29688,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28154,6 +29724,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -28187,6 +29758,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28218,6 +29790,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28253,6 +29826,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28288,6 +29862,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28323,6 +29898,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28354,6 +29930,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28385,6 +29962,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28429,6 +30007,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28464,6 +30043,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28495,6 +30075,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28530,6 +30111,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28565,6 +30147,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28600,6 +30183,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28635,6 +30219,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28670,6 +30255,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28701,6 +30287,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28736,6 +30323,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28767,6 +30355,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28802,6 +30391,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28833,6 +30423,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28868,6 +30459,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28899,6 +30491,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28934,6 +30527,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28965,6 +30559,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29002,6 +30597,7 @@ export interface operations {
                 connection_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29033,6 +30629,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29077,6 +30674,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29113,6 +30711,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29144,6 +30743,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29184,6 +30784,7 @@ export interface operations {
                 release_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29215,6 +30816,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29468,6 +31070,7 @@ export interface operations {
                 unread?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29499,6 +31102,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29530,6 +31134,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29565,6 +31170,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29596,6 +31202,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29631,6 +31238,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29666,6 +31274,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29697,6 +31306,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29730,6 +31340,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29759,6 +31370,38 @@ export interface operations {
             };
         };
     };
+    catalogo_api_v1_mensajes_catalogo_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogoDeMensajesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_appointments_api_v1_pack_calendar_appointments_get: {
         parameters: {
             query?: {
@@ -29766,6 +31409,7 @@ export interface operations {
                 include_past?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29797,6 +31441,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29832,6 +31477,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29869,6 +31515,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29902,6 +31549,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29939,6 +31587,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29979,6 +31628,7 @@ export interface operations {
                 include_past?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30010,6 +31660,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30045,6 +31696,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30076,6 +31728,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30113,6 +31766,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30144,6 +31798,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30179,6 +31834,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30216,6 +31872,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30256,6 +31913,7 @@ export interface operations {
                 start?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30293,6 +31951,7 @@ export interface operations {
                 state?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30327,6 +31986,7 @@ export interface operations {
                 next?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30358,6 +32018,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30389,6 +32050,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30420,6 +32082,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30453,6 +32116,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30488,6 +32152,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30521,6 +32186,7 @@ export interface operations {
                 start?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30552,6 +32218,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30588,6 +32255,7 @@ export interface operations {
                 operacion?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30622,6 +32290,7 @@ export interface operations {
                 estado?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30653,6 +32322,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30693,6 +32363,7 @@ export interface operations {
                 q?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30724,6 +32395,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30759,6 +32431,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30792,6 +32465,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30829,6 +32503,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30860,6 +32535,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30897,6 +32573,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30928,6 +32605,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30972,6 +32650,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31009,6 +32688,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31040,6 +32720,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31073,6 +32754,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31110,6 +32792,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31141,6 +32824,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31172,6 +32856,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31207,6 +32892,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31242,6 +32928,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31277,6 +32964,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31314,6 +33002,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31345,6 +33034,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31380,6 +33070,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31417,6 +33108,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31448,6 +33140,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31483,6 +33176,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31518,6 +33212,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31549,6 +33244,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31580,6 +33276,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31611,6 +33308,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31642,6 +33340,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31677,6 +33376,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31710,6 +33410,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31747,6 +33448,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31778,6 +33480,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31811,6 +33514,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31846,6 +33550,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31877,6 +33582,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31908,6 +33614,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31941,6 +33648,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31978,6 +33686,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32015,6 +33724,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32052,6 +33762,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32085,6 +33796,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32122,6 +33834,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32157,6 +33870,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32190,6 +33904,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32223,6 +33938,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32254,6 +33970,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32289,6 +34006,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32320,6 +34038,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32351,6 +34070,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32386,6 +34106,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32417,6 +34138,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32448,6 +34170,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32483,6 +34206,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32514,6 +34238,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32551,6 +34276,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32582,6 +34308,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32615,6 +34342,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32646,6 +34374,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32677,6 +34406,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32708,6 +34438,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32739,6 +34470,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32774,6 +34506,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32805,6 +34538,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32838,6 +34572,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32878,6 +34613,7 @@ export interface operations {
                 ally_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32909,6 +34645,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32942,6 +34679,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32979,6 +34717,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33014,6 +34753,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33045,6 +34785,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33078,6 +34819,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33270,6 +35012,7 @@ export interface operations {
                 vencidos?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33301,6 +35044,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33334,6 +35078,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33367,6 +35112,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33411,6 +35157,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33442,6 +35189,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33486,6 +35234,7 @@ export interface operations {
                 variante_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33517,6 +35266,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33552,6 +35302,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33585,6 +35336,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33622,6 +35374,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33659,6 +35412,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33692,6 +35446,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33723,6 +35478,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33767,6 +35523,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33800,6 +35557,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33831,6 +35589,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33877,6 +35636,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33923,6 +35683,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33969,6 +35730,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -34002,6 +35764,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -34049,6 +35812,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34080,6 +35844,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34111,6 +35876,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34146,6 +35912,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34288,6 +36055,7 @@ export interface operations {
                 q: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34322,6 +36090,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {

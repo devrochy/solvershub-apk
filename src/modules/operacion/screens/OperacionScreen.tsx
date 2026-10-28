@@ -3,26 +3,41 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { File, Paths } from "expo-file-system";
+import { shareAsync } from "expo-sharing";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { usePestanasDeEntrada, type EntradaPestanas, type SolicitudPestana } from "@shared/pestana-inicial";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { useAdminSession } from "@core/session/admin-session-context";
+import { Button, Card, EmptyState, Skeleton, useToast } from "@shared/ui";
 import {
+  alternarAgenteDelCliente,
   cargarPlayground,
   enviarMensajePlayground,
+  exportarLeadsCsv,
+  listarConexionesDeConversaciones,
   listarLeads,
   reiniciarPlayground,
+  type ConversationConnection,
+  type FiltroLeads,
+  type LeadAgentOut,
+  type LeadFilter,
   type LeadRow,
   type TurnoPlayground,
 } from "../api";
 import { PestanaConversaciones } from "../components/PestanaConversaciones";
 import { PestanaEscalaciones } from "../components/PestanaEscalaciones";
+import { ClienteCard } from "../components/ClienteCard";
+import { EnviarPlantillaSheet } from "../components/EnviarPlantillaSheet";
+import { FiltrosDeClientes } from "../components/FiltrosDeClientes";
 import { nombreDelChat } from "../presentacion";
 import type { OperacionStackParamList } from "../navigation";
 
@@ -41,7 +56,12 @@ export function OperacionScreen({
 }: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
+  const { sesion } = useAdminSession();
+  const toast = useToast();
   const navigation = useNavigation<Nav>();
+  const puedeEscribirLeads = sesion?.role === "master" || sesion?.permissions?.leads === "write";
+  const puedeEnviarPlantilla =
+    sesion?.role === "master" || sesion?.role === "tester" || sesion?.tenantRole === "owner";
 
   // Solo las pestañas de la entrada del cajón (Conversaciones, Clientes, Agentes).
   const { pestana, setPestana, propias } = usePestanasDeEntrada<Pestana>(
@@ -54,21 +74,64 @@ export function OperacionScreen({
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Clientes y playground
+  // Clientes (leads)
   const [leads, setLeads] = useState<LeadRow[]>([]);
-  const [busquedaLeads, setBusquedaLeads] = useState("");
+  const [filtrosLeads, setFiltrosLeads] = useState<FiltroLeads>({});
+  const [agentesLeads, setAgentesLeads] = useState<LeadAgentOut[]>([]);
+  const [filtrosDePack, setFiltrosDePack] = useState<LeadFilter[]>([]);
+  const [conexiones, setConexiones] = useState<ConversationConnection[]>([]);
+  const [paginaLeads, setPaginaLeads] = useState(1);
+  const [hayMasLeads, setHayMasLeads] = useState(false);
+  const [totalLeads, setTotalLeads] = useState(0);
+  const [cargandoLeads, setCargandoLeads] = useState(false);
+  const [refrescandoLeads, setRefrescandoLeads] = useState(false);
+  const [botPendiente, setBotPendiente] = useState<string | null>(null);
+  const [exportando, setExportando] = useState(false);
+  const [plantillaPara, setPlantillaPara] = useState<{ id: string; nombre: string } | null>(null);
+
+  // Playground
   const [turnos, setTurnos] = useState<TurnoPlayground[]>([]);
   const [mensajePlay, setMensajePlay] = useState("");
 
+  const cargarLeads = useCallback(
+    async (paginaPedida: number, filtro: FiltroLeads, acumular: boolean) => {
+      setCargandoLeads(true);
+      try {
+        const pagina = await listarLeads(api, { ...filtro, page: paginaPedida });
+        setLeads((previos) => (acumular ? [...previos, ...pagina.items] : pagina.items));
+        setAgentesLeads(pagina.agents ?? []);
+        setFiltrosDePack(pagina.filters ?? []);
+        setPaginaLeads(pagina.page);
+        setHayMasLeads(pagina.has_more);
+        setTotalLeads(pagina.total);
+        setError(null);
+      } catch {
+        setError("No pudimos cargar los clientes. Revisa tu conexión.");
+      } finally {
+        setCargandoLeads(false);
+        setRefrescandoLeads(false);
+        setCargando(false);
+      }
+    },
+    [api],
+  );
+
   useEffect(() => {
-    if (pestana === "leads") {
-      listarLeads(api, busquedaLeads || undefined)
-        .then((p) => setLeads(p.items))
-        .catch(() => setError("No pudimos cargar los clientes."))
-        .finally(() => setCargando(false));
-    }
-     
-  }, [pestana, busquedaLeads, api]);
+    if (pestana !== "leads") return;
+    const temporizador = setTimeout(
+      () => void cargarLeads(1, filtrosLeads, false),
+      filtrosLeads.q ? 350 : 0,
+    );
+    return () => clearTimeout(temporizador);
+  }, [pestana, filtrosLeads, cargarLeads]);
+
+  useEffect(() => {
+    if (pestana !== "leads") return;
+    listarConexionesDeConversaciones(api)
+      .then(setConexiones)
+      .catch(() => undefined);
+  }, [pestana, api]);
+
 
   const abrirConversacion = (id: string, titulo: string) =>
     navigation.navigate("ConversacionDetalle", { id, titulo });
@@ -78,6 +141,57 @@ export function OperacionScreen({
     setError(null);
     setPestana(destino);
   };
+
+  const abrirCliente = (item: LeadRow, editar = false) => {
+    const nombre = item.perfil?.nombre_visible || item.cliente || "Cliente";
+    navigation.navigate("ClienteDetalle", { id: item.id, titulo: nombre, editar });
+  };
+
+  const alternarBotDe = async (item: LeadRow) => {
+    const antes = item.bot_paused ?? false;
+    const nombre = item.perfil?.nombre_visible || item.cliente || "el cliente";
+    setBotPendiente(item.id);
+    setLeads((previos) =>
+      previos.map((lead) => (lead.id === item.id ? { ...lead, bot_paused: !antes } : lead)),
+    );
+    try {
+      const pausado = await alternarAgenteDelCliente(api, item.id);
+      setLeads((previos) =>
+        previos.map((lead) => (lead.id === item.id ? { ...lead, bot_paused: pausado } : lead)),
+      );
+      toast.success(
+        pausado ? `El agente quedó pausado para ${nombre}.` : `El agente vuelve a atender a ${nombre}.`,
+      );
+    } catch {
+      setLeads((previos) =>
+        previos.map((lead) => (lead.id === item.id ? { ...lead, bot_paused: antes } : lead)),
+      );
+      toast.error("No se pudo cambiar el agente para este cliente.");
+    } finally {
+      setBotPendiente(null);
+    }
+  };
+
+  const exportarClientes = async () => {
+    setExportando(true);
+    try {
+      const { texto, nombreArchivo } = await exportarLeadsCsv(api, filtrosLeads);
+      const archivo = new File(Paths.cache, nombreArchivo ?? `clientes-${Date.now()}.csv`);
+      await archivo.write(texto);
+      await shareAsync(archivo.uri, { mimeType: "text/csv", dialogTitle: "Compartir clientes" });
+    } catch {
+      toast.error("No se pudo exportar la lista de clientes.");
+    } finally {
+      setExportando(false);
+    }
+  };
+
+  const hayFiltros = Boolean(
+    filtrosLeads.q ||
+      filtrosLeads.channel ||
+      filtrosLeads.connection_id ||
+      (filtrosLeads.filtros?.length ?? 0) > 0,
+  );
 
   const recargarPlayground = useCallback(async () => {
     try {
@@ -129,17 +243,6 @@ export function OperacionScreen({
         </View>
       ) : null}
 
-      {pestana === "leads" ? (
-        <TextInput
-          testID="operacion-busqueda-leads"
-          value={busquedaLeads}
-          onChangeText={setBusquedaLeads}
-          placeholder="Buscar cliente"
-          placeholderTextColor={colores.textoSuave}
-          style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]}
-        />
-      ) : null}
-
       {pestana === "playground" ? (
         <View style={{ marginBottom: 8 }}>
           <Pressable
@@ -174,36 +277,111 @@ export function OperacionScreen({
       ) : cargando ? (
         <ActivityIndicator size="large" style={styles.cargando} />
       ) : pestana === "leads" ? (
-        <FlatList
-          testID="lista-leads"
-          data={leads}
-          keyExtractor={(l) => l.id}
-          ListEmptyComponent={<Vacio texto="Sin clientes registrados." />}
-          renderItem={({ item }) => {
-            const clasificacion = item.extras?.clasificacion;
-            return (
-              <Pressable
-                testID={`lead-${item.id}`}
-                accessibilityRole="button"
-                onPress={() => navigation.navigate("ClienteDetalle", { id: item.id, titulo: item.cliente })}
-                style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
-              >
-                <View style={styles.filaTexto}>
-                  <Text style={[styles.filaTitulo, { color: colores.texto }]} numberOfLines={1}>
-                    {item.cliente}
+        <View style={styles.leads}>
+          <FiltrosDeClientes
+            valor={filtrosLeads}
+            conexiones={conexiones}
+            filtrosDePack={filtrosDePack}
+            onChange={setFiltrosLeads}
+          />
+          {error ? (
+            <Text testID="leads-error" style={[styles.errorLeads, { color: colores.peligro }]}>
+              {error}
+            </Text>
+          ) : null}
+          {cargandoLeads && leads.length === 0 ? (
+            <EsqueletosDeClientes />
+          ) : (
+            <FlatList
+              testID="lista-leads"
+              data={leads}
+              keyExtractor={(lead) => lead.id}
+              contentContainerStyle={styles.listaLeads}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refrescandoLeads}
+                  onRefresh={() => {
+                    setRefrescandoLeads(true);
+                    void cargarLeads(1, filtrosLeads, false);
+                  }}
+                  colors={[colores.acento]}
+                  tintColor={colores.acento}
+                />
+              }
+              ListHeaderComponent={
+                <View style={styles.cabeceraLeads}>
+                  <Text style={[styles.totalLeads, { color: colores.textoSuave }]}>
+                    {totalLeads} {totalLeads === 1 ? "cliente" : "clientes"}
                   </Text>
-                  <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
-                    {item.canal} · {item.telefono ?? item.alta}
-                    {typeof clasificacion === "string" ? ` · ${clasificacion}` : ""}
-                  </Text>
+                  <Button
+                    testID="leads-exportar"
+                    variant="secondary"
+                    size="sm"
+                    iconLeft="file-download"
+                    loading={exportando}
+                    onPress={() => void exportarClientes()}
+                  >
+                    CSV
+                  </Button>
                 </View>
-                {item.bot_paused && (
-                  <Text style={{ color: colores.peligro, fontSize: 12 }}>Agente pausado</Text>
-                )}
-              </Pressable>
-            );
-          }}
-        />
+              }
+              ListEmptyComponent={
+                <EmptyState
+                  testID="leads-vacio"
+                  icon="people-outline"
+                  title="Sin clientes todavía"
+                  description={
+                    hayFiltros
+                      ? "Ningún cliente coincide con los filtros. Prueba con otros."
+                      : "Cuando el agente atienda al primer cliente, aparecerá aquí."
+                  }
+                  action={{
+                    label: hayFiltros ? "Limpiar filtros" : "Actualizar",
+                    onPress: () => {
+                      if (hayFiltros) setFiltrosLeads({});
+                      else void cargarLeads(1, filtrosLeads, false);
+                    },
+                  }}
+                />
+              }
+              renderItem={({ item }) => (
+                <ClienteCard
+                  item={item}
+                  agentes={agentesLeads}
+                  puedeEscribir={puedeEscribirLeads}
+                  puedeEnviarPlantilla={puedeEnviarPlantilla}
+                  botPendiente={botPendiente === item.id}
+                  onAbrir={() => abrirCliente(item)}
+                  onEditar={() => abrirCliente(item, true)}
+                  onAlternarBot={() => void alternarBotDe(item)}
+                  onEnviarPlantilla={() =>
+                    setPlantillaPara({
+                      id: item.id,
+                      nombre: item.perfil?.nombre_visible || item.cliente || "Cliente",
+                    })
+                  }
+                />
+              )}
+              ListFooterComponent={
+                hayMasLeads ? (
+                  <ActivityIndicator style={styles.pieLista} color={colores.acento} />
+                ) : null
+              }
+              onEndReachedThreshold={0.4}
+              onEndReached={() => {
+                if (hayMasLeads && !cargandoLeads) {
+                  void cargarLeads(paginaLeads + 1, filtrosLeads, true);
+                }
+              }}
+            />
+          )}
+          <EnviarPlantillaSheet
+            visible={Boolean(plantillaPara)}
+            onClose={() => setPlantillaPara(null)}
+            leadId={plantillaPara?.id ?? ""}
+            nombre={plantillaPara?.nombre ?? ""}
+          />
+        </View>
       ) : (
         <>
           <FlatList
@@ -250,6 +428,24 @@ export function OperacionScreen({
   );
 }
 
+function EsqueletosDeClientes() {
+  return (
+    <View style={styles.esqueletos} accessibilityState={{ busy: true }}>
+      {[0, 1, 2].map((i) => (
+        <Card key={i} testID={`lead-esqueleto-${i}`}>
+          <View style={styles.esqueletoFila}>
+            <Skeleton shape="circle" height={40} />
+            <View style={styles.esqueletoTextos}>
+              <Skeleton width="60%" />
+              <Skeleton width="40%" />
+            </View>
+          </View>
+        </Card>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   contenedor: { flex: 1, padding: 12 },
   pestanas: { flexDirection: "row", borderBottomWidth: 1, marginBottom: 10 },
@@ -278,4 +474,19 @@ const styles = StyleSheet.create({
   },
   filaTexto: { flex: 1, marginRight: 8 },
   filaTitulo: { fontSize: 14, fontWeight: "600", marginBottom: 2 },
+  leads: { flex: 1, gap: 6 },
+  errorLeads: { fontSize: 13 },
+  listaLeads: { gap: 10, paddingBottom: 24 },
+  cabeceraLeads: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 2,
+  },
+  totalLeads: { fontSize: 13 },
+  pieLista: { marginVertical: 16 },
+  esqueletos: { gap: 10 },
+  esqueletoFila: { flexDirection: "row", alignItems: "center", gap: 12 },
+  esqueletoTextos: { flex: 1, gap: 8 },
 });

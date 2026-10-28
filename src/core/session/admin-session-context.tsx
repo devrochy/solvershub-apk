@@ -96,6 +96,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
       role: me.role,
       tenantId: me.tenant?.id ?? null,
       tenantName: me.tenant?.name ?? null,
+      tenantRole: me.tenant?.role ?? null,
       permissions: me.permissions,
     };
     await secureSet(CLAVE_SESION_ADMIN, JSON.stringify(nueva));
@@ -121,6 +122,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
         role: me.role,
         tenantId: me.tenant?.id ?? actual.tenantId,
         tenantName: me.tenant?.name ?? actual.tenantName,
+        tenantRole: me.tenant?.role ?? actual.tenantRole ?? null,
         permissions: me.permissions,
       };
       await secureSet(CLAVE_SESION_ADMIN, JSON.stringify(actualizada));
@@ -148,6 +150,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
         role: siguientePerfil.role,
         tenantId: me.tenant?.id ?? actual.tenantId,
         tenantName: siguientePerfil.tenantName ?? actual.tenantName,
+        tenantRole: me.tenant?.role ?? actual.tenantRole ?? null,
         permissions: me.permissions,
       };
       await secureSet(CLAVE_SESION_ADMIN, JSON.stringify(actualizada));
