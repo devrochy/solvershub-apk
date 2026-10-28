@@ -6,6 +6,5 @@
   "src/modules/configuracion/components/AvanzadoTab.tsx": 1,
   "src/modules/configuracion/components/ChatWebTab.tsx": 1,
   "src/modules/configuracion/screens/ConfiguracionScreen.tsx": 4,
-  "src/modules/dashboard/screens/DashboardScreen.tsx": 1,
-  "src/modules/operacion/screens/ConversacionDetalleScreen.tsx": 4
+  "src/modules/dashboard/screens/DashboardScreen.tsx": 1
 }

@@ -3,6 +3,12 @@ import type { components } from "@core/api/schema";
 
 export type ConversationSummary = components["schemas"]["ConversationSummary"];
 export type ConversationDetail = components["schemas"]["ConversationDetail"];
+export type ConversationConnection = components["schemas"]["ConversationConnection"];
+export type MessageItem = components["schemas"]["MessageItem"];
+export type MessagesSince = components["schemas"]["MessagesSince"];
+export type ConversationNote = components["schemas"]["ConversationNote"];
+export type ApprovedTemplate = components["schemas"]["ApprovedTemplate"];
+export type ActiveEscalation = components["schemas"]["ActiveEscalation"];
 export type EscalationItem = components["schemas"]["EscalationItem"];
 /** Fila de Clientes. `telefono` y `bot_paused` llegan desde HU-UX-16 (agent-core #503). */
 export type LeadRow = components["schemas"]["LeadRow"] & { telefono?: string | null; bot_paused?: boolean };
@@ -70,6 +76,7 @@ export interface PaginaLeads {
 export interface FiltroConversaciones {
   q?: string;
   status?: string;
+  connection_id?: string;
   page?: number;
 }
 
@@ -80,9 +87,14 @@ export async function listarConversaciones(
   return api.get<PaginaConversaciones>("/admin/conversations", {
     q: filtro.q,
     status: filtro.status,
+    connection_id: filtro.connection_id,
     page: filtro.page,
     page_size: 20,
   });
+}
+
+export async function listarConexiones(api: ClienteAdmin): Promise<ConversationConnection[]> {
+  return api.get<ConversationConnection[]>("/admin/conversations/connections");
 }
 
 export async function detalleConversacion(
@@ -90,6 +102,16 @@ export async function detalleConversacion(
   id: string,
 ): Promise<ConversationDetail> {
   return api.get<ConversationDetail>(`/admin/conversations/${id}`);
+}
+
+export async function mensajesDesde(
+  api: ClienteAdmin,
+  id: string,
+  after?: string | null,
+): Promise<MessagesSince> {
+  return api.get<MessagesSince>(`/admin/conversations/${id}/messages`, {
+    after: after ?? undefined,
+  });
 }
 
 export async function responderConversacion(
@@ -108,11 +130,55 @@ export async function alternarBot(api: ClienteAdmin, id: string): Promise<void> 
   await api.post(`/admin/conversations/${id}/toggle-bot`);
 }
 
+export async function tomarConversacion(api: ClienteAdmin, id: string): Promise<ActiveEscalation> {
+  return api.post<ActiveEscalation>(`/admin/conversations/${id}/take`);
+}
+
+export async function devolverAlAgente(api: ClienteAdmin, id: string): Promise<void> {
+  await api.post(`/admin/conversations/${id}/return-to-bot`);
+}
+
+export async function agregarNotaConversacion(
+  api: ClienteAdmin,
+  id: string,
+  text: string,
+): Promise<ConversationNote> {
+  return api.post<ConversationNote>(`/admin/conversations/${id}/notes`, { text });
+}
+
+export async function listarPlantillasDeConversacion(
+  api: ClienteAdmin,
+  id: string,
+): Promise<ApprovedTemplate[]> {
+  return api.get<ApprovedTemplate[]>(`/admin/conversations/${id}/templates`);
+}
+
+export async function enviarPlantillaConversacion(
+  api: ClienteAdmin,
+  id: string,
+  templateId: string,
+  variables: Record<string, string>,
+): Promise<void> {
+  await api.post(`/admin/conversations/${id}/template-messages`, {
+    template_id: templateId,
+    variables,
+  });
+}
+
+export interface FiltroEscalaciones {
+  page?: number;
+  reason_code?: string;
+}
+
 export async function listarEscalaciones(
   api: ClienteAdmin,
-  page = 1,
+  filtro: FiltroEscalaciones = {},
 ): Promise<PaginaEscalaciones> {
-  return api.get<PaginaEscalaciones>("/admin/escalations", { page, page_size: 20 });
+  return api.get<PaginaEscalaciones>("/admin/escalations", {
+    page: filtro.page,
+    reason_code: filtro.reason_code,
+    page_size: 20,
+  });
 }
 
 export async function listarLeads(api: ClienteAdmin, q?: string, page = 1): Promise<PaginaLeads> {

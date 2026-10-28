@@ -16,6 +16,11 @@ const cliente = {
   del: jest.fn(),
 };
 
+const CONEXIONES = [
+  { id: "con-1", label: "Ventas", channel: "whatsapp", provider: "meta", type_id: "whatsapp_cloud" },
+  { id: "con-2", label: "Soporte", channel: "whatsapp", provider: "meta", type_id: "whatsapp_cloud" },
+];
+
 const PAGINA_CONVERSACIONES = {
   items: [
     {
@@ -25,6 +30,11 @@ const PAGINA_CONVERSACIONES = {
       status: "open",
       bot_paused: false,
       channel: "whatsapp",
+      connection_type: "whatsapp_cloud",
+      connection_label: "Ventas",
+      last_message: "Quiero hablar con alguien",
+      last_message_at: "2026-10-06T00:10:00Z",
+      last_message_sender: "customer",
       started_at: "2026-10-06T00:00:00Z",
     },
     {
@@ -34,6 +44,11 @@ const PAGINA_CONVERSACIONES = {
       status: "escalated",
       bot_paused: true,
       channel: "whatsapp",
+      connection_type: "whatsapp_waweb",
+      connection_label: "Soporte",
+      last_message: "Necesito ayuda",
+      last_message_at: "2026-10-06T01:00:00Z",
+      last_message_sender: "agent",
       started_at: "2026-10-06T01:00:00Z",
     },
   ],
@@ -50,6 +65,9 @@ describe("OperacionScreen (HU-APP-08)", () => {
       if (path === "/admin/conversations") {
         return Promise.resolve(PAGINA_CONVERSACIONES);
       }
+      if (path === "/admin/conversations/connections") {
+        return Promise.resolve(CONEXIONES);
+      }
       if (path === "/admin/escalations") {
         return Promise.resolve({
           items: [
@@ -59,7 +77,10 @@ describe("OperacionScreen (HU-APP-08)", () => {
               customer_name: "Escalada",
               external_id: null,
               reason: "pidió humano",
+              reason_code: "solicitud_cliente",
+              reason_label: "Solicitud del cliente",
               status: "pendiente",
+              summary: "La clienta pide hablar con una persona.",
             },
           ],
           page: 1,
@@ -77,17 +98,19 @@ describe("OperacionScreen (HU-APP-08)", () => {
           has_more: false,
         });
       }
-            if (path === "/admin/playground") {
+      if (path === "/admin/playground") {
         return Promise.resolve({ turns: [{ text: "Hola, soy el demo", escalated: false }] });
       }
       return Promise.reject(new Error("no mockeado"));
     });
   });
 
-  it("carga conversaciones con búsqueda y filtro", async () => {
+  it("carga conversaciones con tarjeta informativa y busca con debounce", async () => {
     const { getByTestId, getByText } = await render(<OperacionScreen />);
     await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
     expect(getByText("Juanita")).toBeTruthy();
+    expect(getByText("Quiero hablar con alguien")).toBeTruthy();
+    expect(getByText("WhatsApp Cloud · Ventas")).toBeTruthy();
 
     await fireEvent.changeText(getByTestId("operacion-busqueda"), "juan");
     await waitFor(() =>
@@ -98,14 +121,183 @@ describe("OperacionScreen (HU-APP-08)", () => {
     );
   });
 
-  it("cambia a escalaciones y las lista", async () => {
+  it("filtra por estado y por conexión", async () => {
+    const { getByTestId } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("filtro-estado-escalated"));
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenLastCalledWith(
+        "/admin/conversations",
+        expect.objectContaining({ status: "escalated", page: 1 }),
+      ),
+    );
+
+    await fireEvent.press(getByTestId("filtro-conexion"));
+    await waitFor(() => expect(getByTestId("conexion-con-1")).toBeTruthy());
+    await fireEvent.press(getByTestId("conexion-con-1"));
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenLastCalledWith(
+        "/admin/conversations",
+        expect.objectContaining({ connection_id: "con-1", page: 1 }),
+      ),
+    );
+  });
+
+  it("pide reintentar cuando la lista falla", async () => {
+    mockGet.mockImplementation((path: string) => {
+      if (path === "/admin/conversations/connections") return Promise.resolve(CONEXIONES);
+      if (path === "/admin/conversations") return Promise.reject(new Error("red"));
+      return Promise.reject(new Error("no mockeado"));
+    });
+    const { getByTestId, getByText } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("conversaciones-error")).toBeTruthy());
+
+    const antes = mockGet.mock.calls.filter(([path]) => path === "/admin/conversations").length;
+    await fireEvent.press(getByText("Reintentar"));
+    await waitFor(() =>
+      expect(mockGet.mock.calls.filter(([path]) => path === "/admin/conversations").length).toBeGreaterThan(antes),
+    );
+  });
+
+  it("carga más conversaciones al llegar al final", async () => {
+    mockGet.mockImplementation((path: string, params?: { page?: number }) => {
+      if (path === "/admin/conversations/connections") return Promise.resolve(CONEXIONES);
+      if (path === "/admin/conversations") {
+        const pagina = params?.page ?? 1;
+        return Promise.resolve(
+          pagina === 2
+            ? {
+                items: [
+                  {
+                    ...PAGINA_CONVERSACIONES.items[0],
+                    id: "cv-3",
+                    customer_name: "Chat dos",
+                    last_message: "Segunda página",
+                  },
+                ],
+                page: 2,
+                total: 3,
+                has_more: false,
+              }
+            : { ...PAGINA_CONVERSACIONES, has_more: true },
+        );
+      }
+      return Promise.reject(new Error("no mockeado"));
+    });
+
+    const { getByTestId, getByText } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("conversaciones-mas")).toBeTruthy());
+    await fireEvent.press(getByTestId("conversaciones-mas"));
+    await waitFor(() => expect(getByText("Chat dos")).toBeTruthy());
+  });
+
+  it("muestra el estado vacío y permite actualizar", async () => {
+    mockGet.mockImplementation((path: string) => {
+      if (path === "/admin/conversations/connections") return Promise.resolve(CONEXIONES);
+      if (path === "/admin/conversations") {
+        return Promise.resolve({ items: [], page: 1, total: 0, has_more: false });
+      }
+      return Promise.reject(new Error("no mockeado"));
+    });
+    const { getByText } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByText("Sin conversaciones por ahora")).toBeTruthy());
+    await fireEvent.press(getByText("Actualizar"));
+    expect(getByText("Sin conversaciones por ahora")).toBeTruthy();
+  });
+
+  it("cambia a escalaciones y muestra motivo, estado y resumen", async () => {
     const { getByTestId, getByText } = await render(<OperacionScreen />);
     await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
 
     await fireEvent.press(getByTestId("pestana-escalaciones"));
     await waitFor(() => expect(getByTestId("lista-escalaciones")).toBeTruthy());
     expect(getByText("Escalada")).toBeTruthy();
-    expect(getByText("pidió humano")).toBeTruthy();
+    expect(getByText("Solicitud del cliente")).toBeTruthy();
+    expect(getByText("La clienta pide hablar con una persona.")).toBeTruthy();
+  });
+
+  it("filtra escalaciones por motivo", async () => {
+    const { getByTestId } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
+    await fireEvent.press(getByTestId("pestana-escalaciones"));
+    await waitFor(() => expect(getByTestId("lista-escalaciones")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("filtro-motivo"));
+    await waitFor(() => expect(getByTestId("motivo-queja")).toBeTruthy());
+    await fireEvent.press(getByTestId("motivo-queja"));
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenLastCalledWith(
+        "/admin/escalations",
+        expect.objectContaining({ reason_code: "queja", page: 1 }),
+      ),
+    );
+  });
+
+  it("abre el resumen completo de una escalación", async () => {
+    const { getByTestId, getAllByText } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
+    await fireEvent.press(getByTestId("pestana-escalaciones"));
+    await waitFor(() => expect(getByTestId("lista-escalaciones")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("escalacion-resumen-cv-2"));
+    await waitFor(() => expect(getByTestId("sheet-resumen-escalacion")).toBeTruthy());
+    expect(getAllByText("La clienta pide hablar con una persona.").length).toBeGreaterThan(0);
+    expect(getByTestId("resumen-escalacion-abrir")).toBeTruthy();
+  });
+
+  it("carga más escalaciones al llegar al final", async () => {
+    mockGet.mockImplementation((path: string, params?: { page?: number }) => {
+      if (path === "/admin/conversations/connections") return Promise.resolve(CONEXIONES);
+      if (path === "/admin/conversations") return Promise.resolve(PAGINA_CONVERSACIONES);
+      if (path === "/admin/escalations") {
+        const pagina = params?.page ?? 1;
+        return Promise.resolve({
+          items: [
+            {
+              conversation_id: pagina === 2 ? "cv-9" : "cv-2",
+              created_at: "2026-10-06T01:00:00Z",
+              customer_name: pagina === 2 ? "Segunda escalación" : "Escalada",
+              external_id: null,
+              reason: "pidió humano",
+              reason_code: "solicitud_cliente",
+              reason_label: "Solicitud del cliente",
+              status: "pendiente",
+              summary: "Resumen de la escalación.",
+            },
+          ],
+          page: pagina,
+          total: 2,
+          has_more: pagina === 1,
+        });
+      }
+      return Promise.reject(new Error("no mockeado"));
+    });
+
+    const { getByTestId, getByText } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
+    await fireEvent.press(getByTestId("pestana-escalaciones"));
+    await waitFor(() => expect(getByTestId("escalaciones-mas")).toBeTruthy());
+    await fireEvent.press(getByTestId("escalaciones-mas"));
+    await waitFor(() => expect(getByText("Segunda escalación")).toBeTruthy());
+  });
+
+  it("desde escalaciones vacías vuelve a conversaciones", async () => {
+    mockGet.mockImplementation((path: string) => {
+      if (path === "/admin/conversations/connections") return Promise.resolve(CONEXIONES);
+      if (path === "/admin/conversations") return Promise.resolve(PAGINA_CONVERSACIONES);
+      if (path === "/admin/escalations") {
+        return Promise.resolve({ items: [], page: 1, total: 0, has_more: false });
+      }
+      return Promise.reject(new Error("no mockeado"));
+    });
+    const { getByTestId, getByText } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
+    await fireEvent.press(getByTestId("pestana-escalaciones"));
+    await waitFor(() => expect(getByText("No hay escalaciones")).toBeTruthy());
+
+    await fireEvent.press(getByText("Ver conversaciones"));
+    await waitFor(() => expect(getByTestId("lista-conversaciones")).toBeTruthy());
   });
 
   it("cambia a clientes (leads)", async () => {
@@ -115,12 +307,6 @@ describe("OperacionScreen (HU-APP-08)", () => {
     await fireEvent.press(getByTestId("pestana-leads"));
     await waitFor(() => expect(getByTestId("lista-leads")).toBeTruthy());
     expect(getByText("Lead Uno")).toBeTruthy();
-  });
-
-  it("con error de red muestra el aviso", async () => {
-    mockGet.mockRejectedValue(new Error("red"));
-    const { getByTestId } = await render(<OperacionScreen />);
-    await waitFor(() => expect(getByTestId("operacion-error")).toBeTruthy());
   });
 
   it("muestra el playground y reinicia la demo (HU-APP-21)", async () => {
@@ -135,7 +321,9 @@ describe("OperacionScreen (HU-APP-08)", () => {
   });
 
   it("abre en la pestaña pedida por el cajón del panel (HU-DS-11)", async () => {
-    const { getByTestId } = await render(<OperacionScreen pestanaInicial={{ pestana: "escalaciones", n: 1 }} />);
+    const { getByTestId } = await render(
+      <OperacionScreen pestanaInicial={{ pestana: "escalaciones", n: 1 }} />,
+    );
     await waitFor(() => expect(getByTestId("pestana-escalaciones")).toHaveStyle({ borderBottomWidth: 2 }));
   });
 });

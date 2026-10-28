@@ -29,6 +29,9 @@
   optimizada), reportes consolidados, monitoreo IA, reglas de negociación y alertas de acceso.
 - Escrituras móviles: crear productos/categorías/promociones, tipos y bloqueos de agenda,
   invitar colaboradores.
+- Bandeja de conversaciones con paridad del panel: filtros por estado y conexión, tarjetas con
+  último mensaje/canal, lista e hilo en vivo, ticket de escalación, notas internas, plantillas
+  fuera de la ventana de 24 h y uso de tokens.
 - Herramientas profundas: playground del asistente, plan y suscripción (purga para master),
   plantillas Meta por conexión, opt-out de push y deep links desde resultados de búsqueda.
 - Sync offline-first por módulos (cursor incremental, caché cifrada, escrituras encoladas).
