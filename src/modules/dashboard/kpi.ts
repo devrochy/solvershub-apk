@@ -39,6 +39,7 @@ export interface PropsDeKpi {
   value: string;
   delta?: number;
   period?: string;
+  hint?: string;
   polarity: KpiPolarity;
   onPress?: () => void;
 }
@@ -52,6 +53,7 @@ export function propsDeKpi(k: KpiResumen): PropsDeKpi {
     value: valorDeKpi(k),
     delta: hayDelta ? k.delta_pct! : undefined,
     period: hayDelta ? frenteA(k.versus ?? VERSUS_POR_DEFECTO) : undefined,
+    hint: k.hint ?? undefined,
     polarity: k.polaridad,
     onPress: destino ? () => emitirNavegacion(destino) : undefined,
   };

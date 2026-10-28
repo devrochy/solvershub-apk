@@ -14,6 +14,8 @@ export interface KpiTileProps {
   delta?: number;
   /** Con qué se compara: "frente a los 7 días anteriores". */
   period?: string;
+  /** Aclaración corta bajo la cifra ("Últimos 7 días"). */
+  hint?: string;
   /** Si subir es bueno (recaudo) o malo (mora). Por defecto `up-good`. */
   polarity?: KpiPolarity;
   loading?: boolean;
@@ -49,6 +51,7 @@ export function KpiTile({
   value,
   delta,
   period,
+  hint,
   polarity = "up-good",
   loading = false,
   error,
@@ -65,7 +68,9 @@ export function KpiTile({
     ? `${label}: cargando`
     : error
       ? `${label}: ${error}`
-      : [`${label}: ${value}`, hayDelta ? deltaHablado(delta, period) : null].filter(Boolean).join(". ");
+      : [`${label}: ${value}`, hayDelta ? deltaHablado(delta, period) : null, hint ?? null]
+          .filter(Boolean)
+          .join(". ");
 
   const contenido = (
     <>
@@ -84,6 +89,11 @@ export function KpiTile({
           {value}
         </Text>
       )}
+      {hint && !loading && !error ? (
+        <Text maxFontSizeMultiplier={1.6} style={[shType.caption, { color: c.textMuted }]}>
+          {hint}
+        </Text>
+      ) : null}
       {hayDelta && flecha ? (
         <View style={styles.fila}>
           <Icono name={flecha} size={16} color={colorDelta} />

@@ -85,7 +85,7 @@ export function tieneResumen(datos: ResumenPorAgente | null | undefined): datos 
   );
 }
 
-export function ResumenAgentes({ datos }: { datos: ResumenPorAgente }) {
+export function ResumenAgentes({ datos, soloAgentes = false }: { datos: ResumenPorAgente; soloAgentes?: boolean }) {
   const { c } = useKit();
   const agentes = datos.agentes.filter((a) => a.kpis.length > 0 || a.modulos.length > 0);
   // El primero abierto; el resto, plegado, para que la pantalla no se haga interminable.
@@ -95,7 +95,7 @@ export function ResumenAgentes({ datos }: { datos: ResumenPorAgente }) {
 
   return (
     <View testID="resumen-agentes" style={styles.raiz}>
-      {datos.general.kpis.length > 0 ? (
+      {!soloAgentes && datos.general.kpis.length > 0 ? (
         <View style={styles.bloque}>
           <Text accessibilityRole="header" style={[shType.h1, { color: c.textStrong }]}>
             Agente general
