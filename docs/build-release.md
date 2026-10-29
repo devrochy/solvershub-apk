@@ -40,6 +40,23 @@ npx eas-cli submit --profile production --platform android --latest  # → produ
 scripts/publicar-ota.sh <canal> "mensaje"                    # OTA (ver abajo)
 ```
 
+### Build local (sin cupo de EAS o sin subir el commit)
+
+`eas build --local` usa el mismo keystore de EAS y deja el APK en la ruta de `--output`. Requiere
+JDK 21 (con `javac`), Android SDK (platform 37, build-tools 37) y el `google-services.json` de
+`eas-environment-secrets/`:
+
+```bash
+export JAVA_HOME="$HOME/.jdks/jdk-21"
+export ANDROID_HOME="$HOME/Android/Sdk" ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+export GOOGLE_SERVICES_JSON="$PWD/../eas-environment-secrets/google-services.json"
+npx eas-cli build --local --profile preview --platform android --output ./solvershub-preview.apk
+```
+
+El APK incrusta `assets/fingerprint` con el hash real; el `file:fingerprint` del manifiesto es el
+sentinel que expo-updates resuelve en runtime. `android.googleServicesFile` avisa que el archivo
+no está en git: es esperado.
+
 ## OTA (EAS Update)
 
 Un OTA reemplaza **solo el JS y los assets**. Se publica **siempre** con el script:
