@@ -29,6 +29,7 @@ function chat(id: string, extra: Partial<ConversationSummary> = {}): Conversatio
     channel: "whatsapp",
     status: "open",
     bot_paused: false,
+    pending_count: 0,
     started_at: "2026-10-06T00:00:00Z",
     ...extra,
   };

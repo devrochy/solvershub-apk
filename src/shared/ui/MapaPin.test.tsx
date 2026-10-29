@@ -16,6 +16,28 @@ describe("MapaPin", () => {
     expect(html).toContain("draggable");
   });
 
+  it("mueve el pin con un toque y se apaga en solo lectura", async () => {
+    const { getByTestId, rerender } = await render(
+      <MapaPin latitud={-17.78} longitud={-63.18} onChange={jest.fn()} testID="mapa-pin-editable" />,
+    );
+    const html = getByTestId("mapa-pin-editable-webview").props.source.html as string;
+    expect(html).toContain("map.on('click'");
+    expect(html).toContain("soloLectura = false");
+
+    await rerender(
+      <MapaPin
+        latitud={-17.78}
+        longitud={-63.18}
+        onChange={jest.fn()}
+        soloLectura
+        testID="mapa-pin-editable"
+      />,
+    );
+    const htmlLectura = getByTestId("mapa-pin-editable-webview").props.source.html as string;
+    expect(htmlLectura).toContain("soloLectura = true");
+    expect(htmlLectura).toContain("draggable: !soloLectura");
+  });
+
   it("notifica las nuevas coordenadas al arrastrar el pin (postMessage bridge)", async () => {
     const onChange = jest.fn();
     const { getByTestId } = await render(

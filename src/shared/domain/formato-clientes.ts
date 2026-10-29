@@ -4,6 +4,8 @@
  * con la misma semántica que el panel.
  */
 
+import { apiRoot } from "@core/config";
+
 const NUMERO = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 });
 
 /** Monto en pesos sin decimales: `$ 1.234`. */
@@ -31,6 +33,13 @@ export function formatearFechaHora(valor: string | Date | null | undefined): str
   const fecha = valor instanceof Date ? valor : new Date(valor);
   if (Number.isNaN(fecha.getTime())) return "—";
   return new Intl.DateTimeFormat("es-CO", { dateStyle: "short", timeStyle: "short" }).format(fecha);
+}
+
+/** URL usable en <Image>: respeta http(s) o completa el host del backend. */
+export function urlAvatarCliente(valor: string | null | undefined): string | null {
+  if (!valor) return null;
+  if (/^https?:\/\//i.test(valor)) return valor;
+  return `${apiRoot()}${valor.startsWith("/") ? valor : `/${valor}`}`;
 }
 
 type Telefono = {
@@ -79,6 +88,7 @@ export function etiquetaCanal(canal: string | null | undefined): string {
 }
 
 export const CLASIFICACION_LABEL: Record<string, string> = {
+  nuevo: "Nuevo",
   prospecto: "Prospecto",
   cliente: "Cliente",
   vip: "VIP",

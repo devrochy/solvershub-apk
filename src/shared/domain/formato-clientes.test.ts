@@ -9,6 +9,7 @@ import {
   telefonoVisible,
   tonoDeRiesgo,
   ubicacionVisible,
+  urlAvatarCliente,
 } from "./formato-clientes";
 
 describe("formato-clientes", () => {
@@ -40,8 +41,15 @@ describe("formato-clientes", () => {
     expect(ubicacionVisible(null)).toBe("—");
   });
 
+  it("resuelve la URL del avatar contra el backend", () => {
+    expect(urlAvatarCliente("https://cdn.test/a.jpg")).toBe("https://cdn.test/a.jpg");
+    expect(urlAvatarCliente("/api/v1/files/token")).toMatch(/^http:\/\/localhost:3000\/api\/v1\/files\/token$/);
+    expect(urlAvatarCliente(null)).toBeNull();
+  });
+
   it("traduce canal, clasificación y riesgo", () => {
     expect(etiquetaCanal("whatsapp")).toBe("WhatsApp");
+    expect(etiquetaClasificacion("nuevo")).toBe("Nuevo");
     expect(etiquetaClasificacion("vip")).toBe("VIP");
     expect(etiquetaClasificacion(undefined)).toBe("Sin clasificar");
     expect(etiquetaRiesgo("rojo")).toBe("Riesgo alto");
