@@ -1,5 +1,5 @@
 ---
-estado: en curso
+estado: completada
 tags: [tarea]
 ---
 
@@ -61,15 +61,18 @@ EAS Update.
   (`claveMaestra`) y podían dejar el archivo cifrado con una clave y el almacén con otra.
   Ahora `claveMaestra` e `inicializarBase` son single-flight; tests nuevos en
   `src/data/db/__tests__/conexion.test.ts` y `bootstrap.test.ts` (190 suites, 1214 tests).
+- Reinstalado el APK con el fix (uninstall + install) y validado: login, dashboard,
+  force-stop + arranque en modo avión y búsqueda global con caché ("Resultados guardados en tu
+  teléfono · clientes"): **0 `hmac check failed`** en todo el recorrido.
+- expo-updates inicializa y consulta al servidor sin errores (`EndStartup`, "No update
+  available"); push en línea sin errores (`exp.host` solo fallaba sin red).
 - `scripts/check.sh` se detiene en fronteras de módulos por 5 imports preexistentes de
   `modules/datos-prueba` en `develop` (HU-QA-10); no los introduce esta tarea. CI no ejecuta
   ese script (corre lint, typecheck y tests, los tres en verde).
 
 ## Pendientes
 
-- Reinstalar el APK nuevo (`adb uninstall` + `adb install`, para descartar la base que quedó
-  con la clave vieja) y validar que ya no aparece `hmac check failed` tras reiniciar sin red.
-- Smoke en dispositivo: base cifrada (cobranza/diario), mapa WebView, evidencias con cámara,
-  push y OTA. La conexión USB del CPH2603 se cae de forma intermitente.
+- Smoke de mapa WebView, evidencias con cámara y push/OTA de punta a punta: necesitan un
+  cliente de campo con coordenadas/evidencias (el cliente demo del panel no tiene ubicación).
 - Decidir si `datos-prueba` pasa a `shared/ui` o se documenta como módulo transversal
   (ADR-APP-01) en una tarea aparte.
