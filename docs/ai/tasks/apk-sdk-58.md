@@ -51,13 +51,18 @@ EAS Update.
   EAS (SHA-1 `a335319afd60959fa3bbee4d172bda0e05c71c12`). `assets/fingerprint` =
   `51f01ec4…`; update embebido `e8f583a4-16db-4a46-ba1d-4b332ef3b90a`.
 - Arranque en dispositivo (Android 16, CPH2603): `Running "main"`, sin `FATAL EXCEPTION`.
+- Smoke manual: login con `gestor@demo.test` contra la API de test → dashboard del panel
+  ("Cobranza Demo", KPIs del agente general) renderizado y con datos de la API.
+- `e2e/smoke-cobranza.yaml` se detiene en "Elige tu negocio": el login del gestor demo entra
+  directo al panel (no es un cambio de SDK 58; el flujo quedó desfasado). Además, el teclado
+  seguro de OPPO tapa la pantalla y Maestro no envía el formulario; con `adb input tap` sí.
 - `scripts/check.sh` se detiene en fronteras de módulos por 5 imports preexistentes de
   `modules/datos-prueba` en `develop` (HU-QA-10); no los introduce esta tarea. CI no ejecuta
   ese script (corre lint, typecheck y tests, los tres en verde).
 
 ## Pendientes
 
-- Smoke en dispositivo: login, base cifrada, evidencias, mapa, push y OTA (requiere aprobar la
-  depuración USB; el dispositivo quedó `unauthorized`).
+- Smoke en dispositivo: base cifrada (cobranza/diario), mapa WebView, evidencias con cámara,
+  push y OTA. El dispositivo se desconectó del USB al continuar la prueba.
 - Decidir si `datos-prueba` pasa a `shared/ui` o se documenta como módulo transversal
   (ADR-APP-01) en una tarea aparte.
