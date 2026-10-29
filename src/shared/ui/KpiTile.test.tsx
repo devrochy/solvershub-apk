@@ -25,6 +25,12 @@ describe("KpiTile (kit)", () => {
     ).toBeTruthy();
   });
 
+  it("muestra la aclaración bajo la cifra y la lee en el nombre accesible", async () => {
+    await render(<KpiTile label="Pedidos" value="12" hint="Últimos 7 días" />);
+    expect(screen.getByText("Últimos 7 días")).toBeTruthy();
+    expect(screen.getByLabelText("Pedidos: 12. Últimos 7 días")).toBeTruthy();
+  });
+
   it("polarity up-bad: una subida es desfavorable (peligro)", async () => {
     await render(<KpiTile label="En mora" value="14" delta={8} polarity="up-bad" />);
     expect(screen.getByText("+8 %")).toHaveStyle({ color: shTheme.light.statusDangerFg });
