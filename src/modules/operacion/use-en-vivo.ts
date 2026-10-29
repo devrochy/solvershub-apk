@@ -109,6 +109,7 @@ export function useConversacionesEnVivo(
   const [items, setItems] = useState<ConversationSummary[]>([]);
   const [pagina, setPagina] = useState(1);
   const [hayMas, setHayMas] = useState(false);
+  const [total, setTotal] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [cargandoMas, setCargandoMas] = useState(false);
   const [refrescando, setRefrescando] = useState(false);
@@ -157,6 +158,7 @@ export function useConversacionesEnVivo(
         });
         if (!montado.current || claveAlPedir !== claveDeFiltros(filtrosRef.current)) return;
         setError(null);
+        setTotal(paginaNueva.total);
 
         if (paginaPedida === 1) {
           setItems((actuales) =>
@@ -219,6 +221,7 @@ export function useConversacionesEnVivo(
     items,
     pagina,
     hayMas,
+    total,
     cargando,
     cargandoMas,
     refrescando,

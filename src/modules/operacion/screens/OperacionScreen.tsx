@@ -14,6 +14,7 @@ import { shareAsync } from "expo-sharing";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { usePestanasDeEntrada, type EntradaPestanas, type SolicitudPestana } from "@shared/pestana-inicial";
+import { shSpace, shType } from "@core/theme/tokens";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
@@ -213,33 +214,46 @@ export function OperacionScreen({
   return (
     <View style={[styles.contenedor, { backgroundColor: colores.fondo }]}>
       {propias.length > 1 ? (
-        <View style={[styles.pestanas, { borderColor: colores.borde }]}>
-          {propias.map((p) => (
-            <Pressable
-              key={p}
-              testID={`pestana-${p}`}
-              onPress={() => cambiarPestana(p)}
-              style={[
-                styles.pestana,
-                pestana === p && { borderBottomColor: colores.acento, borderBottomWidth: 2 },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.pestanaTexto,
-                  { color: pestana === p ? colores.texto : colores.textoSuave },
-                ]}
+        <View
+          accessibilityRole="tablist"
+          accessibilityLabel="Secciones de Operación"
+          style={styles.pestanas}
+        >
+          {propias.map((p) => {
+            const activa = pestana === p;
+            const label =
+              p === "conversaciones"
+                ? "Conversaciones"
+                : p === "escalaciones"
+                  ? "Escalaciones"
+                  : p === "leads"
+                    ? "Clientes"
+                    : "Playground";
+            return (
+              <Pressable
+                key={p}
+                testID={`pestana-${p}`}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: activa }}
+                onPress={() => cambiarPestana(p)}
+                style={styles.pestana}
               >
-                {p === "conversaciones"
-                  ? "Conversaciones"
-                  : p === "escalaciones"
-                    ? "Escalaciones"
-                    : p === "leads"
-                      ? "Clientes"
-                      : "Playground"}
-              </Text>
-            </Pressable>
-          ))}
+                <Text
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={1.6}
+                  style={[shType.label, { color: activa ? colores.texto : colores.textoSuave }]}
+                >
+                  {label}
+                </Text>
+                <View
+                  style={[
+                    styles.indicador,
+                    { backgroundColor: activa ? colores.acento : "transparent" },
+                  ]}
+                />
+              </Pressable>
+            );
+          })}
         </View>
       ) : null}
 
@@ -448,9 +462,14 @@ function EsqueletosDeClientes() {
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, padding: 12 },
-  pestanas: { flexDirection: "row", borderBottomWidth: 1, marginBottom: 10 },
-  pestana: { flex: 1, paddingVertical: 10, alignItems: "center" },
-  pestanaTexto: { fontSize: 14, fontWeight: "600" },
+  pestanas: {
+    flexDirection: "row",
+    alignSelf: "flex-start",
+    gap: shSpace[4],
+    marginBottom: shSpace[2],
+  },
+  pestana: { minHeight: 44, paddingVertical: shSpace[2], paddingHorizontal: shSpace[1], gap: 3 },
+  indicador: { height: 2, width: 16, borderRadius: 1 },
   campo: {
     borderWidth: 1,
     borderRadius: 10,

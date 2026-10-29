@@ -1,4 +1,4 @@
-import type { IconName, Tono } from "@shared/ui";
+import type { ColoresKit, IconName, Tono } from "@shared/ui";
 
 /** Etiquetas y tonos compartidos por la bandeja y el chat (mismos nombres que el panel). */
 
@@ -120,6 +120,20 @@ const ICONO_CANAL: Record<string, IconName> = {
 
 export function iconoDelCanal(id: string | null | undefined): IconName {
   return (id && ICONO_CANAL[id]) || "chat-bubble-outline";
+}
+
+/** Color de identidad del canal (los mismos roles del panel: verde, rojo, azul, datos). */
+export function colorDelCanal(id: string | null | undefined, c: ColoresKit): string {
+  const tipo = id ?? "";
+  if (tipo === "whatsapp" || tipo === "whatsapp_cloud" || tipo === "whatsapp_waweb") {
+    return c.statusSuccessFg;
+  }
+  if (tipo === "instagram") return c.statusDangerFg;
+  if (tipo === "messenger" || tipo === "facebook") return c.link;
+  if (tipo === "email") return c.dataCat2;
+  if (tipo === "sms") return c.dataCat3;
+  if (tipo === "webchat" || tipo === "web") return c.dataCat4;
+  return c.textSoft;
 }
 
 type ChatConConexion = {

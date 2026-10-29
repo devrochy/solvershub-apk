@@ -1,4 +1,6 @@
+import { kitDeTema } from "@shared/ui";
 import {
+  colorDelCanal,
   conexionDelChat,
   contadorPendientes,
   estadoDeConversacion,
@@ -68,6 +70,16 @@ describe("pendientes y orden", () => {
     expect(textoPendientes(1)).toBe("1 mensaje sin responder");
     expect(textoPendientes(3)).toBe("3 mensajes sin responder");
     expect(textoPendientes(100)).toBe("Más de 99 mensajes sin responder");
+  });
+
+  it("da a cada canal su color de identidad del tema", () => {
+    const c = kitDeTema("oscuro").c;
+    expect(colorDelCanal("whatsapp_cloud", c)).toBe(c.statusSuccessFg);
+    expect(colorDelCanal("whatsapp_waweb", c)).toBe(c.statusSuccessFg);
+    expect(colorDelCanal("instagram", c)).toBe(c.statusDangerFg);
+    expect(colorDelCanal("messenger", c)).toBe(c.link);
+    expect(colorDelCanal("webchat", c)).toBe(c.dataCat4);
+    expect(colorDelCanal(null, c)).toBe(c.textSoft);
   });
 
   it("pone primero el último mensaje y desempata por id", () => {

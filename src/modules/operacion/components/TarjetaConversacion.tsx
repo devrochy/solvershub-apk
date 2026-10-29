@@ -28,20 +28,25 @@ function vistaPrevia(chat: ConversationSummary): string {
   return `${prefijo}${chat.last_message || "(sin texto)"}`;
 }
 
-/** Tarjeta de la bandeja: quién escribe, qué dijo, por dónde y en qué estado. */
+/**
+ * Tarjeta de la bandeja: quién escribe, qué dijo, por dónde y en qué estado. Con `visto`,
+ * la píldora de pendientes y el acento de no leído desaparecen (se abrió en este dispositivo).
+ */
 export function TarjetaConversacion({
   chat,
   onPress,
+  visto = false,
 }: {
   chat: ConversationSummary;
   onPress: () => void;
+  visto?: boolean;
 }) {
   const { c, ripple, relleno } = useKit();
   const nombre = nombreDelChat(chat);
   const estado = estadoDeConversacion(chat.status);
   const tipo = tipoDelChat(chat);
   const sinMensajes = chat.last_message == null;
-  const pendientes = chat.pending_count ?? 0;
+  const pendientes = visto ? 0 : (chat.pending_count ?? 0);
   const esperando = pendientes > 0;
   const etiqueta = [
     nombre,
@@ -63,7 +68,11 @@ export function TarjetaConversacion({
       android_ripple={{ color: ripple.superficie }}
       style={({ pressed }) => [
         styles.tarjeta,
-        { backgroundColor: pressed ? c.hover : c.surface, borderColor: c.borderSoft },
+        {
+          backgroundColor: pressed ? c.hover : c.surface,
+          borderColor: c.borderSoft,
+          borderLeftColor: esperando ? c.link : c.borderSoft,
+        },
         pressed && Platform.OS === "ios" && styles.presionado,
       ]}
     >
@@ -76,42 +85,41 @@ export function TarjetaConversacion({
           >
             {nombre}
           </Text>
-          <Text
-            style={[shType.caption, styles.hora, { color: c.textSoft }]}
-            maxFontSizeMultiplier={1.6}
-          >
-            {formatearHoraChat(actividadDe(chat))}
-          </Text>
+          <View style={styles.derecha}>
+            <Text
+              style={[shType.caption, styles.hora, { color: esperando ? c.text : c.textSoft }]}
+              maxFontSizeMultiplier={1.6}
+            >
+              {formatearHoraChat(actividadDe(chat))}
+            </Text>
+            {esperando && (
+              <View
+                testID={`pendientes-${chat.id}`}
+                pointerEvents="none"
+                accessible={false}
+                style={[styles.pendientes, { backgroundColor: relleno.primario }]}
+              >
+                <Text
+                  style={[styles.pendientesTexto, { color: relleno.sobrePrimario }]}
+                  maxFontSizeMultiplier={1.6}
+                >
+                  {contadorPendientes(pendientes)}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
-        <View style={styles.filaVista}>
-          <Text
-            style={[
-              shType.dense,
-              styles.vista,
-              { color: sinMensajes ? c.textSoft : esperando ? c.text : c.textMuted },
-              sinMensajes && styles.sinMensajes,
-            ]}
-            numberOfLines={2}
-          >
-            {vistaPrevia(chat)}
-          </Text>
-          {esperando && (
-            <View
-              testID={`pendientes-${chat.id}`}
-              pointerEvents="none"
-              accessible={false}
-              style={[styles.pendientes, { backgroundColor: relleno.primario }]}
-            >
-              <Text
-                style={[styles.pendientesTexto, { color: relleno.sobrePrimario }]}
-                maxFontSizeMultiplier={1.6}
-              >
-                {contadorPendientes(pendientes)}
-              </Text>
-            </View>
-          )}
-        </View>
+        <Text
+          style={[
+            shType.dense,
+            { color: sinMensajes ? c.textSoft : esperando ? c.text : c.textMuted },
+            sinMensajes && styles.sinMensajes,
+          ]}
+          numberOfLines={2}
+        >
+          {vistaPrevia(chat)}
+        </Text>
 
         <View style={styles.meta}>
           <View style={styles.canal}>
@@ -137,17 +145,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: shSpace[3],
     borderWidth: 1,
+    borderLeftWidth: 3,
     borderRadius: shRadius.md,
     padding: shSpace[3],
   },
   presionado: { opacity: 0.86 },
   cuerpo: { flex: 1, gap: 2 },
-  filaSuperior: { flexDirection: "row", alignItems: "baseline", gap: shSpace[2] },
+  filaSuperior: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
   nombre: { flex: 1, fontFamily: shType.block.fontFamily, fontSize: shType.label.fontSize },
   nombreEsperando: { fontFamily: "Montserrat_700Bold" },
+  derecha: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
   hora: { fontVariant: ["tabular-nums"] },
-  filaVista: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
-  vista: { flex: 1 },
   pendientes: {
     minWidth: 20,
     height: 20,

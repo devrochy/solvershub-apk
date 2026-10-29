@@ -221,7 +221,9 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
 
     await fireEvent.press(getByTestId("panel-menu"));
     await fireEvent.press(getByTestId("cajon-item-conversaciones"));
-    await waitFor(() => expect(getByTestId("pestana-conversaciones")).toHaveStyle({ borderBottomWidth: 2 }));
+    await waitFor(() =>
+      expect(getByTestId("pestana-conversaciones").props.accessibilityState.selected).toBe(true),
+    );
     expect(getByTestId("pestana-escalaciones")).toBeTruthy();
     expect(queryByTestId("pestana-leads")).toBeNull();
     expect(queryByTestId("pestana-playground")).toBeNull();

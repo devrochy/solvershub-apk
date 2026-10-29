@@ -1,22 +1,12 @@
 import { StyleSheet, Text, View } from "react-native";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
-import { Button, useKit } from "@shared/ui";
+import { useKit } from "@shared/ui";
 import type { ConversationDetail } from "../api";
 import { BadgeEstado } from "./BadgeEstado";
 import { etiquetaDelMotivo, tonoDelMotivo } from "../presentacion";
 
-/** Ticket de la escalación activa: motivo, quién atiende y las acciones de tomar/devolver. */
-export function TicketEscalacion({
-  detalle,
-  onTomar,
-  onDevolver,
-  ocupado = false,
-}: {
-  detalle: ConversationDetail;
-  onTomar: () => void;
-  onDevolver: () => void;
-  ocupado?: boolean;
-}) {
+/** Ticket de la escalación activa: motivo, quién atiende y el resumen. Las acciones viven en la cabecera. */
+export function TicketEscalacion({ detalle }: { detalle: ConversationDetail }) {
   const { tonos } = useKit();
   const esc = detalle.escalation;
   if (!esc) return null;
@@ -51,30 +41,6 @@ export function TicketEscalacion({
         </Text>
       ) : null}
 
-      <View style={styles.acciones}>
-        {!atendida ? (
-          <Button
-            size="sm"
-            variant="primary"
-            iconLeft="pan-tool"
-            onPress={onTomar}
-            loading={ocupado}
-            testID="detalle-tomar"
-          >
-            Tomar
-          </Button>
-        ) : null}
-        <Button
-          size="sm"
-          variant="secondary"
-          iconLeft="smart-toy"
-          onPress={onDevolver}
-          disabled={ocupado}
-          testID="detalle-devolver"
-        >
-          Devolver al agente
-        </Button>
-      </View>
     </View>
   );
 }
@@ -88,5 +54,4 @@ const styles = StyleSheet.create({
   },
   fila: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: shSpace[2] },
   quien: { flexShrink: 1 },
-  acciones: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[2], marginTop: 2 },
 });

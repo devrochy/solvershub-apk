@@ -55,6 +55,14 @@ describe("Switch (kit)", () => {
     );
   });
 
+  it("compacto conserva nombre y estado sin el texto visible", async () => {
+    await render(<Switch compact label="Pausar el agente" value={false} testID="sw" />);
+    const s = screen.getByRole("switch", { name: "Pausar el agente" });
+    expect(s.props.accessibilityState.checked).toBe(false);
+    expect(screen.queryByText("Pausar el agente")).toBeNull();
+    expect(screen.getByTestId("sw-pista")).toBeTruthy();
+  });
+
   it("mide al menos 48 dp de alto", async () => {
     await render(<Switch label="Activo" value={false} />);
     expect(areaTactil(screen.getByRole("switch")).alto).toBeGreaterThanOrEqual(shDensity.controlLg);

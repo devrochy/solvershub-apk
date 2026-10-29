@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Button, IconButton, Icono, RadioGroup, Sheet, TextField, useKit } from "@shared/ui";
 import type { ConversationConnection } from "../api";
+import { canalLabel, colorDelCanal, iconoDelCanal } from "../presentacion";
 
 export interface FiltrosDeConversaciones {
   q: string;
@@ -17,7 +18,11 @@ const ESTADOS: { clave: string | undefined; label: string }[] = [
   { clave: "closed", label: "Cerradas" },
 ];
 
-/** Búsqueda, estado y conexión de la bandeja (los mismos filtros del panel). */
+function tipoDeConexion(conexion: ConversationConnection): string {
+  return conexion.type_id ?? conexion.channel;
+}
+
+/** Búsqueda, estado (control segmentado) y conexión con su icono y color. */
 export function FiltrosConversaciones({
   filtros,
   conexiones,
@@ -30,10 +35,46 @@ export function FiltrosConversaciones({
   const { c } = useKit();
   const [eligiendoConexion, setEligiendoConexion] = useState(false);
   const conexion = conexiones.find((x) => x.id === filtros.connectionId);
+  const tipo = conexion ? tipoDeConexion(conexion) : null;
   const hayFiltros = Boolean(filtros.q || filtros.status || filtros.connectionId);
 
   return (
     <View style={styles.contenedor}>
+      <View
+        accessibilityRole="tablist"
+        accessibilityLabel="Filtrar por estado"
+        style={[styles.tabs, { backgroundColor: c.surface, borderColor: c.borderSoft }]}
+      >
+        {ESTADOS.map((estado) => {
+          const activo = filtros.status === estado.clave;
+          return (
+            <Pressable
+              key={estado.label}
+              testID={`filtro-estado-${estado.clave ?? "todas"}`}
+              accessibilityRole="tab"
+              accessibilityLabel={estado.label}
+              accessibilityState={{ selected: activo }}
+              onPress={() => onChange({ status: estado.clave })}
+              style={[
+                styles.tab,
+                activo && {
+                  backgroundColor: c.surfaceRaised,
+                  borderColor: c.borderSoft,
+                },
+              ]}
+            >
+              <Text
+                numberOfLines={1}
+                maxFontSizeMultiplier={1.6}
+                style={[shType.label, { color: activo ? c.text : c.textMuted }]}
+              >
+                {estado.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
       <View style={styles.buscador}>
         <View style={styles.lupa} pointerEvents="none">
           <Icono name="search" size={20} color={c.textSoft} />
@@ -62,59 +103,37 @@ export function FiltrosConversaciones({
         ) : null}
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chips}
-        accessibilityLabel="Filtrar por estado"
-      >
-        {ESTADOS.map((estado) => {
-          const activo = filtros.status === estado.clave;
-          return (
-            <Pressable
-              key={estado.label}
-              testID={`filtro-estado-${estado.clave ?? "todas"}`}
-              accessibilityRole="button"
-              accessibilityLabel={estado.label}
-              accessibilityState={{ selected: activo }}
-              onPress={() => onChange({ status: estado.clave })}
-              style={[
-                styles.chip,
-                {
-                  borderColor: activo ? c.link : c.border,
-                  backgroundColor: activo ? c.surfaceRaised : c.surface,
-                },
-              ]}
-            >
-              <Text style={[shType.caption, { color: activo ? c.link : c.textMuted }]}>
-                {estado.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-
-        {conexiones.length > 1 ? (
-          <Pressable
-            testID="filtro-conexion"
-            accessibilityRole="button"
-            accessibilityLabel={conexion ? `Conexión: ${conexion.label}` : "Filtrar por conexión"}
-            onPress={() => setEligiendoConexion(true)}
-            style={[
-              styles.chip,
-              styles.chipConexion,
-              {
-                borderColor: conexion ? c.link : c.border,
-                backgroundColor: conexion ? c.surfaceRaised : c.surface,
-              },
-            ]}
+      {conexiones.length > 1 ? (
+        <Pressable
+          testID="filtro-conexion"
+          accessibilityRole="button"
+          accessibilityLabel={
+            conexion ? `Conexión: ${conexion.label || canalLabel(tipo)}` : "Filtrar por conexión"
+          }
+          onPress={() => setEligiendoConexion(true)}
+          style={[
+            styles.conexion,
+            {
+              borderColor: conexion ? c.link : c.borderSoft,
+              backgroundColor: c.surface,
+            },
+          ]}
+        >
+          <Icono
+            name={conexion && tipo ? iconoDelCanal(tipo) : "layers"}
+            size={20}
+            color={conexion && tipo ? colorDelCanal(tipo, c) : c.textMuted}
+          />
+          <Text
+            style={[shType.label, styles.conexionTexto, { color: conexion ? c.text : c.textMuted }]}
+            numberOfLines={1}
+            maxFontSizeMultiplier={1.6}
           >
-            <Icono name="tune" size={14} color={conexion ? c.link : c.textMuted} />
-            <Text style={[shType.caption, { color: conexion ? c.link : c.textMuted }]} numberOfLines={1}>
-              {conexion ? conexion.label : "Conexión"}
-            </Text>
-          </Pressable>
-        ) : null}
-      </ScrollView>
+            {conexion ? conexion.label || canalLabel(tipo) : "Todas las conexiones"}
+          </Text>
+          <Icono name="expand-more" size={20} color={c.textSoft} />
+        </Pressable>
+      ) : null}
 
       {hayFiltros ? (
         <View style={styles.filaLimpiar}>
@@ -141,8 +160,17 @@ export function FiltrosConversaciones({
           label="Conexión"
           value={filtros.connectionId ?? ""}
           options={[
-            { value: "", label: "Todas las conexiones" },
-            ...conexiones.map((x) => ({ value: x.id, label: x.label })),
+            { value: "", label: "Todas las conexiones", icono: "layers", iconColor: c.textSoft },
+            ...conexiones.map((x) => {
+              const tipoConexion = tipoDeConexion(x);
+              return {
+                value: x.id,
+                label: x.label || canalLabel(tipoConexion),
+                description: canalLabel(tipoConexion),
+                icono: iconoDelCanal(tipoConexion),
+                iconColor: colorDelCanal(tipoConexion, c),
+              };
+            }),
           ]}
           onValueChange={(valor) => {
             onChange({ connectionId: valor || undefined });
@@ -160,18 +188,36 @@ export function FiltrosConversaciones({
 
 const styles = StyleSheet.create({
   contenedor: { gap: shSpace[2], marginBottom: shSpace[2] },
+  tabs: {
+    flexDirection: "row",
+    gap: 3,
+    borderWidth: 1,
+    borderRadius: shRadius.md,
+    padding: 3,
+  },
+  tab: {
+    flex: 1,
+    minHeight: shDensity.controlLg - 6,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: shRadius.sm,
+    borderWidth: 1,
+    borderColor: "transparent",
+    paddingHorizontal: shSpace[1],
+  },
   buscador: { justifyContent: "center" },
   lupa: { position: "absolute", left: shSpace[3], zIndex: 1 },
   limpiarBusqueda: { position: "absolute", right: shSpace[1], zIndex: 1 },
   campoBusqueda: { paddingLeft: 40, paddingRight: 44 },
-  chips: { flexDirection: "row", gap: shSpace[2], paddingVertical: shSpace[1] },
-  chip: {
-    minHeight: 36,
-    justifyContent: "center",
+  conexion: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: shSpace[2],
+    minHeight: shDensity.controlLg,
     borderWidth: 1,
-    borderRadius: shRadius.pill,
+    borderRadius: shRadius.md,
     paddingHorizontal: shSpace[3],
   },
-  chipConexion: { flexDirection: "row", alignItems: "center", gap: shSpace[1], maxWidth: 220 },
+  conexionTexto: { flex: 1 },
   filaLimpiar: { flexDirection: "row", alignItems: "center" },
 });
