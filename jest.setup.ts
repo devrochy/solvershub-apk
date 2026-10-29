@@ -5,6 +5,49 @@ jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
 
+jest.mock("expo-video", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
+  let setupHecho = false;
+  const player = {
+    loop: false,
+    muted: false,
+    playing: false,
+    play: jest.fn(),
+    pause: jest.fn(),
+    addListener: jest.fn((evento: string, cb: (...args: unknown[]) => void) => {
+      if (!listeners.has(evento)) listeners.set(evento, new Set());
+      listeners.get(evento)!.add(cb);
+      return { remove: () => listeners.get(evento)?.delete(cb) };
+    }),
+  };
+  return {
+    VideoView: (props: Record<string, unknown>) => React.createElement(View, props),
+    useVideoPlayer: jest.fn((_source: unknown, setup?: (p: typeof player) => void) => {
+      if (!setupHecho) {
+        setupHecho = true;
+        setup?.(player);
+      }
+      return player;
+    }),
+    __player: player,
+    __emitir: (evento: string, payload?: unknown) => {
+      for (const cb of listeners.get(evento) ?? []) cb(payload);
+    },
+    __limpiar: () => {
+      listeners.clear();
+      setupHecho = false;
+      player.loop = false;
+      player.muted = false;
+      player.playing = false;
+      player.play.mockClear();
+      player.pause.mockClear();
+      player.addListener.mockClear();
+    },
+  };
+});
+
 jest.mock("@react-native-community/netinfo", () => ({
   __esModule: true,
   default: {

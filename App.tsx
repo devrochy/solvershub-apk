@@ -6,6 +6,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -49,9 +50,16 @@ import { emitirNavegacion } from "@shared/navegacion-evento";
 import { ThemeProvider } from "@core/theme/theme-context";
 import { inicializarBase } from "./src/data/bootstrap";
 import { SincronizadorProvider } from "./src/data/SincronizadorProvider";
-import { ToastProvider } from "@shared/ui";
+import { kitDeTema, ToastProvider } from "@shared/ui";
+import {
+  PresentacionScreen,
+  debeMostrarPresentacion,
+  usePresentacion,
+  type Presentacion,
+} from "./src/modules/presentacion";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const KIT_OSCURO = kitDeTema("oscuro");
 
 const PROYECTO_EAS =
   (Constants.expoConfig?.extra?.eas as { projectId?: string } | undefined)?.projectId ??
@@ -155,12 +163,18 @@ function AuthNavigator() {
 /** Ref del setter de "modo panel" para pasarlo al AuthNavigator sin prop drilling. */
 const setModoPanelRef: { current: ((v: boolean) => void) | null } = { current: null };
 
-function RootNavigator() {
+function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
   const { gestor, loading, requiereVinculacion, negociosPendientes, membresiaToken } =
     useSession();
   const { sesion: sesionAdmin, loading: loadingAdmin } = useAdminSession();
   const bio = useBloqueoBiometrico(sesionAdmin?.adminId ?? null);
   const [modoPanel, setModoPanel] = useState(false);
+  const [introAlInicio, setIntroAlInicio] = useState<boolean | null>(null);
+  const [introTerminada, setIntroTerminada] = useState(false);
+  const terminarIntro = useCallback(() => {
+    setIntroTerminada(true);
+    void presentacion.marcarVista();
+  }, [presentacion.marcarVista]);
   // El setter es estable: se publica tras montar para los handlers de fuera del árbol.
   useEffect(() => {
     setModoPanelRef.current = setModoPanel;
@@ -179,15 +193,37 @@ function RootNavigator() {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación única al restaurar la sesión
         setModoPanel(true);
       }
+      // La decisión se toma una sola vez por arranque: si había sesión, el intro
+      // no reaparece después de cerrar sesión en la misma ejecución.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- decisión única al hidratar
+      setIntroAlInicio(
+        debeMostrarPresentacion({
+          haySesion: Boolean(sesionAdmin || gestor),
+          vista: presentacion.vista,
+          reduceMotion: presentacion.reduceMotion,
+        }),
+      );
     }
-  }, [loadingAdmin, loading, sesionAdmin, gestor]);
+  }, [
+    loadingAdmin,
+    loading,
+    sesionAdmin,
+    gestor,
+    presentacion.vista,
+    presentacion.reduceMotion,
+  ]);
 
-  if (loading || loadingAdmin) {
+  if (loading || loadingAdmin || introAlInicio === null) {
     return (
-      <View style={styles.carga}>
-        <ActivityIndicator size="large" />
+      <View style={[styles.carga, { backgroundColor: KIT_OSCURO.c.bg }]}>
+        <ActivityIndicator size="large" color={KIT_OSCURO.c.link} />
       </View>
     );
+  }
+
+  // Presentación de primer inicio: solo sin sesión, una vez y con movimiento.
+  if (introAlInicio && !introTerminada) {
+    return <PresentacionScreen onTerminar={terminarIntro} />;
   }
 
   // Sin sesión admin: login unificado + recuperación de contraseña.
@@ -262,14 +298,20 @@ function RootNavigator() {
 }
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Montserrat_600SemiBold,
     Montserrat_700Bold,
   });
+  const presentacion = usePresentacion();
+  const listo = (fontsLoaded || Boolean(fontError)) && presentacion.listo;
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    if (listo) void SplashScreen.hideAsync();
+  }, [listo]);
+
+  if (!listo) {
     return null;
   }
 
@@ -285,7 +327,7 @@ export default function App() {
                     <OfflineProvider>
                       <CarteraActivaProvider>
                         <NotificacionesProvider>
-                          <RootContent />
+                          <RootContent presentacion={presentacion} />
                         </NotificacionesProvider>
                       </CarteraActivaProvider>
                     </OfflineProvider>
@@ -300,7 +342,7 @@ export default function App() {
   );
 }
 
-function RootContent() {
+function RootContent({ presentacion }: { presentacion: Presentacion }) {
   const { gestor } = useSession();
 
   // Base local cifrada (ADR-APP-05): se abre al arrancar; un fallo no bloquea
@@ -312,7 +354,7 @@ function RootContent() {
   return (
     <PantallaActivaProvider resetKey={gestor?.id ?? null}>
       <StatusBar style="light" />
-      <RootNavigator />
+      <RootNavigator presentacion={presentacion} />
     </PantallaActivaProvider>
   );
 }

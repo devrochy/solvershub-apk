@@ -9,6 +9,9 @@
 
 - Logo definitivo de SolversHub en el ícono (iOS y adaptativo de Android, con capa
   monocroma para íconos temáticos), el splash y la pantalla de login.
+- Splash compacto (logo a 220 dp sobre navy profundo) que se retiene hasta que la app está
+  lista, y presentación en video de primer inicio para quien aún no tiene sesión: omitible,
+  silenciada por defecto, con botón de sonido y respeto por “reducir movimiento”.
 - Login unificado (panel + campo vía intercambio de tokens), recuperación de contraseña con
   código de un solo uso y desbloqueo biométrico opt-in.
 - PanelShell por permisos: Dashboard con KPIs, Operación (conversaciones con acciones,
