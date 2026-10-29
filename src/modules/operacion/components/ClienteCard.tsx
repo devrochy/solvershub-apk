@@ -8,6 +8,7 @@ import {
   etiquetaClasificacion,
   telefonoVisible,
   ubicacionVisible,
+  urlAvatarCliente,
 } from "@shared/domain/formato-clientes";
 import type { LeadAgentOut, LeadRow } from "../api";
 import { AgentIcon, ChannelIcon } from "./iconos-clientes";
@@ -16,6 +17,7 @@ import { BotonDelBot } from "./BotonDelBot";
 type Tono = "neutral" | "accent" | "success" | "warning" | "danger";
 
 const CLASIFICACION: Record<string, { tone: Tono; icon: IconName }> = {
+  nuevo: { tone: "accent", icon: "fiber-new" },
   prospecto: { tone: "neutral", icon: "person-outline" },
   cliente: { tone: "success", icon: "check-circle" },
   vip: { tone: "accent", icon: "star" },
@@ -104,7 +106,7 @@ export function ClienteCard({
       onPress={onAbrir}
     >
       <View style={styles.superior}>
-        <Avatar name={nombre} src={perfil?.avatar_url} size="md" />
+        <Avatar name={nombre} src={urlAvatarCliente(perfil?.avatar_url)} size="md" />
         <View style={styles.textos}>
           <Text style={[shType.block, { color: c.text }]} numberOfLines={1}>
             {nombre}

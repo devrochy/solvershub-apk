@@ -1,5 +1,10 @@
 import type { ClienteAdmin } from "@core/api/admin";
+import { parseError } from "@core/api/auth-admin";
+import { construirMultipart } from "@core/api/multipart";
+import type { ArchivoAvatar } from "@core/api/perfil-admin";
 import type { components } from "@core/api/schema";
+import { apiV1 } from "@core/config";
+import type { AdminSesion } from "@core/session/types";
 
 export type ConversationSummary = components["schemas"]["ConversationSummary"];
 export type ConversationDetail = components["schemas"]["ConversationDetail"];
@@ -18,6 +23,7 @@ export type LeadCampoPerfil = components["schemas"]["LeadCampoPerfil"];
 export type LeadFilter = components["schemas"]["LeadFilter"];
 export type LeadFact = components["schemas"]["LeadFact"];
 export type LeadGeocodificacion = components["schemas"]["LeadGeocodificacion"];
+export type LeadGeocodificacionInversa = components["schemas"]["LeadGeocodificacionInversa"];
 export type Consentimiento = components["schemas"]["ConsentimientoOut"];
 export type ConsentimientoIn = components["schemas"]["ConsentimientoIn"];
 export type ConexionDeEnvio = components["schemas"]["ConexionDeEnvioOut"];
@@ -256,6 +262,59 @@ export async function geocodificarCliente(
   return api.post<LeadGeocodificacion>(`/admin/leads/${id}/geocodificar`);
 }
 
+/** Propone una dirección a partir de un punto del mapa; no la guarda. */
+export async function geocodificarInverso(
+  api: ClienteAdmin,
+  id: string,
+  latitud: number,
+  longitud: number,
+): Promise<LeadGeocodificacionInversa> {
+  return api.post<LeadGeocodificacionInversa>(`/admin/leads/${id}/geocodificar/reverso`, {
+    latitud,
+    longitud,
+  });
+}
+
+function cabecerasDeAdmin(sesion: AdminSesion): Record<string, string> {
+  const headers: Record<string, string> = { Authorization: `Bearer ${sesion.token}` };
+  if (sesion.tenantId) {
+    headers["X-Tenant-Id"] = sesion.tenantId;
+  }
+  return headers;
+}
+
+/** Sube la foto del cliente al almacenamiento del negocio y devuelve la ficha actualizada. */
+export async function subirAvatarDelCliente(
+  sesion: AdminSesion,
+  id: string,
+  archivo: ArchivoAvatar,
+): Promise<FichaDelCliente> {
+  const { body, boundary } = await construirMultipart({}, [{ campo: "file", ...archivo }]);
+  const res = await fetch(apiV1(`/admin/leads/${id}/avatar`), {
+    method: "POST",
+    headers: {
+      ...cabecerasDeAdmin(sesion),
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+    },
+    body: body as unknown as BodyInit,
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return (await res.json()) as FichaDelCliente;
+}
+
+/** Quita la foto del cliente. */
+export async function quitarAvatarDelCliente(sesion: AdminSesion, id: string): Promise<void> {
+  const res = await fetch(apiV1(`/admin/leads/${id}/avatar`), {
+    method: "DELETE",
+    headers: cabecerasDeAdmin(sesion),
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+}
+
 export async function consentimientoDelCliente(
   api: ClienteAdmin,
   id: string,
@@ -480,7 +539,6 @@ export function valoresInicialesDelPerfil(perfil: LeadPerfil | null | undefined)
     name: perfil.name ?? "",
     apellido: perfil.apellido ?? "",
     alias: perfil.alias ?? "",
-    avatar_url: perfil.avatar_url ?? "",
     phone: perfil.phone_e164 ?? perfil.phone ?? "",
     pais_telefono: perfil.pais_telefono ?? "",
     email: perfil.email ?? "",

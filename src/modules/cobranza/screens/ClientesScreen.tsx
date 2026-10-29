@@ -17,12 +17,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { apiErrorStatus, esErrorDeRed } from "@core/api/client";
 import { Avatar } from "../components/Avatar";
-import { CampoTelefono } from "@shared/ui";
+import { CampoTelefono, MapaPin } from "@shared/ui";
 import { CargaError } from "../components/CargaError";
 import { CampoModal } from "../components/CampoModal";
 import { HeaderApp } from "../components/HeaderApp";
 import { Breadcrumb } from "../components/Breadcrumb";
-import { MapaPin } from "../components/MapaPin";
 import { ModalConFooter } from "../components/ModalConFooter";
 import {
   ETIQUETAS_TIPO_DOCUMENTO,

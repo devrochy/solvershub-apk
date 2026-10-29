@@ -57,6 +57,16 @@ describe("ClienteCard (CRM)", () => {
     expect(getByTestId("lead-l-1").props.accessibilityLabel).toContain("Agentes: General, Ventas");
   });
 
+  it("muestra la clasificación Nuevo", async () => {
+    const { getByText } = await tarjeta({
+      item: {
+        ...ITEM,
+        perfil: { ...ITEM.perfil!, clasificacion: "nuevo", clasificacion_label: "Nuevo" },
+      },
+    });
+    expect(getByText("Nuevo")).toBeTruthy();
+  });
+
   it("abre la ficha al tocar la tarjeta", async () => {
     const onAbrir = jest.fn();
     const { getByTestId } = await tarjeta({ onAbrir });

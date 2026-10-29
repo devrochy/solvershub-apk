@@ -30,7 +30,7 @@ import {
   TextField,
   useKit,
 } from "@shared/ui";
-import { prepararAvatar } from "../imagen";
+import { prepararAvatar } from "@shared/media/preparar-avatar";
 
 const ROL: Record<string, string> = {
   master: "Master",

@@ -6,15 +6,37 @@ jest.mock("@core/session/admin-session-context", () => ({
     loading: false,
   }),
 }));
+jest.mock("expo-image-picker", () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn(),
+  launchImageLibraryAsync: jest.fn(),
+}));
+jest.mock("@shared/media/preparar-avatar", () => ({
+  prepararAvatar: jest.fn(),
+}));
+jest.mock("../api", () => {
+  const actual = jest.requireActual("../api");
+  return {
+    ...actual,
+    subirAvatarDelCliente: jest.fn(),
+    quitarAvatarDelCliente: jest.fn(),
+  };
+});
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import * as ImagePicker from "expo-image-picker";
+import { prepararAvatar } from "@shared/media/preparar-avatar";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { quitarAvatarDelCliente, subirAvatarDelCliente, type FichaDelCliente } from "../api";
 import { ClienteDetalleScreen } from "./ClienteDetalleScreen";
 
 const mockGet = jest.fn();
 const mockPost = jest.fn();
 const mockPatch = jest.fn();
 const mockNavigate = jest.fn();
+const picker = ImagePicker as jest.Mocked<typeof ImagePicker>;
+const preparar = prepararAvatar as jest.MockedFunction<typeof prepararAvatar>;
+const subirAvatar = subirAvatarDelCliente as jest.MockedFunction<typeof subirAvatarDelCliente>;
+const quitarAvatar = quitarAvatarDelCliente as jest.MockedFunction<typeof quitarAvatarDelCliente>;
 
 const PERFIL = {
   nombre_visible: "Juana Pérez",
@@ -131,6 +153,11 @@ describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
     mockGet.mockReset();
     mockPost.mockReset();
     mockPatch.mockReset();
+    picker.requestMediaLibraryPermissionsAsync.mockReset();
+    picker.launchImageLibraryAsync.mockReset();
+    preparar.mockReset();
+    subirAvatar.mockReset();
+    quitarAvatar.mockReset();
     (useAdminApi as jest.Mock).mockReturnValue({
       get: mockGet,
       post: mockPost,
@@ -232,6 +259,105 @@ describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
       }),
     );
     expect(await findByText("Acepta promociones")).toBeTruthy();
+  });
+
+  it("muestra el mapa cuando el cliente tiene coordenadas", async () => {
+    const { findByTestId } = await pantalla();
+    expect(await findByTestId("mapa-cliente")).toBeTruthy();
+  });
+
+  it("propone la dirección al mover el pin y la aplica al formulario", async () => {
+    mockPost.mockImplementation((path: string) => {
+      if (path.endsWith("/geocodificar/reverso")) {
+        return Promise.resolve({
+          latitud: 4.61,
+          longitud: -74.11,
+          direccion: "Calle 13 # 5-6",
+          municipio: "Bogotá",
+          departamento: "Cundinamarca",
+          pais: "Colombia",
+          precision: "exacta",
+          proveedor: "locationiq",
+        });
+      }
+      return Promise.resolve({});
+    });
+    const { findByTestId, getByTestId, findByText, getByText } = await pantalla();
+    await fireEvent.press(await findByTestId("cliente-editar"));
+    await fireEvent(getByTestId("cliente-mapa-pin-webview"), "message", {
+      nativeEvent: { data: JSON.stringify({ latitud: 4.61, longitud: -74.11 }) },
+    });
+    expect(await findByText("Dirección propuesta")).toBeTruthy();
+    await fireEvent.press(getByText("Usar estos datos"));
+    expect(getByTestId("perfil-address").props.value).toBe("Calle 13 # 5-6");
+    expect(getByTestId("perfil-municipio").props.value).toBe("Bogotá");
+    expect(mockPost).toHaveBeenCalledWith("/admin/leads/c-1/geocodificar/reverso", {
+      latitud: 4.61,
+      longitud: -74.11,
+    });
+  });
+
+  it("muestra placeholders de ejemplo y valida el nombre en vivo", async () => {
+    const { findByTestId, getByTestId, findByText } = await pantalla();
+    await fireEvent.press(await findByTestId("cliente-editar"));
+    expect(getByTestId("perfil-email").props.placeholder).toBe("ana@correo.com");
+    expect(getByTestId("perfil-address").props.placeholder).toBe("Ej. Calle 45 # 12-30, Apto 201");
+    await fireEvent.changeText(getByTestId("perfil-name"), "");
+    await fireEvent(getByTestId("perfil-name"), "blur");
+    expect(await findByText("El nombre no puede quedar vacío.")).toBeTruthy();
+    await fireEvent.press(getByTestId("perfil-guardar"));
+    expect(mockPatch).not.toHaveBeenCalled();
+  });
+
+  it("cambia y quita la foto desde el avatar central", async () => {
+    const conAvatar = {
+      ...FICHA,
+      perfil: { ...PERFIL, avatar_url: "https://api.test/avatar-viejo.jpg" },
+    } as unknown as FichaDelCliente;
+    mockGet.mockImplementation((path: string) => {
+      if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
+      if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+      if (path.endsWith("/consentimiento")) return Promise.resolve({ estado: "sin_registro", historial: [] });
+      return Promise.resolve(conAvatar);
+    });
+    picker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true } as never);
+    picker.launchImageLibraryAsync.mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: "file:///nueva.jpg", width: 800, height: 800, mimeType: "image/jpeg", fileName: "nueva.jpg" }],
+    } as never);
+    preparar.mockResolvedValue({ uri: "file:///avatar.jpg", name: "avatar.jpg", type: "image/jpeg" });
+    subirAvatar.mockResolvedValue({
+      ...conAvatar,
+      perfil: { ...PERFIL, avatar_url: "https://api.test/avatar-nuevo.jpg" },
+    });
+    quitarAvatar.mockResolvedValue(undefined);
+
+    const { findByTestId, getByTestId } = await pantalla();
+    await fireEvent.press(await findByTestId("cliente-avatar-cambiar"));
+    await waitFor(() => expect(subirAvatar).toHaveBeenCalled());
+    expect(subirAvatar.mock.calls[0][2]).toEqual({
+      uri: "file:///avatar.jpg",
+      name: "avatar.jpg",
+      type: "image/jpeg",
+    });
+    await waitFor(() => expect(getByTestId("cliente-avatar-quitar")).toBeTruthy());
+    await fireEvent.press(getByTestId("cliente-avatar-quitar"));
+    await waitFor(() => expect(quitarAvatar).toHaveBeenCalled());
+  });
+
+  it("muestra la clasificación Nuevo", async () => {
+    const fichaNueva = {
+      ...FICHA,
+      perfil: { ...PERFIL, clasificacion: "nuevo", clasificacion_label: "Nuevo" },
+    } as unknown as FichaDelCliente;
+    mockGet.mockImplementation((path: string) => {
+      if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
+      if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+      if (path.endsWith("/consentimiento")) return Promise.resolve({ estado: "sin_registro", historial: [] });
+      return Promise.resolve(fichaNueva);
+    });
+    const { findAllByText } = await pantalla();
+    expect(await findAllByText("Nuevo")).toHaveLength(2);
   });
 
   it("un evento de conversación abre el chat", async () => {
