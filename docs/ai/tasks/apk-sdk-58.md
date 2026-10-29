@@ -6,7 +6,7 @@ tags: [tarea]
 # Tarea: migrar la app a Expo SDK 58 y compilar APK preview
 
 - **Origen:** petición del usuario 2026-10-28 ("compilar mi apk para la versión SDK Expo Go 58.0").
-- **Estado:** en curso
+- **Estado:** completada (smoke de mapa/cámara/push E2E pendiente)
 - **Fecha inicio:** 2026-10-28
 - **Rama:** `feature/sdk-58` (desde `origin/develop` en `cef1084`).
 
