@@ -202,7 +202,7 @@ export function PestanaEscalaciones({
             <Button variant="link" size="sm" onPress={cargarMas} testID="escalaciones-mas">
               Cargar más
             </Button>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item }) => (
           <TarjetaEscalacion

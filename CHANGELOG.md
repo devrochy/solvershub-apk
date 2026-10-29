@@ -61,6 +61,12 @@
 - Diario, clientes, visitas pago/no-pago, gastos con evidencias, trayectoria GPS,
   liquidación con PDF y cola offline idempotente — intactos, ahora sobre la base cifrada.
 
+### Técnico
+
+- App sobre **Expo SDK 58** (React Native 0.88 y React 19.3): es un cambio nativo, así que
+  necesita binario nuevo (APK/AAB); los binarios anteriores en SDK 57 no reciben el OTA.
+  Requiere Node 22.13+/24.3+ para compilar.
+
 ### Corregido
 
 - Pantallas del panel sin encabezado propio (Inicio, Comercio, Calendario, Negocio,
