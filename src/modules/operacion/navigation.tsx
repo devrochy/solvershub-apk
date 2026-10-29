@@ -50,7 +50,7 @@ export function OperacionNavigator({
       <Stack.Screen
         name="ConversacionDetalle"
         component={ConversacionDetalleScreen}
-        options={({ route }) => ({ title: route.params.titulo })}
+        options={({ route }) => ({ title: route.params.titulo, headerBackTitle: "Conversaciones" })}
       />
       <Stack.Screen
         name="ClienteDetalle"

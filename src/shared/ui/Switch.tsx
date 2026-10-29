@@ -11,6 +11,8 @@ export interface SwitchProps {
   /** Línea secundaria bajo el label; va al `accessibilityHint`. */
   description?: string;
   disabled?: boolean;
+  /** Solo la pista, para una barra de acciones (la etiqueta sigue siendo el nombre accesible). */
+  compact?: boolean;
   testID?: string;
 }
 
@@ -26,13 +28,53 @@ const MARGEN = 2;
  * una palomita (encendido) o una equis (apagado). Lo lee el lector de pantalla
  * como `switch` con `checked`.
  */
-export function Switch({ label, value, onValueChange, description, disabled = false, testID }: SwitchProps) {
+export function Switch({
+  label,
+  value,
+  onValueChange,
+  description,
+  disabled = false,
+  compact = false,
+  testID,
+}: SwitchProps) {
   const { c, relleno, ripple } = useKit();
 
   const pista = disabled ? c.surface2 : value ? relleno.primario : c.surface2;
   const borde = disabled ? c.controlBorder : value ? relleno.primario : c.controlBorder;
   const bola = disabled ? c.controlBorder : value ? relleno.sobrePrimario : c.controlBorder;
   const tinta = disabled ? c.surface2 : value ? relleno.primario : c.surface;
+
+  const pistaVisual = (
+    <View
+      testID={testID ? `${testID}-pista` : undefined}
+      style={[
+        styles.pista,
+        { backgroundColor: pista, borderColor: borde, justifyContent: "center", alignItems: value ? "flex-end" : "flex-start" },
+      ]}
+    >
+      <View style={[styles.bola, { backgroundColor: bola }]}>
+        <Icono name={value ? "check" : "close"} size={16} color={tinta} />
+      </View>
+    </View>
+  );
+
+  if (compact) {
+    return (
+      <Pressable
+        testID={testID}
+        accessibilityRole="switch"
+        accessibilityLabel={label}
+        accessibilityHint={description}
+        accessibilityState={{ checked: value, disabled }}
+        disabled={disabled}
+        onPress={() => onValueChange?.(!value)}
+        android_ripple={{ color: ripple.superficie, borderless: true }}
+        style={({ pressed }) => [styles.compacto, pressed && Platform.OS === "ios" && styles.presionadoIos]}
+      >
+        {pistaVisual}
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -59,17 +101,7 @@ export function Switch({ label, value, onValueChange, description, disabled = fa
           </Text>
         ) : null}
       </View>
-      <View
-        testID={testID ? `${testID}-pista` : undefined}
-        style={[
-          styles.pista,
-          { backgroundColor: pista, borderColor: borde, justifyContent: "center", alignItems: value ? "flex-end" : "flex-start" },
-        ]}
-      >
-        <View style={[styles.bola, { backgroundColor: bola }]}>
-          <Icono name={value ? "check" : "close"} size={16} color={tinta} />
-        </View>
-      </View>
+      {pistaVisual}
     </Pressable>
   );
 }
@@ -97,6 +129,13 @@ const styles = StyleSheet.create({
     borderRadius: shRadius.pill,
     alignItems: "center",
     justifyContent: "center",
+  },
+  compacto: {
+    minWidth: shDensity.controlLg,
+    minHeight: shDensity.controlLg,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: shRadius.pill,
   },
   presionadoIos: { opacity: 0.7 },
 });

@@ -8,6 +8,7 @@ jest.mock("@core/session/admin-session-context", () => ({
 }));
 
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { OperacionScreen } from "./OperacionScreen";
 
@@ -66,7 +67,8 @@ const PAGINA_CONVERSACIONES = {
 };
 
 describe("OperacionScreen (HU-APP-08)", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
     jest.clearAllMocks();
     mockUseAdminApi.mockReturnValue(cliente);
     mockPost.mockResolvedValue({ bot_paused: true });
@@ -148,6 +150,18 @@ describe("OperacionScreen (HU-APP-08)", () => {
         "/admin/conversations",
         expect.objectContaining({ q: "juan", page: 1 }),
       ),
+    );
+  });
+
+  it("al abrir una conversación desaparece su conteo de pendientes", async () => {
+    const { getByTestId, queryByTestId } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("pendientes-cv-1")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("conversacion-cv-1"));
+
+    await waitFor(() => expect(queryByTestId("pendientes-cv-1")).toBeNull());
+    expect(getByTestId("conversacion-cv-1").props.accessibilityLabel).not.toContain(
+      "sin responder",
     );
   });
 
@@ -425,6 +439,8 @@ describe("OperacionScreen (HU-APP-08)", () => {
     const { getByTestId } = await render(
       <OperacionScreen pestanaInicial={{ pestana: "escalaciones", n: 1 }} />,
     );
-    await waitFor(() => expect(getByTestId("pestana-escalaciones")).toHaveStyle({ borderBottomWidth: 2 }));
+    await waitFor(() =>
+      expect(getByTestId("pestana-escalaciones").props.accessibilityState.selected).toBe(true),
+    );
   });
 });
