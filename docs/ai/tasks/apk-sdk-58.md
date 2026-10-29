@@ -56,13 +56,20 @@ EAS Update.
 - `e2e/smoke-cobranza.yaml` se detiene en "Elige tu negocio": el login del gestor demo entra
   directo al panel (no es un cambio de SDK 58; el flujo quedó desfasado). Además, el teclado
   seguro de OPPO tapa la pantalla y Maestro no envía el formulario; con `adb input tap` sí.
+- **Bug encontrado y corregido**: al reiniciar sin red, SQLCipher registró `hmac check failed
+  for pgno=1`. Dos aperturas concurrentes de la base generaban claves distintas
+  (`claveMaestra`) y podían dejar el archivo cifrado con una clave y el almacén con otra.
+  Ahora `claveMaestra` e `inicializarBase` son single-flight; tests nuevos en
+  `src/data/db/__tests__/conexion.test.ts` y `bootstrap.test.ts` (190 suites, 1214 tests).
 - `scripts/check.sh` se detiene en fronteras de módulos por 5 imports preexistentes de
   `modules/datos-prueba` en `develop` (HU-QA-10); no los introduce esta tarea. CI no ejecuta
   ese script (corre lint, typecheck y tests, los tres en verde).
 
 ## Pendientes
 
+- Reinstalar el APK nuevo (`adb uninstall` + `adb install`, para descartar la base que quedó
+  con la clave vieja) y validar que ya no aparece `hmac check failed` tras reiniciar sin red.
 - Smoke en dispositivo: base cifrada (cobranza/diario), mapa WebView, evidencias con cámara,
-  push y OTA. El dispositivo se desconectó del USB al continuar la prueba.
+  push y OTA. La conexión USB del CPH2603 se cae de forma intermitente.
 - Decidir si `datos-prueba` pasa a `shared/ui` o se documenta como módulo transversal
   (ADR-APP-01) en una tarea aparte.
