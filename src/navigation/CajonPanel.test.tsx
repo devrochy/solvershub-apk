@@ -80,6 +80,8 @@ describe("CajonPanel (HU-DS-11, D-34; menú v2, HU-UX-11)", () => {
     const { getByTestId, queryByTestId } = await renderCajon();
     expect(getByTestId("cajon-panel")).toHaveProp("pointerEvents", "auto");
     expect(getByTestId("cajon-marca")).toHaveProp("accessibilityLabel", "SolversHub");
+    expect(getByTestId("cajon-marca")).toHaveProp("accessibilityRole", "image");
+    expect(getByTestId("cajon-marca")).toHaveProp("resizeMode", "contain");
     expect(getByTestId("cajon-pie")).toBeTruthy();
     expect(getByTestId("cajon-cuenta")).toBeTruthy();
     expect(mockRefrescarPerfil).toHaveBeenCalledTimes(1);
