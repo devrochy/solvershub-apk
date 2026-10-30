@@ -16443,7 +16443,7 @@ export interface components {
              */
             desde: string;
             /** Dias */
-            dias?: number;
+            dias: number;
             /**
              * Hasta
              * Format: date-time

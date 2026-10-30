@@ -21,27 +21,20 @@ import { useAdminApi } from "@core/session/use-admin-api";
 import { puedeVerSeccion } from "@core/permisos";
 import { Button, EmptyState, TextField, useToast } from "@shared/ui";
 import {
-  cargarAlertas,
   cargarAuditoria,
   cargarCarteras,
   cargarClientes as cargarClientesApi,
   eliminarCliente as eliminarClienteApi,
-  cargarDispositivos,
   cargarMonitoreo,
   cargarPagos,
   cargarPromesas,
   cargarReglas,
   cargarReportes,
   cargarResumen,
-  cambiarEstadoDispositivo,
   cambiarEstadoPromesa,
   guardarReglas,
-  type AccessAttempt,
-  type Alertas,
   type AuditoriaCobranza,
   type ClientRow,
-  type DeviceRow,
-  type Dispositivos,
   type Kpi,
   type Monitoring,
   type PagoAdmin,
@@ -57,11 +50,11 @@ import { TarjetaDatosDePrueba } from "../../datos-prueba";
 import { GestoresTab } from "./GestoresTab";
 
 type Nav = NativeStackNavigationProp<CobranzaAdminStackParamList>;
-type Pestana = "resumen" | "carteras" | "clientes" | "pagos" | "promesas" | "dispositivos" | "reportes" | "monitoreo" | "reglas" | "alertas" | "auditoria" | "gestores";
+type Pestana = "resumen" | "carteras" | "clientes" | "pagos" | "promesas" | "reportes" | "monitoreo" | "reglas" | "auditoria" | "gestores";
 
 const CLAVES: readonly Pestana[] = [
-  "resumen", "carteras", "clientes", "pagos", "promesas", "dispositivos",
-  "reportes", "monitoreo", "reglas", "alertas", "auditoria", "gestores",
+  "resumen", "carteras", "clientes", "pagos", "promesas",
+  "reportes", "monitoreo", "reglas", "auditoria", "gestores",
 ];
 
 interface Seccion {
@@ -125,11 +118,9 @@ export function CobranzaAdminScreen({
   const [clientes, setClientes] = useState<ClientRow[]>([]);
   const [pagos, setPagos] = useState<PagoAdmin[]>([]);
   const [promesas, setPromesas] = useState<PromesaAdmin[]>([]);
-  const [dispositivos, setDispositivos] = useState<Dispositivos | null>(null);
   const [reportes, setReportes] = useState<Reportes | null>(null);
   const [monitoreo, setMonitoreo] = useState<Monitoring | null>(null);
   const [reglas, setReglas] = useState<Reglas | null>(null);
-  const [alertas, setAlertas] = useState<Alertas | null>(null);
   const [auditoria, setAuditoria] = useState<AuditoriaCobranza | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [carteraFiltro, setCarteraFiltro] = useState<string | undefined>(undefined);
@@ -157,9 +148,6 @@ export function CobranzaAdminScreen({
       if (conSeccion("pack_cobranza:promesas")) {
         pendientes.push(cargarPromesas(api).then(setPromesas));
       }
-      if (conSeccion("pack_cobranza:dispositivos")) {
-        pendientes.push(cargarDispositivos(api).then(setDispositivos));
-      }
       if (conSeccion("pack_cobranza:reportes")) {
         pendientes.push(cargarReportes(api).then(setReportes));
       }
@@ -168,9 +156,6 @@ export function CobranzaAdminScreen({
       }
       if (conSeccion("pack_cobranza:reglas")) {
         pendientes.push(cargarReglas(api).then(setReglas));
-      }
-      if (conSeccion("pack_cobranza:alertas")) {
-        pendientes.push(cargarAlertas(api).then(setAlertas));
       }
       if (conSeccion("pack_cobranza:auditoria")) {
         pendientes.push(cargarAuditoria(api).then(setAuditoria));
@@ -230,20 +215,6 @@ export function CobranzaAdminScreen({
         },
       })),
       { text: "Cancelar", style: "cancel" as const },
-    ]);
-  };
-
-  const cambiarDispositivo = (d: DeviceRow) => {
-    const aprobar = d.estado !== "activo";
-    Alert.alert(`${aprobar ? "Aprobar" : "Bloquear"} dispositivo`, `${d.gestor ?? d.codigo ?? "Dispositivo"} ${aprobar ? "podrá operar en campo." : "dejará de operar."}`, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: aprobar ? "Aprobar" : "Bloquear",
-        style: aprobar ? "default" : "destructive",
-        onPress: () => {
-          void cambiarEstadoDispositivo(api, d.id, aprobar ? "activo" : "bloqueado").then(cargar).catch(() => setError("No se pudo cambiar el dispositivo."));
-        },
-      },
     ]);
   };
 
@@ -569,20 +540,6 @@ export function CobranzaAdminScreen({
             </Pressable>
           )}
         />
-      ) : pestana === "dispositivos" ? (
-        <FlatList testID="cobranza-lista-dispositivos" data={dispositivos?.dispositivos ?? []} keyExtractor={(d) => d.id}
-          ListHeaderComponent={(dispositivos?.pendientes ?? 0) > 0 ? <Text style={{ color: colores.peligro, fontSize: 13, marginBottom: 8 }}>{dispositivos?.pendientes} pendiente(s) de aprobación</Text> : null}
-          ListEmptyComponent={<Text style={styles.vacio}>Sin dispositivos.</Text>}
-          renderItem={({ item }) => (
-            <Pressable onPress={() => cambiarDispositivo(item)} style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colores.texto, fontWeight: "600" }}>{item.gestor ?? item.codigo ?? "Dispositivo"}</Text>
-                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{item.imei ?? "sin IMEI"} · {item.whatsapp ?? "—"}</Text>
-              </View>
-              <Text style={{ color: item.estado === "activo" ? colores.acento : colores.peligro, fontSize: 11 }}>{item.estado}</Text>
-            </Pressable>
-          )}
-        />
       ) : pestana === "reportes" ? (
         <FlatList testID="cobranza-lista-reportes" data={reportes?.filas ?? []} keyExtractor={(f) => f.cartera}
           ListEmptyComponent={<Text style={styles.vacio}>Sin reportes.</Text>}
@@ -631,24 +588,6 @@ export function CobranzaAdminScreen({
             <Text style={{ color: "#ffffff", fontWeight: "700" }}>Guardar reglas</Text>
           </Pressable>
         </ScrollView>
-      ) : pestana === "alertas" ? (
-        <FlatList testID="cobranza-lista-alertas" data={alertas?.items ?? []} keyExtractor={(a: AccessAttempt, i) => `${a.fecha}-${a.imei}-${i}`}
-          ListHeaderComponent={
-            <Text style={{ color: (alertas?.denegados ?? 0) > 0 ? colores.peligro : colores.textoSuave, fontSize: 13, marginBottom: 8 }}>
-              {alertas?.total ?? 0} intentos · {alertas?.denegados ?? 0} denegados
-            </Text>
-          }
-          ListEmptyComponent={<Text style={styles.vacio}>Sin intentos registrados.</Text>}
-          renderItem={({ item }) => (
-            <View style={[styles.fila, { borderColor: item.critico ? colores.peligro : colores.borde, backgroundColor: colores.tarjeta }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colores.texto, fontWeight: "600" }}>{item.gestor}</Text>
-                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{item.fecha} · {item.motivo}</Text>
-              </View>
-              <Text style={{ color: item.resultado === "ok" ? colores.acento : colores.peligro, fontSize: 11 }}>{item.resultado}</Text>
-            </View>
-          )}
-        />
       ) : pestana === "gestores" ? (
         <GestoresTab api={api} />
       ) : (
