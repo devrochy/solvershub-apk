@@ -17,11 +17,13 @@ import { usePestanasDeEntrada, type EntradaPestanas, type SolicitudPestana } fro
 import { shSpace, shType } from "@core/theme/tokens";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { AdminApiError } from "@core/api/admin";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { Button, Card, EmptyState, Skeleton, useToast } from "@shared/ui";
 import {
   alternarAgenteDelCliente,
   cargarPlayground,
+  editarCamposDelPack,
   enviarMensajePlayground,
   exportarLeadsCsv,
   listarConexionesDeConversaciones,
@@ -38,6 +40,14 @@ import { PestanaConversaciones } from "../components/PestanaConversaciones";
 import { PestanaEscalaciones } from "../components/PestanaEscalaciones";
 import { ClienteCard } from "../components/ClienteCard";
 import { EnviarPlantillaSheet } from "../components/EnviarPlantillaSheet";
+import { EtapaSheet } from "../components/EtapaSheet";
+import {
+  CLAVE_DE_ETAPA,
+  PACK_DE_ETAPA,
+  etapaDeFila,
+  opcionesDeEtapa,
+  type OpcionDeEtapa,
+} from "../etapas";
 import { FiltrosDeClientes } from "../components/FiltrosDeClientes";
 import { nombreDelChat } from "../presentacion";
 import type { OperacionStackParamList } from "../navigation";
@@ -88,6 +98,13 @@ export function OperacionScreen({
   const [refrescandoLeads, setRefrescandoLeads] = useState(false);
   const [botPendiente, setBotPendiente] = useState<string | null>(null);
   const [exportando, setExportando] = useState(false);
+  const [etapaPara, setEtapaPara] = useState<LeadRow | null>(null);
+  const [avisoDeEtapa, setAvisoDeEtapa] = useState<{
+    item: LeadRow;
+    etapa: OpcionDeEtapa;
+    mensaje: string;
+    reintentable: boolean;
+  } | null>(null);
   const [plantillaPara, setPlantillaPara] = useState<{ id: string; nombre: string } | null>(null);
 
   // Playground
@@ -170,6 +187,42 @@ export function OperacionScreen({
       toast.error("No se pudo cambiar el agente para este cliente.");
     } finally {
       setBotPendiente(null);
+    }
+  };
+
+  const opcionesEtapa = opcionesDeEtapa(filtrosDePack);
+
+  /**
+   * Cambia la etapa con actualización optimista (HU-CRM-19): la tarjeta cambia al instante y vuelve a la
+   * anterior si el servidor no lo acepta. Un rechazo del servidor muestra su motivo; una falla de red
+   * ofrece «Reintentar».
+   */
+  const cambiarEtapaDe = async (item: LeadRow, etapa: OpcionDeEtapa) => {
+    const nombre = item.perfil?.nombre_visible || item.cliente || "el cliente";
+    const anterior = item.extras?.[CLAVE_DE_ETAPA];
+    const poner = (valor: unknown) =>
+      setLeads((previos) =>
+        previos.map((lead) =>
+          lead.id === item.id ? { ...lead, extras: { ...lead.extras, [CLAVE_DE_ETAPA]: valor } } : lead,
+        ),
+      );
+    setEtapaPara(null);
+    setAvisoDeEtapa(null);
+    poner(etapa.label);
+    try {
+      await editarCamposDelPack(api, item.id, PACK_DE_ETAPA, { [CLAVE_DE_ETAPA]: etapa.value });
+      toast.success(`${nombre} pasó a ${etapa.label}.`);
+    } catch (err) {
+      poner(anterior);
+      const rechazada = err instanceof AdminApiError && err.status >= 400 && err.status < 500;
+      setAvisoDeEtapa({
+        item: { ...item, extras: { ...item.extras, [CLAVE_DE_ETAPA]: anterior } },
+        etapa,
+        mensaje: rechazada
+          ? err.message
+          : `No se pudo cambiar la etapa de ${nombre}. Revisa tu conexión.`,
+        reintentable: !rechazada,
+      });
     }
   };
 
@@ -303,6 +356,35 @@ export function OperacionScreen({
               {error}
             </Text>
           ) : null}
+          {avisoDeEtapa ? (
+            <View
+              testID="etapa-aviso"
+              accessibilityRole="alert"
+              style={[styles.avisoEtapa, { borderColor: colores.peligro, backgroundColor: colores.tarjeta }]}
+            >
+              <Text style={[styles.errorLeads, styles.textoAviso, { color: colores.peligro }]}>
+                {avisoDeEtapa.mensaje}
+              </Text>
+              {avisoDeEtapa.reintentable ? (
+                <Button
+                  testID="etapa-reintentar"
+                  variant="secondary"
+                  size="sm"
+                  onPress={() => void cambiarEtapaDe(avisoDeEtapa.item, avisoDeEtapa.etapa)}
+                >
+                  Reintentar
+                </Button>
+              ) : null}
+              <Button
+                testID="etapa-aviso-cerrar"
+                variant="ghost"
+                size="sm"
+                onPress={() => setAvisoDeEtapa(null)}
+              >
+                Cerrar
+              </Button>
+            </View>
+          ) : null}
           {cargandoLeads && leads.length === 0 ? (
             <EsqueletosDeClientes />
           ) : (
@@ -368,6 +450,8 @@ export function OperacionScreen({
                   onAbrir={() => abrirCliente(item)}
                   onEditar={() => abrirCliente(item, true)}
                   onAlternarBot={() => void alternarBotDe(item)}
+                  opcionesEtapa={opcionesEtapa}
+                  onCambiarEtapa={() => setEtapaPara(item)}
                   onEnviarPlantilla={() =>
                     setPlantillaPara({
                       id: item.id,
@@ -389,6 +473,14 @@ export function OperacionScreen({
               }}
             />
           )}
+          <EtapaSheet
+            visible={Boolean(etapaPara)}
+            onClose={() => setEtapaPara(null)}
+            nombre={etapaPara?.perfil?.nombre_visible || etapaPara?.cliente || "el cliente"}
+            actual={etapaPara ? etapaDeFila(etapaPara, opcionesEtapa)?.value : undefined}
+            opciones={opcionesEtapa}
+            onElegir={(etapa) => etapaPara && void cambiarEtapaDe(etapaPara, etapa)}
+          />
           <EnviarPlantillaSheet
             visible={Boolean(plantillaPara)}
             onClose={() => setPlantillaPara(null)}
@@ -495,6 +587,8 @@ const styles = StyleSheet.create({
   filaTitulo: { fontSize: 14, fontWeight: "600", marginBottom: 2 },
   leads: { flex: 1, gap: 6 },
   errorLeads: { fontSize: 13 },
+  avisoEtapa: { borderWidth: 1, borderRadius: 12, padding: 12, gap: 8, marginBottom: 8 },
+  textoAviso: { fontSize: 14 },
   listaLeads: { gap: 10, paddingBottom: 24 },
   cabeceraLeads: {
     flexDirection: "row",
