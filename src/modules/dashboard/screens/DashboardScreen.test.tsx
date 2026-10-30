@@ -6,7 +6,7 @@ jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: () => ({ sesion: mockSesion, loading: false }),
 }));
 
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { emitirNavegacion } from "@shared/navegacion-evento";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { DashboardScreen } from "./DashboardScreen";
@@ -81,7 +81,7 @@ const kpi = (parcial: object) => ({
 });
 
 const POR_AGENTE = {
-  periodo: {},
+  periodo: { dias: 7 },
   runtime: "v3",
   general: {
     kpis: [
@@ -111,6 +111,16 @@ const POR_AGENTE = {
       name: "Ventas",
       kind: "specialist",
       kpis: [kpi({ id: "turnos", label: "Turnos", valor: 9 })],
+      serie: [
+        { fecha: "2026-10-21", turnos: 1, conversaciones: 1, costo: 0.01 },
+        { fecha: "2026-10-22", turnos: 2, conversaciones: 1, costo: 0.01 },
+        { fecha: "2026-10-23", turnos: 0, conversaciones: 0, costo: 0 },
+        { fecha: "2026-10-24", turnos: 2, conversaciones: 1, costo: 0.01 },
+        { fecha: "2026-10-25", turnos: 1, conversaciones: 1, costo: 0.01 },
+        { fecha: "2026-10-26", turnos: 2, conversaciones: 1, costo: 0.01 },
+        { fecha: "2026-10-27", turnos: 1, conversaciones: 1, costo: 0.01 },
+      ],
+      ultima_actividad: "2026-10-27T18:30:00Z",
       modulos: [
         {
           id: "pack_commerce",
@@ -127,6 +137,7 @@ const POR_AGENTE = {
       name: "Cobranza",
       kind: "specialist",
       kpis: [],
+      serie: [],
       modulos: [
         {
           id: "pack_cobranza",
@@ -176,7 +187,7 @@ function responder(r: Respuestas = {}) {
     "/pack/cobranza/summary": "cobranza",
   };
   mockGet.mockImplementation((path: string) => {
-    const valor = por[ruta[path]];
+    const valor = por[ruta[path.split("?")[0]]];
     return valor instanceof Error ? Promise.reject(valor) : Promise.resolve(valor);
   });
 }
@@ -200,7 +211,8 @@ describe("DashboardScreen: Resumen por rol (HU-DS-13)", () => {
       expect(getByText("Perfil Dueño")).toBeTruthy();
       expect(getByText("30")).toBeTruthy();
       expect(getByText("+50 % frente a los 7 días anteriores")).toBeTruthy();
-      expect(getByText("Últimos 7 días")).toBeTruthy();
+      expect(getByText("+50 % frente a los 7 días anteriores")).toBeTruthy();
+      expect(within(getByTestId("kpi-kpi.conversaciones")).getByText("Últimos 7 días")).toBeTruthy();
       expect(getByText("Estado del sistema")).toBeTruthy();
       expect(getByText("deepseek-flash")).toBeTruthy();
       expect(getByText("Actividad reciente")).toBeTruthy();
@@ -212,7 +224,8 @@ describe("DashboardScreen: Resumen por rol (HU-DS-13)", () => {
     it("conserva la sección por agente del Resumen por agente (HU-DS-14)", async () => {
       const { getByTestId, getByText, queryByText } = await render(<DashboardScreen />);
       await waitFor(() => expect(getByTestId("resumen-agentes")).toBeTruthy());
-      expect(getByText("Agentes")).toBeTruthy();
+      expect(getByText("Tendencia de atención")).toBeTruthy();
+      expect(getByText("Módulos por agente")).toBeTruthy();
       expect(getByText("Módulo · Comercio")).toBeTruthy();
       // El bloque del negocio no se repite bajo «Agente general».
       expect(queryByText("Agente general")).toBeNull();
@@ -337,9 +350,9 @@ describe("DashboardScreen: Resumen por rol (HU-DS-13)", () => {
           general: { kpis: [kpi({ id: "conversaciones", label: "Conversaciones", valor: null, unidad: "pct" })] },
         },
       });
-      const { getByTestId, getByText } = await render(<DashboardScreen />);
+      const { getByTestId } = await render(<DashboardScreen />);
       await waitFor(() => expect(getByTestId("kpi-kpi.conversaciones")).toBeTruthy());
-      expect(getByText("—")).toBeTruthy();
+      expect(within(getByTestId("kpi-kpi.conversaciones")).getByText("—")).toBeTruthy();
     });
   });
 

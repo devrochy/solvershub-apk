@@ -56,7 +56,7 @@ describe("widgetsDelPerfil", () => {
     const r = claves("dueno", {}, true);
     expect(r).toContain("kpi.consumo");
     expect(r).toContain("estado.sistema");
-    expect(r).not.toContain("chart.tendencia_atencion");
+    expect(r).toContain("chart.tendencia_atencion");
     expect(r).not.toContain("kpi.resueltas_sin_humano");
   });
 

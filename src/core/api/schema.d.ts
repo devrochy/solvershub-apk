@@ -8941,6 +8941,16 @@ export interface components {
              * @description Id del agente o el literal `general`, como en `/admin/agents/{ref}`.
              */
             ref: string;
+            /**
+             * Serie
+             * @description Serie diaria cero-rellena del período (días calendario del negocio).
+             */
+            serie?: components["schemas"]["PuntoActividadOut"][];
+            /**
+             * Ultima Actividad
+             * @description Último turno del agente dentro del período.
+             */
+            ultima_actividad?: string | null;
         };
         /**
          * AgentOSBanderas
@@ -16432,6 +16442,8 @@ export interface components {
              * Format: date-time
              */
             desde: string;
+            /** Dias */
+            dias?: number;
             /**
              * Hasta
              * Format: date-time
@@ -17647,6 +17659,23 @@ export interface components {
             label: string;
             /** Missing Skills */
             missing_skills: string[];
+        };
+        /** PuntoActividadOut */
+        PuntoActividadOut: {
+            /** Conversaciones */
+            conversaciones: number;
+            /**
+             * Costo
+             * @description Costo del día en USD; `null` sin la sección `costs`.
+             */
+            costo: number | null;
+            /**
+             * Fecha
+             * Format: date
+             */
+            fecha: string;
+            /** Turnos */
+            turnos: number;
         };
         /** PurgeRequest */
         PurgeRequest: {
@@ -24998,7 +25027,10 @@ export interface operations {
     };
     dashboard_agents_api_v1_admin_dashboard_agents_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Ventana del Resumen en días: 7, 15 o 30. */
+                dias?: number;
+            };
             header?: {
                 "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
@@ -25397,6 +25429,8 @@ export interface operations {
     list_escalations_api_v1_admin_escalations_get: {
         parameters: {
             query?: {
+                /** @description Filtra por estado de la escalación */
+                estado?: ("pendiente" | "asignada" | "resuelta") | null;
                 page?: number;
                 page_size?: number;
                 /** @description Filtra por código de motivo */

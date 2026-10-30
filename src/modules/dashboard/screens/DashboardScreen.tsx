@@ -13,6 +13,8 @@ import { propsDeKpi } from "../kpi";
 import { derivarPerfil, ETIQUETA_PERFIL } from "../perfil";
 import { useCarga } from "../use-carga";
 import { widgetsDelPerfil, type DefWidget } from "../widgets";
+import { ActividadDeAgentes, SelectorPeriodo } from "../components/Actividad";
+import { diasValidos, type DiasDelResumen } from "../periodos";
 import { ResumenAgentes, tieneResumen } from "./ResumenAgentes";
 import {
   CajaWidget,
@@ -39,6 +41,7 @@ export function DashboardScreen() {
   const { sesion } = useAdminSession();
   const api = useAdminApi();
   const [version, setVersion] = useState(0);
+  const [dias, setDias] = useState<DiasDelResumen>(7);
   const [refrescando, setRefrescando] = useState(false);
   const [botPausadoLocal, setBotPausadoLocal] = useState<boolean | null>(null);
   const [guardandoBot, setGuardandoBot] = useState(false);
@@ -50,7 +53,7 @@ export function DashboardScreen() {
   const usa = (fuente: DefWidget["fuente"]) => widgets.some((w) => w.fuente === fuente);
 
   const dashboard = useCarga(() => cargarDashboard(api), usa("dashboard") || usa("agentes"), version);
-  const agentes = useCarga(() => cargarResumenAgentes(api), usa("agentes"), version);
+  const agentes = useCarga(() => cargarResumenAgentes(api, dias), usa("agentes"), version, dias);
   const escalaciones = useCarga(
     () => api.get<PaginaEscalaciones>("/admin/escalations", { page_size: 5 }),
     usa("escalaciones"),
@@ -148,7 +151,12 @@ export function DashboardScreen() {
         />
       );
     }
-    return <KpiTile testID={`kpi-${def.clave}`} {...propsDeKpi(k)} />;
+    return (
+      <KpiTile
+        testID={`kpi-${def.clave}`}
+        {...propsDeKpi(k, { dias, tenantId: sesion?.tenantId ?? null })}
+      />
+    );
   };
 
   const bloqueKpis = (defs: DefWidget[], clave: string) => {
@@ -215,6 +223,28 @@ export function DashboardScreen() {
         );
       case "estado.sistema":
         return dashboard.estado === "ok" ? <WidgetEstado key={w.clave} dashboard={datosDashboard} /> : null;
+      case "chart.tendencia_atencion":
+        if (agentes.estado === "error") {
+          return (
+            <WidgetConError
+              key={w.clave}
+              clave={w.clave}
+              titulo={w.titulo}
+              alReintentar={agentes.reintentar}
+            />
+          );
+        }
+        if (agentes.estado === "cargando" && !resumen) {
+          return <Skeleton key={w.clave} shape="rect" height={260} />;
+        }
+        return resumen ? (
+          <ActividadDeAgentes
+            key={w.clave}
+            datos={resumen}
+            dias={dias}
+            tenantId={sesion?.tenantId ?? null}
+          />
+        ) : null;
       case "acciones.rapidas":
         return (
           <WidgetAcciones
@@ -246,13 +276,28 @@ export function DashboardScreen() {
         <Badge testID="resumen-perfil" label={ETIQUETA_PERFIL[perfil]} />
       </View>
 
+      {usa("agentes") ? (
+        <SelectorPeriodo
+          dias={dias}
+          alCambiar={(d) => setDias(diasValidos(d))}
+          periodo={resumen?.periodo ?? {}}
+        />
+      ) : null}
+
       {widgets.length === 0 ? (
         <Skeleton shape="rect" height={80} />
       ) : (
         bloques.map((b, i) => (Array.isArray(b) ? bloqueKpis(b, `kpis-${i}`) : renderWidget(b)))
       )}
 
-      {perfil === "dueno" && resumen ? <ResumenAgentes datos={resumen} soloAgentes /> : null}
+      {perfil === "dueno" && resumen ? (
+        <ResumenAgentes
+          datos={resumen}
+          soloAgentes
+          dias={dias}
+          tenantId={sesion?.tenantId ?? null}
+        />
+      ) : null}
     </ScrollView>
   );
 }

@@ -14,17 +14,27 @@ export interface Carga<T> {
  * que si falla una el resto de los widgets se muestra igual. `version` sube con el pull-to-refresh
  * (recarga sin volver a «cargando», el `RefreshControl` ya lo indica).
  */
-export function useCarga<T>(pedir: () => Promise<T>, activo: boolean, version: number): Carga<T> {
+export function useCarga<T>(
+  pedir: () => Promise<T>,
+  activo: boolean,
+  version: number,
+  dependencia?: string | number,
+): Carga<T> {
   const [estado, setEstado] = useState<EstadoCarga>(activo ? "cargando" : "ok");
   const [datos, setDatos] = useState<T | null>(null);
   const [intento, setIntento] = useState(0);
   const pedirRef = useRef(pedir);
+  const dependenciaRef = useRef(dependencia);
   useEffect(() => {
     pedirRef.current = pedir;
   });
 
   useEffect(() => {
     if (!activo) return;
+    if (dependenciaRef.current !== dependencia) {
+      dependenciaRef.current = dependencia;
+      setEstado("cargando");
+    }
     let vivo = true;
     pedirRef
       .current()
@@ -39,7 +49,7 @@ export function useCarga<T>(pedir: () => Promise<T>, activo: boolean, version: n
     return () => {
       vivo = false;
     };
-  }, [activo, version, intento]);
+  }, [activo, version, intento, dependencia]);
 
   const reintentar = useCallback(() => {
     setEstado("cargando");
