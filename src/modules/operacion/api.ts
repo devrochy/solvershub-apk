@@ -5,6 +5,7 @@ import type { ArchivoAvatar } from "@core/api/perfil-admin";
 import type { components } from "@core/api/schema";
 import { apiV1 } from "@core/config";
 import type { AdminSesion } from "@core/session/types";
+import { fetchApi } from "@core/api/http";
 
 export type ConversationSummary = components["schemas"]["ConversationSummary"];
 export type ConversationDetail = components["schemas"]["ConversationDetail"];
@@ -290,7 +291,7 @@ export async function subirAvatarDelCliente(
   archivo: ArchivoAvatar,
 ): Promise<FichaDelCliente> {
   const { body, boundary } = await construirMultipart({}, [{ campo: "file", ...archivo }]);
-  const res = await fetch(apiV1(`/admin/leads/${id}/avatar`), {
+  const res = await fetchApi(apiV1(`/admin/leads/${id}/avatar`), {
     method: "POST",
     headers: {
       ...cabecerasDeAdmin(sesion),
@@ -306,7 +307,7 @@ export async function subirAvatarDelCliente(
 
 /** Quita la foto del cliente. */
 export async function quitarAvatarDelCliente(sesion: AdminSesion, id: string): Promise<void> {
-  const res = await fetch(apiV1(`/admin/leads/${id}/avatar`), {
+  const res = await fetchApi(apiV1(`/admin/leads/${id}/avatar`), {
     method: "DELETE",
     headers: cabecerasDeAdmin(sesion),
   });

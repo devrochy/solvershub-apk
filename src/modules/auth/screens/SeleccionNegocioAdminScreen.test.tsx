@@ -28,6 +28,7 @@ jest.mock("@core/api/auth-admin", () => ({
 }));
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { ApiAuthError } from "@core/api/auth-admin";
 import { SeleccionNegocioAdminScreen } from "./SeleccionNegocioAdminScreen";
 
 const TENANTS = [
@@ -97,7 +98,7 @@ describe("SeleccionNegocioAdminScreen (HU-APP-03)", () => {
   });
 
   it("si el negocio no tiene acceso de campo entra al panel", async () => {
-    mockExchange.mockRejectedValue(new Error("403"));
+    mockExchange.mockRejectedValue(new ApiAuthError(403, "sin_acceso_campo", "Sin acceso de campo en este negocio."));
     const onEntrarPanel = jest.fn();
     const onAutenticado = jest.fn();
 
@@ -113,6 +114,34 @@ describe("SeleccionNegocioAdminScreen (HU-APP-03)", () => {
 
     await waitFor(() => expect(onEntrarPanel).toHaveBeenCalled());
     expect(onAutenticado).not.toHaveBeenCalled();
+  });
+
+  it.each(["dispositivo_pendiente", "dispositivo_bloqueado", "dispositivo_no_autorizado", "dispositivo_requerido"])(
+    "un 403 %s no lleva al panel ni muestra error: la raíz de la app muestra la espera del equipo",
+    async (code) => {
+      mockExchange.mockRejectedValue(new ApiAuthError(403, code, "Equipo no autorizado."));
+      const onEntrarPanel = jest.fn();
+      const { getByTestId, queryByText } = await render(
+        <SeleccionNegocioAdminScreen onAutenticado={jest.fn()} onEntrarPanel={onEntrarPanel} onCancelar={jest.fn()} />,
+      );
+      await waitFor(() => expect(getByTestId("negocio-t-2")).toBeTruthy());
+      await fireEvent.press(getByTestId("negocio-t-2"));
+      await waitFor(() => expect(mockExchange).toHaveBeenCalled());
+      expect(onEntrarPanel).not.toHaveBeenCalled();
+      expect(queryByText(/No pudimos entrar/)).toBeNull();
+    },
+  );
+
+  it("cualquier otro fallo del exchange muestra un error y no entra al panel", async () => {
+    mockExchange.mockRejectedValue(new ApiAuthError(500, "boom", "Falla."));
+    const onEntrarPanel = jest.fn();
+    const { getByTestId, findByText } = await render(
+      <SeleccionNegocioAdminScreen onAutenticado={jest.fn()} onEntrarPanel={onEntrarPanel} onCancelar={jest.fn()} />,
+    );
+    await waitFor(() => expect(getByTestId("negocio-t-2")).toBeTruthy());
+    await fireEvent.press(getByTestId("negocio-t-2"));
+    expect(await findByText("No pudimos entrar a ese negocio. Intenta de nuevo.")).toBeTruthy();
+    expect(onEntrarPanel).not.toHaveBeenCalled();
   });
 
   it("al cancelar cierra la sesión admin", async () => {

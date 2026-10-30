@@ -1,6 +1,7 @@
 import { ApiError } from "@core/api/client";
 import { authUrl } from "@core/config";
 import type { EventoOffline } from "../offline/cola";
+import { fetchApi } from "@core/api/http";
 
 export interface AckEventoSync {
   eventoIdCliente: string;
@@ -20,7 +21,7 @@ export async function sincronizarCola(
   if (eventos.length === 0) {
     return [];
   }
-  const res = await fetch(authUrl("/sync-offline/eventos"), {
+  const res = await fetchApi(authUrl("/sync-offline/eventos"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

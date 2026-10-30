@@ -7,7 +7,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, AppState, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import type { RootStackParamList } from "./src/modules/cobranza/navigation/types";
@@ -36,6 +36,10 @@ import {
   useBloqueoBiometrico,
 } from "./src/modules/auth/screens/BloqueoBiometrico";
 import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/SeleccionNegocioAdminScreen";
+import { EquipoEnEsperaScreen } from "./src/modules/auth/screens/EquipoEnEsperaScreen";
+import { consultarEquipo } from "./src/core/api/acceso";
+import { ApiAuthError, apiGestorToken } from "./src/core/api/auth-admin";
+import { suscribirAccesoDeEquipo, type CodigoDeEquipo } from "@shared/acceso-evento";
 import { PanelShell } from "./src/navigation/PanelShell";
 import { campoNavRef } from "./src/navigation/refs";
 import {
@@ -164,11 +168,19 @@ function AuthNavigator() {
 const setModoPanelRef: { current: ((v: boolean) => void) | null } = { current: null };
 
 function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
-  const { gestor, loading, requiereVinculacion, negociosPendientes, membresiaToken } =
-    useSession();
-  const { sesion: sesionAdmin, loading: loadingAdmin } = useAdminSession();
+  const {
+    gestor,
+    loading,
+    requiereVinculacion,
+    negociosPendientes,
+    membresiaToken,
+    aplicarSesionExterna,
+    logout: logoutCampo,
+  } = useSession();
+  const { sesion: sesionAdmin, loading: loadingAdmin, logout: logoutAdmin } = useAdminSession();
   const bio = useBloqueoBiometrico(sesionAdmin?.adminId ?? null);
   const [modoPanel, setModoPanel] = useState(false);
+  const [bloqueoDeEquipo, setBloqueoDeEquipo] = useState<CodigoDeEquipo | null>(null);
   const [introAlInicio, setIntroAlInicio] = useState<boolean | null>(null);
   const [introTerminada, setIntroTerminada] = useState(false);
   const terminarIntro = useCallback(() => {
@@ -182,6 +194,55 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
       setModoPanelRef.current = null;
     };
   }, []);
+
+  // Equipo no autorizado (ADR-0174, HU-ACC-05): cualquier 403 de equipo o la consulta de
+  // `device-session` muestran la pantalla de espera/bloqueo en vez de un error suelto.
+  const tokenAdmin = sesionAdmin?.token ?? null;
+  const negocioAdmin = sesionAdmin?.tenantId ?? null;
+  useEffect(() => suscribirAccesoDeEquipo(setBloqueoDeEquipo), []);
+  useEffect(() => {
+    if (!tokenAdmin || !negocioAdmin) {
+      setBloqueoDeEquipo(null);
+      return;
+    }
+    const verificar = () => {
+      consultarEquipo(tokenAdmin, negocioAdmin)
+        .then((e) => {
+          if (!e.permitido) {
+            setBloqueoDeEquipo(e.estado === "bloqueado" ? "dispositivo_bloqueado" : "dispositivo_pendiente");
+          }
+        })
+        // Sin red o con error: la app sigue; el backend aplica la política en cada petición.
+        .catch(() => undefined);
+    };
+    verificar();
+    const sub = AppState.addEventListener("change", (estado) => {
+      if (estado === "active") verificar();
+    });
+    return () => sub.remove();
+  }, [tokenAdmin, negocioAdmin]);
+  const consultarEsteEquipo = useCallback(
+    () => consultarEquipo(tokenAdmin ?? "", negocioAdmin ?? ""),
+    [tokenAdmin, negocioAdmin],
+  );
+  const equipoAprobado = useCallback(async () => {
+    setBloqueoDeEquipo(null);
+    if (!tokenAdmin || !negocioAdmin || gestor || modoPanel) return;
+    // Entra sola: repite el intercambio a campo que el 403 había frenado, sin pedir la clave.
+    try {
+      const campo = await apiGestorToken(tokenAdmin, negocioAdmin);
+      await aplicarSesionExterna?.(campo);
+    } catch (err) {
+      if (err instanceof ApiAuthError && err.status === 403 && err.code === "sin_acceso_campo") {
+        setModoPanel(true);
+      }
+    }
+  }, [tokenAdmin, negocioAdmin, gestor, modoPanel, aplicarSesionExterna]);
+  const salirDelEquipo = useCallback(async () => {
+    setBloqueoDeEquipo(null);
+    await logoutCampo();
+    await logoutAdmin();
+  }, [logoutCampo, logoutAdmin]);
 
   // Hidratación inicial: admin persistido sin sesión de campo (usuario de
   // panel) entra directo al panel; el login en curso no dispara este efecto.
@@ -241,6 +302,17 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
       <NavigationContainer>
         <BloqueoBiometrico onDesbloqueado={bio.marcarVerificado} />
       </NavigationContainer>
+    );
+  }
+
+  if (bloqueoDeEquipo) {
+    return (
+      <EquipoEnEsperaScreen
+        codigo={bloqueoDeEquipo}
+        consultar={consultarEsteEquipo}
+        alAprobado={() => void equipoAprobado()}
+        cerrarSesion={() => void salirDelEquipo()}
+      />
     );
   }
 
