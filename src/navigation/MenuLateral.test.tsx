@@ -76,6 +76,14 @@ describe("MenuLateral", () => {
     expect(getByTestId("menu-lateral")).toHaveProp("pointerEvents", "none");
   });
 
+  it("encabeza el menú con el wordmark de SolversHub, sin isotipo", async () => {
+    const { getByTestId } = await renderMenu();
+    const marca = getByTestId("menu-marca");
+    expect(marca).toHaveProp("accessibilityLabel", "SolversHub");
+    expect(marca).toHaveProp("accessibilityRole", "image");
+    expect(marca).toHaveProp("resizeMode", "contain");
+  });
+
   it("despliega un ítem con subItems y ejecuta el subítem eligido", async () => {
     const alElegir = jest.fn();
     const items: MenuItem[] = [
