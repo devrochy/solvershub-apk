@@ -55,12 +55,13 @@
           }
         }
       ],
+      "expo-video",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#172f6c",
-          "image": "./assets/logo-transparente.png",
-          "imageWidth": 250,
+          "backgroundColor": "#0b1733",
+          "image": "./assets/splash-vacio.png",
+          "imageWidth": 288,
           "resizeMode": "contain"
         }
       ],
