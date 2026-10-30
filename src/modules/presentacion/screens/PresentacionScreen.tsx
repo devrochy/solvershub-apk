@@ -11,6 +11,8 @@ const LOGO = require("../../../../assets/logo-transparente.png");
 
 /** El video dura 10 s; el margen cubre una carga lenta sin dejar la app colgada. */
 const DURACION_MAXIMA_MS = 15000;
+/** El logo del póster se ve al menos este tiempo antes de dejar paso al video. */
+const POSTER_MINIMO_MS = 1200;
 
 export interface PresentacionScreenProps {
   onTerminar(): void;
@@ -24,6 +26,7 @@ export function PresentacionScreen({ onTerminar }: PresentacionScreenProps) {
   const kit = kitDeTema("oscuro");
   const insets = useSafeAreaInsets();
   const [primerFrame, setPrimerFrame] = useState(false);
+  const [posterMinimo, setPosterMinimo] = useState(false);
   const [conSonido, setConSonido] = useState(false);
   const terminado = useRef(false);
 
@@ -56,6 +59,11 @@ export function PresentacionScreen({ onTerminar }: PresentacionScreenProps) {
     return () => sub.remove();
   }, [terminar]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setPosterMinimo(true), POSTER_MINIMO_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
   const alternarSonido = () => {
     const siguiente = !conSonido;
     setConSonido(siguiente);
@@ -76,7 +84,7 @@ export function PresentacionScreen({ onTerminar }: PresentacionScreenProps) {
         onFirstFrameRender={() => setPrimerFrame(true)}
       />
 
-      {!primerFrame ? (
+      {!primerFrame || !posterMinimo ? (
         <View
           pointerEvents="none"
           style={[

@@ -9,25 +9,33 @@ tags: [apk, splash, video, presentacion, expo-video, primer-inicio]
   quería el logo/icono como el login y preguntó si se podía incluir un video de presentación.
   Decisiones: rama aparte, fondo `#0b1733`, retener el splash hasta estar listo, logo a 220 dp,
   video solo en el primer inicio sin sesión y sin entrada para repetirlo por ahora.
-- **Estado:** implementado y verificado en código; falta el build nativo y la prueba en el OPPO.
+- **Ajuste tras probar en el OPPO:** el logo nativo de 220 dp se veía recortado por la máscara
+  circular de Android 12 (medido: ~486×440 px = 190×172 dp, con los lados del wordmark cortados).
+  El splash nativo queda **solo con el fondo navy** (imagen transparente) y el logo de 220 dp se
+  pinta sin máscara en el póster JS del intro.
+- **Estado:** implementado y verificado en código; build nativo y prueba en el OPPO en curso.
 
 ## Por qué no es un splash de video
 
 `expo-splash-screen`/Android solo admiten una imagen estática (o un vector animado corto).
 El video no puede ser el splash nativo. La secuencia implementada es:
 
-**splash nativo (logo estático) → intro JS a pantalla completa con `expo-video` → login**
+**splash nativo (fondo navy) → póster JS con el logo a 220 dp → video con `expo-video` → login**
 
-El logo del splash nativo también hace de póster mientras `expo-video` pinta el primer frame,
-así que la transición es continua y no aparece un frame negro o blanco.
+El póster JS tapa la carga del video mientras `expo-video` pinta el primer frame, así que no
+aparece un frame negro o blanco y el logo no pasa por la máscara circular de Android 12.
 
 ## Decisiones
 
-- **Tamaño del logo:** `imageWidth: 220` (antes 250). El lienzo Android 12 es de 288 dp; con
-  220 dp el contenido queda en ~217 dp y el bloque completo cabe dentro de la máscara circular
-  (semidiagonal ~139 dp < radio 144 dp). En el OPPO (408 dpi) son ~553 px de ancho, frente a
-  ~637 px de antes y ~484 px del login.
-- **Fondo:** `#0b1733` (navy 900), el mismo del login en tema oscuro (D-34).
+- **Logo:** el splash nativo **no** pinta el logo: Android 12 lo recorta con la máscara circular
+  (en el OPPO, 220 dp se ven como ~190 dp de ancho, con los extremos del wordmark cortados). El
+  splash nativo queda en navy liso y el logo de **220 dp** se pinta en el póster JS, sin máscara,
+  antes del video (~553 px de ancho en el OPPO, frente a los ~486 px que dejaba la máscara).
+  El póster se mantiene al menos 1.2 s (y hasta que el video pinte el primer frame) para que el
+  logo se vea completo antes de la animación.
+- **Fondo:** `#0b1733` (navy 900), el mismo del login en tema oscuro (D-34). La imagen del splash
+  nativo es `assets/splash-vacio.png` (1×1 transparente, `imageWidth: 288`) para que el sistema
+  no dibuje el icono de la app ni recorte nada; solo se ve el fondo.
 - **Retención del splash:** se llama a `SplashScreen.preventAutoHideAsync()` al arrancar y se
   oculta recién cuando cargaron las fuentes (o fallaron) y se leyó el flag del intro.
 - **Video:** aportado por el usuario (`/home/devrochy/Downloads/videopresentacion.mp4`).
@@ -47,7 +55,8 @@ así que la transición es continua y no aparece un frame negro o blanco.
 
 ## Archivos
 
-- `app.json`: plugin `expo-video`; splash `backgroundColor: "#0b1733"`, `imageWidth: 220`.
+- `app.json`: plugin `expo-video`; splash `backgroundColor: "#0b1733"`,
+  `image: "./assets/splash-vacio.png"`, `imageWidth: 288` (sin logo nativo).
 - `index.ts`: `preventAutoHideAsync()`.
 - `App.tsx`: hold hasta fuentes + flag, gate del intro y overlay del video.
 - `src/modules/presentacion/`
@@ -55,17 +64,19 @@ así que la transición es continua y no aparece un frame negro o blanco.
   - `usePresentacion.ts`: lectura del flag + `AccessibilityInfo.isReduceMotionEnabled()`.
   - `screens/PresentacionScreen.tsx`: video, póster, “Saltar” y sonido.
   - `screens/PresentacionScreen.test.tsx`, `presentacion.test.ts`.
+- `assets/splash-vacio.png` (1×1 transparente para el splash nativo).
 - `assets/video/presentacion.mp4`.
 - `jest.setup.ts`: mock de `expo-video` para los tests.
 - `package.json` / `package-lock.json`: `expo-video`.
 
 ## Verificación
 
-- `npx expo config --type public` resuelve `expo-video` y el splash con `imageWidth: 220` y
-  fondo `#0b1733`.
-- `npx expo prebuild --platform android --no-install` genera
-  `drawable-xxhdpi/splashscreen_logo.png` de 864×864 con contenido de 652×522 px = 217×174 dp;
-  `colors.xml` tiene `splashscreen_background = #0b1733`.
+- `npx expo config --type public` resuelve `expo-video` y el splash con la imagen transparente,
+  `imageWidth: 288` y fondo `#0b1733`.
+- Prebuild: el drawable nativo queda transparente y `colors.xml` tiene
+  `splashscreen_background = #0b1733`; el logo de 220 dp se pinta en el póster JS del intro.
+- Prueba en el OPPO (debug): el video se reproduce con “Saltar”; el splash nativo de 220 dp se
+  veía recortado por la máscara (~486×440 px), de ahí el cambio a fondo liso + póster JS.
 - `npm run lint` → verde.
 - `npm run typecheck` → verde.
 - `npm test -- --runInBand` → **193 suites / 1277 tests en verde** (8 tests nuevos).
@@ -76,11 +87,11 @@ así que la transición es continua y no aparece un frame negro o blanco.
 
 ## Pendientes
 
-- Build `preview` y prueba en el OPPO: primer inicio con datos limpios → splash → video → login;
-  segundo inicio sin video; “Saltar”; sonido; “reducir movimiento”; modo avión; medir el logo del
-  splash (~553 px de ancho).
-- Decidir si se mantiene el logo en el splash (hoy queda como puente/póster). Si se prefiere sin
-  logo, se quita `image` del plugin y el póster del intro.
+- Build `preview` y prueba final en el OPPO: primer inicio con datos limpios → fondo navy →
+  póster con el logo 220 → video → login; segundo inicio sin video; “Saltar”; sonido;
+  “reducir movimiento”; modo avión.
+- Validar que el póster JS (220 dp) no tenga recortes y que el splash nativo se vea como navy
+  liso, sin icono.
 - “Ver presentación” para repetirlo desde Perfil/Configuración: queda para después.
 - Si el video se quiere a pantalla completa, aportar una versión vertical o generar una
   composición 1080×1920 con fondo desenfocado.

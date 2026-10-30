@@ -22,6 +22,7 @@ describe("PresentacionScreen", () => {
 
     expect(getByTestId("presentacion-saltar")).toBeTruthy();
     expect(getByTestId("presentacion-sonido")).toBeTruthy();
+    expect(getByLabelText("SolversHub")).toBeTruthy();
     expect(getByLabelText("Presentación de SolversHub")).toBeTruthy();
     expect(video.__player.muted).toBe(true);
   });
