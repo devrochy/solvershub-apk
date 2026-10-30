@@ -6,6 +6,11 @@ jest.mock("@core/session/admin-session-context", () => ({
     loading: false,
   }),
 }));
+jest.mock("@shared/ui", () => {
+  // Estable entre renders, como el del `ToastProvider` real.
+  const toast = { show: jest.fn(), success: jest.fn(), error: (m: string) => mockToastError(m), dismiss: jest.fn() };
+  return { ...jest.requireActual("@shared/ui"), useToast: () => toast };
+});
 jest.mock("expo-image-picker", () => ({
   requestMediaLibraryPermissionsAsync: jest.fn(),
   launchImageLibraryAsync: jest.fn(),
@@ -25,6 +30,7 @@ jest.mock("../api", () => {
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import * as ImagePicker from "expo-image-picker";
 import { prepararAvatar } from "@shared/media/preparar-avatar";
+import { AdminApiError } from "@core/api/admin";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { quitarAvatarDelCliente, subirAvatarDelCliente, type FichaDelCliente } from "../api";
 import { ClienteDetalleScreen } from "./ClienteDetalleScreen";
@@ -33,6 +39,9 @@ const mockGet = jest.fn();
 const mockPost = jest.fn();
 const mockPatch = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
+const mockToastError = jest.fn();
 const picker = ImagePicker as jest.Mocked<typeof ImagePicker>;
 const preparar = prepararAvatar as jest.MockedFunction<typeof prepararAvatar>;
 const subirAvatar = subirAvatarDelCliente as jest.MockedFunction<typeof subirAvatarDelCliente>;
@@ -142,7 +151,7 @@ const HISTORIA = {
 async function pantalla() {
   const props = {
     route: { key: "k", name: "ClienteDetalle", params: { id: "c-1", titulo: "Juana" } },
-    navigation: { navigate: mockNavigate },
+    navigation: { navigate: mockNavigate, goBack: mockGoBack, setOptions: mockSetOptions },
   } as unknown as Parameters<typeof ClienteDetalleScreen>[0];
   return await render(<ClienteDetalleScreen {...props} />);
 }
@@ -182,6 +191,25 @@ describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
     expect(getByText("Otros datos que guardó el agente")).toBeTruthy();
     expect(getByText("M")).toBeTruthy();
     expect(mockGet).toHaveBeenCalledWith("/admin/leads/c-1");
+  });
+
+  it("pone el nombre del cliente como título al cargar la ficha (HU-CRM-20)", async () => {
+    await pantalla();
+    await waitFor(() => expect(mockSetOptions).toHaveBeenCalledWith({ title: "Juana Pérez" }));
+  });
+
+  it("si el cliente ya no existe avisa y vuelve a la lista (HU-CRM-20)", async () => {
+    mockGet.mockRejectedValue(new AdminApiError(404, "not_found", "Cliente no encontrado."));
+    await pantalla();
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("Ese cliente ya no está"));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("otro error de carga no vuelve atrás: ofrece reintentar", async () => {
+    mockGet.mockRejectedValue(new AdminApiError(500, "server_error", "Falló."));
+    const { findByText } = await pantalla();
+    expect(await findByText("No pudimos abrir el cliente")).toBeTruthy();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it("pausa el agente para el cliente", async () => {
