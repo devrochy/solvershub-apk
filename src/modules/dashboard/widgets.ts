@@ -131,10 +131,10 @@ export const WIDGETS: DefWidget[] = [
     titulo: "Tendencia de atención",
     forma: "grafico",
     permiso: "conversations",
-    endpoint: "GET /admin/dashboard?period=",
-    fuente: "ninguna",
+    endpoint: "GET /admin/dashboard/agents?dias=",
+    fuente: "agentes",
     perfiles: ["dueno"],
-    pendiente: HU_UI_07,
+    nota: "Turnos, conversaciones o costo por agente y día; ventana 7/15/30.",
   },
   {
     clave: "chart.recaudo_vs_meta",

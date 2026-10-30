@@ -1,10 +1,9 @@
+import { Linking } from "react-native";
 import { emitirNavegacion } from "@shared/navegacion-evento";
 import type { KpiPolarity } from "@shared/ui";
 import type { KpiResumen } from "./api";
-import { destinoDeResumen } from "./destinos";
-
-/** Contra qué se compara cuando el backend no lo dice: la ventana anterior del Resumen. */
-const VERSUS_POR_DEFECTO = "los 7 días anteriores";
+import { destinoDeResumen, urlDeResumen } from "./destinos";
+import { versusDeDias } from "./periodos";
 
 const SIN_DATO = "—";
 
@@ -44,17 +43,30 @@ export interface PropsDeKpi {
   onPress?: () => void;
 }
 
-/** Props de `KpiTile` para un KPI del Resumen: valor, variación con su polaridad y enlace. */
-export function propsDeKpi(k: KpiResumen): PropsDeKpi {
+/**
+ * Props de `KpiTile` para un KPI del Resumen: valor, variación con su polaridad y enlace.
+ * Si la app no tiene la pantalla, abre la del panel; así ninguna cifra queda muerta.
+ */
+export function propsDeKpi(
+  k: KpiResumen,
+  opciones: { dias?: number; tenantId?: string | null } = {},
+): PropsDeKpi {
+  const dias = opciones.dias ?? 7;
+  const tenantId = opciones.tenantId ?? null;
   const destino = destinoDeResumen(k.destino);
+  const url = destino ? null : urlDeResumen(k.destino, tenantId);
   const hayDelta = k.delta_pct !== null && k.delta_pct !== undefined;
   return {
     label: k.label,
     value: valorDeKpi(k),
     delta: hayDelta ? k.delta_pct! : undefined,
-    period: hayDelta ? frenteA(k.versus ?? VERSUS_POR_DEFECTO) : undefined,
+    period: hayDelta ? frenteA(k.versus ?? versusDeDias(dias)) : undefined,
     hint: k.hint ?? undefined,
     polarity: k.polaridad,
-    onPress: destino ? () => emitirNavegacion(destino) : undefined,
+    onPress: destino
+      ? () => emitirNavegacion(destino)
+      : url
+        ? () => void Linking.openURL(url)
+        : undefined,
   };
 }

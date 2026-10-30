@@ -46,8 +46,12 @@ function desdeRef() {
   }
 }
 
-let fuente = desdeRef();
-if (fuente) {
+const desdeEntorno = process.env.OPENAPI_PATH;
+let fuente = desdeEntorno && fs.existsSync(desdeEntorno) ? desdeEntorno : desdeRef();
+const temporal = fuente !== ARCHIVO && fuente !== desdeEntorno;
+if (fuente && fuente === desdeEntorno) {
+  console.log(`api:types: fuente OPENAPI_PATH=${desdeEntorno}`);
+} else if (fuente) {
   console.log(`api:types: fuente ${REF}:docs/openapi.json del backend`);
 } else if (fs.existsSync(ARCHIVO)) {
   fuente = ARCHIVO;
@@ -61,7 +65,7 @@ const bin = path.join(ROOT, "node_modules", ".bin", "openapi-typescript");
 try {
   execFileSync(bin, [fuente, "-o", SALIDA, "--alphabetize"], { stdio: "inherit" });
 } finally {
-  if (fuente !== ARCHIVO) {
+  if (temporal) {
     fs.rmSync(path.dirname(fuente), { recursive: true, force: true });
   }
 }
