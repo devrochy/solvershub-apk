@@ -117,8 +117,8 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
   });
 
   it("una entrada de un módulo con stack (Cobranza) llega a su pestaña por los params anidados", async () => {
-    // Solo Alertas de acceso: la primera pestaña permitida no es la de por defecto (Resumen).
-    mockSesionValue = { token: "t", adminId: "a-6", role: "owner", permissions: { "pack_cobranza:alertas": "read" } };
+    // Solo Auditoría: la primera pestaña permitida no es la de por defecto (Resumen).
+    mockSesionValue = { token: "t", adminId: "a-6", role: "owner", permissions: { "pack_cobranza:auditoria": "read" } };
     const { findByTestId, getByTestId } = await renderShell();
     await findByTestId("panel-menu");
 
@@ -130,20 +130,20 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toHaveStyle({ borderBottomWidth: 2 }));
   });
 
-  it("un push a Alertas de acceso abre el área Equipo con la sección en pantalla", async () => {
+  it("un push a Auditoría abre el área Equipo con la sección en pantalla", async () => {
     mockSesionValue = {
       ...DUENO,
-      permissions: { "pack_cobranza:resumen": "read", "pack_cobranza:alertas": "read", "pack_cobranza:auditoria": "read" },
+      permissions: { "pack_cobranza:resumen": "read", "pack_cobranza:gestores": "read", "pack_cobranza:auditoria": "read" },
     };
     const { findByTestId, getByTestId } = await renderShell();
     await findByTestId("panel-menu");
 
     await act(async () => {
-      emitirNavegacion({ tab: "cobranza", pestana: "alertas" });
+      emitirNavegacion({ tab: "cobranza", pestana: "auditoria" });
     });
 
     await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toHaveStyle({ borderBottomWidth: 2 }));
-    expect(getByTestId("cobranza-alertas").props.accessibilityState).toMatchObject({ selected: true });
+    expect(getByTestId("cobranza-auditoria").props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("el bus de navegación (push, Búsqueda) lleva al módulo y a la pestaña pedida", async () => {

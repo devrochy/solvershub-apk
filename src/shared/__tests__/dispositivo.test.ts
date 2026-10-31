@@ -18,6 +18,7 @@ jest.mock("expo-application", () => ({
 
 import {
   guardarWhatsappVinculacion,
+  idDelEquipo,
   imeiDelEquipo,
   leerWhatsappVinculacion,
 } from "../dispositivo";
@@ -32,5 +33,15 @@ describe("dispositivo (HU-39/43)", () => {
   it("persiste y lee el WhatsApp de vinculación", async () => {
     await guardarWhatsappVinculacion("3001234567");
     expect(await leerWhatsappVinculacion()).toBe("3001234567");
+  });
+});
+
+describe("identidad del equipo para la política de dispositivos (HU-ACC-05)", () => {
+  it("idDelEquipo devuelve id, etiqueta y plataforma", async () => {
+    const equipo = await idDelEquipo();
+    expect(equipo.plataforma === "android" || equipo.plataforma === "ios").toBe(true);
+    expect(typeof equipo.label).toBe("string");
+    expect(equipo.label.length).toBeLessThanOrEqual(80);
+    expect(typeof equipo.id).toBe("string");
   });
 });

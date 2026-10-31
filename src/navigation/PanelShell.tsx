@@ -25,6 +25,7 @@ import { ComercioScreen } from "../modules/comercio";
 import { CalendarioScreen } from "../modules/calendario";
 import { SuscripcionesScreen } from "../modules/suscripciones";
 import { AgentesScreen } from "../modules/agentes";
+import { SeguridadScreen } from "../modules/seguridad";
 import { NegocioScreen } from "../modules/negocio";
 import { ColaboradorDetalleScreen, ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
@@ -147,6 +148,12 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
       return (
         <ConHeader modulo={modulo}>
           <NegocioScreen pestanaInicial={pestanaInicial} />
+        </ConHeader>
+      );
+    case "seguridad":
+      return (
+        <ConHeader modulo={modulo}>
+          <SeguridadScreen pestanaInicial={pestanaInicial} />
         </ConHeader>
       );
     case "configuracion":

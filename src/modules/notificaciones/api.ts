@@ -1,4 +1,5 @@
 import { apiV1 } from "@core/config";
+import { fetchApi } from "@core/api/http";
 
 /**
  * Cliente de registro de dispositivos de push (ADR-0095, HU-APP-05).
@@ -11,7 +12,7 @@ export async function registrarPushToken(
   expoToken: string,
   platform: "android" | "ios",
 ): Promise<void> {
-  const res = await fetch(apiV1("/me/push-token"), {
+  const res = await fetchApi(apiV1("/me/push-token"), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${adminToken}`,
@@ -30,7 +31,7 @@ export async function darDeBajaPushToken(
   tenantId: string,
   expoToken: string,
 ): Promise<void> {
-  const res = await fetch(apiV1("/me/push-token"), {
+  const res = await fetchApi(apiV1("/me/push-token"), {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${adminToken}`,

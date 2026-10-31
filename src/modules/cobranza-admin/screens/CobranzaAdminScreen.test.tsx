@@ -105,10 +105,13 @@ describe("CobranzaAdminScreen (HU-APP-18; áreas en HU-UX-12)", () => {
     expect(queryByTestId("cobranza-alertas")).toBeNull();
 
     await fireEvent.press(getByTestId("cobranza-area-equipo"));
-    for (const seccion of ["gestores", "dispositivos", "alertas", "auditoria"]) {
+    for (const seccion of ["gestores", "auditoria"]) {
       expect(getByTestId(`cobranza-${seccion}`)).toBeTruthy();
     }
-    expect(getByText("Alertas de acceso")).toBeTruthy();
+    // Dispositivos y Alertas de acceso son del negocio (Seguridad, ADR-0174), no de Cobranza.
+    expect(queryByTestId("cobranza-dispositivos")).toBeNull();
+    expect(queryByTestId("cobranza-alertas")).toBeNull();
+    expect(queryByText("Alertas de acceso")).toBeNull();
 
     await fireEvent.press(getByTestId("cobranza-area-asistente"));
     expect(getByText("Monitoreo IA")).toBeTruthy();
@@ -159,46 +162,6 @@ describe("CobranzaAdminScreen (HU-APP-18; áreas en HU-UX-12)", () => {
     alertSpy.mockRestore();
   });
 
-  it("aprueba un dispositivo pendiente", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
-      botones?.find((b) => b.text === "Aprobar")?.onPress?.();
-    });
-
-    const { getByTestId, getByText } = await render(<CobranzaAdminScreen />);
-    await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toBeTruthy());
-
-    await fireEvent.press(getByTestId("cobranza-area-equipo"));
-    await fireEvent.press(getByTestId("cobranza-dispositivos"));
-    await waitFor(() => expect(getByText("Gestor Demo")).toBeTruthy());
-    await fireEvent.press(getByText("pendiente"));
-    await waitFor(() =>
-      expect(mockPost).toHaveBeenCalledWith("/pack/cobranza/devices/d-1/status", {
-        estado: "activo",
-      }),
-    );
-    alertSpy.mockRestore();
-  });
-
-  it("Dispositivos no repite los intentos de acceso (los tiene Alertas de acceso)", async () => {
-    mockGet.mockImplementation((path: string) =>
-      path === "/pack/cobranza/devices"
-        ? Promise.resolve({
-            pendientes: 0,
-            dispositivos: [{ id: "d-1", codigo: "D1", gestor: "Gestor Demo", imei: "123", whatsapp: null, estado: "activo", vinculado: true }],
-            intentos: [{ fecha: "2026-10-06", gestor: "Intruso", resultado: "denegado" }],
-            eventos: [],
-          })
-        : path === "/pack/cobranza/summary"
-          ? Promise.resolve({ kpis: [] })
-          : Promise.resolve({}),
-    );
-    const { getByTestId, getByText, queryByText } = await render(<CobranzaAdminScreen pestanaInicial={{ pestana: "dispositivos", n: 1 }} />);
-    await waitFor(() => expect(getByText("Gestor Demo")).toBeTruthy());
-    expect(queryByText(/intento/i)).toBeNull();
-    expect(queryByText("Intruso")).toBeNull();
-    seleccionada(getByTestId("cobranza-dispositivos"));
-  });
-
   it("lista carteras y abre su detalle", async () => {
     const { getByTestId, getByText } = await render(<CobranzaAdminScreen />);
     await waitFor(() => expect(getByTestId("cobranza-area-carteras")).toBeTruthy());
@@ -209,7 +172,7 @@ describe("CobranzaAdminScreen (HU-APP-18; áreas en HU-UX-12)", () => {
     expect(mockNavigate).toHaveBeenCalledWith("CarteraDetalle", { id: "car-1", titulo: "Cobranza Demo" });
   });
 
-  it("muestra reportes y alertas con sus KPIs", async () => {
+  it("muestra reportes con sus KPIs", async () => {
     const { getByTestId, getByText } = await render(<CobranzaAdminScreen />);
     await waitFor(() => expect(getByTestId("cobranza-area-actividad")).toBeTruthy());
 
@@ -217,9 +180,6 @@ describe("CobranzaAdminScreen (HU-APP-18; áreas en HU-UX-12)", () => {
     await fireEvent.press(getByTestId("cobranza-reportes"));
     await waitFor(() => expect(getByText("2 clientes · 1 préstamos · saldo $600")).toBeTruthy());
 
-    await fireEvent.press(getByTestId("cobranza-area-equipo"));
-    await fireEvent.press(getByTestId("cobranza-alertas"));
-    await waitFor(() => expect(getByText("3 intentos · 1 denegados")).toBeTruthy());
   });
 
   it("Monitoreo IA deja los contadores y manda a Promesas, sin repetir la lista", async () => {
@@ -263,9 +223,9 @@ describe("CobranzaAdminScreen (HU-APP-18; áreas en HU-UX-12)", () => {
   });
 
   it("abre en la pestaña pedida por el cajón o un push (la clave de la pestaña no cambia) y su área", async () => {
-    const { getByTestId } = await render(<CobranzaAdminScreen pestanaInicial={{ pestana: "alertas", n: 1 }} />);
+    const { getByTestId } = await render(<CobranzaAdminScreen pestanaInicial={{ pestana: "auditoria", n: 1 }} />);
     await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toHaveStyle({ borderBottomWidth: 2 }));
-    seleccionada(getByTestId("cobranza-alertas"));
+    seleccionada(getByTestId("cobranza-auditoria"));
   });
 
   it("un push a una pestaña oculta (clientes) abre Carteras con Clientes en pantalla", async () => {
@@ -280,22 +240,22 @@ describe("CobranzaAdminScreen (HU-APP-18; áreas en HU-UX-12)", () => {
     Object.assign(SESION_ESTABLE, { role: "owner", permissions: { "pack_cobranza:resumen": "read" } });
     try {
       const { getByTestId, queryByTestId } = await render(
-        <CobranzaAdminScreen pestanaInicial={{ pestana: "alertas", n: 1 }} />,
+        <CobranzaAdminScreen pestanaInicial={{ pestana: "auditoria", n: 1 }} />,
       );
       await waitFor(() => expect(getByTestId("cobranza-area-resumen")).toHaveStyle({ borderBottomWidth: 2 }));
       expect(queryByTestId("cobranza-area-equipo")).toBeNull();
-      expect(queryByTestId("cobranza-alertas")).toBeNull();
+      expect(queryByTestId("cobranza-auditoria")).toBeNull();
     } finally {
       Object.assign(SESION_ESTABLE, original);
     }
   });
 
-  it("quien solo tiene Alertas de acceso ve Equipo sin segunda fila", async () => {
+  it("quien solo tiene Gestores ve Equipo sin segunda fila", async () => {
     const original = { ...SESION_ESTABLE };
-    Object.assign(SESION_ESTABLE, { role: "owner", permissions: { "pack_cobranza:alertas": "read" } });
+    Object.assign(SESION_ESTABLE, { role: "owner", permissions: { "pack_cobranza:gestores": "read" } });
     try {
-      const { getByTestId, getByText, queryByTestId } = await render(<CobranzaAdminScreen />);
-      await waitFor(() => expect(getByText("3 intentos · 1 denegados")).toBeTruthy());
+      const { getByTestId, queryByTestId } = await render(<CobranzaAdminScreen />);
+      await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toBeTruthy());
       seleccionada(getByTestId("cobranza-area-equipo"));
       expect(queryByTestId("cobranza-secciones")).toBeNull();
       expect(queryByTestId("cobranza-area-actividad")).toBeNull();

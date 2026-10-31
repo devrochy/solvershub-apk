@@ -1,5 +1,6 @@
 import { apiV1 } from "@core/config";
 import type { AdminSesion } from "@core/session/types";
+import { fetchApi } from "./http";
 
 /**
  * Cliente HTTP autenticado de la API admin `/api/v1` (ADR-0076/0077): agrega
@@ -72,7 +73,7 @@ async function pedirTexto(
   sesion: AdminSesion | null,
   path: string,
 ): Promise<TextoDescargado> {
-  const res = await fetch(apiV1(path), { method: "GET", headers: cabecerasDe(sesion) });
+  const res = await fetchApi(apiV1(path), { method: "GET", headers: cabecerasDe(sesion) });
   if (!res.ok) {
     throw await errorDeRespuesta(res);
   }
@@ -85,11 +86,14 @@ async function errorDeRespuesta(res: Response): Promise<AdminApiError> {
   let fields: Record<string, string> | undefined;
   try {
     const data = (await res.json()) as {
-      error?: { code?: string; message?: string; fields?: Record<string, unknown> };
+      error?: string | { code?: string; message?: string; fields?: Record<string, unknown> };
+      code?: string;
     };
-    code = data.error?.code ?? code;
-    message = data.error?.message ?? message;
-    const campos = Object.entries(data.error?.fields ?? {}).filter(
+    // Dos formatos (ADR-0174): del core `{error: {code, message}}` y del pack `{error: "texto", code}`.
+    const anidado = typeof data.error === "object" ? data.error : undefined;
+    code = anidado?.code ?? data.code ?? code;
+    message = anidado?.message ?? (typeof data.error === "string" ? data.error : undefined) ?? message;
+    const campos = Object.entries(anidado?.fields ?? {}).filter(
       (par): par is [string, string] => typeof par[1] === "string",
     );
     if (campos.length > 0) fields = Object.fromEntries(campos);
@@ -107,7 +111,7 @@ async function pedir<T>(
   extraHeaders?: Record<string, string>,
 ): Promise<T> {
   const headers = cabecerasDe(sesion, extraHeaders, body !== undefined);
-  const res = await fetch(apiV1(path), {
+  const res = await fetchApi(apiV1(path), {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
