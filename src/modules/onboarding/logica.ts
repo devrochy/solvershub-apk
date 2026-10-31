@@ -70,26 +70,6 @@ export const TIPOS_DE_NEGOCIO: {
   },
 ];
 
-export type QueVende = "productos" | "planes" | "ambos";
-
-export const OPCIONES_QUE_VENDE: {
-  id: QueVende;
-  titulo: string;
-  ayuda: string;
-}[] = [
-  {
-    id: "productos",
-    titulo: "Productos",
-    ayuda: "Toma el pedido: ítems, entrega y pago.",
-  },
-  {
-    id: "planes",
-    titulo: "Planes",
-    ayuda: "Contrata el plan que elige el cliente.",
-  },
-  { id: "ambos", titulo: "Los dos", ayuda: "Productos y planes." },
-];
-
 // --------------------------------------------------------------------------------------- voz
 
 export type Tono = "cercano" | "formal" | "neutral" | "informal";
@@ -361,7 +341,6 @@ export function motivosDePalabras(palabras: string[]): MotivoDeEscalar[] {
 
 export type EstadoDelAsistente = {
   tipo: TipoDeNegocio | null;
-  queVende: QueVende;
   negocio: string;
   descripcion: string;
   nombreDelAgente: string;
@@ -376,7 +355,6 @@ export type EstadoDelAsistente = {
 
 export const ESTADO_INICIAL: EstadoDelAsistente = {
   tipo: null,
-  queVende: "productos",
   negocio: "",
   descripcion: "",
   nombreDelAgente: "",
@@ -428,10 +406,7 @@ export function plantillaDe(tipo: TipoDeNegocio): string {
 export function respuestasDeCreacion(
   estado: EstadoDelAsistente,
 ): Record<string, string> {
-  return {
-    largo_respuesta: estado.largo,
-    ...(estado.tipo === "ventas" ? { que_vendes: estado.queVende } : {}),
-  };
+  return { largo_respuesta: estado.largo };
 }
 
 /**

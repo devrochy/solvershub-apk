@@ -69,8 +69,8 @@ import { PasoNegocio, PasoReglas, PasoVoz } from "./Pasos";
 const MENSAJE_DE_RED =
   "Se cortó la conexión. Lo que elegiste sigue aquí: vuelve a intentarlo.";
 
-/** Borrador local: lo que el servidor no guarda por sí mismo (tipo de negocio, qué vende y nombre comercial). */
-type Borrador = Pick<EstadoDelAsistente, "tipo" | "queVende" | "negocio">;
+/** Borrador local: lo que el servidor no guarda por sí mismo (tipo de negocio y nombre comercial). */
+type Borrador = Pick<EstadoDelAsistente, "tipo" | "negocio">;
 
 const claveDeBorrador = (negocioId: string | null) =>
   `sh-onboarding:${negocioId ?? "sin-negocio"}`;
@@ -107,7 +107,6 @@ export function RecorridoScreen() {
     (e: EstadoDelAsistente) => {
       const b: Borrador = {
         tipo: e.tipo,
-        queVende: e.queVende,
         negocio: e.negocio,
       };
       void secureSet(claveDeBorrador(negocioId), JSON.stringify(b)).catch(
