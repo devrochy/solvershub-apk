@@ -13879,6 +13879,23 @@ export interface components {
             /** Value */
             value?: string | null;
         };
+        /**
+         * LeadFacetaOut
+         * @description Cuántos clientes hay por opción de un filtro, con el resto de los filtros de la lista aplicados
+         *     (pero no el propio, para que las pestañas de un mismo filtro sumen contra el mismo total).
+         */
+        LeadFacetaOut: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Key */
+            key: string;
+            /** Sin Valor */
+            sin_valor: number;
+            /** Total */
+            total: number;
+        };
         /** LeadFact */
         LeadFact: {
             /** Data Class */
@@ -14090,6 +14107,8 @@ export interface components {
             perfil: components["schemas"]["LeadPerfilOut"];
             /** Telefono */
             telefono?: string | null;
+            /** Ultima Actividad */
+            ultima_actividad?: string | null;
         };
         /** LeadsResponse */
         LeadsResponse: {
@@ -14097,6 +14116,8 @@ export interface components {
             agents: components["schemas"]["LeadAgentOut"][];
             /** Columns */
             columns: components["schemas"]["LeadColumn"][];
+            /** Facetas */
+            facetas?: components["schemas"]["LeadFacetaOut"][];
             /** Filters */
             filters?: components["schemas"]["LeadFilter"][];
             /** Has More */
@@ -25767,8 +25788,12 @@ export interface operations {
                 channel?: string | null;
                 /** @description Solo los clientes que escribieron por esta conexión. */
                 connection_id?: string | null;
+                /** @description Claves de `filters` de las que se quieren contadores por opción (se repite el parámetro). Una clave que no declara ningún pack, o que no sabe contar, responde 400 `filtro_invalido`. */
+                facetas?: string[] | null;
                 /** @description Filtro de un pack como `clave:valor` (ver `filters` de la respuesta). */
                 filtro?: string[] | null;
+                /** @description `alta` (por defecto, el más nuevo primero), `actividad` (último mensaje, el más reciente primero; los clientes sin mensajes van al final), `nombre` o `nombre_desc`. */
+                orden?: "alta" | "actividad" | "nombre" | "nombre_desc";
                 page?: number;
                 page_size?: number;
                 /** @description Busca por nombre, identificador o teléfono. */
