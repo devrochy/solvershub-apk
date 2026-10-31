@@ -148,4 +148,4 @@ antes y después; si el hash cambia, va AAB.
   El bundle publicado lleva la API de test y no la de `.env.local`.
 - Pendiente: la cuenta de Play Console (pasos de arriba).
 - 2026-10-28: migración a Expo SDK 58 (RN 0.88, React 19.3) y Strict TypeScript API; R8
-  apagado solo en `preview`; `expo-doctor` 20/20 y 1208 tests en verde.
+  con el default del SDK; `expo-doctor` 20/20 y la suite completa en verde.

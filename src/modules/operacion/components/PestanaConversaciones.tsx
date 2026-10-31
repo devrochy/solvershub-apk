@@ -6,6 +6,8 @@ import { useAdminApi } from "@core/session/use-admin-api";
 import { Button, EmptyState, Skeleton, useKit } from "@shared/ui";
 import { listarConexiones, type ConversationConnection, type ConversationSummary } from "../api";
 import { useConversacionesEnVivo } from "../use-en-vivo";
+import { useVistos } from "../use-vistos";
+import { actividadDelChat } from "../vistos";
 import { FiltrosConversaciones, type FiltrosDeConversaciones } from "./FiltrosConversaciones";
 import { TarjetaConversacion } from "./TarjetaConversacion";
 
@@ -32,6 +34,7 @@ export function PestanaConversaciones({
   const { c } = useKit();
   const api = useAdminApi();
   const enfocada = useIsFocused();
+  const { marcar, visto } = useVistos();
   const [filtros, setFiltros] = useState<FiltrosDeConversaciones>({ q: "" });
   const [busqueda, setBusqueda] = useState("");
   const [conexiones, setConexiones] = useState<ConversationConnection[]>([]);
@@ -58,6 +61,7 @@ export function PestanaConversaciones({
   const {
     items,
     hayMas,
+    total,
     cargando,
     cargandoMas,
     refrescando,
@@ -83,6 +87,15 @@ export function PestanaConversaciones({
     setBusqueda("");
   }, []);
 
+  // Al abrir, el chat queda visto en este dispositivo: su píldora desaparece al volver.
+  const abrir = useCallback(
+    (chat: ConversationSummary) => {
+      marcar(chat.id, actividadDelChat(chat));
+      onAbrir(chat);
+    },
+    [marcar, onAbrir],
+  );
+
   const hayFiltros = Boolean(filtros.q || filtros.status || filtros.connectionId);
 
   if (cargando && items.length === 0) {
@@ -101,6 +114,17 @@ export function PestanaConversaciones({
   return (
     <View style={styles.contenedor}>
       <FiltrosConversaciones filtros={filtros} conexiones={conexiones} onChange={cambiarFiltros} />
+
+      <View style={styles.resumen}>
+        <Text style={[shType.caption, { color: c.textSoft }]} maxFontSizeMultiplier={1.6}>
+          {total === 1 ? "1 conversación" : `${total} conversaciones`}
+        </Text>
+        {hayFiltros ? (
+          <Text style={[shType.caption, { color: c.textSoft }]} maxFontSizeMultiplier={1.6}>
+            con filtros
+          </Text>
+        ) : null}
+      </View>
 
       {error && items.length > 0 ? (
         <View style={[styles.aviso, { backgroundColor: c.statusDangerBg, borderColor: c.statusDangerBorder }]}>
@@ -164,7 +188,7 @@ export function PestanaConversaciones({
           ) : undefined
         }
         renderItem={({ item }) => (
-          <TarjetaConversacion chat={item} onPress={() => onAbrir(item)} />
+          <TarjetaConversacion chat={item} onPress={() => abrir(item)} visto={visto(item)} />
         )}
       />
     </View>
@@ -173,6 +197,13 @@ export function PestanaConversaciones({
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1 },
+  resumen: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: shSpace[1],
+    paddingBottom: shSpace[1],
+  },
   lista: { gap: shSpace[2], paddingBottom: shSpace[6] },
   esqueleto: {
     flexDirection: "row",

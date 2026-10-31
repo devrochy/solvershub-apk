@@ -14,7 +14,7 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
       ["Operación", ["Resumen", "Conversaciones", "Clientes"]],
       ["Tu asistente", ["Agentes", "Conexiones"]],
       ["Negocio", ["Agenda", "Ventas", "Cobranza", "Suscripciones"]],
-      ["Cuenta", ["Consumo y plan", "Equipo", "Configuración"]],
+      ["Cuenta", ["Consumo y plan", "Equipo", "Seguridad", "Configuración"]],
       ["Plataforma", ["Negocios"]],
     ]);
     // Sin el módulo Herramientas: sus secciones viven en Configuración y Plataforma.
@@ -48,13 +48,27 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
       Resumen: ["Resumen"],
       Carteras: ["Carteras", "Clientes"],
       Actividad: ["Pagos", "Promesas", "Reportes"],
-      Equipo: ["Gestores", "Dispositivos", "Alertas de acceso", "Auditoría"],
+      Equipo: ["Gestores", "Auditoría"],
       Asistente: ["Monitoreo IA", "Reglas de negociación"],
     });
     expect(Object.keys(porArea)).toEqual(["Resumen", "Carteras", "Actividad", "Equipo", "Asistente"]);
     expect(cobranza.pestanas.every((p) => p.sub)).toBe(true);
     expect(cobranza.pestanas.map((p) => p.label.toLowerCase()).join(" ")).not.toContain("propietario");
     expect(cobranza.destino).toMatchObject({ pestana: "resumen" });
+  });
+
+  it("Seguridad es una entrada del negocio con Dispositivos y Alertas, según sus secciones (HU-ACC-05)", () => {
+    const todo = gruposDeMenu({}, true, { dev: false }).flatMap((g) => g.entradas).find((e) => e.id === "seguridad")!;
+    expect(todo.pestanas).toEqual([
+      expect.objectContaining({ label: "Dispositivos", modulo: "seguridad", seccion: "devices" }),
+      expect.objectContaining({ label: "Alertas de acceso", modulo: "seguridad", seccion: "access_alerts" }),
+    ]);
+    const soloAlertas = seccionesDeMenu({ access_alerts: "read" }, false, { dev: false });
+    expect(soloAlertas).toEqual([
+      expect.objectContaining({ entrada: "seguridad", modulo: "seguridad", pestana: "alertas", grupo: "Cuenta" }),
+    ]);
+    // Los permisos viejos del pack ya no abren nada: el core copió las concesiones.
+    expect(seccionesDeMenu({ "pack_cobranza:dispositivos": "write" }, false, { dev: false })).toEqual([]);
   });
 
   it("Agenda es una sola vista y se abre con `pack_calendar:citas` (HU-CAL-08)", () => {
@@ -76,7 +90,7 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
       oculta: true,
     });
     expect(cobranza.pestanas.find((p) => p.pestana === "pagos")).toMatchObject({ seccion: "pack_cobranza:cobros" });
-    expect(cobranza.pestanas.filter((p) => !p.oculta)).toHaveLength(11);
+    expect(cobranza.pestanas.filter((p) => !p.oculta)).toHaveLength(9);
     // Quien solo puede ver Clientes sigue entrando a Cobranza, directo a esa pestaña.
     const soloClientes = gruposDeMenu({ "pack_cobranza:clientes": "read" }, false, { dev: false })
       .flatMap((g) => g.entradas)
@@ -90,12 +104,14 @@ describe("menú del panel en la app (HU-DS-11, D-34; menú v2, HU-UX-11)", () =>
       .flatMap((g) => g.entradas)
       .find((e) => e.id === "cobranza")!;
     const { pestanas } = pestanasDeEntrada(cobranza);
-    expect(pestanas.find((p) => p.pestana === "alertas")).toEqual({
+    expect(pestanas.find((p) => p.pestana === "auditoria")).toEqual({
       tab: "cobranza",
-      pestana: "alertas",
-      label: "Alertas de acceso",
+      pestana: "auditoria",
+      label: "Auditoría",
       sub: "Equipo",
     });
+    // Dispositivos y Alertas de acceso son del negocio: ya no están en Cobranza (ADR-0174).
+    expect(pestanas.find((p) => p.pestana === "alertas" || p.pestana === "dispositivos")).toBeUndefined();
     expect(pestanas.find((p) => p.pestana === "clientes")).toEqual({
       tab: "cobranza",
       pestana: "clientes",

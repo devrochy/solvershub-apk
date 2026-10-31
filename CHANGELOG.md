@@ -7,8 +7,16 @@
 
 ### Nuevo
 
+- Seguridad del negocio (SPEC-42, ADR-0174): la app registra el teléfono (`X-Device-Id` en toda
+  petición, también el refresh, y `device-session` al elegir negocio y al reanudar) y, si el
+  dueño aún no lo aprueba o lo bloqueó, muestra una pantalla que lo explica en vez de un error;
+  la espera sondea cada 10 s y entra sola al aprobarse. Dispositivos y Alertas de acceso pasan de
+  Cobranza a la entrada «Seguridad» del cajón (secciones `devices` y `access_alerts`).
 - Logo definitivo de SolversHub en el ícono (iOS y adaptativo de Android, con capa
   monocroma para íconos temáticos), el splash y la pantalla de login.
+- Splash compacto (logo a 220 dp sobre navy profundo) que se retiene hasta que la app está
+  lista, y presentación en video de primer inicio para quien aún no tiene sesión: omitible,
+  silenciada por defecto, con botón de sonido y respeto por “reducir movimiento”.
 - Login unificado (panel + campo vía intercambio de tokens), recuperación de contraseña con
   código de un solo uso y desbloqueo biométrico opt-in.
 - PanelShell por permisos: Dashboard con KPIs, Operación (conversaciones con acciones,

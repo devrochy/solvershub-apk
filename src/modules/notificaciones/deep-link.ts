@@ -30,8 +30,13 @@ export function destinoDeNotificacion(destino: NotificacionDestino | null | unde
       return { tab: "conversaciones", pestana: destino.section === "escalations" ? "escalaciones" : "conversaciones" };
     case "escalacion":
       return { tab: "conversaciones", pestana: "escalaciones" };
-    case "lead":
     case "cliente":
+      // HU-CRM-20: la ficha se abre por id de cliente. Sin id, la lista de Clientes.
+      return destino.id
+        ? { tab: "conversaciones", pestana: "leads", cliente: destino.id }
+        : { tab: "conversaciones", pestana: "leads" };
+    case "lead":
+      // El `id` de un aviso `lead` es el del lead, no el del cliente: no abre ninguna ficha.
       return { tab: "conversaciones", pestana: "leads" };
     case "pedido":
     case "pago":

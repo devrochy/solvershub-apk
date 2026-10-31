@@ -7,8 +7,10 @@ jest.mock("@core/session/admin-session-context", () => ({
   }),
 }));
 
-import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { AdminApiError } from "@core/api/admin";
 import { OperacionScreen } from "./OperacionScreen";
 
 const mockUseAdminApi = useAdminApi as jest.Mock;
@@ -66,7 +68,8 @@ const PAGINA_CONVERSACIONES = {
 };
 
 describe("OperacionScreen (HU-APP-08)", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
     jest.clearAllMocks();
     mockUseAdminApi.mockReturnValue(cliente);
     mockPost.mockResolvedValue({ bot_paused: true });
@@ -148,6 +151,18 @@ describe("OperacionScreen (HU-APP-08)", () => {
         "/admin/conversations",
         expect.objectContaining({ q: "juan", page: 1 }),
       ),
+    );
+  });
+
+  it("al abrir una conversación desaparece su conteo de pendientes", async () => {
+    const { getByTestId, queryByTestId } = await render(<OperacionScreen />);
+    await waitFor(() => expect(getByTestId("pendientes-cv-1")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("conversacion-cv-1"));
+
+    await waitFor(() => expect(queryByTestId("pendientes-cv-1")).toBeNull());
+    expect(getByTestId("conversacion-cv-1").props.accessibilityLabel).not.toContain(
+      "sin responder",
     );
   });
 
@@ -425,6 +440,94 @@ describe("OperacionScreen (HU-APP-08)", () => {
     const { getByTestId } = await render(
       <OperacionScreen pestanaInicial={{ pestana: "escalaciones", n: 1 }} />,
     );
-    await waitFor(() => expect(getByTestId("pestana-escalaciones")).toHaveStyle({ borderBottomWidth: 2 }));
+    await waitFor(() =>
+      expect(getByTestId("pestana-escalaciones").props.accessibilityState.selected).toBe(true),
+    );
+  });
+  describe("cambio rápido de etapa (HU-CRM-19)", () => {
+    const ETAPAS_DEL_PACK = ["nuevo", "calificado", "contactado", "convertido", "perdido"].map((v) => ({
+      value: v,
+      label: v[0].toUpperCase() + v.slice(1),
+    }));
+
+    function leadEnEtapa(etapa: string) {
+      const base = mockGet.getMockImplementation()!;
+      mockGet.mockImplementation(async (path: string, params?: unknown) => {
+        const respuesta = await base(path, params);
+        if (path !== "/admin/leads") return respuesta;
+        return {
+          ...respuesta,
+          items: [
+            { ...respuesta.items[0], agentes: ["general", "ventas"], extras: { estado_lead: etapa } },
+          ],
+          filters: [{ key: "estado_lead", label: "Etapa", options: ETAPAS_DEL_PACK }],
+        };
+      });
+    }
+
+    /** La hoja también lista las etapas, así que el texto de la tarjeta se busca dentro de su etapa. */
+    const etapaDeLaTarjeta = (get: (id: string) => Parameters<typeof within>[0]) => within(get("lead-etapa-l-1"));
+
+    async function abrirHoja() {
+      const pantalla = await render(<OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} />);
+      await waitFor(() => expect(pantalla.getByTestId("lista-leads")).toBeTruthy());
+      await fireEvent.press(pantalla.getByTestId("lead-etapa-l-1"));
+      return pantalla;
+    }
+
+    it("cambia la etapa al instante y guarda en el pack comercio", async () => {
+      leadEnEtapa("Calificado");
+      let terminar: (v: unknown) => void = () => undefined;
+      cliente.patch.mockReturnValue(new Promise((r) => (terminar = r)));
+      const { getByTestId } = await abrirHoja();
+
+      await fireEvent.press(getByTestId("etapa-contactado"));
+      // antes de que el servidor responda, la tarjeta ya cambió
+      await waitFor(() => expect(getByTestId("lead-etapa-badge-l-1")).toBeTruthy());
+      expect(etapaDeLaTarjeta(getByTestId).getByText("Contactado")).toBeTruthy();
+      expect(etapaDeLaTarjeta(getByTestId).queryByText("Calificado")).toBeNull();
+      expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+        valores: { estado_lead: "contactado" },
+      });
+      await act(async () => terminar({}));
+    });
+
+    it("si falla la red vuelve a la etapa anterior y permite reintentar", async () => {
+      leadEnEtapa("Calificado");
+      cliente.patch.mockRejectedValueOnce(new TypeError("Network request failed"));
+      const { getByTestId, queryByTestId } = await abrirHoja();
+
+      await fireEvent.press(getByTestId("etapa-contactado"));
+      await waitFor(() => expect(getByTestId("etapa-reintentar")).toBeTruthy());
+      expect(etapaDeLaTarjeta(getByTestId).getByText("Calificado")).toBeTruthy();
+
+      cliente.patch.mockResolvedValueOnce({});
+      await fireEvent.press(getByTestId("etapa-reintentar"));
+      await waitFor(() => expect(etapaDeLaTarjeta(getByTestId).getByText("Contactado")).toBeTruthy());
+      expect(queryByTestId("etapa-aviso")).toBeNull();
+      expect(cliente.patch).toHaveBeenCalledTimes(2);
+    });
+
+    it("si el servidor la rechaza muestra su motivo y la etapa no cambia", async () => {
+      leadEnEtapa("Perdido");
+      cliente.patch.mockRejectedValueOnce(
+        new AdminApiError(409, "transicion_no_permitida", "Solo una persona puede reabrir un lead perdido."),
+      );
+      const { getByTestId, getByText, queryByTestId } = await abrirHoja();
+
+      await fireEvent.press(getByTestId("etapa-nuevo"));
+      await waitFor(() =>
+        expect(getByText("Solo una persona puede reabrir un lead perdido.")).toBeTruthy(),
+      );
+      expect(etapaDeLaTarjeta(getByTestId).getByText("Perdido")).toBeTruthy();
+      expect(queryByTestId("etapa-reintentar")).toBeNull();
+    });
+
+    it("elegir la etapa actual solo cierra la hoja", async () => {
+      leadEnEtapa("Calificado");
+      const { getByTestId } = await abrirHoja();
+      await fireEvent.press(getByTestId("etapa-calificado"));
+      expect(cliente.patch).not.toHaveBeenCalled();
+    });
   });
 });

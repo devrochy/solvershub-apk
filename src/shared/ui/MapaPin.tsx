@@ -1,18 +1,20 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { shRadius } from "@core/theme/tokens";
-import { useKit } from "@shared/ui";
 import { StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
+import { useKit } from "./tema";
 
 export interface MapaPinProps {
   latitud: number;
   longitud: number;
   onChange(latitud: number, longitud: number): void;
+  /** Solo muestra el pin; no deja arrastrarlo ni moverlo con un toque. */
+  soloLectura?: boolean;
   alto?: number;
   testID?: string;
 }
 
-function htmlMapaPin(latitud: number, longitud: number): string {
+function htmlMapaPin(latitud: number, longitud: number, soloLectura: boolean): string {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -24,14 +26,21 @@ function htmlMapaPin(latitud: number, longitud: number): string {
 <body>
 <div id="map"></div>
 <script>
+  var soloLectura = ${soloLectura ? "true" : "false"};
   var map = L.map('map').setView([${latitud}, ${longitud}], 16);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-  var marker = L.marker([${latitud}, ${longitud}], { draggable: true }).addTo(map);
+  var marker = L.marker([${latitud}, ${longitud}], { draggable: !soloLectura }).addTo(map);
   function enviar() {
     var pos = marker.getLatLng();
     window.ReactNativeWebView.postMessage(JSON.stringify({ latitud: pos.lat, longitud: pos.lng }));
   }
-  marker.on('dragend', enviar);
+  if (!soloLectura) {
+    marker.on('dragend', enviar);
+    map.on('click', function (evento) {
+      marker.setLatLng(evento.latlng);
+      enviar();
+    });
+  }
   function mover(lat, lng) {
     if (marker) marker.setLatLng([lat, lng]);
   }
@@ -42,23 +51,32 @@ function htmlMapaPin(latitud: number, longitud: number): string {
 
 /**
  * Mapa táctil con pin arrastrable (edición de ubicación del cliente): WebView
- * con Leaflet + OpenStreetMap y un marker draggable que notifica las nuevas
- * coordenadas a React Native por el bridge postMessage. Los campos numéricos
- * de lat/lng se sincronizan con el pin. El HTML se genera una sola vez (evita
- * recargar el mapa al cambiar coordenadas); los cambios externos de lat/lng
- * mueven el marker vía injectJavaScript.
+ * con Leaflet + OpenStreetMap y un marker que notifica las nuevas coordenadas a
+ * React Native por el bridge postMessage. Un toque en el mapa también mueve el
+ * pin. Los cambios externos de lat/lng se reflejan con injectJavaScript; en
+ * `soloLectura` el mapa no permite moverlo.
  */
 export function MapaPin({
   latitud,
   longitud,
   onChange,
+  soloLectura = false,
   alto = 180,
   testID = "mapa-pin",
 }: MapaPinProps) {
   const { c } = useKit();
-  const html = useMemo(() => htmlMapaPin(latitud, longitud), [latitud, longitud]);
+  const [inicial] = useState({ latitud, longitud });
+  const actual = useRef({ latitud, longitud });
+  const html = useMemo(
+    () => htmlMapaPin(inicial.latitud, inicial.longitud, soloLectura),
+    [inicial, soloLectura],
+  );
   const webviewRef = useRef<InstanceType<typeof WebView> | null>(null);
   const primerRender = useRef(true);
+
+  useEffect(() => {
+    actual.current = { latitud, longitud };
+  }, [latitud, longitud]);
 
   useEffect(() => {
     // Ignorar el primer render: el marker ya nace en las coords iniciales.
@@ -79,7 +97,13 @@ export function MapaPin({
         source={{ html }}
         javaScriptEnabled
         originWhitelist={["*"]}
+        onLoadEnd={() => {
+          webviewRef.current?.injectJavaScript(
+            `if (typeof mover === 'function') { mover(${actual.current.latitud}, ${actual.current.longitud}); } true;`,
+          );
+        }}
         onMessage={(event) => {
+          if (soloLectura) return;
           try {
             const data = JSON.parse(event.nativeEvent.data) as {
               latitud: number;

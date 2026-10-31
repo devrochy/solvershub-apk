@@ -37,8 +37,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "La app usa tus fotos como evidencia de gastos.",
-          "cameraPermission": "La app usa la cámara para tomar evidencias de gastos.",
+          "photosPermission": "La app usa tus fotos para la foto de perfil, la foto de un cliente o una evidencia de gastos.",
+          "cameraPermission": "La app usa la cámara para la foto de un cliente o una evidencia de gastos.",
           "microphonePermission": false
         }
       ],
@@ -57,12 +57,13 @@
           }
         }
       ],
+      "expo-video",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#172f6c",
-          "image": "./assets/logo-transparente.png",
-          "imageWidth": 250,
+          "backgroundColor": "#0b1733",
+          "image": "./assets/splash-vacio.png",
+          "imageWidth": 288,
           "resizeMode": "contain"
         }
       ],

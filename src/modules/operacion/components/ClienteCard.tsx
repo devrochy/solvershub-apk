@@ -8,14 +8,17 @@ import {
   etiquetaClasificacion,
   telefonoVisible,
   ubicacionVisible,
+  urlAvatarCliente,
 } from "@shared/domain/formato-clientes";
 import type { LeadAgentOut, LeadRow } from "../api";
 import { AgentIcon, ChannelIcon } from "./iconos-clientes";
 import { BotonDelBot } from "./BotonDelBot";
+import { etapaDeFila, type OpcionDeEtapa } from "../etapas";
 
 type Tono = "neutral" | "accent" | "success" | "warning" | "danger";
 
 const CLASIFICACION: Record<string, { tone: Tono; icon: IconName }> = {
+  nuevo: { tone: "accent", icon: "fiber-new" },
   prospecto: { tone: "neutral", icon: "person-outline" },
   cliente: { tone: "success", icon: "check-circle" },
   vip: { tone: "accent", icon: "star" },
@@ -42,6 +45,10 @@ export interface ClienteCardProps {
   onEditar: () => void;
   onAlternarBot: () => void;
   onEnviarPlantilla?: () => void;
+  /** Etapas del negocio; sin ellas se usan las cinco de siempre. */
+  opcionesEtapa?: OpcionDeEtapa[];
+  /** Abre la hoja de etapas. Sin él (o sin permiso de escritura) la etapa es solo lectura. */
+  onCambiarEtapa?: () => void;
 }
 
 /**
@@ -60,6 +67,8 @@ export function ClienteCard({
   onEditar,
   onAlternarBot,
   onEnviarPlantilla,
+  opcionesEtapa = [],
+  onCambiarEtapa,
 }: ClienteCardProps) {
   const { c, tonos } = useKit();
   const perfil = item.perfil ?? null;
@@ -78,6 +87,9 @@ export function ClienteCard({
   const delCliente = new Set(item.agentes ?? []);
   const activo = !(item.bot_paused ?? false);
   const tono = tonos[clasificacion.tone === "accent" ? "accent" : clasificacion.tone];
+  const etapa = etapaDeFila(item, opcionesEtapa);
+  const textoDeEtapa = etapa ? etapa.label : delCliente.has("ventas") ? "Sin lead de venta" : null;
+  const puedeCambiarEtapa = puedeEscribir && !!etapa && !!onCambiarEtapa;
   const nombresAgentes = (agentes ?? [])
     .filter((a) => delCliente.has(a.key))
     .map((a) => a.name);
@@ -86,6 +98,7 @@ export function ClienteCard({
     nombre,
     alias ? `alias ${alias}` : null,
     etiquetaDeClasificacion,
+    textoDeEtapa ? `Etapa ${textoDeEtapa}` : null,
     etiquetaCanal(item.canal),
     telefono !== "—" ? telefono : null,
     ubicacion !== "—" ? ubicacion : null,
@@ -104,7 +117,7 @@ export function ClienteCard({
       onPress={onAbrir}
     >
       <View style={styles.superior}>
-        <Avatar name={nombre} src={perfil?.avatar_url} size="md" />
+        <Avatar name={nombre} src={urlAvatarCliente(perfil?.avatar_url)} size="md" />
         <View style={styles.textos}>
           <Text style={[shType.block, { color: c.text }]} numberOfLines={1}>
             {nombre}
@@ -120,6 +133,32 @@ export function ClienteCard({
             label={etiquetaDeClasificacion}
             testID={`lead-clasificacion-${item.id}`}
           />
+          {textoDeEtapa ? (
+            puedeCambiarEtapa ? (
+              <Pressable
+                testID={`lead-etapa-${item.id}`}
+                accessibilityRole="button"
+                accessibilityLabel={`Etapa: ${textoDeEtapa}. Cambiar la etapa de ${nombre}`}
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+                onPress={onCambiarEtapa}
+                style={styles.etapa}
+              >
+                <BadgeDeClasificacion tone={etapa.tone} icon={etapa.icon} label={textoDeEtapa} testID={`lead-etapa-badge-${item.id}`} />
+                <Icono name="expand-more" size={20} color={c.textMuted} />
+              </Pressable>
+            ) : etapa ? (
+              <View testID={`lead-etapa-${item.id}`} style={styles.etapa}>
+                <BadgeDeClasificacion tone={etapa.tone} icon={etapa.icon} label={textoDeEtapa} testID={`lead-etapa-badge-${item.id}`} />
+              </View>
+            ) : (
+              <Text
+                testID={`lead-etapa-${item.id}`}
+                style={[shType.caption, { color: c.textMuted }]}
+              >
+                {textoDeEtapa}
+              </Text>
+            )
+          ) : null}
         </View>
       </View>
 
@@ -242,6 +281,7 @@ export function BadgeDeClasificacion({
 const styles = StyleSheet.create({
   superior: { flexDirection: "row", alignItems: "flex-start", gap: shSpace[3] },
   textos: { flex: 1, gap: 2, alignItems: "flex-start" },
+  etapa: { flexDirection: "row", alignItems: "center", gap: shSpace[1], marginTop: 2 },
   detalles: { gap: shSpace[1] },
   filaDetalle: { flexDirection: "row", alignItems: "center", gap: shSpace[1] },
   telefono: { marginLeft: shSpace[1], fontVariant: ["tabular-nums"] },

@@ -1,6 +1,7 @@
 import { authUrl } from "@core/config";
 import { isAccessTokenExpired } from "@core/session/jwt";
 import type { TokenPair } from "@shared/types/auth";
+import { fetchApi } from "./http";
 
 export class ApiError extends Error {
   constructor(
@@ -111,7 +112,7 @@ export class ApiClient {
     init: RequestOptions,
     accessToken: string,
   ): Promise<Response> {
-    return fetch(authUrl(path), {
+    return fetchApi(authUrl(path), {
       method: init.method ?? "GET",
       headers: {
         ...init.headers,
@@ -131,7 +132,7 @@ export class ApiClient {
   }
 
   private async doRefresh(refreshToken: string): Promise<TokenPair | null> {
-    const res = await fetch(authUrl("/auth/refresh"), {
+    const res = await fetchApi(authUrl("/auth/refresh"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),

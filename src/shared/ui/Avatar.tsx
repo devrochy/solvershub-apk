@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import { shRadius, shType } from "@core/theme/tokens";
 import { useKit } from "./tema";
 
-export type AvatarSize = "xs" | "sm" | "md" | "lg";
+export type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
 export interface AvatarStatus {
   tone: "success" | "warning" | "danger" | "neutral";
@@ -21,7 +21,7 @@ export interface AvatarProps {
   testID?: string;
 }
 
-const DP: Record<AvatarSize, number> = { xs: 24, sm: 32, md: 40, lg: 56 };
+const DP: Record<AvatarSize, number> = { xs: 24, sm: 32, md: 40, lg: 56, xl: 96, "2xl": 128 };
 
 /** Iniciales de un nombre: primera letra de las dos primeras palabras. */
 export function iniciales(nombre: string): string {

@@ -1,6 +1,7 @@
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { shDensity, shSpace, shType } from "@core/theme/tokens";
 import { useField } from "./Field";
+import { Icono, type IconName } from "./icono";
 import { useKit } from "./tema";
 
 export interface RadioOption {
@@ -8,6 +9,9 @@ export interface RadioOption {
   label: string;
   /** Línea secundaria bajo el label; va al `accessibilityHint`. */
   description?: string;
+  /** Icono opcional a la izquierda (p. ej. el canal de una conexión). */
+  icono?: IconName;
+  iconColor?: string;
   disabled?: boolean;
 }
 
@@ -81,6 +85,9 @@ export function RadioGroup({
                 />
               ) : null}
             </View>
+            {opcion.icono ? (
+              <Icono name={opcion.icono} size={20} color={opcion.iconColor ?? c.textSoft} />
+            ) : null}
             <View style={styles.textos}>
               <Text
                 style={[shType.body, { color: inactiva ? c.textSoft : c.text }]}

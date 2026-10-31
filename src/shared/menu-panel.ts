@@ -26,6 +26,7 @@ export type ModuloPanel =
   | "suscripciones"
   | "agentes"
   | "negocio"
+  | "seguridad"
   | "configuracion"
   | "herramientas"
   | "busqueda"
@@ -41,6 +42,7 @@ export const ORDEN_MODULOS: readonly ModuloPanel[] = [
   "suscripciones",
   "agentes",
   "negocio",
+  "seguridad",
   "configuracion",
   "herramientas",
   "busqueda",
@@ -61,6 +63,7 @@ export const MODULOS_PANEL: Record<ModuloPanel, { label: string; raizStack?: str
   suscripciones: { label: "Suscripciones" },
   agentes: { label: "Agentes" },
   negocio: { label: "Consumo y plan" },
+  seguridad: { label: "Seguridad" },
   configuracion: { label: "Configuración" },
   herramientas: { label: "Mensajes fallidos" },
   busqueda: { label: "Buscar" },
@@ -126,8 +129,6 @@ const COBRANZA: PestanaMenuPanel[] = [
   { label: "Promesas", modulo: "cobranza", pestana: "promesas", seccion: "pack_cobranza:promesas", sub: "Actividad" },
   { label: "Reportes", modulo: "cobranza", pestana: "reportes", seccion: "pack_cobranza:reportes", sub: "Actividad" },
   { label: "Gestores", modulo: "cobranza", pestana: "gestores", seccion: "pack_cobranza:gestores", sub: "Equipo" },
-  { label: "Dispositivos", modulo: "cobranza", pestana: "dispositivos", seccion: "pack_cobranza:dispositivos", sub: "Equipo" },
-  { label: "Alertas de acceso", modulo: "cobranza", pestana: "alertas", seccion: "pack_cobranza:alertas", sub: "Equipo" },
   { label: "Auditoría", modulo: "cobranza", pestana: "auditoria", seccion: "pack_cobranza:auditoria", sub: "Equipo" },
   { label: "Monitoreo IA", modulo: "cobranza", pestana: "monitoreo", seccion: "pack_cobranza:monitoreo", sub: "Asistente" },
   { label: "Reglas de negociación", modulo: "cobranza", pestana: "reglas", seccion: "pack_cobranza:reglas", sub: "Asistente" },
@@ -253,6 +254,16 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         label: "Equipo",
         icono: "group",
         pestanas: [{ label: "Colaboradores", modulo: "configuracion", pestana: "colaboradores", seccion: "collaborators" }],
+      },
+      {
+        // Dispositivos y alertas de acceso son del negocio, no de Cobranza (ADR-0174, HU-ACC-05).
+        id: "seguridad",
+        label: "Seguridad",
+        icono: "lock",
+        pestanas: [
+          { label: "Dispositivos", modulo: "seguridad", pestana: "dispositivos", seccion: "devices" },
+          { label: "Alertas de acceso", modulo: "seguridad", pestana: "alertas", seccion: "access_alerts" },
+        ],
       },
       {
         id: "configuracion",
@@ -402,6 +413,8 @@ export interface DestinoMenu {
   entrada?: string;
   /** Sección del cajón de ajustes de Agenda que se abre al llegar (HU-CAL-08). */
   ajustes?: string;
+  /** Id del cliente cuya ficha se abre sobre la lista de Clientes (HU-CRM-20). */
+  cliente?: string;
 }
 
 /**

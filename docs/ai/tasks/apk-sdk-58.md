@@ -70,6 +70,22 @@ EAS Update.
   `modules/datos-prueba` en `develop` (HU-QA-10); no los introduce esta tarea. CI no ejecuta
   ese script (corre lint, typecheck y tests, los tres en verde).
 
+## Merge con develop (2026-10-31)
+
+- Se integró `origin/develop` para resolver el conflicto del PR. Develop sumó dos dependencias
+  nativas (`expo-video ~58.0.13` y `react-native-svg 15.16.0`) y movió `MapaPin` a
+  `src/shared/ui/`, con soporte de `soloLectura`. Se conservó esa lógica y solo se aplicó el
+  cambio de Strict TS (`useRef<InstanceType<typeof WebView> | null>`).
+- La pestaña "Dispositivos" de `CobranzaAdminScreen` se retiró: develop la reemplazó por la
+  pantalla de Seguridad (HU-ACC-04).
+- `expo install --fix` alineó parches (`expo 58.0.22`, `react-native 0.88.1`,
+  `expo-updates 58.0.20`, `expo-sqlite 58.0.15`, `expo-build-properties 58.0.12`,
+  `@expo/metro-runtime 58.0.16`); `expo-doctor` 20/20.
+- Verificación tras el merge: typecheck y lint en verde, 205 suites / 1370 tests.
+- **El fingerprint cambia** por las dependencias nativas nuevas:
+  `23088ec47598fa1f02e0b02e1c998c790be093a3` (android). El APK `preview` anterior ya no
+  coincide; hay que recompilarlo antes de publicar el OTA.
+
 ## Pendientes
 
 - Smoke de mapa WebView, evidencias con cámara y push/OTA de punta a punta: necesitan un

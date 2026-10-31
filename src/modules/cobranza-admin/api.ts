@@ -50,11 +50,6 @@ export interface PromesaAdmin {
   id: string; cliente: string; fecha_prometida: string | null; valor_prometido: string;
   estado: string; tipo: string | null; creado_por: string | null;
 }
-export interface DeviceRow {
-  id: string; codigo: string | null; gestor: string | null; imei: string | null;
-  whatsapp: string | null; estado: string; vinculado: boolean;
-}
-export interface Dispositivos { pendientes: number; dispositivos: DeviceRow[]; intentos: unknown[]; eventos: unknown[] }
 export interface FilaAuditoria {
   fecha: string; entidad: string; entidad_id: string | null; operacion: string;
   antes: unknown; despues: unknown; actor: string | null; motivo: string | null;
@@ -145,18 +140,6 @@ export async function cambiarEstadoPromesa(
   await api.post(`/pack/cobranza/promises/${id}/status`, { estado });
 }
 
-export async function cargarDispositivos(api: ClienteAdmin): Promise<Dispositivos> {
-  return api.get("/pack/cobranza/devices");
-}
-
-export async function cambiarEstadoDispositivo(
-  api: ClienteAdmin,
-  id: string,
-  estado: string,
-): Promise<void> {
-  await api.post(`/pack/cobranza/devices/${id}/status`, { estado });
-}
-
 export async function cargarAuditoria(api: ClienteAdmin): Promise<AuditoriaCobranza> {
   return api.get("/pack/cobranza/audit");
 }
@@ -188,10 +171,6 @@ export interface Reglas {
   max_dias_prorroga: number; min_abono_pct: number; max_reprogramaciones: number;
   umbral_saldo_autonomo: number;
 }
-export interface AccessAttempt {
-  fecha: string; gestor: string; resultado: string; motivo: string; imei: string; critico: boolean;
-}
-export interface Alertas { total: number; denegados: number; items: AccessAttempt[] }
 export interface RouteClient {
   id: string; cliente: string; telefono: string; saldo: number; mora: number;
   riesgo: string; lat: number | null; lng: number | null;
@@ -254,10 +233,6 @@ export async function cargarReglas(api: ClienteAdmin): Promise<Reglas> {
 
 export async function guardarReglas(api: ClienteAdmin, reglas: Reglas): Promise<void> {
   await api.put("/pack/cobranza/rules", reglas);
-}
-
-export async function cargarAlertas(api: ClienteAdmin): Promise<Alertas> {
-  return api.get("/pack/cobranza/alerts");
 }
 
 // ---------------- Cierre de réplica: Gestores ----------------

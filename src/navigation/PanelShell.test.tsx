@@ -13,6 +13,15 @@ jest.mock("../modules/perfil", () => {
   };
 });
 
+jest.mock("../modules/operacion/screens/ClienteDetalleScreen", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  return {
+    ClienteDetalleScreen: ({ route }: { route: { params: { id: string } } }) =>
+      React.createElement(Text, { testID: "cliente-detalle" }, route.params.id),
+  };
+});
+
 let mockSesionValue: unknown = null;
 let mockPerfilValue: unknown = null;
 const mockRefrescarPerfil = jest.fn().mockResolvedValue(undefined);
@@ -117,8 +126,8 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
   });
 
   it("una entrada de un módulo con stack (Cobranza) llega a su pestaña por los params anidados", async () => {
-    // Solo Alertas de acceso: la primera pestaña permitida no es la de por defecto (Resumen).
-    mockSesionValue = { token: "t", adminId: "a-6", role: "owner", permissions: { "pack_cobranza:alertas": "read" } };
+    // Solo Auditoría: la primera pestaña permitida no es la de por defecto (Resumen).
+    mockSesionValue = { token: "t", adminId: "a-6", role: "owner", permissions: { "pack_cobranza:auditoria": "read" } };
     const { findByTestId, getByTestId } = await renderShell();
     await findByTestId("panel-menu");
 
@@ -130,20 +139,20 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toHaveStyle({ borderBottomWidth: 2 }));
   });
 
-  it("un push a Alertas de acceso abre el área Equipo con la sección en pantalla", async () => {
+  it("un push a Auditoría abre el área Equipo con la sección en pantalla", async () => {
     mockSesionValue = {
       ...DUENO,
-      permissions: { "pack_cobranza:resumen": "read", "pack_cobranza:alertas": "read", "pack_cobranza:auditoria": "read" },
+      permissions: { "pack_cobranza:resumen": "read", "pack_cobranza:gestores": "read", "pack_cobranza:auditoria": "read" },
     };
     const { findByTestId, getByTestId } = await renderShell();
     await findByTestId("panel-menu");
 
     await act(async () => {
-      emitirNavegacion({ tab: "cobranza", pestana: "alertas" });
+      emitirNavegacion({ tab: "cobranza", pestana: "auditoria" });
     });
 
     await waitFor(() => expect(getByTestId("cobranza-area-equipo")).toHaveStyle({ borderBottomWidth: 2 }));
-    expect(getByTestId("cobranza-alertas").props.accessibilityState).toMatchObject({ selected: true });
+    expect(getByTestId("cobranza-auditoria").props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("el bus de navegación (push, Búsqueda) lleva al módulo y a la pestaña pedida", async () => {
@@ -221,7 +230,9 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
 
     await fireEvent.press(getByTestId("panel-menu"));
     await fireEvent.press(getByTestId("cajon-item-conversaciones"));
-    await waitFor(() => expect(getByTestId("pestana-conversaciones")).toHaveStyle({ borderBottomWidth: 2 }));
+    await waitFor(() =>
+      expect(getByTestId("pestana-conversaciones").props.accessibilityState.selected).toBe(true),
+    );
     expect(getByTestId("pestana-escalaciones")).toBeTruthy();
     expect(queryByTestId("pestana-leads")).toBeNull();
     expect(queryByTestId("pestana-playground")).toBeNull();
@@ -232,6 +243,27 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Clientes"));
     await waitFor(() => expect(getByTestId("clientes-busqueda")).toBeTruthy());
     expect(queryByTestId("pestana-conversaciones")).toBeNull();
+  });
+
+  it("un aviso de cliente con la app abierta abre su ficha sobre la lista de Clientes (HU-CRM-20)", async () => {
+    mockSesionValue = { ...DUENO, permissions: { conversations: "read", escalations: "read", leads: "read" } };
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await act(async () => {
+      emitirNavegacion({ tab: "conversaciones", pestana: "leads", cliente: "cli-1" });
+    });
+
+    await waitFor(() => expect(getByTestId("cliente-detalle").props.children).toBe("cli-1"));
+  });
+
+  it("con la app cerrada, el aviso llega a la ficha apenas arranca el panel (HU-CRM-20)", async () => {
+    mockSesionValue = { ...DUENO, permissions: { conversations: "read", escalations: "read", leads: "read" } };
+    // El push se toca antes de que el shell monte: el bus lo guarda y lo entrega al montar.
+    emitirNavegacion({ tab: "conversaciones", pestana: "leads", cliente: "cli-2" });
+    const { findByTestId } = await renderShell();
+
+    expect((await findByTestId("cliente-detalle")).props.children).toBe("cli-2");
   });
 
   it("la raíz de Cobranza lleva el header del panel (sin header nativo encima)", async () => {

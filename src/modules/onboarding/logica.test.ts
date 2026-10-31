@@ -84,7 +84,7 @@ describe("lógica del asistente de primer uso (HU-APP-22)", () => {
   });
 
   it("arma las respuestas de creación y los cambios de identidad", () => {
-    expect(respuestasDeCreacion({ ...listo, queVende: "ambos", largo: "cortas" })).toEqual({ largo_respuesta: "cortas", que_vendes: "ambos" });
+    expect(respuestasDeCreacion({ ...listo, largo: "cortas" })).toEqual({ largo_respuesta: "cortas" });
     expect(respuestasDeCreacion({ ...listo, tipo: "agenda" })).toEqual({ largo_respuesta: "normal" });
     expect(cambiosDelPaso("voz", { ...listo, largo: "detalladas", calidez: 9 })).toMatchObject({ persona_max_length: 900, persona_warmth: 5 });
   });

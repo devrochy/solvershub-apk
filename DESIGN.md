@@ -73,8 +73,9 @@ esconde si queda una pestaña; las de otra pantalla (Configuración › Mensajes
 el bus de navegación. Una sección nueva se agrega como pestaña de su entrada y en la pantalla del
 módulo con `usePestanasDeEntrada`. La Búsqueda se abre con la lupa del header, como en la topbar del panel.
 
-El cajón se encabeza con el logo horizontal de SolversHub (isotipo + wordmark, en la tinta del tema) y
-arranca con los grupos plegados: solo el grupo del destino activo se despliega y el cajón se desplaza
+El cajón se encabeza con el wordmark de una línea de SolversHub (sin isotipo, centrado y en la tinta
+del tema; 232 dp de ancho) y arranca con los grupos plegados: solo el grupo del destino activo se
+despliega y el cajón se desplaza
 hasta él. Al pie queda fija la tarjeta de la cuenta (avatar, nombre y correo), que abre un submenú con
 Perfil, Tema oscuro y Cerrar sesión. El tema arranca en oscuro en toda la app, como el panel web; el
 toggle vive en la tarjeta de la cuenta del cajón (y en el menú lateral del campo), no en el header.

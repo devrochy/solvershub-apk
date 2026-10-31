@@ -6,9 +6,9 @@ import type { AgenteResumen, KpiResumen, ModuloResumen, ResumenPorAgente } from 
 import { propsDeKpi } from "../kpi";
 
 /**
- * Resumen por agente (ADR-0171): primero el negocio entero (lo que gobierna el Coordinador) y
- * luego una sección plegable por agente con su actividad y los módulos que gestiona. Cada cifra
- * con pantalla en la app lleva a ella.
+ * Resumen por agente (ADR-0171): el negocio entero (lo que gobierna el Coordinador), la
+ * actividad diaria en «Tendencia de atención» y, al final, los módulos que gestiona cada agente.
+ * Cada cifra con pantalla en la app (o en el panel) lleva a ella.
  */
 
 const TIPO_DE_AGENTE: Record<string, string> = {
@@ -17,19 +17,49 @@ const TIPO_DE_AGENTE: Record<string, string> = {
   core: "Coordinador",
 };
 
-function Grilla({ kpis, prefijo }: { kpis: KpiResumen[]; prefijo: string }) {
+/** Los KPIs de actividad ya viven en la gráfica y en la tabla; no se repiten en las tarjetas. */
+const EN_LA_TABLA = new Set(["turnos", "conversaciones", "costo"]);
+
+function kpisDeTarjeta(kpis: KpiResumen[]): KpiResumen[] {
+  return kpis.filter((k) => !EN_LA_TABLA.has(k.id));
+}
+
+function Grilla({
+  kpis,
+  prefijo,
+  dias,
+  tenantId,
+}: {
+  kpis: KpiResumen[];
+  prefijo: string;
+  dias: number;
+  tenantId: string | null;
+}) {
   return (
     <View style={styles.grilla}>
       {kpis.map((k) => (
         <View key={k.id} style={styles.celda}>
-          <KpiTile testID={`${prefijo}-${k.id}`} {...propsDeKpi(k)} />
+          <KpiTile
+            testID={`${prefijo}-${k.id}`}
+            {...propsDeKpi(k, { dias, tenantId })}
+          />
         </View>
       ))}
     </View>
   );
 }
 
-function Modulo({ modulo, prefijo }: { modulo: ModuloResumen; prefijo: string }) {
+function Modulo({
+  modulo,
+  prefijo,
+  dias,
+  tenantId,
+}: {
+  modulo: ModuloResumen;
+  prefijo: string;
+  dias: number;
+  tenantId: string | null;
+}) {
   const { c, tonos } = useKit();
   return (
     <View style={styles.bloque}>
@@ -39,7 +69,7 @@ function Modulo({ modulo, prefijo }: { modulo: ModuloResumen; prefijo: string })
           {modulo.error}
         </Text>
       ) : (
-        <Grilla kpis={modulo.kpis} prefijo={`${prefijo}-${modulo.id}`} />
+        <Grilla kpis={modulo.kpis} prefijo={`${prefijo}-${modulo.id}`} dias={dias} tenantId={tenantId} />
       )}
     </View>
   );
@@ -49,13 +79,18 @@ function SeccionDeAgente({
   agente,
   abierto,
   alAlternar,
+  dias,
+  tenantId,
 }: {
   agente: AgenteResumen;
   abierto: boolean;
   alAlternar: () => void;
+  dias: number;
+  tenantId: string | null;
 }) {
   const { c } = useKit();
   const prefijo = `resumen-${agente.ref}`;
+  const kpis = kpisDeTarjeta(agente.kpis);
   return (
     <View testID={prefijo} style={[styles.seccionAgente, { borderColor: c.borderSoft }]}>
       <NavGroup
@@ -66,9 +101,12 @@ function SeccionDeAgente({
       >
         <View style={styles.contenidoAgente}>
           <Badge label={TIPO_DE_AGENTE[agente.kind] ?? "Agente"} />
-          {agente.kpis.length > 0 ? <Grilla kpis={agente.kpis} prefijo={prefijo} /> : null}
+          <Text style={[shType.caption, { color: c.textMuted }]}>Últimos {dias} días</Text>
+          {kpis.length > 0 ? (
+            <Grilla kpis={kpis} prefijo={prefijo} dias={dias} tenantId={tenantId} />
+          ) : null}
           {agente.modulos.map((m) => (
-            <Modulo key={m.id} modulo={m} prefijo={prefijo} />
+            <Modulo key={m.id} modulo={m} prefijo={prefijo} dias={dias} tenantId={tenantId} />
           ))}
         </View>
       </NavGroup>
@@ -85,9 +123,23 @@ export function tieneResumen(datos: ResumenPorAgente | null | undefined): datos 
   );
 }
 
-export function ResumenAgentes({ datos }: { datos: ResumenPorAgente }) {
+export function ResumenAgentes({
+  datos,
+  soloAgentes = false,
+  dias,
+  tenantId,
+}: {
+  datos: ResumenPorAgente;
+  soloAgentes?: boolean;
+  dias: number;
+  tenantId: string | null;
+}) {
   const { c } = useKit();
-  const agentes = datos.agentes.filter((a) => a.kpis.length > 0 || a.modulos.length > 0);
+  const agentes = datos.agentes.filter(
+    (a) =>
+      a.key !== "general" &&
+      (kpisDeTarjeta(a.kpis).length > 0 || a.modulos.length > 0),
+  );
   // El primero abierto; el resto, plegado, para que la pantalla no se haga interminable.
   const [abiertos, setAbiertos] = useState<Record<string, boolean>>(() =>
     agentes[0] ? { [agentes[0].ref]: true } : {},
@@ -95,19 +147,22 @@ export function ResumenAgentes({ datos }: { datos: ResumenPorAgente }) {
 
   return (
     <View testID="resumen-agentes" style={styles.raiz}>
-      {datos.general.kpis.length > 0 ? (
+      {!soloAgentes && datos.general.kpis.length > 0 ? (
         <View style={styles.bloque}>
           <Text accessibilityRole="header" style={[shType.h1, { color: c.textStrong }]}>
-            Agente general
+            Negocio
           </Text>
-          <Text style={[shType.dense, { color: c.textMuted }]}>Todo el negocio, últimos 7 días.</Text>
-          <Grilla kpis={datos.general.kpis} prefijo="resumen-general" />
+          <Text style={[shType.dense, { color: c.textMuted }]}>Todo el negocio, últimos {dias} días.</Text>
+          <Grilla kpis={datos.general.kpis} prefijo="resumen-general" dias={dias} tenantId={tenantId} />
         </View>
       ) : null}
       {agentes.length > 0 ? (
         <View style={styles.bloque}>
           <Text accessibilityRole="header" style={[shType.h1, { color: c.textStrong }]}>
-            Agentes
+            Módulos por agente
+          </Text>
+          <Text style={[shType.dense, { color: c.textMuted }]}>
+            Lo que gestiona cada agente, sin repetir la actividad de la tabla.
           </Text>
           {agentes.map((a) => (
             <SeccionDeAgente
@@ -115,6 +170,8 @@ export function ResumenAgentes({ datos }: { datos: ResumenPorAgente }) {
               agente={a}
               abierto={abiertos[a.ref] ?? false}
               alAlternar={() => setAbiertos((p) => ({ ...p, [a.ref]: !p[a.ref] }))}
+              dias={dias}
+              tenantId={tenantId}
             />
           ))}
         </View>

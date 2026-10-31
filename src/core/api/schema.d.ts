@@ -369,6 +369,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/importar-datos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado Importacion
+         * @description Si el agente importa datos, su plantilla (columnas y topes) y lo ya importado.
+         */
+        get: operations["estado_importacion_api_v1_admin_agents__agent_id__importar_datos_get"];
+        put?: never;
+        /**
+         * Importar Datos
+         * @description Importa el archivo. Con errores en alguna fila responde 422 `archivo_con_errores` salvo `solo_validas`.
+         *     Las filas cuya clave ya existe se omiten (idempotente).
+         */
+        post: operations["importar_datos_api_v1_admin_agents__agent_id__importar_datos_post"];
+        /**
+         * Borrar Importacion
+         * @description Retira solo lo que se importó para este agente; lo generado y lo creado a mano no se tocan.
+         */
+        delete: operations["borrar_importacion_api_v1_admin_agents__agent_id__importar_datos_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/plantilla.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Plantilla Importacion
+         * @description La plantilla CSV del agente: cabeceras y filas de ejemplo (UTF-8 con BOM, para Excel).
+         */
+        get: operations["plantilla_importacion_api_v1_admin_agents__agent_id__importar_datos_plantilla_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/validar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validar Importacion
+         * @description Vista previa del archivo: errores por fila y cuántas filas se crearían o ya existen. No escribe.
+         */
+        post: operations["validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/publish": {
         parameters: {
             query?: never;
@@ -1665,6 +1734,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/datos-cliente/aviso": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Aviso */
+        get: operations["get_aviso_api_v1_admin_datos_cliente_aviso_get"];
+        /**
+         * Save Aviso
+         * @description Guarda el texto y el interruptor del aviso. Activarlo exige confirmar la revisión legal del texto.
+         *     El texto completo queda en la auditoría junto con su versión.
+         */
+        put: operations["save_aviso_api_v1_admin_datos_cliente_aviso_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/datos-cliente/politica": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Politica */
+        get: operations["get_politica_api_v1_admin_datos_cliente_politica_get"];
+        /**
+         * Save Politica
+         * @description Reemplaza los ajustes de las acciones habilitadas. Rechaza acciones o datos que el negocio
+         *     no tiene y los pisos técnicos; guarda solo lo que difiere del valor del módulo.
+         */
+        put: operations["save_politica_api_v1_admin_datos_cliente_politica_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/datos-de-prueba/{modulo}": {
         parameters: {
             query?: never;
@@ -1977,6 +2090,33 @@ export interface paths {
         patch: operations["update_lead_api_v1_admin_leads__lead_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/leads/{lead_id}/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Lead Avatar
+         * @description Sube o reemplaza la foto del cliente en el almacenamiento del negocio.
+         *
+         *     La foto queda como dato de una persona (`source="human"`) y la API devuelve el
+         *     `avatar_url` ya firmado para que el panel y la APK lo pinten sin proxys.
+         */
+        post: operations["upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post"];
+        /**
+         * Delete Lead Avatar
+         * @description Quita la foto del cliente y borra el archivo si era del almacenamiento.
+         */
+        delete: operations["delete_lead_avatar_api_v1_admin_leads__lead_id__avatar_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/leads/{lead_id}/consentimiento": {
         parameters: {
             query?: never;
@@ -2002,6 +2142,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/leads/{lead_id}/consentimiento-datos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ver Consentimiento Datos
+         * @description Estado del cliente frente al aviso de datos (informado, aceptó, rechazó).
+         */
+        get: operations["ver_consentimiento_datos_api_v1_admin_leads__lead_id__consentimiento_datos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/leads/{lead_id}/consentimiento-datos/revocar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revocar Consentimiento Datos
+         * @description El cliente pidió que no se guarden más datos suyos: se registra la revocación y se retiran del
+         *     perfil sus datos personales. Solo dueño o master. Los registros de los módulos (pedidos, citas…)
+         *     no se borran aquí: la supresión en los módulos queda pendiente (aviso en la respuesta y auditoría).
+         */
+        post: operations["revocar_consentimiento_datos_api_v1_admin_leads__lead_id__consentimiento_datos_revocar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/leads/{lead_id}/geocodificar": {
         parameters: {
             query?: never;
@@ -2019,6 +2201,29 @@ export interface paths {
          *     país). La plataforma paga la llamada y hay topes global y por negocio (ADR-0154).
          */
         post: operations["geocodificar_lead_api_v1_admin_leads__lead_id__geocodificar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/leads/{lead_id}/geocodificar/reverso": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Geocodificar Lead Inverso
+         * @description Propone una dirección a partir de un punto del mapa, sin escribir el perfil.
+         *
+         *     Solo se envían latitud y longitud al proveedor. La persona confirma la propuesta y
+         *     el guardado sigue siendo un `PATCH /perfil` normal, con `source="human"`.
+         */
+        post: operations["geocodificar_lead_inverso_api_v1_admin_leads__lead_id__geocodificar_reverso_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3929,6 +4134,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/tenants/{tenant_id}/avisos-por-canal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Avisos Por Canal
+         * @description Bandera de los avisos por evento por canal de texto del negocio (apagada por defecto). Solo el master.
+         */
+        get: operations["get_avisos_por_canal_api_v1_admin_platform_tenants__tenant_id__avisos_por_canal_get"];
+        /**
+         * Put Avisos Por Canal
+         * @description Enciende o apaga los avisos por canal de texto del negocio (auditado como `avisos_por_canal_bandera`).
+         *     Idempotente. Solo el master; es por negocio y no toca ningún otro.
+         */
+        put: operations["put_avisos_por_canal_api_v1_admin_platform_tenants__tenant_id__avisos_por_canal_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/tenants/{tenant_id}/colaboracion": {
         parameters: {
             query?: never;
@@ -5705,6 +5935,95 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mensajes/guardados": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar */
+        get: operations["listar_api_v1_mensajes_guardados_get"];
+        put?: never;
+        /**
+         * Crear
+         * @description Crea un mensaje guardado. 409 `clave_repetida` si el negocio ya tiene uno vivo con esa clave; 409
+         *     `limite_de_mensajes` al pasar el tope; 422 por texto, variables, canales o estado inválidos.
+         */
+        post: operations["crear_api_v1_mensajes_guardados_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mensajes/guardados/{clave}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtener */
+        get: operations["obtener_api_v1_mensajes_guardados__clave__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar
+         * @description Borra (lógicamente) el mensaje y libera su clave.
+         */
+        delete: operations["eliminar_api_v1_mensajes_guardados__clave__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Editar
+         * @description Cambia solo los campos que llegan; `estado: archivado` lo archiva y `activo` lo reactiva. 422 `sin_cambios` si
+         *     no llega ninguno.
+         */
+        patch: operations["editar_api_v1_mensajes_guardados__clave__patch"];
+        trace?: never;
+    };
+    "/api/v1/mensajes/guardados/catalogo-opciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Catalogo Opciones
+         * @description Canales y variables que el formulario puede ofrecer, y los topes de largo.
+         */
+        get: operations["catalogo_opciones_api_v1_mensajes_guardados_catalogo_opciones_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mensajes/guardados/vista-previa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vista Previa
+         * @description El texto con valores de muestra, sin guardar ni enviar nada. 422 con el mismo código que al guardar si el texto
+         *     no es válido (`texto_invalido`, `variable_no_permitida`).
+         */
+        post: operations["vista_previa_api_v1_mensajes_guardados_vista_previa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/calendar/appointments": {
         parameters: {
             query?: never;
@@ -7012,7 +7331,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Orders */
+        /**
+         * List Orders
+         * @description Pedidos del negocio, del más reciente al más antiguo (HU-CRM-20).
+         *
+         *     Conserva la forma de lista (la consumen el panel y la APK); el total de los que coinciden
+         *     con los filtros viaja en la cabecera `X-Total-Count`.
+         */
         get: operations["list_orders_api_v1_pack_commerce_orders_get"];
         put?: never;
         post?: never;
@@ -7289,6 +7614,8 @@ export interface paths {
          *
          *     Reusa el link del cargo (o lo crea si falta, sin duplicar el cargo). Si el cliente no tiene
          *     una conversación de WhatsApp no se envía nada y se devuelve el link para copiarlo.
+         *     Es un contacto de cobro: solo dentro del horario legal del negocio y si el cliente no
+         *     recibió otro aviso de cobro ese día (HU-SUB-18, Ley 2300 de 2023); si no, 409.
          */
         post: operations["reenviar_link_de_cargo_api_v1_pack_pack_subscriptions_cargos__charge_id__reenviar_link_post"];
         delete?: never;
@@ -7411,6 +7738,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pack/pack_subscriptions/promociones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Promociones
+         * @description Promociones de plan del negocio (sin las borradas), de la más reciente a la más antigua.
+         */
+        get: operations["listar_promociones_api_v1_pack_pack_subscriptions_promociones_get"];
+        put?: never;
+        /**
+         * Crear Promocion
+         * @description Crea una promoción. Código repetido → 409 `codigo_duplicado`; porcentaje fuera de 1–99 o períodos > 1 → 422.
+         */
+        post: operations["crear_promocion_api_v1_pack_pack_subscriptions_promociones_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/pack_subscriptions/promociones/{promocion_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Editar Promocion
+         * @description Reemplaza una promoción. Los canjes ya hechos conservan lo que se descontó.
+         */
+        put: operations["editar_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__put"];
+        post?: never;
+        /**
+         * Borrar Promocion
+         * @description Borra la promoción (lógico): su código deja de aplicar.
+         */
+        delete: operations["borrar_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/pack_subscriptions/promociones/{promocion_id}/canjes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Canjes De Promocion
+         * @description Quién canjeó la promoción, en qué estado está cada canje y cuánto se descontó.
+         */
+        get: operations["canjes_de_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__canjes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/pack_subscriptions/suscripciones": {
         parameters: {
             query?: never;
@@ -7426,10 +7821,10 @@ export interface paths {
         put?: never;
         /**
          * Crear Suscripcion Manual
-         * @description Inscribe a un `Customer` en un plan del catálogo (o, camino anterior, crea la suscripción de un plan libre).
+         * @description Inscribe a un `Customer` en un plan del catálogo.
          *
-         *     Con `plan_codigo`: un plan de $0 nace activa (o en prueba); uno de pago nace `pendiente_pago` con su
-         *     cobro y su link (o las instrucciones de transferencia). Repetir la petición devuelve la misma inscripción.
+         *     Un plan de $0 nace activa (o en prueba); uno de pago nace `pendiente_pago` con su cobro y su link (o
+         *     las instrucciones de transferencia). Repetir la petición devuelve la misma inscripción.
          */
         post: operations["crear_suscripcion_manual_api_v1_pack_pack_subscriptions_suscripciones_post"];
         delete?: never;
@@ -8236,6 +8631,17 @@ export interface components {
             /** Proximo Cargo */
             proximo_cargo?: string | null;
         };
+        /** AccionPoliticaOut */
+        AccionPoliticaOut: {
+            /** Campos */
+            campos: components["schemas"]["CampoPoliticaOut"][];
+            /** Etiqueta */
+            etiqueta: string;
+            /** Id */
+            id: string;
+            /** Modulo */
+            modulo: string;
+        };
         /**
          * ActiveEscalation
          * @description Escalación sin resolver más reciente de la conversación (el «ticket»).
@@ -8541,6 +8947,16 @@ export interface components {
              * @description Id del agente o el literal `general`, como en `/admin/agents/{ref}`.
              */
             ref: string;
+            /**
+             * Serie
+             * @description Serie diaria cero-rellena del período (días calendario del negocio).
+             */
+            serie?: components["schemas"]["PuntoActividadOut"][];
+            /**
+             * Ultima Actividad
+             * @description Último turno del agente dentro del período.
+             */
+            ultima_actividad?: string | null;
         };
         /**
          * AgentOSBanderas
@@ -9181,6 +9597,34 @@ export interface components {
              */
             paso: number;
         };
+        /** AvisoDatosOut */
+        AvisoDatosOut: {
+            /** Activo */
+            activo: boolean;
+            /** Es Borrador */
+            es_borrador: boolean;
+            /** Texto */
+            texto: string;
+            /** Texto Propio */
+            texto_propio: string;
+            /** Version */
+            version: string;
+        };
+        /** AvisoDatosUpdate */
+        AvisoDatosUpdate: {
+            /** Activo */
+            activo: boolean;
+            /**
+             * Confirmo Revision Legal
+             * @default false
+             */
+            confirmo_revision_legal: boolean;
+            /**
+             * Texto
+             * @default
+             */
+            texto: string;
+        };
         /** AvisoOut */
         AvisoOut: {
             /**
@@ -9204,6 +9648,19 @@ export interface components {
             mensaje_estado?: string | null;
             /** Plantilla */
             plantilla?: string | null;
+        };
+        /** AvisosPorCanalBandera */
+        AvisosPorCanalBandera: {
+            /**
+             * Habilitada
+             * @description Si los avisos por evento también salen como texto por QR, chat web, Messenger e Instagram (con el texto que el negocio definió para cada canal en `fallback_text_by_channel`). Apagada: solo conversaciones de WhatsApp, como siempre.
+             */
+            habilitada: boolean;
+        };
+        /** AvisosPorCanalBanderaIn */
+        AvisosPorCanalBanderaIn: {
+            /** Habilitada */
+            habilitada: boolean;
         };
         /**
          * BajasSettings
@@ -9311,6 +9768,16 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_importar_datos_api_v1_admin_agents__agent_id__importar_datos_post */
+        Body_importar_datos_api_v1_admin_agents__agent_id__importar_datos_post: {
+            /** Archivo */
+            archivo: string;
+            /**
+             * Solo Validas
+             * @default false
+             */
+            solo_validas: boolean;
+        };
         /** Body_subir_documento_api_v1_pack_pack_knowledge_agents__agent_id__documents_post */
         Body_subir_documento_api_v1_pack_pack_knowledge_agents__agent_id__documents_post: {
             /** Archivo */
@@ -9332,8 +9799,18 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post */
+        Body_upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post: {
+            /** File */
+            file: string;
+        };
         /** Body_upload_product_image_api_v1_pack_commerce_products_image_post */
         Body_upload_product_image_api_v1_pack_commerce_products_image_post: {
+            /** Archivo */
+            archivo: string;
+        };
+        /** Body_validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post */
+        Body_validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post: {
             /** Archivo */
             archivo: string;
         };
@@ -9687,6 +10164,27 @@ export interface components {
             /** Tokens */
             tokens: number;
         };
+        /** CampoPoliticaOut */
+        CampoPoliticaOut: {
+            /** Ajustable */
+            ajustable: boolean;
+            /** Ajustado */
+            ajustado: boolean;
+            /** Clave */
+            clave: string;
+            /** Etiqueta */
+            etiqueta: string;
+            /**
+             * Nivel
+             * @enum {string}
+             */
+            nivel: "requerido" | "recomendado" | "no_pedir";
+            /**
+             * Por Defecto
+             * @enum {string}
+             */
+            por_defecto: "requerido" | "recomendado" | "no_pedir";
+        };
         /** CanaryIn */
         CanaryIn: {
             /**
@@ -9814,6 +10312,45 @@ export interface components {
             /** Veredicto Guardado */
             veredicto_guardado: boolean;
         };
+        /** CanjeOut */
+        CanjeOut: {
+            /**
+             * Cargo Id
+             * Format: uuid
+             */
+            cargo_id: string;
+            /**
+             * Cliente Id
+             * Format: uuid
+             */
+            cliente_id: string;
+            /** Creado */
+            creado?: string | null;
+            /** Descuento */
+            descuento?: number | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "reservado" | "confirmado" | "agotado" | "terminado" | "liberado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Monto
+             * @description Neto cobrado.
+             */
+            monto?: number | null;
+            /** Monto Bruto */
+            monto_bruto?: number | null;
+            /**
+             * Suscripcion Id
+             * Format: uuid
+             */
+            suscripcion_id: string;
+        };
         /** CargoItem */
         CargoItem: {
             cliente?: components["schemas"]["ClienteRef"] | null;
@@ -9882,7 +10419,7 @@ export interface components {
              * Truncado
              * @description Tipos que pasaron el tope por tipo: la lista está recortada.
              */
-            truncado: ("meta" | "evento" | "opciones" | "texto_pack")[];
+            truncado: ("meta" | "evento" | "opciones" | "texto_pack" | "guardado")[];
         };
         /** CatalogResponse */
         CatalogResponse: {
@@ -10278,6 +10815,11 @@ export interface components {
             links: components["schemas"]["TenantLink"][];
             /** Nombre */
             nombre: string | null;
+            /**
+             * Pack Profiles
+             * @default []
+             */
+            pack_profiles: components["schemas"]["PackProfile"][];
             /** Permissions */
             permissions: components["schemas"]["PermissionItem"][];
             /** Role */
@@ -10346,6 +10888,15 @@ export interface components {
         CollectorPermissionsUpdate: {
             /** Permisos */
             permisos: string[];
+        };
+        /** ColumnaOut */
+        ColumnaOut: {
+            /** Descripcion */
+            descripcion: string;
+            /** Nombre */
+            nombre: string;
+            /** Obligatoria */
+            obligatoria: boolean;
         };
         /** CommerceDashboard */
         CommerceDashboard: {
@@ -10695,6 +11246,42 @@ export interface components {
             connection_id: string;
             /** Skipped */
             skipped: components["schemas"]["SkippedPageOut"][];
+        };
+        /** ConsentimientoDatosItem */
+        ConsentimientoDatosItem: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "informado" | "otorgado" | "revocado";
+            /** Evidencia */
+            evidencia: string;
+            /** Origen */
+            origen: string;
+            /** Quien */
+            quien: string;
+            /** Version Aviso */
+            version_aviso: string | null;
+        };
+        /**
+         * ConsentimientoDatosOut
+         * @description Estado del cliente frente al aviso de tratamiento de datos y su historial (hasta 20).
+         */
+        ConsentimientoDatosOut: {
+            /** Aviso Activo */
+            aviso_activo: boolean;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "sin_aviso" | "informado" | "otorgado" | "revocado";
+            /** Historial */
+            historial: components["schemas"]["ConsentimientoDatosItem"][];
         };
         /** ConsentimientoIn */
         ConsentimientoIn: {
@@ -11129,10 +11716,15 @@ export interface components {
         };
         /**
          * CrearSuscripcionBody
-         * @description Con `plan_codigo` se inscribe al cliente en un plan del catálogo (SPEC-43). Los campos de plan
-         *     libre (`nombre`, `precio`, ...) son el camino anterior, que se retira con commerce sin planes (PR-4).
+         * @description Inscribe a un `Customer` en un plan del catálogo (SPEC-43). El plan libre (nombre, precio,
+         *     periodicidad, variante de commerce) del contrato v1 se retiró con HU-COM-17.
          */
         CrearSuscripcionBody: {
+            /**
+             * Codigo Promocion
+             * @description Código de una promoción de plan: el primer cobro sale con descuento (HU-SUB-33).
+             */
+            codigo_promocion?: string | null;
             /**
              * Customer Id
              * Format: uuid
@@ -11153,42 +11745,10 @@ export interface components {
              */
             metodo_pago: "pago_en_linea" | "transferencia";
             /**
-             * Moneda
-             * @default COP
-             */
-            moneda: string;
-            /**
-             * Nombre
-             * @description Camino anterior: nombre del plan.
-             */
-            nombre?: string | null;
-            /**
-             * Periodicidad
-             * @default mensual
-             */
-            periodicidad: string;
-            /**
              * Plan Codigo
              * @description Código del plan del catálogo.
              */
-            plan_codigo?: string | null;
-            /**
-             * Precio
-             * @description Valor del período.
-             * @default 0
-             */
-            precio: number;
-            /**
-             * Trial Dias
-             * @description Días de prueba (0 = sin prueba).
-             * @default 0
-             */
-            trial_dias: number;
-            /**
-             * Variant Id
-             * @description Camino anterior: variante de commerce.
-             */
-            variant_id?: string | null;
+            plan_codigo: string;
         };
         /** CredentialField */
         CredentialField: {
@@ -11683,6 +12243,18 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** ErrorDeFila */
+        ErrorDeFila: {
+            /** Columna */
+            columna: string | null;
+            /**
+             * Fila
+             * @description Número de fila en el archivo (la cabecera es la 1).
+             */
+            fila: number;
+            /** Mensaje */
+            mensaje: string;
+        };
         /** EscalationItem */
         EscalationItem: {
             /**
@@ -11695,6 +12267,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
             /** Customer Name */
             customer_name: string | null;
             /** External Id */
@@ -11819,6 +12396,18 @@ export interface components {
             /** Titulo */
             titulo: string;
         };
+        /** EstadoImportacion */
+        EstadoImportacion: {
+            /** Disponible */
+            disponible: boolean;
+            importado: components["schemas"]["LoteImportado"] | null;
+            /**
+             * Motivo
+             * @description Por qué el agente no importa datos.
+             */
+            motivo?: string | null;
+            plantilla: components["schemas"]["PlantillaImportacionOut"] | null;
+        };
         /** EvalRunItem */
         EvalRunItem: {
             /** Created At */
@@ -11904,10 +12493,22 @@ export interface components {
              */
             fallback_text: string;
             /**
+             * Fallback Text By Channel
+             * @default {}
+             */
+            fallback_text_by_channel: {
+                [key: string]: string;
+            };
+            /**
              * Language
              * @default es
              */
             language: string;
+            /**
+             * Option Template
+             * @default
+             */
+            option_template: string;
             /**
              * Template
              * @default
@@ -12093,7 +12694,7 @@ export interface components {
             campo?: string | null;
             /**
              * Clave
-             * @description `opciones`: clave de la plantilla con opciones.
+             * @description `opciones` y `guardado`: clave de la plantilla o del mensaje guardado.
              */
             clave?: string | null;
             /**
@@ -12105,7 +12706,7 @@ export interface components {
              * Editor
              * @enum {string}
              */
-            editor: "meta" | "evento" | "opciones" | "texto_pack";
+            editor: "meta" | "evento" | "opciones" | "texto_pack" | "guardado";
             /**
              * Evento
              * @description `evento`: clave del evento.
@@ -12220,6 +12821,25 @@ export interface components {
             id: string;
             /** Version */
             version: number;
+        };
+        /** GuardadoError */
+        GuardadoError: {
+            /** Code */
+            code: string;
+            /** Details */
+            details?: {
+                [key: string]: unknown;
+            } | null;
+            /** Message */
+            message: string;
+        };
+        /**
+         * GuardadoErrorOut
+         * @description El sobre de error de la API (`{error: {code, message, details?}}`). En un 422, `details` trae los valores
+         *     válidos (`permitidas`) y, según el caso, los inválidos (`desconocidas`, `invalidos`).
+         */
+        GuardadoErrorOut: {
+            error: components["schemas"]["GuardadoError"];
         };
         /** GuardrailsSettings */
         GuardrailsSettings: {
@@ -12535,6 +13155,31 @@ export interface components {
              * @deprecated
              */
             tono?: string | null;
+        };
+        /** ImportacionHecha */
+        ImportacionHecha: {
+            /** Con Errores */
+            con_errores: number;
+            /** Conteos */
+            conteos: {
+                [key: string]: number;
+            };
+            /** Creadas */
+            creadas: number;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /** Existentes */
+            existentes: number;
+            /**
+             * Lote Id
+             * Format: uuid
+             */
+            lote_id: string;
+            /** Plantilla */
+            plantilla: string;
         };
         /** ImportResult */
         ImportResult: {
@@ -13234,6 +13879,23 @@ export interface components {
             /** Value */
             value?: string | null;
         };
+        /**
+         * LeadFacetaOut
+         * @description Cuántos clientes hay por opción de un filtro, con el resto de los filtros de la lista aplicados
+         *     (pero no el propio, para que las pestañas de un mismo filtro sumen contra el mismo total).
+         */
+        LeadFacetaOut: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Key */
+            key: string;
+            /** Sin Valor */
+            sin_valor: number;
+            /** Total */
+            total: number;
+        };
         /** LeadFact */
         LeadFact: {
             /** Data Class */
@@ -13280,6 +13942,28 @@ export interface components {
             /** Longitud */
             longitud: number;
             perfil: components["schemas"]["LeadPerfilOut"];
+            /** Precision */
+            precision?: string | null;
+            /** Proveedor */
+            proveedor: string;
+        };
+        /**
+         * LeadGeocodificacionInversa
+         * @description Dirección propuesta a partir de un punto del mapa; no se guarda hasta confirmarla.
+         */
+        LeadGeocodificacionInversa: {
+            /** Departamento */
+            departamento?: string | null;
+            /** Direccion */
+            direccion?: string | null;
+            /** Latitud */
+            latitud: number;
+            /** Longitud */
+            longitud: number;
+            /** Municipio */
+            municipio?: string | null;
+            /** Pais */
+            pais?: string | null;
             /** Precision */
             precision?: string | null;
             /** Proveedor */
@@ -13423,6 +14107,8 @@ export interface components {
             perfil: components["schemas"]["LeadPerfilOut"];
             /** Telefono */
             telefono?: string | null;
+            /** Ultima Actividad */
+            ultima_actividad?: string | null;
         };
         /** LeadsResponse */
         LeadsResponse: {
@@ -13430,6 +14116,8 @@ export interface components {
             agents: components["schemas"]["LeadAgentOut"][];
             /** Columns */
             columns: components["schemas"]["LeadColumn"][];
+            /** Facetas */
+            facetas?: components["schemas"]["LeadFacetaOut"][];
             /** Filters */
             filters?: components["schemas"]["LeadFilter"][];
             /** Has More */
@@ -13442,6 +14130,16 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /**
+         * LeadUbicacionInversa
+         * @description Coordenadas que manda el mapa táctil de la ficha.
+         */
+        LeadUbicacionInversa: {
+            /** Latitud */
+            latitud: number;
+            /** Longitud */
+            longitud: number;
         };
         /**
          * LeadUpdate
@@ -13721,6 +14419,23 @@ export interface components {
              */
             retirados: number;
         };
+        /** LoteImportado */
+        LoteImportado: {
+            /**
+             * Conteos
+             * @description Registros importados por tipo (`producto`, `cliente`, `cuota`…).
+             */
+            conteos: {
+                [key: string]: number;
+            };
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /** Lotes */
+            lotes: number;
+        };
         /** ManualConnectionIn */
         ManualConnectionIn: {
             /**
@@ -13944,12 +14659,12 @@ export interface components {
         MensajeDelCatalogo: {
             /**
              * Actualizado En
-             * @description `meta`: la última sincronización con Meta (el estado puede estar desfasado: no se sincroniza al listar); `opciones`: la última edición. Nulo en `evento` y `texto_pack`.
+             * @description `meta`: la última sincronización con Meta (el estado puede estar desfasado: no se sincroniza al listar); `opciones` y `guardado`: la última edición. Nulo en `evento` y `texto_pack`.
              */
             actualizado_en: string | null;
             /**
              * Canales Soportados
-             * @description Canales por los que sale hoy (constante por tipo hasta la pista C1).
+             * @description Canales por los que sale hoy (de la tabla de capacidades por canal, pista C1). `guardado`: los canales de los tipos de conexión que el mensaje declara (todos si no declara ninguno); no promete envío: nada lo envía todavía.
              */
             canales_soportados: string[];
             /** Clave */
@@ -13961,7 +14676,7 @@ export interface components {
             dialecto_variables: "meta_posicionales" | "meta_nombradas" | "llaves_con_ruta";
             /**
              * Estado
-             * @description `meta`: el de Meta (`APPROVED`, `PENDING`…); `evento`: `sin_mapear`, `mapeado` o `plantilla_no_aprobada`; `opciones`: `draft`, `published` o `retired`; `texto_pack`: `por_defecto`, `personalizado` o `config_invalida`.
+             * @description `meta`: el de Meta (`APPROVED`, `PENDING`…); `evento`: `sin_mapear`, `mapeado` o `plantilla_no_aprobada`; `opciones`: `draft`, `published` o `retired`; `texto_pack`: `por_defecto`, `personalizado` o `config_invalida`; `guardado`: `borrador`, `activo` o `archivado`.
              */
             estado: string;
             /**
@@ -13991,10 +14706,92 @@ export interface components {
              * Tipo
              * @enum {string}
              */
-            tipo: "meta" | "evento" | "opciones" | "texto_pack";
+            tipo: "meta" | "evento" | "opciones" | "texto_pack" | "guardado";
             /**
              * Variables
              * @description Tal como las usa la fuente, sin normalizar: marcadores de Meta, rutas permitidas del evento, variables de la definición o llaves del texto.
+             */
+            variables: string[];
+        };
+        /** MensajeGuardadoCrearIn */
+        MensajeGuardadoCrearIn: {
+            /**
+             * Canales
+             * @description `ConnectionType.id` donde puede salir. Vacío o `todos`: todos los canales.
+             */
+            canales?: string[];
+            /**
+             * Clave
+             * @description Única entre los mensajes vivos del negocio.
+             */
+            clave: string;
+            /**
+             * Estado
+             * @default borrador
+             * @enum {string}
+             */
+            estado: "borrador" | "activo";
+            /**
+             * Texto
+             * @description Hasta 1024 caracteres; solo variables permitidas.
+             */
+            texto: string;
+            /** Titulo */
+            titulo: string;
+        };
+        /**
+         * MensajeGuardadoEditarIn
+         * @description Solo cambian los campos que llegan. La clave no se cambia.
+         */
+        MensajeGuardadoEditarIn: {
+            /** Canales */
+            canales?: string[] | null;
+            /** Estado */
+            estado?: ("borrador" | "activo" | "archivado") | null;
+            /** Texto */
+            texto?: string | null;
+            /** Titulo */
+            titulo?: string | null;
+        };
+        /** MensajeGuardadoOut */
+        MensajeGuardadoOut: {
+            /**
+             * Actualizado En
+             * Format: date-time
+             */
+            actualizado_en: string;
+            /**
+             * Canales
+             * @description `ConnectionType.id` donde puede salir; vacío si es para todos.
+             */
+            canales: string[];
+            /** Clave */
+            clave: string;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "borrador" | "activo" | "archivado";
+            /**
+             * Texto
+             * @description Con variables `{cliente.nombre}`; conserva los saltos de línea.
+             */
+            texto: string;
+            /** Titulo */
+            titulo: string;
+            /**
+             * Todos Los Canales
+             * @description `canales` vacío: vale para todos los canales que atienden conversaciones.
+             */
+            todos_los_canales: boolean;
+            /**
+             * Variables
+             * @description Las que cita el texto, en orden y sin repetir.
              */
             variables: string[];
         };
@@ -14009,7 +14806,12 @@ export interface components {
              * Tipo
              * @enum {string}
              */
-            tipo: "meta" | "evento" | "opciones" | "texto_pack";
+            tipo: "meta" | "evento" | "opciones" | "texto_pack" | "guardado";
+        };
+        /** MensajesGuardadosOut */
+        MensajesGuardadosOut: {
+            /** Mensajes */
+            mensajes: components["schemas"]["MensajeGuardadoOut"][];
         };
         /** MeResponse */
         MeResponse: {
@@ -14331,6 +15133,12 @@ export interface components {
              */
             mrr: number;
             /**
+             * Mrr Descuento
+             * @description Descuento vigente por mes (SPEC-43): de las activas de pago con descuento y períodos por consumir, valor del período por el porcentaje, normalizado a mes. El MRR no lo resta.
+             * @default 0
+             */
+            mrr_descuento: number;
+            /**
              * Mrr Mes Anterior
              * @description Aproximado: suscripciones vivas al cierre del mes anterior, a su precio actual.
              */
@@ -14348,6 +15156,12 @@ export interface components {
              * @default 0
              */
             pendientes_de_pago: number;
+            /**
+             * Suscripciones Con Descuento
+             * @description Activas de pago con descuento vigente.
+             * @default 0
+             */
+            suscripciones_con_descuento: number;
             /** Vencidas */
             vencidas: number;
         };
@@ -14831,6 +15645,23 @@ export interface components {
         OpcionesErrorOut: {
             error: components["schemas"]["OpcionesError"];
         };
+        /**
+         * OpcionesGuardadoOut
+         * @description Lo que el formulario de edición ofrece: canales y variables válidos.
+         */
+        OpcionesGuardadoOut: {
+            /**
+             * Canales
+             * @description `ConnectionType.id` que se pueden elegir (más `todos`, que equivale a la lista vacía).
+             */
+            canales: string[];
+            /** Max Texto */
+            max_texto: number;
+            /** Max Titulo */
+            max_titulo: number;
+            /** Variables */
+            variables: components["schemas"]["VariablePermitidaOut"][];
+        };
         /** OpcionesHallazgoOut */
         OpcionesHallazgoOut: {
             /** Code */
@@ -15150,6 +15981,13 @@ export interface components {
         OrderOut: {
             /** Created At */
             created_at: string | null;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
+            /** Customer Name */
+            customer_name?: string | null;
             /** Delivery Address */
             delivery_address: string | null;
             /** Delivery Full Name */
@@ -15167,10 +16005,6 @@ export interface components {
             payment_method: string;
             /** Payment Status */
             payment_status: string;
-            /** Plan Activation Error */
-            plan_activation_error?: string | null;
-            /** Plan Activation Status */
-            plan_activation_status?: string | null;
             /** Public Order Number */
             public_order_number: string;
             /** Status */
@@ -15233,6 +16067,38 @@ export interface components {
             registrado_por: string | null;
             /** Valor */
             valor: number;
+        };
+        /**
+         * PackProfile
+         * @description Perfil que un pack tiene de un colaborador (ADR-0176), para mostrarlo en Equipo.
+         *
+         *     `resumen` es un objeto pequeño y plano que el cliente pinta sin interpretar; lo define el pack. El core
+         *     lo descarta (y `edit`) para quien no tiene acceso a ninguna sección del pack.
+         */
+        PackProfile: {
+            edit?: components["schemas"]["PackProfileEdit"] | null;
+            /** Etiqueta */
+            etiqueta: string;
+            /** Pack */
+            pack: string;
+            /** Ref Id */
+            ref_id: string;
+            /** Resumen */
+            resumen?: {
+                [key: string]: unknown;
+            } | null;
+            /** Role Id */
+            role_id: string;
+        };
+        /**
+         * PackProfileEdit
+         * @description Cómo se edita un perfil: `kind` es una cadena abierta que el cliente reconoce o ignora.
+         */
+        PackProfileEdit: {
+            /** Kind */
+            kind: string;
+            /** Ref Id */
+            ref_id: string;
         };
         /** PackRole */
         PackRole: {
@@ -15299,6 +16165,19 @@ export interface components {
             has_more: boolean;
             /** Items */
             items: components["schemas"]["AgentTemplate"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** Page[CanjeOut] */
+        Page_CanjeOut_: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["CanjeOut"][];
             /** Page */
             page: number;
             /** Page Size */
@@ -15615,6 +16494,8 @@ export interface components {
              * Format: date-time
              */
             desde: string;
+            /** Dias */
+            dias: number;
             /**
              * Hasta
              * Format: date-time
@@ -15878,6 +16759,23 @@ export interface components {
             /** Variables */
             variables: string[];
         };
+        /** PlantillaImportacionOut */
+        PlantillaImportacionOut: {
+            /** Ayuda */
+            ayuda: string;
+            /** Columna Clave */
+            columna_clave: string;
+            /** Columnas */
+            columnas: components["schemas"]["ColumnaOut"][];
+            /** Id */
+            id: string;
+            /** Titulo */
+            titulo: string;
+            /** Tope Bytes */
+            tope_bytes: number;
+            /** Tope Filas */
+            tope_filas: number;
+        };
         /**
          * PlatformMetaApp
          * @description Checklist de la app de Meta de la plataforma y la infraestructura (solo master).
@@ -16116,6 +17014,33 @@ export interface components {
             tenant_health_error: string | null;
             /** Version */
             version: string;
+        };
+        /** PoliticaDatosOut */
+        PoliticaDatosOut: {
+            /** Acciones */
+            acciones: components["schemas"]["AccionPoliticaOut"][];
+            /**
+             * Herramientas Del Agente
+             * @default false
+             */
+            herramientas_del_agente: boolean;
+            /** Niveles */
+            niveles: ("requerido" | "recomendado" | "no_pedir")[];
+        };
+        /**
+         * PoliticaDatosUpdate
+         * @description `{accion_id: {clave: nivel}}`. Lo que no viene para una acción vuelve al valor del módulo.
+         *     Sin `politica` (None) no se tocan los ajustes: sirve para cambiar solo la bandera.
+         */
+        PoliticaDatosUpdate: {
+            /** Herramientas Del Agente */
+            herramientas_del_agente?: boolean | null;
+            /** Politica */
+            politica?: {
+                [key: string]: {
+                    [key: string]: "requerido" | "recomendado" | "no_pedir";
+                };
+            } | null;
         };
         /** Portfolio */
         Portfolio: {
@@ -16377,8 +17302,6 @@ export interface components {
         ProductSave: {
             /** Ally Id */
             ally_id?: string | null;
-            /** Billing Period */
-            billing_period?: ("mensual" | "trimestral" | "anual" | "") | null;
             /** Category Id */
             category_id?: string | null;
             /**
@@ -16409,8 +17332,6 @@ export interface components {
              * @default 0
              */
             stock: number;
-            /** Trial Days */
-            trial_days?: number | null;
         };
         /** Promise */
         Promise: {
@@ -16444,6 +17365,120 @@ export interface components {
         PromiseStatusUpdate: {
             /** Estado */
             estado: string;
+        };
+        /** PromocionBody */
+        PromocionBody: {
+            /**
+             * Activa
+             * @default true
+             */
+            activa: boolean;
+            /**
+             * Codigo
+             * @description Código que escribe el cliente (3 a 40: letras, números, - o _). Se guarda en minúsculas.
+             */
+            codigo?: string | null;
+            /**
+             * Etiqueta
+             * @description Nombre que ve el dueño (p. ej. «Lanzamiento»).
+             */
+            etiqueta: string;
+            /**
+             * Max Canjes
+             * @description Tope de canjes; vacío = sin tope.
+             */
+            max_canjes?: number | null;
+            /**
+             * Periodos
+             * @description Cobros que descuenta. De 1 a 12 períodos; el monto fijo solo descuenta 1.
+             * @default 1
+             */
+            periodos: number;
+            /**
+             * Plan Id
+             * @description Plan al que aplica; vacío = cualquier plan de pago.
+             */
+            plan_id?: string | null;
+            /**
+             * Tipo Descuento
+             * @default porcentaje
+             * @enum {string}
+             */
+            tipo_descuento: "porcentaje" | "monto";
+            /**
+             * Valor
+             * @description 1 a 99 si es porcentaje.
+             */
+            valor: number;
+            /** Vigente Desde */
+            vigente_desde?: string | null;
+            /** Vigente Hasta */
+            vigente_hasta?: string | null;
+        };
+        /** PromocionOut */
+        PromocionOut: {
+            /**
+             * Activa
+             * @default true
+             */
+            activa: boolean;
+            /** Actualizada */
+            actualizada?: string | null;
+            /**
+             * Canjes Restantes
+             * @description Vacío si no tiene tope.
+             */
+            canjes_restantes?: number | null;
+            /** Canjes Usados */
+            canjes_usados: number;
+            /**
+             * Codigo
+             * @description Código que escribe el cliente (3 a 40: letras, números, - o _). Se guarda en minúsculas.
+             */
+            codigo?: string | null;
+            /** Creada */
+            creada?: string | null;
+            /**
+             * Etiqueta
+             * @description Nombre que ve el dueño (p. ej. «Lanzamiento»).
+             */
+            etiqueta: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Max Canjes
+             * @description Tope de canjes; vacío = sin tope.
+             */
+            max_canjes?: number | null;
+            /**
+             * Periodos
+             * @description Cobros que descuenta. De 1 a 12 períodos; el monto fijo solo descuenta 1.
+             * @default 1
+             */
+            periodos: number;
+            /**
+             * Plan Id
+             * @description Plan al que aplica; vacío = cualquier plan de pago.
+             */
+            plan_id?: string | null;
+            /**
+             * Tipo Descuento
+             * @default porcentaje
+             * @enum {string}
+             */
+            tipo_descuento: "porcentaje" | "monto";
+            /**
+             * Valor
+             * @description 1 a 99 si es porcentaje.
+             */
+            valor: number;
+            /** Vigente Desde */
+            vigente_desde?: string | null;
+            /** Vigente Hasta */
+            vigente_hasta?: string | null;
         };
         /** PromoteIn */
         PromoteIn: {
@@ -16672,6 +17707,23 @@ export interface components {
             label: string;
             /** Missing Skills */
             missing_skills: string[];
+        };
+        /** PuntoActividadOut */
+        PuntoActividadOut: {
+            /** Conversaciones */
+            conversaciones: number;
+            /**
+             * Costo
+             * @description Costo del día en USD; `null` sin la sección `costs`.
+             */
+            costo: number | null;
+            /**
+             * Fecha
+             * Format: date
+             */
+            fecha: string;
+            /** Turnos */
+            turnos: number;
         };
         /** PurgeRequest */
         PurgeRequest: {
@@ -17970,6 +19022,25 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** RevocacionDatosOut */
+        RevocacionDatosOut: {
+            /** Aviso Activo */
+            aviso_activo: boolean;
+            /** Datos Retirados */
+            datos_retirados: string[];
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "sin_aviso" | "informado" | "otorgado" | "revocado";
+            /** Historial */
+            historial: components["schemas"]["ConsentimientoDatosItem"][];
+            /**
+             * Supresion En Modulos Pendiente
+             * @default true
+             */
+            supresion_en_modulos_pendiente: boolean;
+        };
         /** RevokeRequest */
         RevokeRequest: {
             /** Section */
@@ -18436,14 +19507,14 @@ export interface components {
             periodicidad: string;
             /** Plan */
             plan: string;
+            /** Plan Id */
+            plan_id?: string | null;
             /** Proximo Cargo */
             proximo_cargo?: string | null;
             /** Trial Termina */
             trial_termina?: string | null;
             /** Valor Periodo */
             valor_periodo: number;
-            /** Variante Id */
-            variante_id?: string | null;
         };
         /** SuscripcionItem */
         SuscripcionItem: {
@@ -18482,19 +19553,24 @@ export interface components {
             periodicidad: string;
             /** Plan */
             plan: string;
+            /** Plan Id */
+            plan_id?: string | null;
             /** Proximo Cargo */
             proximo_cargo?: string | null;
             /** Trial Termina */
             trial_termina?: string | null;
             /** Valor Periodo */
             valor_periodo: number;
-            /** Variante Id */
-            variante_id?: string | null;
         };
         /** SuscripcionOut */
         SuscripcionOut: {
             /** Creada */
             creada: boolean;
+            /**
+             * Descuento
+             * @description Descuento de la promoción en el primer cobro.
+             */
+            descuento?: number | null;
             /** Estado */
             estado: string;
             /**
@@ -18508,13 +19584,23 @@ export interface components {
             link_pago?: string | null;
             /**
              * Monto
-             * @description Valor del cobro de inscripción, si lo hay.
+             * @description Valor del cobro de inscripción (neto), si lo hay.
              */
             monto?: number | null;
+            /**
+             * Monto Bruto
+             * @description Precio de lista, si hay una promoción aplicada.
+             */
+            monto_bruto?: number | null;
             /** Numero Publico */
             numero_publico?: string | null;
             /** Plan */
             plan: string;
+            /**
+             * Promocion
+             * @description Etiqueta de la promoción aplicada.
+             */
+            promocion?: string | null;
             /**
              * Suscripcion Id
              * Format: uuid
@@ -19537,6 +20623,13 @@ export interface components {
              */
             valor: string;
         };
+        /** VariablePermitidaOut */
+        VariablePermitidaOut: {
+            /** Descripcion */
+            descripcion: string;
+            /** Ruta */
+            ruta: string;
+        };
         /** VariantOut */
         VariantOut: {
             /** Active */
@@ -19545,8 +20638,6 @@ export interface components {
             attributes: {
                 [key: string]: unknown;
             };
-            /** Billing Period */
-            billing_period?: string | null;
             /**
              * Id
              * Format: uuid
@@ -19558,8 +20649,6 @@ export interface components {
             sku: string;
             /** Stock */
             stock: number;
-            /** Trial Days */
-            trial_days?: number | null;
         };
         /** VendedorAltas */
         VendedorAltas: {
@@ -19621,6 +20710,66 @@ export interface components {
         VerifyCodeRequest: {
             /** Code */
             code: string;
+        };
+        /** VistaPreviaGuardadoIn */
+        VistaPreviaGuardadoIn: {
+            /**
+             * Ejemplos
+             * @description Valor de muestra por variable; si falta se usa uno genérico.
+             */
+            ejemplos?: {
+                [key: string]: string;
+            };
+            /** Texto */
+            texto: string;
+        };
+        /** VistaPreviaGuardadoOut */
+        VistaPreviaGuardadoOut: {
+            /**
+             * Ejemplos Usados
+             * @description El valor de muestra que se usó por variable.
+             */
+            ejemplos_usados: {
+                [key: string]: string;
+            };
+            /** Texto Renderizado */
+            texto_renderizado: string;
+            /** Variables */
+            variables: string[];
+        };
+        /** VistaPreviaImportacion */
+        VistaPreviaImportacion: {
+            /**
+             * Columnas Faltantes
+             * @description Columnas obligatorias que el archivo no trae.
+             */
+            columnas_faltantes: string[];
+            /**
+             * Columnas Ignoradas
+             * @description Cabeceras del archivo que no son de la plantilla.
+             */
+            columnas_ignoradas: string[];
+            /** Con Errores */
+            con_errores: number;
+            /**
+             * Errores
+             * @description Hasta 50; el total está en `errores_total`.
+             */
+            errores: components["schemas"]["ErrorDeFila"][];
+            /** Errores Total */
+            errores_total: number;
+            /**
+             * Existentes
+             * @description Filas cuya clave ya existe: se omiten.
+             */
+            existentes: number;
+            /**
+             * Nuevas
+             * @description Filas que se crearían.
+             */
+            nuevas: number;
+            /** Total Filas */
+            total_filas: number;
         };
         /** VistaPreviaIn */
         VistaPreviaIn: {
@@ -21106,6 +22255,184 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    estado_importacion_api_v1_admin_agents__agent_id__importar_datos_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstadoImportacion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    importar_datos_api_v1_admin_agents__agent_id__importar_datos_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_importar_datos_api_v1_admin_agents__agent_id__importar_datos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionHecha"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_importacion_api_v1_admin_agents__agent_id__importar_datos_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatosRetirados"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plantilla_importacion_api_v1_admin_agents__agent_id__importar_datos_plantilla_csv_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VistaPreviaImportacion"];
                 };
             };
             /** @description Validation Error */
@@ -23744,7 +25071,10 @@ export interface operations {
     };
     dashboard_agents_api_v1_admin_dashboard_agents_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Ventana del Resumen en días: 7, 15 o 30. */
+                dias?: number;
+            };
             header?: {
                 "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
@@ -23761,6 +25091,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResumenPorAgente"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_aviso_api_v1_admin_datos_cliente_aviso_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvisoDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_aviso_api_v1_admin_datos_cliente_aviso_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvisoDatosUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvisoDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_politica_api_v1_admin_datos_cliente_politica_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PoliticaDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_politica_api_v1_admin_datos_cliente_politica_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PoliticaDatosUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PoliticaDatosOut"];
                 };
             };
             /** @description Validation Error */
@@ -24007,6 +25473,8 @@ export interface operations {
     list_escalations_api_v1_admin_escalations_get: {
         parameters: {
             query?: {
+                /** @description Filtra por estado de la escalación */
+                estado?: ("pendiente" | "asignada" | "resuelta") | null;
                 page?: number;
                 page_size?: number;
                 /** @description Filtra por código de motivo */
@@ -24314,12 +25782,18 @@ export interface operations {
     list_leads_api_v1_admin_leads_get: {
         parameters: {
             query?: {
+                /** @description Solo los clientes con datos reales de este agente (clave de `agents`). `general` no filtra; una clave sin datos propios responde 400 `filtro_invalido`. */
+                agente?: string | null;
                 /** @description Solo los clientes de este canal. */
                 channel?: string | null;
                 /** @description Solo los clientes que escribieron por esta conexión. */
                 connection_id?: string | null;
+                /** @description Claves de `filters` de las que se quieren contadores por opción (se repite el parámetro). Una clave que no declara ningún pack, o que no sabe contar, responde 400 `filtro_invalido`. */
+                facetas?: string[] | null;
                 /** @description Filtro de un pack como `clave:valor` (ver `filters` de la respuesta). */
                 filtro?: string[] | null;
+                /** @description `alta` (por defecto, el más nuevo primero), `actividad` (último mensaje, el más reciente primero; los clientes sin mensajes van al final), `nombre` o `nombre_desc`. */
+                orden?: "alta" | "actividad" | "nombre" | "nombre_desc";
                 page?: number;
                 page_size?: number;
                 /** @description Busca por nombre, identificador o teléfono. */
@@ -24426,6 +25900,76 @@ export interface operations {
             };
         };
     };
+    upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_lead_avatar_api_v1_admin_leads__lead_id__avatar_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ver_consentimiento_api_v1_admin_leads__lead_id__consentimiento_get: {
         parameters: {
             query?: never;
@@ -24498,6 +26042,74 @@ export interface operations {
             };
         };
     };
+    ver_consentimiento_datos_api_v1_admin_leads__lead_id__consentimiento_datos_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentimientoDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revocar_consentimiento_datos_api_v1_admin_leads__lead_id__consentimiento_datos_revocar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevocacionDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     geocodificar_lead_api_v1_admin_leads__lead_id__geocodificar_post: {
         parameters: {
             query?: never;
@@ -24519,6 +26131,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LeadGeocodificacion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    geocodificar_lead_inverso_api_v1_admin_leads__lead_id__geocodificar_reverso_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeadUbicacionInversa"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadGeocodificacionInversa"];
                 };
             };
             /** @description Validation Error */
@@ -24934,6 +26584,8 @@ export interface operations {
     export_leads_csv_api_v1_admin_leads_export_csv_get: {
         parameters: {
             query?: {
+                /** @description Solo los clientes con datos reales de este agente (clave de `agents`). `general` no filtra; una clave sin datos propios responde 400 `filtro_invalido`. */
+                agente?: string | null;
                 channel?: string | null;
                 connection_id?: string | null;
                 /** @description Filtro de un pack como `clave:valor` (ver `filters` de la respuesta). */
@@ -28089,6 +29741,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentOSResultado"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_avisos_por_canal_api_v1_admin_platform_tenants__tenant_id__avisos_por_canal_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvisosPorCanalBandera"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_avisos_por_canal_api_v1_admin_platform_tenants__tenant_id__avisos_por_canal_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvisosPorCanalBanderaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvisosPorCanalBandera"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
                 };
             };
             /** @description Validation Error */
@@ -31831,6 +33591,321 @@ export interface operations {
             };
         };
     };
+    listar_api_v1_mensajes_guardados_get: {
+        parameters: {
+            query?: {
+                /** @description Filtra por estado; sin él, todos los vivos. */
+                estado?: ("borrador" | "activo" | "archivado") | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MensajesGuardadosOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+        };
+    };
+    crear_api_v1_mensajes_guardados_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MensajeGuardadoCrearIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MensajeGuardadoOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+        };
+    };
+    obtener_api_v1_mensajes_guardados__clave__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MensajeGuardadoOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    eliminar_api_v1_mensajes_guardados__clave__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    editar_api_v1_mensajes_guardados__clave__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MensajeGuardadoEditarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MensajeGuardadoOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+        };
+    };
+    catalogo_opciones_api_v1_mensajes_guardados_catalogo_opciones_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesGuardadoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vista_previa_api_v1_mensajes_guardados_vista_previa_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VistaPreviaGuardadoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VistaPreviaGuardadoOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+        };
+    };
     list_appointments_api_v1_pack_calendar_appointments_get: {
         parameters: {
             query?: {
@@ -34865,7 +36940,18 @@ export interface operations {
     };
     list_orders_api_v1_pack_commerce_orders_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Solo los pedidos de este cliente. */
+                customer_id?: string | null;
+                /** @description Estado del pedido. */
+                estado?: string | null;
+                limit?: number;
+                offset?: number;
+                /** @description Estado del pago: pendiente, pagado o rechazado. */
+                pago?: string | null;
+                /** @description Número de pedido o nombre del cliente. */
+                q?: string | null;
+            };
             header?: {
                 "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
@@ -34878,6 +36964,8 @@ export interface operations {
             /** @description Successful Response */
             200: {
                 headers: {
+                    /** @description Total de pedidos que coinciden con los filtros (sin paginar). */
+                    "X-Total-Count"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -35653,6 +37741,7 @@ export interface operations {
                 incluir_inactivos?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -35684,6 +37773,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -35719,6 +37809,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -35756,6 +37847,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -35783,6 +37875,181 @@ export interface operations {
             };
         };
     };
+    listar_promociones_api_v1_pack_pack_subscriptions_promociones_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromocionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_promocion_api_v1_pack_pack_subscriptions_promociones_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromocionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromocionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    editar_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                promocion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromocionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromocionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                promocion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    canjes_de_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__canjes_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                promocion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CanjeOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     listar_suscripciones_api_v1_pack_pack_subscriptions_suscripciones_get: {
         parameters: {
             query?: {
@@ -35794,10 +38061,10 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 periodicidad?: ("mensual" | "trimestral" | "anual") | null;
+                /** @description Plan del catálogo. */
+                plan_id?: string | null;
                 /** @description Nombre o teléfono del cliente, o plan. */
                 q?: string | null;
-                /** @description Plan (variante de commerce). */
-                variante_id?: string | null;
             };
             header?: {
                 "X-Device-Id"?: string | null;
@@ -35940,6 +38207,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {

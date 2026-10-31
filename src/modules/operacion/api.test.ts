@@ -4,6 +4,7 @@ import {
   corregirPerfilDelCliente,
   exportarLeadsCsv,
   geocodificarCliente,
+  geocodificarInverso,
   listarLeads,
 } from "./api";
 
@@ -60,6 +61,12 @@ describe("API de Clientes (CRM)", () => {
     const { api, post } = apiFalsa();
     await geocodificarCliente(api, "c-1");
     expect(post).toHaveBeenCalledWith("/admin/leads/c-1/geocodificar");
+
+    await geocodificarInverso(api, "c-1", 4.6, -74.1);
+    expect(post).toHaveBeenCalledWith("/admin/leads/c-1/geocodificar/reverso", {
+      latitud: 4.6,
+      longitud: -74.1,
+    });
 
     await confirmarEnvio(api, "env-1", "clave-123");
     expect(post).toHaveBeenCalledWith(
