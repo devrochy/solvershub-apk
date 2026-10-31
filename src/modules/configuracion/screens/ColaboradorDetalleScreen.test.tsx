@@ -42,6 +42,7 @@ const COLABORADOR: CollaboratorItem = {
   is_platform_master: false,
   permissions: [{ section: "leads", access: "read", scope: "*" }],
   links: [{ slug: "tienda", name: "Tienda Norte", role: "colaborador" }],
+  pack_profiles: [],
 };
 
 const PERMISOS = [

@@ -7331,7 +7331,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Orders */
+        /**
+         * List Orders
+         * @description Pedidos del negocio, del más reciente al más antiguo (HU-CRM-20).
+         *
+         *     Conserva la forma de lista (la consumen el panel y la APK); el total de los que coinciden
+         *     con los filtros viaja en la cabecera `X-Total-Count`.
+         */
         get: operations["list_orders_api_v1_pack_commerce_orders_get"];
         put?: never;
         post?: never;
@@ -7815,10 +7821,10 @@ export interface paths {
         put?: never;
         /**
          * Crear Suscripcion Manual
-         * @description Inscribe a un `Customer` en un plan del catálogo (o, camino anterior, crea la suscripción de un plan libre).
+         * @description Inscribe a un `Customer` en un plan del catálogo.
          *
-         *     Con `plan_codigo`: un plan de $0 nace activa (o en prueba); uno de pago nace `pendiente_pago` con su
-         *     cobro y su link (o las instrucciones de transferencia). Repetir la petición devuelve la misma inscripción.
+         *     Un plan de $0 nace activa (o en prueba); uno de pago nace `pendiente_pago` con su cobro y su link (o
+         *     las instrucciones de transferencia). Repetir la petición devuelve la misma inscripción.
          */
         post: operations["crear_suscripcion_manual_api_v1_pack_pack_subscriptions_suscripciones_post"];
         delete?: never;
@@ -10809,6 +10815,11 @@ export interface components {
             links: components["schemas"]["TenantLink"][];
             /** Nombre */
             nombre: string | null;
+            /**
+             * Pack Profiles
+             * @default []
+             */
+            pack_profiles: components["schemas"]["PackProfile"][];
             /** Permissions */
             permissions: components["schemas"]["PermissionItem"][];
             /** Role */
@@ -11705,8 +11716,8 @@ export interface components {
         };
         /**
          * CrearSuscripcionBody
-         * @description Con `plan_codigo` se inscribe al cliente en un plan del catálogo (SPEC-43). Los campos de plan
-         *     libre (`nombre`, `precio`, ...) son el camino anterior, que se retira con commerce sin planes (PR-4).
+         * @description Inscribe a un `Customer` en un plan del catálogo (SPEC-43). El plan libre (nombre, precio,
+         *     periodicidad, variante de commerce) del contrato v1 se retiró con HU-COM-17.
          */
         CrearSuscripcionBody: {
             /**
@@ -11734,42 +11745,10 @@ export interface components {
              */
             metodo_pago: "pago_en_linea" | "transferencia";
             /**
-             * Moneda
-             * @default COP
-             */
-            moneda: string;
-            /**
-             * Nombre
-             * @description Camino anterior: nombre del plan.
-             */
-            nombre?: string | null;
-            /**
-             * Periodicidad
-             * @default mensual
-             */
-            periodicidad: string;
-            /**
              * Plan Codigo
              * @description Código del plan del catálogo.
              */
-            plan_codigo?: string | null;
-            /**
-             * Precio
-             * @description Valor del período.
-             * @default 0
-             */
-            precio: number;
-            /**
-             * Trial Dias
-             * @description Días de prueba (0 = sin prueba).
-             * @default 0
-             */
-            trial_dias: number;
-            /**
-             * Variant Id
-             * @description Camino anterior: variante de commerce.
-             */
-            variant_id?: string | null;
+            plan_codigo: string;
         };
         /** CredentialField */
         CredentialField: {
@@ -12288,6 +12267,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
             /** Customer Name */
             customer_name: string | null;
             /** External Id */
@@ -15128,6 +15112,12 @@ export interface components {
              */
             mrr: number;
             /**
+             * Mrr Descuento
+             * @description Descuento vigente por mes (SPEC-43): de las activas de pago con descuento y períodos por consumir, valor del período por el porcentaje, normalizado a mes. El MRR no lo resta.
+             * @default 0
+             */
+            mrr_descuento: number;
+            /**
              * Mrr Mes Anterior
              * @description Aproximado: suscripciones vivas al cierre del mes anterior, a su precio actual.
              */
@@ -15145,6 +15135,12 @@ export interface components {
              * @default 0
              */
             pendientes_de_pago: number;
+            /**
+             * Suscripciones Con Descuento
+             * @description Activas de pago con descuento vigente.
+             * @default 0
+             */
+            suscripciones_con_descuento: number;
             /** Vencidas */
             vencidas: number;
         };
@@ -15964,6 +15960,13 @@ export interface components {
         OrderOut: {
             /** Created At */
             created_at: string | null;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
+            /** Customer Name */
+            customer_name?: string | null;
             /** Delivery Address */
             delivery_address: string | null;
             /** Delivery Full Name */
@@ -15981,10 +15984,6 @@ export interface components {
             payment_method: string;
             /** Payment Status */
             payment_status: string;
-            /** Plan Activation Error */
-            plan_activation_error?: string | null;
-            /** Plan Activation Status */
-            plan_activation_status?: string | null;
             /** Public Order Number */
             public_order_number: string;
             /** Status */
@@ -16047,6 +16046,38 @@ export interface components {
             registrado_por: string | null;
             /** Valor */
             valor: number;
+        };
+        /**
+         * PackProfile
+         * @description Perfil que un pack tiene de un colaborador (ADR-0176), para mostrarlo en Equipo.
+         *
+         *     `resumen` es un objeto pequeño y plano que el cliente pinta sin interpretar; lo define el pack. El core
+         *     lo descarta (y `edit`) para quien no tiene acceso a ninguna sección del pack.
+         */
+        PackProfile: {
+            edit?: components["schemas"]["PackProfileEdit"] | null;
+            /** Etiqueta */
+            etiqueta: string;
+            /** Pack */
+            pack: string;
+            /** Ref Id */
+            ref_id: string;
+            /** Resumen */
+            resumen?: {
+                [key: string]: unknown;
+            } | null;
+            /** Role Id */
+            role_id: string;
+        };
+        /**
+         * PackProfileEdit
+         * @description Cómo se edita un perfil: `kind` es una cadena abierta que el cliente reconoce o ignora.
+         */
+        PackProfileEdit: {
+            /** Kind */
+            kind: string;
+            /** Ref Id */
+            ref_id: string;
         };
         /** PackRole */
         PackRole: {
@@ -16443,7 +16474,7 @@ export interface components {
              */
             desde: string;
             /** Dias */
-            dias?: number;
+            dias: number;
             /**
              * Hasta
              * Format: date-time
@@ -17250,8 +17281,6 @@ export interface components {
         ProductSave: {
             /** Ally Id */
             ally_id?: string | null;
-            /** Billing Period */
-            billing_period?: ("mensual" | "trimestral" | "anual" | "") | null;
             /** Category Id */
             category_id?: string | null;
             /**
@@ -17282,8 +17311,6 @@ export interface components {
              * @default 0
              */
             stock: number;
-            /** Trial Days */
-            trial_days?: number | null;
         };
         /** Promise */
         Promise: {
@@ -17342,7 +17369,7 @@ export interface components {
             max_canjes?: number | null;
             /**
              * Periodos
-             * @description Cobros que descuenta. Hoy solo se acepta 1.
+             * @description Cobros que descuenta. De 1 a 12 períodos; el monto fijo solo descuenta 1.
              * @default 1
              */
             periodos: number;
@@ -17407,7 +17434,7 @@ export interface components {
             max_canjes?: number | null;
             /**
              * Periodos
-             * @description Cobros que descuenta. Hoy solo se acepta 1.
+             * @description Cobros que descuenta. De 1 a 12 períodos; el monto fijo solo descuenta 1.
              * @default 1
              */
             periodos: number;
@@ -19459,14 +19486,14 @@ export interface components {
             periodicidad: string;
             /** Plan */
             plan: string;
+            /** Plan Id */
+            plan_id?: string | null;
             /** Proximo Cargo */
             proximo_cargo?: string | null;
             /** Trial Termina */
             trial_termina?: string | null;
             /** Valor Periodo */
             valor_periodo: number;
-            /** Variante Id */
-            variante_id?: string | null;
         };
         /** SuscripcionItem */
         SuscripcionItem: {
@@ -19505,14 +19532,14 @@ export interface components {
             periodicidad: string;
             /** Plan */
             plan: string;
+            /** Plan Id */
+            plan_id?: string | null;
             /** Proximo Cargo */
             proximo_cargo?: string | null;
             /** Trial Termina */
             trial_termina?: string | null;
             /** Valor Periodo */
             valor_periodo: number;
-            /** Variante Id */
-            variante_id?: string | null;
         };
         /** SuscripcionOut */
         SuscripcionOut: {
@@ -20590,8 +20617,6 @@ export interface components {
             attributes: {
                 [key: string]: unknown;
             };
-            /** Billing Period */
-            billing_period?: string | null;
             /**
              * Id
              * Format: uuid
@@ -20603,8 +20628,6 @@ export interface components {
             sku: string;
             /** Stock */
             stock: number;
-            /** Trial Days */
-            trial_days?: number | null;
         };
         /** VendedorAltas */
         VendedorAltas: {
@@ -36892,7 +36915,18 @@ export interface operations {
     };
     list_orders_api_v1_pack_commerce_orders_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Solo los pedidos de este cliente. */
+                customer_id?: string | null;
+                /** @description Estado del pedido. */
+                estado?: string | null;
+                limit?: number;
+                offset?: number;
+                /** @description Estado del pago: pendiente, pagado o rechazado. */
+                pago?: string | null;
+                /** @description Número de pedido o nombre del cliente. */
+                q?: string | null;
+            };
             header?: {
                 "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
@@ -36905,6 +36939,8 @@ export interface operations {
             /** @description Successful Response */
             200: {
                 headers: {
+                    /** @description Total de pedidos que coinciden con los filtros (sin paginar). */
+                    "X-Total-Count"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -38000,10 +38036,10 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 periodicidad?: ("mensual" | "trimestral" | "anual") | null;
+                /** @description Plan del catálogo. */
+                plan_id?: string | null;
                 /** @description Nombre o teléfono del cliente, o plan. */
                 q?: string | null;
-                /** @description Plan (variante de commerce). */
-                variante_id?: string | null;
             };
             header?: {
                 "X-Device-Id"?: string | null;

@@ -28,6 +28,7 @@ function cuenta(cambios: Partial<CollaboratorItem> = {}): CollaboratorItem {
     is_platform_master: false,
     permissions: [],
     links: [],
+    pack_profiles: [],
     ...cambios,
   };
 }
