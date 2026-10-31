@@ -279,6 +279,8 @@ function PanelShellInterno() {
       const params = {
         ...(destino.pestana ? { pestanaInicial: { pestana: destino.pestana, n } } : {}),
         ...(destino.ajustes ? { ajustesInicial: destino.ajustes } : {}),
+        // HU-CRM-20: `n` distingue dos avisos seguidos al mismo cliente.
+        ...(destino.cliente ? { clienteInicial: { id: destino.cliente, n } } : {}),
         entrada,
       };
       const raiz = MODULOS_PANEL[destino.modulo].raizStack;
@@ -305,6 +307,7 @@ function PanelShellInterno() {
         modulo: destino.tab as ModuloPanel,
         pestana: destino.pestana,
         ajustes: destino.ajustes,
+        cliente: destino.cliente,
       }),
     );
   }, [navegar]);

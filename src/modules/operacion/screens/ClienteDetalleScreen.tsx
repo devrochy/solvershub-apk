@@ -28,6 +28,7 @@ import {
   Switch,
   TextField,
   useKit,
+  useToast,
 } from "@shared/ui";
 import {
   CLASIFICACION_LABEL,
@@ -134,6 +135,7 @@ const ENLACE_DEL_AGENTE: Record<string, { tab: string; pestana: string; label: s
 export function ClienteDetalleScreen({ route, navigation }: Props) {
   const { c, tonos } = useKit();
   const api = useAdminApi();
+  const toast = useToast();
   const { sesion } = useAdminSession();
   const { id } = route.params;
   const puedeEscribir = sesion?.role === "master" || sesion?.permissions?.leads === "write";
@@ -150,10 +152,16 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
     try {
       setFicha(await fichaDelCliente(api, id));
       setError(null);
-    } catch {
+    } catch (err) {
+      // HU-CRM-20: un aviso viejo o un enlace guardado apunta a un cliente que ya no está.
+      if (err instanceof AdminApiError && err.status === 404) {
+        toast.error("Ese cliente ya no está");
+        navigation.goBack();
+        return;
+      }
       setError("No pudimos cargar el cliente.");
     }
-  }, [api, id]);
+  }, [api, id, navigation, toast]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial: los setState ocurren después del await
@@ -161,6 +169,12 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
   }, [cargar]);
 
   const perfil = useMemo(() => (ficha ? perfilDe(ficha) : null), [ficha]);
+
+  // Llegando desde un aviso el título no se conoce: se pone el nombre al cargar la ficha.
+  const tituloDeLaFicha = perfil?.nombre_visible || ficha?.cliente || null;
+  useEffect(() => {
+    if (tituloDeLaFicha) navigation.setOptions({ title: tituloDeLaFicha });
+  }, [navigation, tituloDeLaFicha]);
   const tabs = useMemo(
     () => [
       { key: "general", label: "General" },

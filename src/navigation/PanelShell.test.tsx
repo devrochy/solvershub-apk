@@ -13,6 +13,15 @@ jest.mock("../modules/perfil", () => {
   };
 });
 
+jest.mock("../modules/operacion/screens/ClienteDetalleScreen", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  return {
+    ClienteDetalleScreen: ({ route }: { route: { params: { id: string } } }) =>
+      React.createElement(Text, { testID: "cliente-detalle" }, route.params.id),
+  };
+});
+
 let mockSesionValue: unknown = null;
 let mockPerfilValue: unknown = null;
 const mockRefrescarPerfil = jest.fn().mockResolvedValue(undefined);
@@ -234,6 +243,27 @@ describe("PanelShell (HU-APP-03, HU-DS-11)", () => {
     await waitFor(() => expect(getByTestId("panel-titulo").props.children).toBe("Clientes"));
     await waitFor(() => expect(getByTestId("clientes-busqueda")).toBeTruthy());
     expect(queryByTestId("pestana-conversaciones")).toBeNull();
+  });
+
+  it("un aviso de cliente con la app abierta abre su ficha sobre la lista de Clientes (HU-CRM-20)", async () => {
+    mockSesionValue = { ...DUENO, permissions: { conversations: "read", escalations: "read", leads: "read" } };
+    const { findByTestId, getByTestId } = await renderShell();
+    await findByTestId("panel-menu");
+
+    await act(async () => {
+      emitirNavegacion({ tab: "conversaciones", pestana: "leads", cliente: "cli-1" });
+    });
+
+    await waitFor(() => expect(getByTestId("cliente-detalle").props.children).toBe("cli-1"));
+  });
+
+  it("con la app cerrada, el aviso llega a la ficha apenas arranca el panel (HU-CRM-20)", async () => {
+    mockSesionValue = { ...DUENO, permissions: { conversations: "read", escalations: "read", leads: "read" } };
+    // El push se toca antes de que el shell monte: el bus lo guarda y lo entrega al montar.
+    emitirNavegacion({ tab: "conversaciones", pestana: "leads", cliente: "cli-2" });
+    const { findByTestId } = await renderShell();
+
+    expect((await findByTestId("cliente-detalle")).props.children).toBe("cli-2");
   });
 
   it("la raíz de Cobranza lleva el header del panel (sin header nativo encima)", async () => {

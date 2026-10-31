@@ -8,6 +8,8 @@ export interface DestinoNavegacion {
   pestana?: string;
   /** Sección de ajustes que debe abrir la pantalla de Agenda (HU-CAL-08). */
   ajustes?: string;
+  /** Id del cliente cuya ficha se abre sobre la lista (HU-CRM-20). */
+  cliente?: string;
 }
 
 type Oyente = (destino: DestinoNavegacion) => void;

@@ -413,6 +413,8 @@ export interface DestinoMenu {
   entrada?: string;
   /** Sección del cajón de ajustes de Agenda que se abre al llegar (HU-CAL-08). */
   ajustes?: string;
+  /** Id del cliente cuya ficha se abre sobre la lista de Clientes (HU-CRM-20). */
+  cliente?: string;
 }
 
 /**
