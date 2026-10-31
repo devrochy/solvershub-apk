@@ -96,4 +96,53 @@ describe("ClienteCard (CRM)", () => {
     expect(sinPermiso("lead-editar-l-1")).toBeNull();
     expect(sinPermiso("lead-plantilla-l-1")).toBeNull();
   });
+  describe("etapa del lead (HU-CRM-19)", () => {
+    const CON_ETAPA = { ...ITEM, extras: { estado_lead: "Calificado" } } as LeadRow;
+
+    it("muestra la etapa con texto, junto a la clasificación", async () => {
+      const { getByText, getByTestId } = await tarjeta({ item: CON_ETAPA });
+      expect(getByText("Calificado")).toBeTruthy();
+      expect(getByText("VIP")).toBeTruthy();
+      expect(getByTestId("lead-l-1").props.accessibilityLabel).toContain("Etapa Calificado");
+    });
+
+    it("dice «Sin lead de venta» a quien es de Ventas y no tiene lead", async () => {
+      const { getByText, queryByRole } = await tarjeta();
+      expect(getByText("Sin lead de venta")).toBeTruthy();
+      expect(queryByRole("button", { name: /Cambiar la etapa/ })).toBeNull();
+    });
+
+    it("no muestra nada de etapa a quien no es de Ventas ni tiene lead", async () => {
+      const { queryByTestId } = await tarjeta({ item: { ...ITEM, agentes: ["general"] } as LeadRow });
+      expect(queryByTestId("lead-etapa-l-1")).toBeNull();
+    });
+
+    it("al tocar la etapa pide cambiarla sin abrir la ficha", async () => {
+      const onAbrir = jest.fn();
+      const onCambiarEtapa = jest.fn();
+      const { getByTestId } = await tarjeta({ item: CON_ETAPA, onAbrir, onCambiarEtapa });
+      await fireEvent.press(getByTestId("lead-etapa-l-1"));
+      expect(onCambiarEtapa).toHaveBeenCalledTimes(1);
+      expect(onAbrir).not.toHaveBeenCalled();
+    });
+
+    it("sin permiso de escritura ve la etapa pero no puede cambiarla", async () => {
+      const onCambiarEtapa = jest.fn();
+      const { getByText, queryByRole } = await tarjeta({
+        item: CON_ETAPA,
+        puedeEscribir: false,
+        onCambiarEtapa,
+      });
+      expect(getByText("Calificado")).toBeTruthy();
+      expect(queryByRole("button", { name: /Cambiar la etapa/ })).toBeNull();
+    });
+
+    it("entiende el código de la etapa además del nombre", async () => {
+      const { getByText } = await tarjeta({
+        item: { ...ITEM, extras: { estado_lead: "perdido" } } as LeadRow,
+        opcionesEtapa: [{ value: "perdido", label: "Perdido", tone: "danger", icon: "cancel" }],
+      });
+      expect(getByText("Perdido")).toBeTruthy();
+    });
+  });
 });
