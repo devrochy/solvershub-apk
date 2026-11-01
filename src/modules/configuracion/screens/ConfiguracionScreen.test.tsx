@@ -225,7 +225,7 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
   });
 
   it("muestra Google Calendar en Conexiones y abre el panel (HU-CAL-08)", async () => {
-    const abrir = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const abrir = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
     await waitFor(() => expect(getByTestId("config-conexiones")).toBeTruthy());
     await fireEvent.press(getByTestId("config-conexiones"));

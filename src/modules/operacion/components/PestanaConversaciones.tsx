@@ -185,7 +185,7 @@ export function PestanaConversaciones({
             <Button variant="link" size="sm" onPress={() => void cargarMas()} testID="conversaciones-mas">
               Cargar más
             </Button>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item }) => (
           <TarjetaConversacion chat={item} onPress={() => abrir(item)} visto={visto(item)} />

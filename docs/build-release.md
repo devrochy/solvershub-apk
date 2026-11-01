@@ -22,6 +22,12 @@ Cada perfil de `eas.json` compila contra una API y escucha un **canal** de EAS U
   en el `CHANGELOG.md`.
 - `runtimeVersion` usa la política **fingerprint**: se deriva del código nativo (dependencias,
   plugins, `app.json`). Un OTA solo llega a los binarios con el mismo fingerprint.
+- SDK 58 activa **R8** en release (recomendado). Si una librería con reflexión falla en
+  runtime, se agregan keep rules con `android.extraProguardRules` de `expo-build-properties`;
+  no se cambia el `runtimeVersion` por entorno (un config condicionado por env rompe el
+  fingerprint y el OTA no llega al binario).
+- Expo Go solo acepta **SDK 58**, pero no aplica SQLCipher, pinning ni push: para QA usa el APK
+  `preview`, no Expo Go.
 
 ## Comandos
 
@@ -33,6 +39,23 @@ npx eas-cli submit --profile staging --platform android --latest     # → pista
 npx eas-cli submit --profile production --platform android --latest  # → producción (borrador)
 scripts/publicar-ota.sh <canal> "mensaje"                    # OTA (ver abajo)
 ```
+
+### Build local (sin cupo de EAS o sin subir el commit)
+
+`eas build --local` usa el mismo keystore de EAS y deja el APK en la ruta de `--output`. Requiere
+JDK 21 (con `javac`), Android SDK (platform 37, build-tools 37) y el `google-services.json` de
+`eas-environment-secrets/`:
+
+```bash
+export JAVA_HOME="$HOME/.jdks/jdk-21"
+export ANDROID_HOME="$HOME/Android/Sdk" ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+export GOOGLE_SERVICES_JSON="$PWD/../eas-environment-secrets/google-services.json"
+npx eas-cli build --local --profile preview --platform android --output ./solvershub-preview.apk
+```
+
+El APK incrusta `assets/fingerprint` con el hash real; el `file:fingerprint` del manifiesto es el
+sentinel que expo-updates resuelve en runtime. `android.googleServicesFile` avisa que el archivo
+no está en git: es esperado.
 
 ## OTA (EAS Update)
 
@@ -79,7 +102,8 @@ antes y después; si el hash cambia, va AAB.
 ## Reproducibilidad
 
 - `package-lock.json` commiteado; `npm ci` en CI (`.npmrc` con `legacy-peer-deps`).
-- SDK de Expo pineado (`expo ~57.x`), con las versiones de `expo-*` alineadas (`npx expo install --check`).
+- SDK de Expo pineado (`expo ~58.x`), con las versiones de `expo-*` alineadas (`npx expo install --check`).
+- Node 22.13+ o 24.3+ (las versiones impares no están soportadas); la máquina de build y EAS lo cumplen.
 - Tipos de API commiteados (`npm run api:types` desde `origin/develop` del backend).
 - `npm run check` en verde antes de cualquier build de release.
 
@@ -123,3 +147,5 @@ antes y después; si el hash cambia, va AAB.
      "Resumen".
   El bundle publicado lleva la API de test y no la de `.env.local`.
 - Pendiente: la cuenta de Play Console (pasos de arriba).
+- 2026-10-28: migración a Expo SDK 58 (RN 0.88, React 19.3) y Strict TypeScript API; R8
+  con el default del SDK; `expo-doctor` 20/20 y la suite completa en verde.

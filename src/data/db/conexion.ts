@@ -17,14 +17,27 @@ async function generarClave(): Promise<string> {
   return hex;
 }
 
+let claveEnCurso: Promise<string> | null = null;
+
 async function claveMaestra(): Promise<string> {
-  const existente = await secureGet(CLAVE_MAESTRA);
-  if (existente) {
-    return existente;
+  if (claveEnCurso) {
+    return claveEnCurso;
   }
-  const nueva = await generarClave();
-  await secureSet(CLAVE_MAESTRA, nueva);
-  return nueva;
+  claveEnCurso = (async () => {
+    const existente = await secureGet(CLAVE_MAESTRA);
+    if (existente) {
+      return existente;
+    }
+    const nueva = await generarClave();
+    await secureSet(CLAVE_MAESTRA, nueva);
+    return nueva;
+  })();
+  try {
+    return await claveEnCurso;
+  } catch (error) {
+    claveEnCurso = null;
+    throw error;
+  }
 }
 
 /** Kill-switch local (ADR-APP-05): con "1" la base queda sin usar (solo legacy). */

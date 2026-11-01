@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type ViewInstance,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -244,7 +245,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   // WhatsApp con screenshot.
   const [compartiendo, setCompartiendo] = useState(false);
-  const refCanvas = useRef<View | null>(null);
+  const refCanvas = useRef<ViewInstance | null>(null);
 
   const cargar = useCallback(async () => {
     setError(null);

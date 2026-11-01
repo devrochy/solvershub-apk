@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
 import { shSpace, shType } from "@core/theme/tokens";
 import { useKit } from "@shared/ui";
 
@@ -39,7 +39,7 @@ export function LineaDelDia({
   onRedimensionar: (evento: EventoAgenda, start: string, end: string) => void;
 }) {
   const { c } = useKit();
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const [gesto, setGesto] = useState(false);
   const [ahora, setAhora] = useState(() => new Date());
   const delDia = eventos.filter((evento) => {

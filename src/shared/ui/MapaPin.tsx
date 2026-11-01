@@ -71,7 +71,7 @@ export function MapaPin({
     () => htmlMapaPin(inicial.latitud, inicial.longitud, soloLectura),
     [inicial, soloLectura],
   );
-  const webviewRef = useRef<WebView | null>(null);
+  const webviewRef = useRef<InstanceType<typeof WebView> | null>(null);
   const primerRender = useRef(true);
 
   useEffect(() => {

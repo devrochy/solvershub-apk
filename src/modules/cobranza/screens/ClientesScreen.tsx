@@ -548,7 +548,7 @@ export function ClientesScreen({
             <Text testID="aviso-refresco" style={styles.mensajeError}>
               {error}
             </Text>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item }) => (
           <ListItem

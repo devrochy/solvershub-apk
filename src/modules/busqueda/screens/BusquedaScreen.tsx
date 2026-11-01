@@ -121,7 +121,7 @@ export function BusquedaScreen() {
             <Text style={{ color: colores.textoSuave, textAlign: "center", marginTop: 20 }}>
               Sin resultados para “{texto.trim()}”.
             </Text>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item }) => (
           <Pressable

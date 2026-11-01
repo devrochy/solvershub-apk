@@ -370,7 +370,7 @@ export function CobranzaAdminScreen({
               >
                 <Text style={{ color: colores.textoSuave, fontSize: 14 }}>Buscar cliente</Text>
               </Pressable>
-            ) : null
+            ) : undefined
           }
           ListEmptyComponent={<Text style={styles.vacio}>Sin carteras.</Text>}
           renderItem={({ item }) => (

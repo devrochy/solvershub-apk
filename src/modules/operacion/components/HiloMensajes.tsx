@@ -100,7 +100,7 @@ export function HiloMensajes({ mensajes }: { mensajes: MessageItem[] }) {
               Ver mensajes anteriores
             </Button>
           </View>
-        ) : null
+        ) : undefined
       }
       ListEmptyComponent={
         <View style={styles.vacio}>
