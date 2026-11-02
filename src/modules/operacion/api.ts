@@ -204,6 +204,8 @@ export interface FiltroLeads {
   connection_id?: string;
   /** Filtros de los packs en formato `clave:valor` (se envían como `filtro` repetido). */
   filtros?: string[];
+  /** Orden de la lista; `seguimiento` pone los más atrasados primero (HU-CRM-21). */
+  orden?: string;
   page?: number;
   pageSize?: number;
 }
@@ -217,6 +219,7 @@ export async function listarLeads(
     channel: filtro.channel,
     connection_id: filtro.connection_id,
     filtro: filtro.filtros,
+    orden: filtro.orden,
     page: filtro.page,
     page_size: filtro.pageSize ?? 20,
   });
@@ -390,6 +393,24 @@ export async function editarCamposDelPack(
   return api.patch<FichaDelCliente>(`/admin/leads/${id}/pack/${encodeURIComponent(pluginId)}`, { valores });
 }
 
+/** Marca como hecho el seguimiento del lead y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21). */
+export async function marcarSeguimientoHecho(
+  api: ClienteAdmin,
+  id: string,
+  siguiente?: { en: string; nota: string },
+): Promise<void> {
+  await api.post<void>(
+    `/pack/commerce/leads/${id}/seguimiento/hecho`,
+    siguiente ? { siguiente_en: siguiente.en, siguiente_nota: siguiente.nota } : {},
+  );
+}
+
+/** Zona horaria del negocio: las fechas de seguimiento de la lista se muestran en su hora. */
+export async function zonaDelNegocio(api: ClienteAdmin): Promise<string | null> {
+  const ajustes = await api.get<{ identity?: { timezone?: string | null } }>("/admin/settings");
+  return ajustes.identity?.timezone || null;
+}
+
 /**
  * Datos del perfil para «Lo que sabemos» (ADR-0149): sin el nombre (va en el título) ni el teléfono
  * del perfil cuando es el mismo del canal, para no mostrar el mismo dato dos veces.
@@ -463,6 +484,7 @@ export const TIPO_DE_EVENTO: Record<string, string> = {
   cotizacion: "Cotización",
   pedido: "Pedido",
   cita: "Cita",
+  seguimiento: "Seguimiento",
 };
 
 const ORIGEN: Record<string, string> = { tool: "Asistente", agent: "Asistente", human: "Persona", import: "Importado" };
@@ -566,6 +588,7 @@ export function documentoVisible(perfil: LeadPerfil | null | undefined): string 
 export function agruparEditablesPorPack(editables: CampoEditable[] | undefined): [string, CampoEditable[]][] {
   const grupos = new Map<string, CampoEditable[]>();
   for (const campo of editables ?? []) {
+    if (campo.key === "seguimiento_en" || campo.key === "seguimiento_nota") continue; // tarjeta propia (HU-CRM-21)
     grupos.set(campo.plugin_id, [...(grupos.get(campo.plugin_id) ?? []), campo]);
   }
   return [...grupos.entries()];

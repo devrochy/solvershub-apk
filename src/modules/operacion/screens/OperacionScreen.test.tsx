@@ -375,6 +375,41 @@ describe("OperacionScreen (HU-APP-08)", () => {
     );
   });
 
+  it("con un filtro de seguimiento pide los más atrasados primero (HU-CRM-21)", async () => {
+    const base = mockGet.getMockImplementation()!;
+    mockGet.mockImplementation(async (path: string, params?: unknown) => {
+      const respuesta = await base(path, params);
+      if (path !== "/admin/leads") return respuesta;
+      return {
+        ...respuesta,
+        filters: [
+          {
+            key: "seguimiento",
+            label: "Seguimiento",
+            options: [
+              { value: "vencidos", label: "Vencidos" },
+              { value: "hoy", label: "Hoy" },
+            ],
+          },
+        ],
+      };
+    });
+    const { getByTestId } = await render(
+      <OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByTestId("lista-leads")).toBeTruthy());
+    expect(mockGet).toHaveBeenCalledWith("/admin/leads", expect.objectContaining({ orden: undefined }));
+
+    await fireEvent.press(getByTestId("clientes-filtros"));
+    await fireEvent.press(getByTestId("filtro-seguimiento-vencidos"));
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenCalledWith(
+        "/admin/leads",
+        expect.objectContaining({ filtro: ["seguimiento:vencidos"], orden: "seguimiento" }),
+      ),
+    );
+  });
+
   it("pausa el bot desde la tarjeta del cliente", async () => {
     const { getByTestId } = await render(
       <OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} />,

@@ -14,6 +14,7 @@ import type { LeadAgentOut, LeadRow } from "../api";
 import { AgentIcon, ChannelIcon } from "./iconos-clientes";
 import { BotonDelBot } from "./BotonDelBot";
 import { etapaDeFila, type OpcionDeEtapa } from "../etapas";
+import { ESTADO_DE_SEGUIMIENTO, seguimientoDeFila, textoDeSeguimiento } from "../seguimiento";
 
 type Tono = "neutral" | "accent" | "success" | "warning" | "danger";
 
@@ -49,6 +50,8 @@ export interface ClienteCardProps {
   opcionesEtapa?: OpcionDeEtapa[];
   /** Abre la hoja de etapas. Sin él (o sin permiso de escritura) la etapa es solo lectura. */
   onCambiarEtapa?: () => void;
+  /** Zona horaria del negocio, para la fecha del seguimiento (HU-CRM-21). */
+  zona?: string;
 }
 
 /**
@@ -69,6 +72,7 @@ export function ClienteCard({
   onEnviarPlantilla,
   opcionesEtapa = [],
   onCambiarEtapa,
+  zona,
 }: ClienteCardProps) {
   const { c, tonos } = useKit();
   const perfil = item.perfil ?? null;
@@ -90,6 +94,9 @@ export function ClienteCard({
   const etapa = etapaDeFila(item, opcionesEtapa);
   const textoDeEtapa = etapa ? etapa.label : delCliente.has("ventas") ? "Sin lead de venta" : null;
   const puedeCambiarEtapa = puedeEscribir && !!etapa && !!onCambiarEtapa;
+  const seguimiento = seguimientoDeFila(item);
+  const estadoDeSeguimiento = seguimiento?.estado ? ESTADO_DE_SEGUIMIENTO[seguimiento.estado] : null;
+  const textoDeFecha = seguimiento ? textoDeSeguimiento(seguimiento.en, zona) : null;
   const nombresAgentes = (agentes ?? [])
     .filter((a) => delCliente.has(a.key))
     .map((a) => a.name);
@@ -99,6 +106,9 @@ export function ClienteCard({
     alias ? `alias ${alias}` : null,
     etiquetaDeClasificacion,
     textoDeEtapa ? `Etapa ${textoDeEtapa}` : null,
+    seguimiento
+      ? `Seguimiento ${estadoDeSeguimiento ? `${estadoDeSeguimiento.texto.toLowerCase()}, ` : ""}${textoDeFecha}${seguimiento.nota ? `: ${seguimiento.nota}` : ""}`
+      : null,
     etiquetaCanal(item.canal),
     telefono !== "—" ? telefono : null,
     ubicacion !== "—" ? ubicacion : null,
@@ -161,6 +171,25 @@ export function ClienteCard({
           ) : null}
         </View>
       </View>
+
+      {seguimiento ? (
+        <View testID={`lead-seguimiento-${item.id}`} style={styles.filaDetalle}>
+          {estadoDeSeguimiento ? (
+            <BadgeDeClasificacion
+              tone={estadoDeSeguimiento.tono}
+              icon={estadoDeSeguimiento.icono}
+              label={estadoDeSeguimiento.texto}
+              testID={`lead-seguimiento-estado-${item.id}`}
+            />
+          ) : (
+            <Icono name="event" size={16} color={c.textMuted} />
+          )}
+          <Text style={[shType.dense, styles.flex, { color: c.textMuted }]} numberOfLines={2}>
+            {textoDeFecha}
+            {seguimiento.nota ? ` · ${seguimiento.nota}` : ""}
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.detalles}>
         <View style={styles.filaDetalle}>

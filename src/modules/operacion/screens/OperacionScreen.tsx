@@ -29,6 +29,7 @@ import {
   listarConexionesDeConversaciones,
   listarLeads,
   reiniciarPlayground,
+  zonaDelNegocio,
   type ConversationConnection,
   type FiltroLeads,
   type LeadAgentOut,
@@ -49,6 +50,7 @@ import {
   type OpcionDeEtapa,
 } from "../etapas";
 import { FiltrosDeClientes } from "../components/FiltrosDeClientes";
+import { ordenPorDefectoDeSeguimiento, ZONA_POR_DEFECTO } from "../seguimiento";
 import { nombreDelChat } from "../presentacion";
 import type { OperacionStackParamList } from "../navigation";
 
@@ -98,6 +100,7 @@ export function OperacionScreen({
   const [refrescandoLeads, setRefrescandoLeads] = useState(false);
   const [botPendiente, setBotPendiente] = useState<string | null>(null);
   const [exportando, setExportando] = useState(false);
+  const [zonaDelNegocioActual, setZonaDelNegocioActual] = useState(ZONA_POR_DEFECTO);
   const [etapaPara, setEtapaPara] = useState<LeadRow | null>(null);
   const [avisoDeEtapa, setAvisoDeEtapa] = useState<{
     item: LeadRow;
@@ -115,7 +118,11 @@ export function OperacionScreen({
     async (paginaPedida: number, filtro: FiltroLeads, acumular: boolean) => {
       setCargandoLeads(true);
       try {
-        const pagina = await listarLeads(api, { ...filtro, page: paginaPedida });
+        const pagina = await listarLeads(api, {
+          ...filtro,
+          orden: filtro.orden ?? ordenPorDefectoDeSeguimiento(filtro.filtros),
+          page: paginaPedida,
+        });
         setLeads((previos) => (acumular ? [...previos, ...pagina.items] : pagina.items));
         setAgentesLeads(pagina.agents ?? []);
         setFiltrosDePack(pagina.filters ?? []);
@@ -133,6 +140,20 @@ export function OperacionScreen({
     },
     [api],
   );
+
+  // HU-CRM-21: las fechas de seguimiento se muestran en la hora del negocio. Si no se lee, Bogotá.
+  useEffect(() => {
+    if (pestana !== "leads") return;
+    let vigente = true;
+    zonaDelNegocio(api)
+      .then((zona) => {
+        if (vigente && zona) setZonaDelNegocioActual(zona);
+      })
+      .catch(() => undefined);
+    return () => {
+      vigente = false;
+    };
+  }, [pestana, api]);
 
   useEffect(() => {
     if (pestana !== "leads") return;
@@ -451,6 +472,7 @@ export function OperacionScreen({
                   onEditar={() => abrirCliente(item, true)}
                   onAlternarBot={() => void alternarBotDe(item)}
                   opcionesEtapa={opcionesEtapa}
+                  zona={zonaDelNegocioActual}
                   onCambiarEtapa={() => setEtapaPara(item)}
                   onEnviarPlantilla={() =>
                     setPlantillaPara({

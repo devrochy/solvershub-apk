@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { shSpace, shType } from "@core/theme/tokens";
-import { Badge, Button, Field, Icono, Sheet, TextField, useKit } from "@shared/ui";
+import { Badge, Button, Field, Icono, SelectorFechaHora, Sheet, TextField, useKit } from "@shared/ui";
 
 import {
   actualizarBloqueo,
@@ -24,7 +24,6 @@ import {
 } from "../domain/agenda";
 import { describirAviso } from "../domain/notificacion";
 import { fechaDePared, isoDePared, partesEnZona } from "../domain/zona";
-import { SelectorFechaHora } from "./SelectorFechaHora";
 
 type QueCrear = "cita" | "bloqueo";
 
