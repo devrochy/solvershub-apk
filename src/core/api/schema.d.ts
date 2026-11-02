@@ -15580,6 +15580,8 @@ export interface components {
              * @description conversacion, escalacion, lead, cliente, pedido, pago, suscripcion, cobro, cita, conexion, mensaje_fallido, cobranza
              */
             entity: string;
+            /** Filtro */
+            filtro?: string | null;
             /** Id */
             id: string | null;
             /** Section */
