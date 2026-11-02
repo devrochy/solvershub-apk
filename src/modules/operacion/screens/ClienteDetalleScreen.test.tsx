@@ -1,10 +1,12 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
+const SESION_MASTER = {
+  sesion: { token: "t", role: "master", tenantRole: "owner", permissions: { leads: "write" } },
+  loading: false,
+};
+const mockSesion = jest.fn();
 jest.mock("@core/session/admin-session-context", () => ({
-  useAdminSession: () => ({
-    sesion: { token: "t", role: "master", tenantRole: "owner", permissions: { leads: "write" } },
-    loading: false,
-  }),
+  useAdminSession: () => mockSesion(),
 }));
 jest.mock("@shared/ui", () => {
   // Estable entre renders, como el del `ToastProvider` real.
@@ -159,6 +161,7 @@ async function pantalla() {
 describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSesion.mockReturnValue(SESION_MASTER);
     mockGet.mockReset();
     mockPost.mockReset();
     mockPatch.mockReset();
@@ -272,6 +275,47 @@ describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
         valores: { estado_lead: "perdido" },
       }),
     );
+  });
+
+  describe("próxima acción (HU-CRM-21)", () => {
+    const SEGUIMIENTO = [
+      { plugin_id: "pack_commerce", key: "seguimiento_nota", label: "Próxima acción", tipo: "texto", max_length: 200, value: "Llamar para cerrar" },
+      { plugin_id: "pack_commerce", key: "seguimiento_en", label: "Fecha de seguimiento", tipo: "fecha", max_length: 32, value: "2026-11-03T09:00" },
+    ];
+    const FICHA_CON_SEGUIMIENTO = {
+      ...FICHA,
+      extras: { ...FICHA.extras, seguimiento_en: "2026-11-03T14:00:00+00:00", seguimiento_estado: "vencidos" },
+      agentes: FICHA.agentes.map((a) => (a.key === "ventas" ? { ...a, editables: [...EDITABLES, ...SEGUIMIENTO] } : a)),
+    };
+
+    beforeEach(() => {
+      mockGet.mockImplementation((path: string) => {
+        if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
+        if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+        if (path.endsWith("/consentimiento")) return Promise.resolve({ estado: "sin_registro", historial: [] });
+        return Promise.resolve(FICHA_CON_SEGUIMIENTO);
+      });
+    });
+
+    it("tiene su propia tarjeta y no aparece en el formulario genérico del pack", async () => {
+      const { findByTestId, getByTestId, queryByTestId, getByText } = await pantalla();
+      await fireEvent.press(await findByTestId("cliente-tab-ventas"));
+      expect(getByTestId("seguimiento-lead")).toBeTruthy();
+      expect(getByText("Vencido")).toBeTruthy();
+      expect(getByTestId("seguimiento-nota").props.children).toBe("Llamar para cerrar");
+      expect(queryByTestId("pack-seguimiento_en")).toBeNull();
+      expect(queryByTestId("pack-seguimiento_nota")).toBeNull();
+      expect(getByTestId("pack-estado_lead-perdido")).toBeTruthy();
+    });
+
+    it("se ve, sin acciones, para quien no puede escribir", async () => {
+      mockSesion.mockReturnValue({ sesion: { token: "t", role: "colaborador", permissions: { leads: "read" } }, loading: false });
+      const { findByTestId, getByTestId, queryByTestId } = await pantalla();
+      await fireEvent.press(await findByTestId("cliente-tab-ventas"));
+      expect(getByTestId("seguimiento-nota")).toBeTruthy();
+      expect(queryByTestId("seguimiento-editar")).toBeNull();
+      expect(queryByTestId("seguimiento-hecho")).toBeNull();
+    });
   });
 
   it("marca el consentimiento de promociones", async () => {

@@ -145,4 +145,29 @@ describe("ClienteCard (CRM)", () => {
       expect(getByText("Perdido")).toBeTruthy();
     });
   });
+
+  describe("seguimiento (HU-CRM-21)", () => {
+    const CON_SEGUIMIENTO = (estado: string) =>
+      ({
+        ...ITEM,
+        extras: {
+          seguimiento_en: "2026-11-03T14:00:00+00:00",
+          seguimiento_nota: "Llamar para confirmar",
+          seguimiento_estado: estado,
+        },
+      }) as LeadRow;
+
+    it("muestra la fecha en la zona del negocio, la nota y la insignia «Vencido»", async () => {
+      const { getByTestId, getByText } = await tarjeta({ item: CON_SEGUIMIENTO("vencidos"), zona: "America/Bogota" });
+      expect(getByTestId("lead-seguimiento-l-1")).toBeTruthy();
+      expect(getByText("Vencido")).toBeTruthy();
+      expect(getByText(/9:00.*Llamar para confirmar/)).toBeTruthy();
+      expect(getByTestId("lead-l-1").props.accessibilityLabel).toContain("Seguimiento vencido");
+    });
+
+    it("sin seguimiento no pinta la línea", async () => {
+      const { queryByTestId } = await tarjeta();
+      expect(queryByTestId("lead-seguimiento-l-1")).toBeNull();
+    });
+  });
 });

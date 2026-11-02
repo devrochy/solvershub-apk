@@ -68,6 +68,8 @@ import {
   validarPerfilDelCliente,
 } from "../features/cliente/validacion-perfil";
 import { LeadDeVenta } from "./LeadDeVenta";
+import { SeguimientoDelLead } from "../components/SeguimientoDelLead";
+import { tieneLeadDeVenta } from "../seguimiento";
 import { NotasYHistoria } from "./NotasYHistoria";
 
 type Props = NativeStackScreenProps<OperacionStackParamList, "ClienteDetalle">;
@@ -406,6 +408,18 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
             </Sheet>
           ) : null}
 
+          {!(ficha.agentes && ficha.agentes.length > 0) ? (
+            <SeguimientoDelLead
+              clienteId={ficha.id}
+              editables={ficha.editables ?? []}
+              extras={ficha.extras}
+              tieneLead={tieneLeadDeVenta(ficha)}
+              puedeEditar={puedeEscribir}
+              onGuardado={setFicha}
+              onRecargar={cargar}
+            />
+          ) : null}
+
           {puedeEscribir && !(ficha.agentes && ficha.agentes.length > 0)
             ? agruparEditablesPorPack(ficha.editables).map(([pluginId, campos]) => (
                 <LeadDeVenta
@@ -467,6 +481,7 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
           agente={agente}
           puedeEscribir={puedeEscribir}
           onGuardado={setFicha}
+          onRecargar={cargar}
           onVolver={() => setTab("general")}
         />
       ) : null}
@@ -479,19 +494,21 @@ function AgenteTab({
   agente,
   puedeEscribir,
   onGuardado,
+  onRecargar,
   onVolver,
 }: {
   ficha: FichaDelCliente;
   agente: NonNullable<FichaDelCliente["agentes"]>[number];
   puedeEscribir: boolean;
   onGuardado: (ficha: FichaDelCliente) => void;
+  onRecargar: () => Promise<void> | void;
   onVolver: () => void;
 }) {
   const { c } = useKit();
   const porPack = agruparEditablesPorPack(agente.editables);
   const enlace = ENLACE_DEL_AGENTE[agente.key];
 
-  if (agente.columns.length === 0 && porPack.length === 0) {
+  if (agente.columns.length === 0 && (agente.editables ?? []).length === 0) {
     return (
       <EmptyState
         icon="smart-toy"
@@ -526,6 +543,16 @@ function AgenteTab({
           ))}
         </View>
       ) : null}
+
+      <SeguimientoDelLead
+        clienteId={ficha.id}
+        editables={agente.editables ?? []}
+        extras={ficha.extras}
+        tieneLead={tieneLeadDeVenta(ficha)}
+        puedeEditar={puedeEscribir}
+        onGuardado={onGuardado}
+        onRecargar={onRecargar}
+      />
 
       {puedeEscribir
         ? porPack.map(([pluginId, campos]) => (

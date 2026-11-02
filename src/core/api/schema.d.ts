@@ -5151,6 +5151,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/settings/asistente/{seccion}/aplicar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Asistente Aplicar
+         * @description Escribe lo que mostró la vista previa. Todo o nada: la configuración del negocio y la persona
+         *     del agente se guardan en una sola transacción, y si lo que se escribiría ya no es lo que se vio
+         *     (la configuración cambió en medio) responde 409 sin escribir.
+         */
+        post: operations["asistente_aplicar_api_v1_admin_settings_asistente__seccion__aplicar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/settings/asistente/{seccion}/vista-previa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Asistente Vista Previa
+         * @description Qué cambiaría el asistente con esas respuestas (valor actual → propuesto), sin escribir nada.
+         */
+        post: operations["asistente_vista_previa_api_v1_admin_settings_asistente__seccion__vista_previa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/settings/bajas": {
         parameters: {
             query?: never;
@@ -7301,6 +7343,26 @@ export interface paths {
         get: operations["commerce_dashboard_api_v1_pack_commerce_dashboard_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/commerce/leads/{customer_id}/seguimiento/hecho": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seguimiento Hecho
+         * @description Marca como hecho el seguimiento del lead del cliente. Queda en su línea de tiempo con la nota.
+         */
+        post: operations["seguimiento_hecho_api_v1_pack_commerce_leads__customer_id__seguimiento_hecho_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9536,6 +9598,25 @@ export interface components {
             /** Asistio */
             asistio: boolean;
         };
+        /** AsistenteAplicar */
+        AsistenteAplicar: {
+            /** Huella */
+            huella: string;
+            /** Respuestas */
+            respuestas?: {
+                [key: string]: string | string[];
+            };
+        };
+        /**
+         * AsistenteRespuestas
+         * @description Lo que el dueño contestó: id de pregunta → id de opción (o lista de ids en las de varias).
+         */
+        AsistenteRespuestas: {
+            /** Respuestas */
+            respuestas?: {
+                [key: string]: string | string[];
+            };
+        };
         /**
          * AttemptOut
          * @description Valor de un solo uso que el panel devuelve con el `code` del popup.
@@ -10164,6 +10245,22 @@ export interface components {
             /** Tokens */
             tokens: number;
         };
+        /** Cambio */
+        Cambio: {
+            /** Actual */
+            actual?: unknown;
+            /** Clave */
+            clave: string;
+            /**
+             * Editado A Mano
+             * @default false
+             */
+            editado_a_mano: boolean;
+            /** Etiqueta */
+            etiqueta: string;
+            /** Propuesto */
+            propuesto?: unknown;
+        };
         /** CampoPoliticaOut */
         CampoPoliticaOut: {
             /** Ajustable */
@@ -10401,6 +10498,11 @@ export interface components {
         };
         /** Catalogo */
         Catalogo: {
+            /**
+             * Asistente
+             * @default []
+             */
+            asistente: components["schemas"]["Guion"][];
             /** Opciones */
             opciones: components["schemas"]["Opcion"][];
             /** Version */
@@ -12856,6 +12958,23 @@ export interface components {
             /** Guardrails Text */
             guardrails_text: string;
         };
+        /** Guion */
+        Guion: {
+            /**
+             * Ayuda
+             * @default
+             */
+            ayuda: string;
+            /** Preguntas */
+            preguntas: components["schemas"]["Pregunta"][];
+            /**
+             * Seccion
+             * @enum {string}
+             */
+            seccion: "voz" | "atencion";
+            /** Titulo */
+            titulo: string;
+        };
         /**
          * HealthCheck
          * @description Un check del último diagnóstico. `ok`: `None` = no se pudo evaluar.
@@ -13875,7 +13994,7 @@ export interface components {
              * Tipo
              * @enum {string}
              */
-            tipo: "opciones" | "texto";
+            tipo: "opciones" | "texto" | "fecha";
             /** Value */
             value?: string | null;
         };
@@ -15472,6 +15591,15 @@ export interface components {
             numbers: components["schemas"]["PhoneNumberItem"][];
             /** Sync Error */
             sync_error?: string | null;
+        };
+        /** Omitido */
+        Omitido: {
+            /** Clave */
+            clave: string;
+            /** Etiqueta */
+            etiqueta: string;
+            /** Motivo */
+            motivo: string;
         };
         /**
          * Opcion
@@ -17200,6 +17328,25 @@ export interface components {
             /** Ok */
             ok?: boolean | null;
         };
+        /** Pregunta */
+        Pregunta: {
+            /**
+             * Ayuda
+             * @default
+             */
+            ayuda: string;
+            /** Id */
+            id: string;
+            /** Opciones */
+            opciones: components["schemas"]["RespuestaPosible"][];
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "una" | "varias";
+            /** Titulo */
+            titulo: string;
+        };
         /** PrimerosPasosResponse */
         PrimerosPasosResponse: {
             /**
@@ -17644,6 +17791,23 @@ export interface components {
             key: string;
             /** Label */
             label: string;
+        };
+        /** Propuesta */
+        Propuesta: {
+            /** Cambios */
+            cambios?: components["schemas"]["Cambio"][];
+            /**
+             * Huella
+             * @default
+             */
+            huella: string;
+            /** Omitidos */
+            omitidos?: components["schemas"]["Omitido"][];
+            /**
+             * Seccion
+             * @enum {string}
+             */
+            seccion: "voz" | "atencion";
         };
         /** ProveedorSuscripcion */
         ProveedorSuscripcion: {
@@ -18989,6 +19153,25 @@ export interface components {
             /** Resolved Version */
             resolved_version: string | null;
         };
+        /**
+         * RespuestaPosible
+         * @description Una opción que el dueño puede elegir y lo que cambia en el registro.
+         */
+        RespuestaPosible: {
+            /**
+             * Ayuda
+             * @default
+             */
+            ayuda: string;
+            /** Cambios */
+            cambios: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: string;
+            /** Titulo */
+            titulo: string;
+        };
         /** ResultadoSeccion */
         ResultadoSeccion: {
             /** Items */
@@ -19212,6 +19395,17 @@ export interface components {
         SearchResponse: {
             /** Resultados */
             resultados: components["schemas"]["ResultadoSeccion"][];
+        };
+        /**
+         * SeguimientoHechoIn
+         * @description Cierra el seguimiento y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21).
+         *     `siguiente_en` es ISO 8601: sin zona es hora del negocio.
+         */
+        SeguimientoHechoIn: {
+            /** Siguiente En */
+            siguiente_en?: string | null;
+            /** Siguiente Nota */
+            siguiente_nota?: string | null;
         };
         /** SetPermissionsRequest */
         SetPermissionsRequest: {
@@ -25792,8 +25986,8 @@ export interface operations {
                 facetas?: string[] | null;
                 /** @description Filtro de un pack como `clave:valor` (ver `filters` de la respuesta). */
                 filtro?: string[] | null;
-                /** @description `alta` (por defecto, el más nuevo primero), `actividad` (último mensaje, el más reciente primero; los clientes sin mensajes van al final), `nombre` o `nombre_desc`. */
-                orden?: "alta" | "actividad" | "nombre" | "nombre_desc";
+                /** @description `alta` (por defecto, el más nuevo primero), `actividad` (último mensaje, el más reciente primero; los clientes sin mensajes van al final), `nombre`, `nombre_desc` o `seguimiento` (el seguimiento más atrasado primero; los clientes sin seguimiento van al final). */
+                orden?: "alta" | "actividad" | "nombre" | "nombre_desc" | "seguimiento";
                 page?: number;
                 page_size?: number;
                 /** @description Busca por nombre, identificador o teléfono. */
@@ -31943,6 +32137,82 @@ export interface operations {
             };
         };
     };
+    asistente_aplicar_api_v1_admin_settings_asistente__seccion__aplicar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                seccion: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AsistenteAplicar"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Propuesta"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    asistente_vista_previa_api_v1_admin_settings_asistente__seccion__vista_previa_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                seccion: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AsistenteRespuestas"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Propuesta"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_bajas_api_v1_admin_settings_bajas_get: {
         parameters: {
             query?: never;
@@ -36894,6 +37164,42 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CommerceDashboard"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    seguimiento_hecho_api_v1_pack_commerce_leads__customer_id__seguimiento_hecho_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeguimientoHechoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

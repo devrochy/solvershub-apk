@@ -23,6 +23,7 @@ export { curva, duracion, useReduceMotion, type CurvaMotion, type DuracionMotion
 export { PageHeader, type PageHeaderProps } from "./PageHeader";
 export { PasswordField, type PasswordFieldProps } from "./PasswordField";
 export { RadioGroup, type RadioGroupProps, type RadioOption } from "./RadioGroup";
+export { SelectorFechaHora } from "./SelectorFechaHora";
 export { Sheet, type SheetProps } from "./Sheet";
 export { Skeleton, type SkeletonProps, type SkeletonShape } from "./Skeleton";
 export { Stepper, pasoActual, textoPaso, type StepItem, type StepperProps, type StepState } from "./Stepper";
