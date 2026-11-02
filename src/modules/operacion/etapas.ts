@@ -53,3 +53,40 @@ export function etapaDeFila(item: Pick<LeadRow, "extras">, opciones: OpcionDeEta
     }
   );
 }
+
+// ── Motivo de pérdida y valor estimado (HU-CRM-23) ─────────────────────────────────────────────
+
+/** Etapa que pide motivo (ADR-0181): el catálogo de etapas es fijo. */
+export const ETAPA_PERDIDA = "perdido";
+/** Claves de los campos del pack que solo existen mientras el lead está perdido. */
+export const CAMPOS_DE_PERDIDA = ["motivo_perdida", "nota_perdida"];
+export const CLAVE_DE_MOTIVO = "motivo_perdida";
+export const CLAVE_DE_NOTA_PERDIDA = "nota_perdida";
+export const CLAVE_DE_VALOR = "valor_estimado";
+/** Largo máximo de la nota de la pérdida (`max_length` del campo `nota_perdida`). */
+export const NOTA_PERDIDA_MAX = 300;
+
+/**
+ * Motivos que una persona puede elegir al perder un lead: las opciones del filtro `motivo_perdida` del
+ * pack, sin «Sin motivo registrado» (solo describe a los perdidos de antes y no se puede escribir). Vacío
+ * si el backend no lo declara (versión anterior): entonces no se pide motivo y el servidor responde.
+ */
+export function motivosDePerdida(filtros?: LeadFilter[]): { value: string; label: string }[] {
+  const opciones = filtros?.find((f) => f.key === CLAVE_DE_MOTIVO)?.options ?? [];
+  return opciones.filter((o) => o.value !== "sin_motivo").map((o) => ({ value: o.value, label: o.label }));
+}
+
+export const MENSAJE_VALOR_INVALIDO =
+  "Escribe el valor como número de cero en adelante, sin puntos de miles ni símbolos (por ejemplo 250000 o 250000.50).";
+
+/** Vacío (quita el valor) o un monto simple con hasta dos decimales; el servidor vuelve a validar. */
+export function valorEstimadoValido(texto: string): boolean {
+  const t = texto.trim();
+  return t === "" || /^\d+(?:[.,]\d{1,2})?$/.test(t);
+}
+
+/** «$ 250.000» en pesos, o `null` si el lead no tiene valor. */
+export function textoDeValor(valor: unknown): string | null {
+  if (typeof valor !== "number" || !Number.isFinite(valor)) return null;
+  return `$ ${Math.round(valor).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+}
