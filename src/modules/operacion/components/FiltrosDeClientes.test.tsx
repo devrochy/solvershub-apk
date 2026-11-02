@@ -56,4 +56,39 @@ describe("FiltrosDeClientes", () => {
     await fireEvent.press(getByTestId("clientes-limpiar"));
     expect(onChange).toHaveBeenCalledWith({ q: "ana" });
   });
+
+  it("sin el filtro de valor del backend no ofrece ordenar por valor (HU-CRM-23)", async () => {
+    const { getByTestId, queryByTestId } = await filtros();
+    await fireEvent.press(getByTestId("clientes-filtros"));
+    expect(queryByTestId("filtro-clasificacion-vip")).toBeTruthy();
+    expect(queryByTestId("orden-valor_desc")).toBeNull();
+  });
+
+  it("ofrece ordenar por valor cuando el backend declara el filtro de valor (HU-CRM-23)", async () => {
+    const onChange = jest.fn();
+    const { getByTestId, getByText } = await render(
+      <FiltrosDeClientes
+        valor={{ q: "ana" }}
+        conexiones={[]}
+        filtrosDePack={[...FILTROS, { key: "valor", label: "Valor estimado", options: [{ value: "sin_valor", label: "Sin valor" }] }]}
+        onChange={onChange}
+      />,
+    );
+    await fireEvent.press(getByTestId("clientes-filtros"));
+    await fireEvent.press(getByTestId("orden-valor_desc"));
+    expect(onChange).toHaveBeenCalledWith({ q: "ana", orden: "valor_desc" });
+    await fireEvent.press(getByTestId("orden-predeterminado"));
+    expect(onChange).toHaveBeenCalledWith({ q: "ana", orden: undefined });
+    expect(getByText("Ordenar por")).toBeTruthy();
+  });
+
+  it("muestra el orden por valor como filtro activo y lo quita", async () => {
+    const onChange = jest.fn();
+    const { getByTestId, getByText } = await render(
+      <FiltrosDeClientes valor={{ orden: "valor" }} conexiones={[]} filtrosDePack={FILTROS} onChange={onChange} />,
+    );
+    expect(getByText("Valor estimado (menor primero)")).toBeTruthy();
+    await fireEvent.press(getByTestId("filtro-activo-orden"));
+    expect(onChange).toHaveBeenCalledWith({ orden: undefined });
+  });
 });

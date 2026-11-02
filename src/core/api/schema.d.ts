@@ -13994,7 +13994,7 @@ export interface components {
              * Tipo
              * @enum {string}
              */
-            tipo: "opciones" | "texto" | "fecha";
+            tipo: "opciones" | "texto" | "fecha" | "numero";
             /** Value */
             value?: string | null;
         };
@@ -25988,8 +25988,8 @@ export interface operations {
                 facetas?: string[] | null;
                 /** @description Filtro de un pack como `clave:valor` (ver `filters` de la respuesta). */
                 filtro?: string[] | null;
-                /** @description `alta` (por defecto, el más nuevo primero), `actividad` (último mensaje, el más reciente primero; los clientes sin mensajes van al final), `nombre`, `nombre_desc` o `seguimiento` (el seguimiento más atrasado primero; los clientes sin seguimiento van al final). */
-                orden?: "alta" | "actividad" | "nombre" | "nombre_desc" | "seguimiento";
+                /** @description `alta` (por defecto, el más nuevo primero), `actividad` (último mensaje, el más reciente primero; los clientes sin mensajes van al final), `nombre`, `nombre_desc` o `seguimiento` (el seguimiento más atrasado primero; los clientes sin seguimiento van al final), `valor` (valor estimado del lead, de menor a mayor) o `valor_desc` (de mayor a menor); los clientes sin valor van siempre al final. */
+                orden?: "alta" | "actividad" | "nombre" | "nombre_desc" | "seguimiento" | "valor" | "valor_desc";
                 page?: number;
                 page_size?: number;
                 /** @description Busca por nombre, identificador o teléfono. */

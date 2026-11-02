@@ -7,6 +7,12 @@ import type { ConversationConnection, FiltroLeads, LeadFilter } from "../api";
 
 const CANALES = ["whatsapp", "instagram", "messenger", "webchat", "email"];
 
+/** Órdenes por valor estimado (HU-CRM-23); solo se ofrecen si el backend declara el filtro `valor`. */
+export const ORDENES_DE_VALOR = [
+  { value: "valor_desc", label: "Valor estimado (mayor primero)" },
+  { value: "valor", label: "Valor estimado (menor primero)" },
+] as const;
+
 export interface FiltrosDeClientesProps {
   valor: FiltroLeads;
   conexiones: ConversationConnection[];
@@ -195,6 +201,28 @@ function FiltrosHoja({
         </Seccion>
       ))}
 
+      {filtrosDePack.some((f) => f.key === "valor") ? (
+        <Seccion titulo="Ordenar por">
+          <View style={styles.chipsWrap}>
+            <Chip
+              label="Predeterminado"
+              selected={!ordenDeValor(valor)}
+              onPress={() => onChange({ ...valor, orden: undefined })}
+              testID="orden-predeterminado"
+            />
+            {ORDENES_DE_VALOR.map((o) => (
+              <Chip
+                key={o.value}
+                label={o.label}
+                selected={valor.orden === o.value}
+                onPress={() => onChange({ ...valor, orden: o.value })}
+                testID={`orden-${o.value}`}
+              />
+            ))}
+          </View>
+        </Seccion>
+      ) : null}
+
       {filtrosDePack.length === 0 && conexiones.length <= 1 ? (
         <Text style={[shType.dense, { color: c.textMuted }]}>
           Este negocio todavía no tiene filtros adicionales.
@@ -253,6 +281,8 @@ function filtrosActivos(
   filtrosDePack: LeadFilter[],
 ): { clave: string; etiqueta: string }[] {
   const activos: { clave: string; etiqueta: string }[] = [];
+  const orden = ordenDeValor(valor);
+  if (orden) activos.push({ clave: "orden", etiqueta: orden.label });
   if (valor.channel) activos.push({ clave: "channel", etiqueta: CANAL_LABEL[valor.channel] ?? valor.channel });
   if (valor.connection_id) {
     const conexion = conexiones.find((item) => item.id === valor.connection_id);
@@ -271,6 +301,10 @@ function filtrosActivos(
   return activos;
 }
 
+function ordenDeValor(valor: FiltroLeads) {
+  return ORDENES_DE_VALOR.find((o) => o.value === valor.orden);
+}
+
 function valorDePack(valor: FiltroLeads, clave: string): string | undefined {
   const encontrado = (valor.filtros ?? []).find((f) => f.startsWith(`${clave}:`));
   return encontrado ? encontrado.slice(clave.length + 1) : undefined;
@@ -279,6 +313,7 @@ function valorDePack(valor: FiltroLeads, clave: string): string | undefined {
 function quitarFiltro(valor: FiltroLeads, clave: string): FiltroLeads {
   if (clave === "channel") return { ...valor, channel: undefined };
   if (clave === "connection_id") return { ...valor, connection_id: undefined };
+  if (clave === "orden") return { ...valor, orden: undefined };
   return { ...valor, filtros: (valor.filtros ?? []).filter((f) => f !== clave) };
 }
 

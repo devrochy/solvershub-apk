@@ -13,7 +13,7 @@ import {
 import type { LeadAgentOut, LeadRow } from "../api";
 import { AgentIcon, ChannelIcon } from "./iconos-clientes";
 import { BotonDelBot } from "./BotonDelBot";
-import { etapaDeFila, type OpcionDeEtapa } from "../etapas";
+import { CLAVE_DE_MOTIVO, CLAVE_DE_VALOR, etapaDeFila, textoDeValor, type OpcionDeEtapa } from "../etapas";
 import { ESTADO_DE_SEGUIMIENTO, seguimientoDeFila, textoDeSeguimiento } from "../seguimiento";
 
 type Tono = "neutral" | "accent" | "success" | "warning" | "danger";
@@ -95,6 +95,10 @@ export function ClienteCard({
   const textoDeEtapa = etapa ? etapa.label : delCliente.has("ventas") ? "Sin lead de venta" : null;
   const puedeCambiarEtapa = puedeEscribir && !!etapa && !!onCambiarEtapa;
   const seguimiento = seguimientoDeFila(item);
+  // Valor estimado y, si está perdido, su motivo (HU-CRM-23): una línea corta bajo la etapa.
+  const valor = textoDeValor(item.extras?.[CLAVE_DE_VALOR]);
+  const motivoCrudo = item.extras?.[CLAVE_DE_MOTIVO];
+  const motivo = typeof motivoCrudo === "string" && motivoCrudo.trim() ? motivoCrudo.trim() : null;
   const estadoDeSeguimiento = seguimiento?.estado ? ESTADO_DE_SEGUIMIENTO[seguimiento.estado] : null;
   const textoDeFecha = seguimiento ? textoDeSeguimiento(seguimiento.en, zona) : null;
   const nombresAgentes = (agentes ?? [])
@@ -171,6 +175,15 @@ export function ClienteCard({
           ) : null}
         </View>
       </View>
+
+      {valor || motivo ? (
+        <View testID={`lead-valor-${item.id}`} style={styles.filaDetalle}>
+          <Icono name={valor ? "payments" : "cancel"} size={16} color={c.textMuted} />
+          <Text style={[shType.dense, styles.flex, { color: c.textMuted }]} numberOfLines={2}>
+            {[valor ? `Valor estimado ${valor}` : null, motivo ? `Perdido: ${motivo}` : null].filter(Boolean).join(" · ")}
+          </Text>
+        </View>
+      ) : null}
 
       {seguimiento ? (
         <View testID={`lead-seguimiento-${item.id}`} style={styles.filaDetalle}>

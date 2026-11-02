@@ -498,7 +498,7 @@ describe("OperacionScreen (HU-APP-08)", () => {
       label: v[0].toUpperCase() + v.slice(1),
     }));
 
-    function leadEnEtapa(etapa: string) {
+    function leadEnEtapa(etapa: string, filtrosExtra: unknown[] = [], extras: Record<string, unknown> = {}) {
       const base = mockGet.getMockImplementation()!;
       mockGet.mockImplementation(async (path: string, params?: unknown) => {
         const respuesta = await base(path, params);
@@ -506,9 +506,9 @@ describe("OperacionScreen (HU-APP-08)", () => {
         return {
           ...respuesta,
           items: [
-            { ...respuesta.items[0], agentes: ["general", "ventas"], extras: { estado_lead: etapa } },
+            { ...respuesta.items[0], agentes: ["general", "ventas"], extras: { estado_lead: etapa, ...extras } },
           ],
-          filters: [{ key: "estado_lead", label: "Etapa", options: ETAPAS_DEL_PACK }],
+          filters: [{ key: "estado_lead", label: "Etapa", options: ETAPAS_DEL_PACK }, ...filtrosExtra],
         };
       });
     }
@@ -576,6 +576,100 @@ describe("OperacionScreen (HU-APP-08)", () => {
       const { getByTestId } = await abrirHoja();
       await fireEvent.press(getByTestId("etapa-calificado"));
       expect(cliente.patch).not.toHaveBeenCalled();
+    });
+
+    describe("motivo de pérdida (HU-CRM-23)", () => {
+      const MOTIVOS = {
+        key: "motivo_perdida",
+        label: "Motivo de pérdida",
+        options: [
+          { value: "precio", label: "Precio" },
+          { value: "otro", label: "Otro" },
+          { value: "sin_motivo", label: "Sin motivo registrado" },
+        ],
+      };
+
+      it("pasar a perdido abre la hoja del motivo y no cambia nada hasta confirmar", async () => {
+        leadEnEtapa("Calificado", [MOTIVOS]);
+        const { getByTestId, getByText, queryByTestId } = await abrirHoja();
+
+        await fireEvent.press(getByTestId("etapa-perdido"));
+        await waitFor(() => expect(getByText("¿Por qué se perdió?")).toBeTruthy());
+        expect(cliente.patch).not.toHaveBeenCalled();
+        expect(queryByTestId("motivo-sin_motivo")).toBeNull();
+        expect(getByTestId("motivo-precio")).toBeTruthy();
+
+        // Sin elegir motivo no avanza.
+        await fireEvent.press(getByTestId("motivo-confirmar"));
+        expect(getByText("Elige el motivo de la pérdida.")).toBeTruthy();
+        expect(cliente.patch).not.toHaveBeenCalled();
+      });
+
+      it("con el motivo y la nota guarda etapa, motivo y nota en una sola escritura", async () => {
+        leadEnEtapa("Calificado", [MOTIVOS]);
+        cliente.patch.mockResolvedValue({});
+        const { getByTestId } = await abrirHoja();
+
+        await fireEvent.press(getByTestId("etapa-perdido"));
+        await fireEvent.press(await waitFor(() => getByTestId("motivo-precio")));
+        await fireEvent.changeText(getByTestId("motivo-nota"), "  Dijo que estaba caro ");
+        await fireEvent.press(getByTestId("motivo-confirmar"));
+
+        await waitFor(() =>
+          expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+            valores: { estado_lead: "perdido", motivo_perdida: "precio", nota_perdida: "Dijo que estaba caro" },
+          }),
+        );
+        await waitFor(() => expect(etapaDeLaTarjeta(getByTestId).getByText("Perdido")).toBeTruthy());
+      });
+
+      it("si falla la red al perder conserva el motivo para reintentar", async () => {
+        leadEnEtapa("Calificado", [MOTIVOS]);
+        cliente.patch.mockRejectedValueOnce(new TypeError("Network request failed"));
+        const { getByTestId } = await abrirHoja();
+
+        await fireEvent.press(getByTestId("etapa-perdido"));
+        await fireEvent.press(await waitFor(() => getByTestId("motivo-otro")));
+        await fireEvent.press(getByTestId("motivo-confirmar"));
+        await waitFor(() => expect(getByTestId("etapa-reintentar")).toBeTruthy());
+        expect(etapaDeLaTarjeta(getByTestId).getByText("Calificado")).toBeTruthy();
+
+        cliente.patch.mockResolvedValueOnce({});
+        await fireEvent.press(getByTestId("etapa-reintentar"));
+        await waitFor(() => expect(cliente.patch).toHaveBeenCalledTimes(2));
+        expect(cliente.patch).toHaveBeenLastCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+          valores: { estado_lead: "perdido", motivo_perdida: "otro" },
+        });
+      });
+
+      it("cancelar deja la etapa como estaba", async () => {
+        leadEnEtapa("Calificado", [MOTIVOS]);
+        const { getByTestId } = await abrirHoja();
+        await fireEvent.press(getByTestId("etapa-perdido"));
+        await fireEvent.press(await waitFor(() => getByTestId("motivo-cancelar")));
+        expect(cliente.patch).not.toHaveBeenCalled();
+        expect(etapaDeLaTarjeta(getByTestId).getByText("Calificado")).toBeTruthy();
+      });
+
+      it("sin motivos declarados por el backend escribe la etapa sola (versión anterior)", async () => {
+        leadEnEtapa("Calificado");
+        cliente.patch.mockResolvedValue({});
+        const { getByTestId, queryByText } = await abrirHoja();
+        await fireEvent.press(getByTestId("etapa-perdido"));
+        await waitFor(() =>
+          expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+            valores: { estado_lead: "perdido" },
+          }),
+        );
+        expect(queryByText("¿Por qué se perdió?")).toBeNull();
+      });
+
+      it("la tarjeta muestra el valor estimado y el motivo de un perdido", async () => {
+        leadEnEtapa("Perdido", [MOTIVOS], { valor_estimado: 250000, motivo_perdida: "Precio" });
+        const { getByTestId } = await render(<OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} />);
+        await waitFor(() => expect(getByTestId("lead-valor-l-1")).toBeTruthy());
+        expect(within(getByTestId("lead-valor-l-1")).getByText("Valor estimado $ 250.000 · Perdido: Precio")).toBeTruthy();
+      });
     });
   });
 });

@@ -42,10 +42,15 @@ import { PestanaEscalaciones } from "../components/PestanaEscalaciones";
 import { ClienteCard } from "../components/ClienteCard";
 import { EnviarPlantillaSheet } from "../components/EnviarPlantillaSheet";
 import { EtapaSheet } from "../components/EtapaSheet";
+import { MotivoDePerdidaSheet } from "../components/MotivoDePerdidaSheet";
 import {
   CLAVE_DE_ETAPA,
+  CLAVE_DE_MOTIVO,
+  CLAVE_DE_NOTA_PERDIDA,
+  ETAPA_PERDIDA,
   PACK_DE_ETAPA,
   etapaDeFila,
+  motivosDePerdida,
   opcionesDeEtapa,
   type OpcionDeEtapa,
 } from "../etapas";
@@ -105,9 +110,13 @@ export function OperacionScreen({
   const [exportando, setExportando] = useState(false);
   const [zonaDelNegocioActual, setZonaDelNegocioActual] = useState(ZONA_POR_DEFECTO);
   const [etapaPara, setEtapaPara] = useState<LeadRow | null>(null);
+  // Lead que se va a marcar como perdido: la hoja del motivo se abre antes de cambiar nada (HU-CRM-23).
+  const [perdidaPara, setPerdidaPara] = useState<LeadRow | null>(null);
   const [avisoDeEtapa, setAvisoDeEtapa] = useState<{
     item: LeadRow;
     etapa: OpcionDeEtapa;
+    /** Motivo y nota de la pérdida, para reintentar con lo mismo. */
+    extra?: Record<string, string>;
     mensaje: string;
     reintentable: boolean;
   } | null>(null);
@@ -221,13 +230,14 @@ export function OperacionScreen({
   };
 
   const opcionesEtapa = opcionesDeEtapa(filtrosDePack);
+  const motivosPerdida = motivosDePerdida(filtrosDePack);
 
   /**
    * Cambia la etapa con actualización optimista (HU-CRM-19): la tarjeta cambia al instante y vuelve a la
    * anterior si el servidor no lo acepta. Un rechazo del servidor muestra su motivo; una falla de red
    * ofrece «Reintentar».
    */
-  const cambiarEtapaDe = async (item: LeadRow, etapa: OpcionDeEtapa) => {
+  const cambiarEtapaDe = async (item: LeadRow, etapa: OpcionDeEtapa, extra?: Record<string, string>) => {
     const nombre = item.perfil?.nombre_visible || item.cliente || "el cliente";
     const anterior = item.extras?.[CLAVE_DE_ETAPA];
     const poner = (valor: unknown) =>
@@ -237,10 +247,11 @@ export function OperacionScreen({
         ),
       );
     setEtapaPara(null);
+    setPerdidaPara(null);
     setAvisoDeEtapa(null);
     poner(etapa.label);
     try {
-      await editarCamposDelPack(api, item.id, PACK_DE_ETAPA, { [CLAVE_DE_ETAPA]: etapa.value });
+      await editarCamposDelPack(api, item.id, PACK_DE_ETAPA, { [CLAVE_DE_ETAPA]: etapa.value, ...extra });
       toast.success(`${nombre} pasó a ${etapa.label}.`);
     } catch (err) {
       poner(anterior);
@@ -248,6 +259,7 @@ export function OperacionScreen({
       setAvisoDeEtapa({
         item: { ...item, extras: { ...item.extras, [CLAVE_DE_ETAPA]: anterior } },
         etapa,
+        extra,
         mensaje: rechazada
           ? err.message
           : `No se pudo cambiar la etapa de ${nombre}. Revisa tu conexión.`,
@@ -400,7 +412,7 @@ export function OperacionScreen({
                   testID="etapa-reintentar"
                   variant="secondary"
                   size="sm"
-                  onPress={() => void cambiarEtapaDe(avisoDeEtapa.item, avisoDeEtapa.etapa)}
+                  onPress={() => void cambiarEtapaDe(avisoDeEtapa.item, avisoDeEtapa.etapa, avisoDeEtapa.extra)}
                 >
                   Reintentar
                 </Button>
@@ -510,7 +522,31 @@ export function OperacionScreen({
             nombre={etapaPara?.perfil?.nombre_visible || etapaPara?.cliente || "el cliente"}
             actual={etapaPara ? etapaDeFila(etapaPara, opcionesEtapa)?.value : undefined}
             opciones={opcionesEtapa}
-            onElegir={(etapa) => etapaPara && void cambiarEtapaDe(etapaPara, etapa)}
+            onElegir={(etapa) => {
+              if (!etapaPara) return;
+              // Perder un lead pide motivo (HU-CRM-23): sin motivos declarados (backend anterior) se escribe
+              // la etapa sola y el servidor dice si falta algo.
+              if (etapa.value === ETAPA_PERDIDA && motivosPerdida.length > 0) {
+                setPerdidaPara(etapaPara);
+                setEtapaPara(null);
+                return;
+              }
+              void cambiarEtapaDe(etapaPara, etapa);
+            }}
+          />
+          <MotivoDePerdidaSheet
+            visible={Boolean(perdidaPara)}
+            onClose={() => setPerdidaPara(null)}
+            nombre={perdidaPara?.perfil?.nombre_visible || perdidaPara?.cliente || "el cliente"}
+            motivos={motivosPerdida}
+            onConfirmar={(motivo, nota) => {
+              const perdido = opcionesEtapa.find((o) => o.value === ETAPA_PERDIDA);
+              if (!perdidaPara || !perdido) return;
+              void cambiarEtapaDe(perdidaPara, perdido, {
+                [CLAVE_DE_MOTIVO]: motivo,
+                ...(nota ? { [CLAVE_DE_NOTA_PERDIDA]: nota } : {}),
+              });
+            }}
           />
           <EnviarPlantillaSheet
             visible={Boolean(plantillaPara)}
