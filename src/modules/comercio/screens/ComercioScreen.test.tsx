@@ -1,5 +1,8 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
+jest.mock("@core/session/admin-session-context", () => ({
+  useAdminSession: () => ({ sesion: { token: "t", role: "master", tenantRole: "owner", permissions: {} }, loading: false }),
+}));
 
 import { Alert } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";

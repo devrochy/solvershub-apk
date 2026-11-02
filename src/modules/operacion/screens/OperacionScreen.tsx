@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -52,7 +52,7 @@ import {
 import { FiltrosDeClientes } from "../components/FiltrosDeClientes";
 import { ordenPorDefectoDeSeguimiento, ZONA_POR_DEFECTO } from "../seguimiento";
 import { nombreDelChat } from "../presentacion";
-import type { OperacionStackParamList } from "../navigation";
+import type { OperacionStackParamList, SolicitudFiltro } from "../navigation";
 
 type Nav = NativeStackNavigationProp<OperacionStackParamList>;
 type Pestana = "conversaciones" | "escalaciones" | "leads" | "playground";
@@ -65,8 +65,9 @@ function Vacio({ texto }: { texto: string }) {
 
 export function OperacionScreen({
   pestanaInicial,
+  filtroInicial,
   entrada,
-}: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
+}: { pestanaInicial?: SolicitudPestana; filtroInicial?: SolicitudFiltro; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
   const { sesion } = useAdminSession();
@@ -90,6 +91,8 @@ export function OperacionScreen({
   // Clientes (leads)
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [filtrosLeads, setFiltrosLeads] = useState<FiltroLeads>({});
+  // HU-CRM-22: el resumen de Ventas abre Clientes con el filtro del aviso (una vez por pedido).
+  const filtroAtendido = useRef<number | null>(null);
   const [agentesLeads, setAgentesLeads] = useState<LeadAgentOut[]>([]);
   const [filtrosDePack, setFiltrosDePack] = useState<LeadFilter[]>([]);
   const [conexiones, setConexiones] = useState<ConversationConnection[]>([]);
@@ -113,6 +116,12 @@ export function OperacionScreen({
   // Playground
   const [turnos, setTurnos] = useState<TurnoPlayground[]>([]);
   const [mensajePlay, setMensajePlay] = useState("");
+
+  useEffect(() => {
+    if (!filtroInicial || filtroAtendido.current === filtroInicial.n) return;
+    filtroAtendido.current = filtroInicial.n;
+    setFiltrosLeads({ filtros: [filtroInicial.valor] });
+  }, [filtroInicial]);
 
   const cargarLeads = useCallback(
     async (paginaPedida: number, filtro: FiltroLeads, acumular: boolean) => {

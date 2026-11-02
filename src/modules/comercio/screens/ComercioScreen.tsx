@@ -15,6 +15,8 @@ import { useAdminApi } from "@core/session/use-admin-api";
 import NetInfo from "@react-native-community/netinfo";
 import { baseActual } from "@data/bootstrap";
 import { TarjetaDatosDePrueba } from "../../datos-prueba";
+import { useAdminSession } from "@core/session/admin-session-context";
+import { AvisosDeSeguimiento } from "../components/AvisosDeSeguimiento";
 import { cambiarEstadoPedidoConOffline } from "../offline";
 import { crearCategoria, crearProducto, crearPromocion, editarProducto } from "../api";
 import { FOTO_URL_MAX, esFotoValida } from "../foto";
@@ -39,6 +41,9 @@ const PESTANAS: readonly Pestana[] = ["resumen", "pedidos", "productos", "promoc
 export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPestana } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
+  const { sesion } = useAdminSession();
+  // Los avisos son ajustes del pack: los guarda quien puede escribir habilidades (HU-CRM-22).
+  const puedeEditarAvisos = sesion?.role === "master" || sesion?.permissions?.plugins === "write";
   const [pestana, setPestana] = usePestanaInicial<Pestana>("resumen", PESTANAS, pestanaInicial);
   const [kpis, setKpis] = useState<KpiComercio | null>(null);
   const [pedidos, setPedidos] = useState<OrderOut[]>([]);
@@ -291,6 +296,7 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
       {cargando ? (
         <ActivityIndicator size="large" style={{ marginTop: 30 }} />
       ) : pestana === "resumen" ? (
+        <>
         <View style={styles.grid}>
           {[
             { clave: "leads", valor: kpis?.leads ?? 0 },
@@ -304,6 +310,10 @@ export function ComercioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudP
             </View>
           ))}
         </View>
+        <View style={styles.avisos}>
+          <AvisosDeSeguimiento puedeEscribir={puedeEditarAvisos} />
+        </View>
+        </>
       ) : pestana === "pedidos" ? (
         <FlatList
           testID="comercio-lista-pedidos"
@@ -461,6 +471,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 8 },
+  avisos: { marginTop: 8 },
   kpi: { borderWidth: 1, borderRadius: 12, padding: 12, minWidth: 140, flexGrow: 1, flexBasis: "45%" },
   kpiValor: { fontSize: 20, fontWeight: "700" },
   fab: { borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10, alignSelf: "center", marginTop: 4 },

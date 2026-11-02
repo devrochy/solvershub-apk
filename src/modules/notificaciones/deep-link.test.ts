@@ -56,6 +56,22 @@ describe("destinoDeNotificacion / destinoDePush (ADR-0167)", () => {
     });
   });
 
+  it("el resumen de Ventas abre Clientes ya filtrada, también el push (HU-CRM-22)", () => {
+    const resumen = { entity: "lead", id: null, section: "leads", filtro: "seguimiento:vencidos" };
+    const esperado = { tab: "conversaciones", pestana: "leads", filtro: "seguimiento:vencidos" };
+    expect(destinoDeNotificacion(resumen)).toEqual(esperado);
+    expect(destinoDePush({ target: resumen })).toEqual(esperado);
+  });
+
+  it("un filtro que no es `clave:valor` simple se ignora y abre la lista sin filtrar", () => {
+    for (const filtro of ["x&y=1", "seguimiento", "A:b", ""]) {
+      expect(destinoDeNotificacion({ entity: "lead", id: null, section: "leads", filtro })).toEqual({
+        tab: "conversaciones",
+        pestana: "leads",
+      });
+    }
+  });
+
   it("una entidad sin pantalla en la app no navega", () => {
     expect(destinoDeNotificacion(t("desconocida"))).toBeNull();
     expect(destinoDeNotificacion(null)).toBeNull();

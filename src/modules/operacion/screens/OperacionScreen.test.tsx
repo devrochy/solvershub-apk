@@ -410,6 +410,19 @@ describe("OperacionScreen (HU-APP-08)", () => {
     );
   });
 
+  it("el resumen de Ventas abre Clientes con el filtro del aviso (HU-CRM-22)", async () => {
+    const { getByTestId } = await render(
+      <OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} filtroInicial={{ valor: "seguimiento:hoy", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByTestId("lista-leads")).toBeTruthy());
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenCalledWith(
+        "/admin/leads",
+        expect.objectContaining({ filtro: ["seguimiento:hoy"], orden: "seguimiento" }),
+      ),
+    );
+  });
+
   it("pausa el bot desde la tarjeta del cliente", async () => {
     const { getByTestId } = await render(
       <OperacionScreen pestanaInicial={{ pestana: "leads", n: 1 }} />,
