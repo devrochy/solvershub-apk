@@ -101,3 +101,50 @@ export async function cargarResumenComercio(api: ClienteAdmin): Promise<KpiComer
   const res = await api.get<{ kpi: KpiComercio }>("/pack/commerce/dashboard");
   return res.kpi;
 }
+
+// ---------------------------------------------------------------- avisos de seguimiento (HU-CRM-22)
+/** Ajustes del pack de Ventas que gobiernan los recordatorios de seguimiento y el resumen diario. */
+export interface AvisosDeSeguimiento {
+  seguimiento_recordatorios: boolean;
+  seguimiento_resumen_diario: boolean;
+  /** Hora del negocio (0-19) desde la que sale el resumen. */
+  seguimiento_resumen_hora: number;
+}
+
+export const HORA_DEL_RESUMEN_MAX = 19;
+
+interface ConfigPlugin {
+  plugin_id: string;
+  values: Record<string, unknown>;
+}
+
+/** Lee los valores completos de la configuración: el guardado necesita todos para no reponer defaults. */
+export async function cargarConfigDeVentas(api: ClienteAdmin): Promise<Record<string, unknown>> {
+  const config = await api.get<ConfigPlugin>("/admin/plugins/pack_commerce/config");
+  return config.values ?? {};
+}
+
+export function avisosDeConfig(values: Record<string, unknown>): AvisosDeSeguimiento {
+  const hora = Number(values.seguimiento_resumen_hora);
+  return {
+    seguimiento_recordatorios: values.seguimiento_recordatorios !== false,
+    seguimiento_resumen_diario: values.seguimiento_resumen_diario !== false,
+    seguimiento_resumen_hora: Number.isInteger(hora) && hora >= 0 && hora <= HORA_DEL_RESUMEN_MAX ? hora : 8,
+  };
+}
+
+/** Guarda un ajuste sobre la configuración completa leída (los secretos los conserva el servidor). */
+export async function guardarAvisosDeSeguimiento(
+  api: ClienteAdmin,
+  actual: Record<string, unknown>,
+  cambio: Partial<AvisosDeSeguimiento>,
+): Promise<Record<string, unknown>> {
+  const config = await api.put<ConfigPlugin>("/admin/plugins/pack_commerce/config", { values: { ...actual, ...cambio } });
+  return config.values ?? { ...actual, ...cambio };
+}
+
+/** «8:00 a. m.», «12:00 p. m.» (0 = 12:00 a. m.). */
+export function textoDeHora(hora: number): string {
+  const h12 = hora % 12 === 0 ? 12 : hora % 12;
+  return `${h12}:00 ${hora < 12 ? "a. m." : "p. m."}`;
+}

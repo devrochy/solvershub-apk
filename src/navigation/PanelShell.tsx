@@ -281,6 +281,8 @@ function PanelShellInterno() {
         ...(destino.ajustes ? { ajustesInicial: destino.ajustes } : {}),
         // HU-CRM-20: `n` distingue dos avisos seguidos al mismo cliente.
         ...(destino.cliente ? { clienteInicial: { id: destino.cliente, n } } : {}),
+        // HU-CRM-22: el resumen de Ventas abre Clientes ya filtrada.
+        ...(destino.filtro ? { filtroInicial: { valor: destino.filtro, n } } : {}),
         entrada,
       };
       const raiz = MODULOS_PANEL[destino.modulo].raizStack;
@@ -308,6 +310,7 @@ function PanelShellInterno() {
         pestana: destino.pestana,
         ajustes: destino.ajustes,
         cliente: destino.cliente,
+        filtro: destino.filtro,
       }),
     );
   }, [navegar]);

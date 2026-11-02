@@ -415,6 +415,8 @@ export interface DestinoMenu {
   ajustes?: string;
   /** Id del cliente cuya ficha se abre sobre la lista de Clientes (HU-CRM-20). */
   cliente?: string;
+  /** Filtro `clave:valor` con el que abrir la lista de Clientes (HU-CRM-22). */
+  filtro?: string;
 }
 
 /**

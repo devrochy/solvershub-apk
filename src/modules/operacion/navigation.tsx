@@ -13,8 +13,16 @@ export interface SolicitudCliente {
   n: number;
 }
 
+/** Pedido de abrir Clientes ya filtrada (resumen de Ventas, HU-CRM-22); `n` distingue pedidos seguidos. */
+export interface SolicitudFiltro {
+  valor: string;
+  n: number;
+}
+
 export type OperacionStackParamList = {
-  Operacion: { pestanaInicial?: SolicitudPestana; clienteInicial?: SolicitudCliente } | undefined;
+  Operacion:
+    | { pestanaInicial?: SolicitudPestana; clienteInicial?: SolicitudCliente; filtroInicial?: SolicitudFiltro }
+    | undefined;
   ConversacionDetalle: { id: string; titulo: string };
   ClienteDetalle: { id: string; titulo: string; editar?: boolean };
 };
@@ -46,7 +54,11 @@ function RaizOperacion({
   return (
     <View style={styles.raiz}>
       {encabezadoRaiz}
-      <OperacionScreen pestanaInicial={route.params?.pestanaInicial} entrada={entrada} />
+      <OperacionScreen
+        pestanaInicial={route.params?.pestanaInicial}
+        filtroInicial={route.params?.filtroInicial}
+        entrada={entrada}
+      />
     </View>
   );
 }
