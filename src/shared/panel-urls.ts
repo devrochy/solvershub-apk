@@ -10,6 +10,18 @@ function conTenant(base: string, tenantId: string | null): string {
   return tenantId ? `${base}${base.includes("?") ? "&" : "?"}tenant=${encodeURIComponent(tenantId)}` : base;
 }
 
+/** Ruta del panel donde vive la wiki (solo con sesión del panel: el navegador pedirá iniciar sesión). */
+const RUTA_DOCUMENTACION = "/ayuda";
+
+/** Wiki de documentación del panel; `null` si no hay host de panel configurado (el ítem no se muestra). */
+export function urlDocumentacion(panelUrl: string = PANEL_URL): string | null {
+  const base = panelUrl.trim().replace(/\/+$/, "");
+  return base ? `${base}${RUTA_DOCUMENTACION}` : null;
+}
+
+/** Destino de «Documentación» en la tarjeta de cuenta, derivado del host del panel del entorno. */
+export const URL_DOCUMENTACION: string | null = urlDocumentacion();
+
 /** Agenda del panel con el cajón de ajustes abierto (donde se conecta otra cuenta de Google). */
 export function urlPanelAgenda(tenantId: string | null, seccion: "agendas" | "tipos" | "horario" = "agendas"): string {
   return conTenant(`${PANEL_URL}/calendario?ajustes=${seccion}`, tenantId);

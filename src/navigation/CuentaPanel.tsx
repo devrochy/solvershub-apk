@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Animated, Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { Animated, Linking, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import type { Tema } from "@core/theme/theme";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Avatar, Icono, useKit } from "@shared/ui";
@@ -11,6 +11,8 @@ export interface CuentaPanelProps {
   email: string;
   avatarUrl?: string | null;
   tema: Tema;
+  /** Wiki del panel; sin URL el ítem «Documentación» no se muestra. */
+  documentacionUrl?: string | null;
   onAlternarTema(): void;
   onPerfil(): void;
   onCerrarSesion(): void;
@@ -18,7 +20,7 @@ export interface CuentaPanelProps {
 
 /**
  * Tarjeta de la cuenta fija al pie del cajón: avatar, nombre y correo. Al
- * tocarla despliega hacia arriba Perfil, Tema oscuro y Cerrar sesión, como la
+ * tocarla despliega hacia arriba Perfil, Documentación, Tema oscuro y Cerrar sesión, como la
  * `UserCard` del sidebar del panel web.
  */
 export function CuentaPanel({
@@ -27,6 +29,7 @@ export function CuentaPanel({
   email,
   avatarUrl,
   tema,
+  documentacionUrl,
   onAlternarTema,
   onPerfil,
   onCerrarSesion,
@@ -81,7 +84,22 @@ export function CuentaPanel({
             <Text style={[styles.itemTexto, { color: c.text }]}>Perfil</Text>
           </Pressable>
 
-          <View style={styles.temaFila}>
+          {documentacionUrl ? (
+            <Pressable
+              testID="cajon-documentacion"
+              accessibilityRole="link"
+              accessibilityLabel="Documentación, se abre en el navegador"
+              android_ripple={{ color: ripple.superficie }}
+              style={styles.submenuItem}
+              onPress={() => ejecutar(() => void Linking.openURL(documentacionUrl).catch(() => undefined))}
+            >
+              <Icono name="menu-book" size={20} color={c.text} />
+              <Text style={[styles.itemTexto, { color: c.text }]}>Documentación</Text>
+              <Icono name="open-in-new" size={16} color={c.textSoft} />
+            </Pressable>
+          ) : null}
+
+          <View testID="cajon-tema-fila" style={styles.temaFila}>
             <Icono name="palette" size={20} color={c.textMuted} />
             <Text style={[styles.itemTexto, { color: c.text }]}>Tema oscuro</Text>
             <Switch
