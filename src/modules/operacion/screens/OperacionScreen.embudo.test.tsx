@@ -148,11 +148,15 @@ describe("Clientes › Embudo (HU-CRM-24)", () => {
     await waitFor(() => expect(textoDe(getByTestId("embudo-suma"))).toBe("$ 250.000 en Calificado"));
   });
 
-  it("cambia la etapa con la hoja de siempre, vuelve a pedir la etapa y las cantidades", async () => {
-    cliente.patch.mockResolvedValue({});
+  it("cambia la etapa con la hoja de siempre y, ya guardada, vuelve a pedir la etapa y las cantidades", async () => {
+    // Cuántas consultas a Clientes había cuando se guardó: la recarga tiene que venir después.
+    let alGuardar = -1;
+    cliente.patch.mockImplementation(async () => {
+      alGuardar = llamadasALeads().length;
+      return {};
+    });
     const { getByTestId } = await abrirEmbudo();
     await waitFor(() => expect(getByTestId("lead-etapa-l-1")).toBeTruthy());
-    const antes = llamadasALeads().length;
 
     await fireEvent.press(getByTestId("lead-etapa-l-1"));
     await fireEvent.press(await waitFor(() => getByTestId("etapa-contactado")));
@@ -162,9 +166,11 @@ describe("Clientes › Embudo (HU-CRM-24)", () => {
         valores: { estado_lead: "contactado" },
       }),
     );
-    // Tras guardar se pide otra vez la primera página de la etapa (no la siguiente, que se saltaría a alguien).
-    await waitFor(() => expect(llamadasALeads().length).toBeGreaterThan(antes));
-    expect(llamadasALeads().at(-1)).toEqual(expect.objectContaining({ filtro: ["estado_lead:nuevo"], page: 1 }));
+    // Se pide otra vez la primera página de la etapa (no la siguiente, que se saltaría a alguien).
+    await waitFor(() => expect(llamadasALeads().length).toBeGreaterThan(alGuardar));
+    expect(llamadasALeads().at(-1)).toEqual(
+      expect.objectContaining({ filtro: ["estado_lead:nuevo"], facetas: ["estado_lead"], page: 1 }),
+    );
   });
 
   it("pasar a perdido pide el motivo también desde el Embudo", async () => {
