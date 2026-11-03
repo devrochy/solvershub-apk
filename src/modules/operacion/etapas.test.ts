@@ -1,4 +1,4 @@
-import { motivosDePerdida, textoDeValor, valorEstimadoValido } from "./etapas";
+import { motivosDePerdida, textoDeValor, valorEstimadoValido, filtrosDeEmbudo, resumenesDeEtapa, sinEtapa, opcionesDeEtapa } from "./etapas";
 
 // HU-CRM-23: motivos que se pueden elegir, valor estimado como número simple y en pesos.
 
@@ -34,5 +34,44 @@ describe("motivo de pérdida y valor estimado", () => {
     expect(textoDeValor(0)).toBe("$ 0");
     expect(textoDeValor(null)).toBeNull();
     expect(textoDeValor("250000")).toBeNull();
+  });
+});
+
+describe("embudo por etapas (HU-CRM-24)", () => {
+  it("filtrosDeEmbudo pone la etapa de la pestaña, quita cualquier otra y pide contadores con sumas", () => {
+    const res = filtrosDeEmbudo(
+      { q: "ana", channel: "whatsapp", filtros: ["estado_lead:perdido", "clasificacion:fiel"] },
+      "calificado",
+    );
+    expect(res).toEqual({
+      q: "ana",
+      channel: "whatsapp",
+      filtros: ["clasificacion:fiel", "estado_lead:calificado"],
+      facetas: ["estado_lead"],
+      resumen: "valor",
+    });
+    expect(filtrosDeEmbudo({}, "nuevo").filtros).toEqual(["estado_lead:nuevo"]);
+  });
+
+  it("sinEtapa quita solo el filtro de etapa", () => {
+    expect(sinEtapa(["estado_lead:nuevo", "valor:1"])).toEqual(["valor:1"]);
+    expect(sinEtapa(undefined)).toEqual([]);
+  });
+
+  it("resumenesDeEtapa une cada etapa con su cantidad y su suma, y deja null lo que el servidor no trae", () => {
+    const opciones = opcionesDeEtapa();
+    const faceta = {
+      key: "estado_lead",
+      counts: { nuevo: 3, calificado: 1 },
+      sin_valor: 0,
+      total: 4,
+      sumas: { nuevo: 900, calificado: 0 },
+    };
+    const res = resumenesDeEtapa(opciones, [faceta]);
+    expect(res[0]).toEqual({ value: "nuevo", label: "Nuevo", cantidad: 3, suma: 900 });
+    expect(res.find((r) => r.value === "perdido")).toEqual({ value: "perdido", label: "Perdido", cantidad: 0, suma: 0 });
+    // Backend anterior: sin faceta o sin sumas.
+    expect(resumenesDeEtapa(opciones, [])[0]).toEqual({ value: "nuevo", label: "Nuevo", cantidad: null, suma: null });
+    expect(resumenesDeEtapa(opciones, [{ ...faceta, sumas: undefined }])[0]).toMatchObject({ cantidad: 3, suma: null });
   });
 });

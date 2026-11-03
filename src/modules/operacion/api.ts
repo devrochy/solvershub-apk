@@ -22,6 +22,7 @@ export type LeadAgentOut = components["schemas"]["LeadAgentOut"];
 export type LeadAgentData = components["schemas"]["LeadAgentData"];
 export type LeadCampoPerfil = components["schemas"]["LeadCampoPerfil"];
 export type LeadFilter = components["schemas"]["LeadFilter"];
+export type LeadFaceta = components["schemas"]["LeadFacetaOut"];
 export type LeadFact = components["schemas"]["LeadFact"];
 export type LeadGeocodificacion = components["schemas"]["LeadGeocodificacion"];
 export type LeadGeocodificacionInversa = components["schemas"]["LeadGeocodificacionInversa"];
@@ -88,6 +89,8 @@ export interface PaginaLeads {
   agents?: LeadAgentOut[];
   filters?: LeadFilter[];
   columns?: { key: string; label: string }[];
+  /** Contadores (y sumas, con `resumen`) por opción de los filtros pedidos en `facetas` (HU-CRM-17, HU-CRM-24). */
+  facetas?: LeadFaceta[];
 }
 
 export interface FiltroConversaciones {
@@ -206,6 +209,10 @@ export interface FiltroLeads {
   filtros?: string[];
   /** Orden de la lista; `seguimiento` pone los más atrasados primero (HU-CRM-21). */
   orden?: string;
+  /** Filtros del pack de los que se piden los contadores por opción (`estado_lead`). */
+  facetas?: string[];
+  /** Con `facetas`, pide además la suma del valor estimado por opción (`valor`, HU-CRM-24). */
+  resumen?: "valor";
   page?: number;
   pageSize?: number;
 }
@@ -220,6 +227,8 @@ export async function listarLeads(
     connection_id: filtro.connection_id,
     filtro: filtro.filtros,
     orden: filtro.orden,
+    facetas: filtro.facetas,
+    resumen: filtro.resumen,
     page: filtro.page,
     page_size: filtro.pageSize ?? 20,
   });

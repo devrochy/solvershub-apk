@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -33,6 +33,7 @@ import {
   type ConversationConnection,
   type FiltroLeads,
   type LeadAgentOut,
+  type LeadFaceta,
   type LeadFilter,
   type LeadRow,
   type TurnoPlayground,
@@ -41,6 +42,7 @@ import { PestanaConversaciones } from "../components/PestanaConversaciones";
 import { PestanaEscalaciones } from "../components/PestanaEscalaciones";
 import { ClienteCard } from "../components/ClienteCard";
 import { EnviarPlantillaSheet } from "../components/EnviarPlantillaSheet";
+import { EmbudoPorEtapas } from "../components/EmbudoPorEtapas";
 import { EtapaSheet } from "../components/EtapaSheet";
 import { MotivoDePerdidaSheet } from "../components/MotivoDePerdidaSheet";
 import {
@@ -50,8 +52,11 @@ import {
   ETAPA_PERDIDA,
   PACK_DE_ETAPA,
   etapaDeFila,
+  filtrosDeEmbudo,
   motivosDePerdida,
   opcionesDeEtapa,
+  resumenesDeEtapa,
+  sinEtapa,
   type OpcionDeEtapa,
 } from "../etapas";
 import { FiltrosDeClientes } from "../components/FiltrosDeClientes";
@@ -100,6 +105,10 @@ export function OperacionScreen({
   const filtroAtendido = useRef<number | null>(null);
   const [agentesLeads, setAgentesLeads] = useState<LeadAgentOut[]>([]);
   const [filtrosDePack, setFiltrosDePack] = useState<LeadFilter[]>([]);
+  // HU-CRM-24: vista «Embudo» (una pestaña por etapa con su cantidad) o la lista de siempre.
+  const [vista, setVista] = useState<"lista" | "embudo">("lista");
+  const [etapaEmbudo, setEtapaEmbudo] = useState("nuevo");
+  const [facetasLeads, setFacetasLeads] = useState<LeadFaceta[]>([]);
   const [conexiones, setConexiones] = useState<ConversationConnection[]>([]);
   const [paginaLeads, setPaginaLeads] = useState(1);
   const [hayMasLeads, setHayMasLeads] = useState(false);
@@ -144,6 +153,7 @@ export function OperacionScreen({
         setLeads((previos) => (acumular ? [...previos, ...pagina.items] : pagina.items));
         setAgentesLeads(pagina.agents ?? []);
         setFiltrosDePack(pagina.filters ?? []);
+        setFacetasLeads(pagina.facetas ?? []);
         setPaginaLeads(pagina.page);
         setHayMasLeads(pagina.has_more);
         setTotalLeads(pagina.total);
@@ -173,14 +183,20 @@ export function OperacionScreen({
     };
   }, [pestana, api]);
 
+  // En el embudo la etapa la elige la pestaña: se piden solo sus clientes y los contadores de todas.
+  const filtrosEfectivos = useMemo(
+    () => (vista === "embudo" ? filtrosDeEmbudo(filtrosLeads, etapaEmbudo) : filtrosLeads),
+    [vista, filtrosLeads, etapaEmbudo],
+  );
+
   useEffect(() => {
     if (pestana !== "leads") return;
     const temporizador = setTimeout(
-      () => void cargarLeads(1, filtrosLeads, false),
-      filtrosLeads.q ? 350 : 0,
+      () => void cargarLeads(1, filtrosEfectivos, false),
+      filtrosEfectivos.q ? 350 : 0,
     );
     return () => clearTimeout(temporizador);
-  }, [pestana, filtrosLeads, cargarLeads]);
+  }, [pestana, filtrosEfectivos, cargarLeads]);
 
   useEffect(() => {
     if (pestana !== "leads") return;
@@ -231,6 +247,13 @@ export function OperacionScreen({
 
   const opcionesEtapa = opcionesDeEtapa(filtrosDePack);
   const motivosPerdida = motivosDePerdida(filtrosDePack);
+  // El embudo se ofrece solo si el negocio declara la etapa; sin contadores (backend anterior) las pestañas
+  // salen sin cantidad.
+  const puedeVerEmbudo = filtrosDePack.some((f) => f.key === CLAVE_DE_ETAPA);
+  const enEmbudo = vista === "embudo" && puedeVerEmbudo;
+  const resumenes = resumenesDeEtapa(opcionesEtapa, facetasLeads);
+  const sinClientesEnNingunaEtapa =
+    enEmbudo && resumenes.length > 0 && resumenes.every((r) => r.cantidad === 0);
 
   /**
    * Cambia la etapa con actualización optimista (HU-CRM-19): la tarjeta cambia al instante y vuelve a la
@@ -253,6 +276,9 @@ export function OperacionScreen({
     try {
       await editarCamposDelPack(api, item.id, PACK_DE_ETAPA, { [CLAVE_DE_ETAPA]: etapa.value, ...extra });
       toast.success(`${nombre} pasó a ${etapa.label}.`);
+      // En el embudo la tarjeta sale de su etapa y cambian las cantidades y las sumas: se vuelve a pedir la
+      // primera página (el servidor ya no la cuenta ahí; pedir la siguiente se saltaría un cliente).
+      if (vista === "embudo") void cargarLeads(1, filtrosEfectivos, false);
     } catch (err) {
       poner(anterior);
       const rechazada = err instanceof AdminApiError && err.status >= 400 && err.status < 500;
@@ -282,11 +308,10 @@ export function OperacionScreen({
     }
   };
 
+  // En el embudo la etapa no es un filtro del usuario: la elige la pestaña.
+  const filtrosDelUsuario = enEmbudo ? sinEtapa(filtrosLeads.filtros) : (filtrosLeads.filtros ?? []);
   const hayFiltros = Boolean(
-    filtrosLeads.q ||
-      filtrosLeads.channel ||
-      filtrosLeads.connection_id ||
-      (filtrosLeads.filtros?.length ?? 0) > 0,
+    filtrosLeads.q || filtrosLeads.channel || filtrosLeads.connection_id || filtrosDelUsuario.length > 0,
   );
 
   const recargarPlayground = useCallback(async () => {
@@ -387,12 +412,47 @@ export function OperacionScreen({
         <ActivityIndicator size="large" style={styles.cargando} />
       ) : pestana === "leads" ? (
         <View style={styles.leads}>
+          {puedeVerEmbudo ? (
+            <View accessibilityRole="tablist" accessibilityLabel="Vista de los clientes" style={styles.vistas}>
+              {(["lista", "embudo"] as const).map((v) => {
+                const activa = (v === "embudo") === enEmbudo;
+                return (
+                  <Pressable
+                    key={v}
+                    testID={`clientes-vista-${v}`}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: activa }}
+                    onPress={() => setVista(v)}
+                    style={styles.pestana}
+                  >
+                    <Text
+                      maxFontSizeMultiplier={1.6}
+                      style={[shType.label, { color: activa ? colores.texto : colores.textoSuave }]}
+                    >
+                      {v === "lista" ? "Lista" : "Embudo"}
+                    </Text>
+                    <View
+                      style={[styles.indicador, { backgroundColor: activa ? colores.acento : "transparent" }]}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : null}
           <FiltrosDeClientes
-            valor={filtrosLeads}
+            valor={enEmbudo ? { ...filtrosLeads, filtros: filtrosDelUsuario } : filtrosLeads}
             conexiones={conexiones}
-            filtrosDePack={filtrosDePack}
+            filtrosDePack={enEmbudo ? filtrosDePack.filter((f) => f.key !== CLAVE_DE_ETAPA) : filtrosDePack}
             onChange={setFiltrosLeads}
           />
+          {enEmbudo && !sinClientesEnNingunaEtapa ? (
+            <EmbudoPorEtapas
+              opciones={opcionesEtapa}
+              resumenes={resumenes}
+              actual={etapaEmbudo}
+              onElegir={setEtapaEmbudo}
+            />
+          ) : null}
           {error ? (
             <Text testID="leads-error" style={[styles.errorLeads, { color: colores.peligro }]}>
               {error}
@@ -440,7 +500,7 @@ export function OperacionScreen({
                   refreshing={refrescandoLeads}
                   onRefresh={() => {
                     setRefrescandoLeads(true);
-                    void cargarLeads(1, filtrosLeads, false);
+                    void cargarLeads(1, filtrosEfectivos, false);
                   }}
                   colors={[colores.acento]}
                   tintColor={colores.acento}
@@ -450,6 +510,7 @@ export function OperacionScreen({
                 <View style={styles.cabeceraLeads}>
                   <Text style={[styles.totalLeads, { color: colores.textoSuave }]}>
                     {totalLeads} {totalLeads === 1 ? "cliente" : "clientes"}
+                    {enEmbudo ? ` en ${opcionesEtapa.find((o) => o.value === etapaEmbudo)?.label ?? "la etapa"}` : ""}
                   </Text>
                   <Button
                     testID="leads-exportar"
@@ -467,17 +528,19 @@ export function OperacionScreen({
                 <EmptyState
                   testID="leads-vacio"
                   icon="people-outline"
-                  title="Sin clientes todavía"
+                  title={enEmbudo && !sinClientesEnNingunaEtapa ? "Sin clientes en esta etapa" : "Sin clientes todavía"}
                   description={
-                    hayFiltros
-                      ? "Ningún cliente coincide con los filtros. Prueba con otros."
-                      : "Cuando el agente atienda al primer cliente, aparecerá aquí."
+                    enEmbudo && !sinClientesEnNingunaEtapa
+                      ? "Elige otra etapa o quita algún filtro para ver más clientes."
+                      : hayFiltros
+                        ? "Ningún cliente coincide con los filtros. Prueba con otros."
+                        : "Cuando el agente atienda al primer cliente, aparecerá aquí."
                   }
                   action={{
                     label: hayFiltros ? "Limpiar filtros" : "Actualizar",
                     onPress: () => {
                       if (hayFiltros) setFiltrosLeads({});
-                      else void cargarLeads(1, filtrosLeads, false);
+                      else void cargarLeads(1, filtrosEfectivos, false);
                     },
                   }}
                 />
@@ -511,7 +574,7 @@ export function OperacionScreen({
               onEndReachedThreshold={0.4}
               onEndReached={() => {
                 if (hayMasLeads && !cargandoLeads) {
-                  void cargarLeads(paginaLeads + 1, filtrosLeads, true);
+                  void cargarLeads(paginaLeads + 1, filtrosEfectivos, true);
                 }
               }}
             />
@@ -627,6 +690,7 @@ const styles = StyleSheet.create({
     gap: shSpace[4],
     marginBottom: shSpace[2],
   },
+  vistas: { flexDirection: "row", gap: shSpace[4] },
   pestana: { minHeight: 44, paddingVertical: shSpace[2], paddingHorizontal: shSpace[1], gap: 3 },
   indicador: { height: 2, width: 16, borderRadius: 1 },
   campo: {

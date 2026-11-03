@@ -1,5 +1,5 @@
 import type { IconName } from "@shared/ui";
-import type { LeadFilter, LeadRow } from "./api";
+import type { FiltroLeads, LeadFaceta, LeadFilter, LeadRow } from "./api";
 
 type Tono = "neutral" | "accent" | "success" | "warning" | "danger";
 
@@ -89,4 +89,45 @@ export function valorEstimadoValido(texto: string): boolean {
 export function textoDeValor(valor: unknown): string | null {
   if (typeof valor !== "number" || !Number.isFinite(valor)) return null;
   return `$ ${Math.round(valor).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+}
+
+// ── Embudo por etapas (HU-CRM-24) ──────────────────────────────────────────────────────────────
+
+/**
+ * Lo que se le pide al servidor en la vista «Embudo» para la etapa elegida: los filtros del usuario sin
+ * ninguna otra etapa, la etapa de la pestaña, y los contadores y las sumas de todas las etapas (que no
+ * dependen de la pestaña: el servidor no aplica a un contador su propio filtro).
+ */
+export function filtrosDeEmbudo(filtro: FiltroLeads, etapa: string): FiltroLeads {
+  return {
+    ...filtro,
+    filtros: [...sinEtapa(filtro.filtros), `${CLAVE_DE_ETAPA}:${etapa}`],
+    facetas: [CLAVE_DE_ETAPA],
+    resumen: "valor",
+  };
+}
+
+/** Los filtros del pack sin el de etapa (en el embudo la etapa la elige la pestaña). */
+export function sinEtapa(filtros?: string[]): string[] {
+  return (filtros ?? []).filter((f) => !f.startsWith(`${CLAVE_DE_ETAPA}:`));
+}
+
+export interface ResumenDeEtapa {
+  value: string;
+  label: string;
+  /** Leads de la etapa con los filtros activos, o `null` si el servidor no trae contadores. */
+  cantidad: number | null;
+  /** Suma del valor estimado de la etapa, o `null` si el servidor no la calcula. */
+  suma: number | null;
+}
+
+/** Una pestaña por etapa con su cantidad y su suma, tal como las trae la faceta `estado_lead`. */
+export function resumenesDeEtapa(opciones: OpcionDeEtapa[], facetas?: LeadFaceta[]): ResumenDeEtapa[] {
+  const faceta = facetas?.find((f) => f.key === CLAVE_DE_ETAPA);
+  return opciones.map((o) => ({
+    value: o.value,
+    label: o.label,
+    cantidad: faceta ? (faceta.counts[o.value] ?? 0) : null,
+    suma: faceta?.sumas ? (faceta.sumas[o.value] ?? 0) : null,
+  }));
 }
