@@ -14012,6 +14012,10 @@ export interface components {
             key: string;
             /** Sin Valor */
             sin_valor: number;
+            /** Sumas */
+            sumas?: {
+                [key: string]: number;
+            } | null;
             /** Total */
             total: number;
         };
@@ -25994,6 +25998,8 @@ export interface operations {
                 page_size?: number;
                 /** @description Busca por nombre, identificador o teléfono. */
                 q?: string | null;
+                /** @description Con `facetas`, suma además una cifra por opción en `sumas`: `valor` es el valor estimado de los leads (HU-CRM-24). Las sumas respetan los mismos filtros que los contadores. */
+                resumen?: "valor" | null;
             };
             header?: {
                 "X-Device-Id"?: string | null;
