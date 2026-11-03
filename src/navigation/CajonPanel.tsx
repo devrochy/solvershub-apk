@@ -3,6 +3,7 @@ import { Image, ScrollView, StyleSheet, View, type ScrollViewInstance } from "re
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { shSpace } from "@core/theme/tokens";
+import { URL_DOCUMENTACION } from "@shared/panel-urls";
 import { Drawer, Icono, ListItem, NavGroup, useKit } from "@shared/ui";
 import { SessionContext } from "../modules/cobranza/session/session-context";
 import { CuentaPanel } from "./CuentaPanel";
@@ -170,6 +171,7 @@ export function CajonPanel({ onAbrirPerfil }: { onAbrirPerfil?: () => void }) {
             email={email}
             avatarUrl={perfil?.avatarUrl}
             tema={tema}
+            documentacionUrl={URL_DOCUMENTACION}
             onAlternarTema={alternarTema}
             onPerfil={abrirPerfil}
             onCerrarSesion={cerrarSesion}
