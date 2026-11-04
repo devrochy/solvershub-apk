@@ -493,6 +493,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/retired-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Retired References
+         * @description Aviso de un agente para el editor y el flujo de publicar (mismo texto que el 422 de publicar).
+         *     Sin avisos, `notices` viene vacío y `blocks_publish` en false. 404 si no es un agente del negocio.
+         */
+        get: operations["get_retired_references_api_v1_admin_agents__agent_id__retired_references_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/versions": {
         parameters: {
             query?: never;
@@ -644,6 +665,27 @@ export interface paths {
         };
         /** Agents Overview */
         get: operations["agents_overview_api_v1_admin_agents_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/retired-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Retired References
+         * @description Avisos del negocio (HU-AOS-59, ADR-0184): por agente, lo que nombra y ya no existe, en palabras
+         *     simples. Solo lectura; solo ve los agentes de su negocio. Solo salen los agentes con avisos.
+         */
+        get: operations["list_retired_references_api_v1_admin_agents_retired_references_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3963,6 +4005,152 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/crons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Crons */
+        get: operations["list_crons_api_v1_admin_platform_crons_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Cron */
+        get: operations["get_cron_api_v1_admin_platform_crons__name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause Cron */
+        post: operations["pause_cron_api_v1_admin_platform_crons__name__pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume Cron */
+        post: operations["resume_cron_api_v1_admin_platform_crons__name__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Cron Now
+         * @description Encola una ejecución manual. Ignora la pausa; no se solapa con otra en curso (409).
+         */
+        post: operations["run_cron_now_api_v1_admin_platform_crons__name__run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cron Runs */
+        get: operations["list_cron_runs_api_v1_admin_platform_crons__name__runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reschedule Cron
+         * @description Cambia el horario (5 campos, UTC). El beat lo aplica en ~30 s, sin reiniciar.
+         */
+        put: operations["reschedule_cron_api_v1_admin_platform_crons__name__schedule_put"];
+        post?: never;
+        /**
+         * Reset Cron Schedule
+         * @description Vuelve al horario por defecto del código.
+         */
+        delete: operations["reset_cron_schedule_api_v1_admin_platform_crons__name__schedule_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Crons Summary */
+        get: operations["crons_summary_api_v1_admin_platform_crons_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/meta-app": {
         parameters: {
             query?: never;
@@ -4310,6 +4498,28 @@ export interface paths {
          *     Solo el master, también en test (invariante 8: el tester no purga).
          */
         post: operations["purge_tenant_endpoint_api_v1_admin_platform_tenants__tenant_id__purge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/tenants/{tenant_id}/retired-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Retired References
+         * @description Agentes, versiones, rutas, códigos y releases activas de este negocio que nombran algo que el
+         *     binario ya retiró: el mismo contenido que `agent-core db auditar-referencias --tenant <slug>`.
+         *     Solo lectura: no escribe nada ni corrige. Solo el master (ni el tester ni un colaborador).
+         */
+        get: operations["get_retired_references_api_v1_admin_platform_tenants__tenant_id__retired_references_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -9192,6 +9402,35 @@ export interface components {
             /** Turns */
             turns: number;
         };
+        /** AgentRetiredNotices */
+        AgentRetiredNotices: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /**
+             * Blocks Publish
+             * @description El borrador nombra algo retirado: publicar da 422 hasta corregirlo.
+             */
+            blocks_publish: boolean;
+            /**
+             * In Use
+             * @description Una conexión viva de tu negocio corre hoy algo que nombra lo retirado.
+             */
+            in_use: boolean;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Notices */
+            notices: components["schemas"]["RetiredNotice"][];
+            /**
+             * Published Version
+             * @description Número de la última versión publicada (null si nunca se publicó).
+             */
+            published_version: number | null;
+        };
         /** AgentsOverview */
         AgentsOverview: {
             /** Items */
@@ -9841,6 +10080,11 @@ export interface components {
         BloqueGeneral: {
             /** Kpis */
             kpis: components["schemas"]["KpiOut"][];
+            /**
+             * Serie
+             * @description Serie diaria cero-rellena de todo el negocio (todos los agentes, el Coordinador y lo no atribuido); vacía sin la sección `agents`.
+             */
+            serie?: components["schemas"]["PuntoActividadOut"][];
         };
         /** Body_import_products_csv_api_v1_pack_commerce_products_import_post */
         Body_import_products_csv_api_v1_pack_commerce_products_import_post: {
@@ -10498,6 +10742,11 @@ export interface components {
         };
         /** Catalogo */
         Catalogo: {
+            /**
+             * Aos Runtime
+             * @default legacy
+             */
+            aos_runtime: string;
             /**
              * Asistente
              * @default []
@@ -11928,6 +12177,153 @@ export interface components {
             period_start?: string | null;
             /** Used */
             used?: number | null;
+        };
+        /** CronList */
+        CronList: {
+            /** Items */
+            items: components["schemas"]["CronOut"][];
+            /**
+             * Modules
+             * @description Módulos en el orden de la pantalla.
+             */
+            modules: string[];
+        };
+        /** CronModuleSummary */
+        CronModuleSummary: {
+            /** Con Fallo */
+            con_fallo: number;
+            /** Module */
+            module: string;
+            /** Pausados */
+            pausados: number;
+            /** Total */
+            total: number;
+        };
+        /** CronOut */
+        CronOut: {
+            /**
+             * Acciones
+             * @description Acciones válidas para su estado actual.
+             */
+            acciones: ("run" | "pause" | "resume" | "schedule" | "reset_schedule")[];
+            /** Critical */
+            critical: boolean;
+            /**
+             * Default Schedule
+             * @description Expresión de 5 campos (UTC) del código.
+             */
+            default_schedule: string | null;
+            /** Description */
+            description: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "paused" | "running" | "failing" | "ok" | "never" | "untracked";
+            /** Failures 24H */
+            failures_24h: number;
+            /**
+             * Interval S
+             * @description Segundos, en los crons de intervalo fijo.
+             */
+            interval_s: number | null;
+            /** Label */
+            label: string;
+            last_run: components["schemas"]["CronRunOut"] | null;
+            /** Last Success At */
+            last_success_at: string | null;
+            /** Module */
+            module: string;
+            /** Name */
+            name: string;
+            /** Next Run At */
+            next_run_at: string | null;
+            /** Overridden */
+            overridden: boolean;
+            /** Paused */
+            paused: boolean;
+            /**
+             * Record Success
+             * @description False: no se guarda cada ejecución exitosa.
+             */
+            record_success: boolean;
+            /** Reprogramable */
+            reprogramable: boolean;
+            /** Runs 24H */
+            runs_24h: number;
+            /**
+             * Schedule
+             * @description Horario vigente: el reprogramado o el por defecto.
+             */
+            schedule: string | null;
+            /** Sensitive */
+            sensitive: boolean;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** CronRunOut */
+        CronRunOut: {
+            /** Detail */
+            detail: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Error Class */
+            error_class: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "success" | "failed" | "skipped";
+            /**
+             * Trigger
+             * @enum {string}
+             */
+            trigger: "scheduled" | "manual";
+        };
+        /** CronRunQueued */
+        CronRunQueued: {
+            /** Message */
+            message: string;
+            /**
+             * Queued
+             * @default true
+             */
+            queued: boolean;
+        };
+        /** CronScheduleIn */
+        CronScheduleIn: {
+            /**
+             * Schedule
+             * @description Cinco campos: minuto hora día-del-mes mes día-de-la-semana (UTC).
+             */
+            schedule: string;
+        };
+        /** CronSummary */
+        CronSummary: {
+            /** Activos */
+            activos: number;
+            /** Con Fallo */
+            con_fallo: number;
+            /** Ejecutando */
+            ejecutando: number;
+            /** Modulos */
+            modulos: components["schemas"]["CronModuleSummary"][];
+            /** Pausados */
+            pausados: number;
+            /** Total */
+            total: number;
         };
         /** DashboardResponse */
         DashboardResponse: {
@@ -15642,7 +16038,7 @@ export interface components {
              * Grupo
              * @enum {string}
              */
-            grupo: "identidad" | "voz" | "respuesta" | "escalamiento" | "horario" | "calidad" | "bajas" | "whatsapp_web" | "coordinador" | "agent_os";
+            grupo: "identidad" | "voz" | "respuesta" | "escalamiento" | "horario" | "calidad" | "bajas" | "whatsapp_web" | "coordinador" | "agent_os" | "cerebro" | "memoria" | "chat_web" | "multimedia";
             /** Maximo */
             maximo?: number | null;
             /** Minimo */
@@ -16351,6 +16747,19 @@ export interface components {
             has_more: boolean;
             /** Items */
             items: components["schemas"]["ConversationSummary"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** Page[CronRunOut] */
+        Page_CronRunOut_: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["CronRunOut"][];
             /** Page */
             page: number;
             /** Page Size */
@@ -19195,6 +19604,173 @@ export interface components {
             periodo: components["schemas"]["PeriodoOut"];
             /** Runtime */
             runtime: string;
+        };
+        /** RetiredAffectedConnection */
+        RetiredAffectedConnection: {
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /**
+             * Release
+             * @description Número de la release activa afectada.
+             */
+            release: number;
+        };
+        /**
+         * RetiredAsideConnection
+         * @description Conexión borrada o que no produce conversaciones: se reporta aparte y no cuenta como falla.
+         */
+        RetiredAsideConnection: {
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "borrada" | "playground" | "integracion";
+            /** Release */
+            release: number | null;
+            /** Rows */
+            rows: components["schemas"]["RetiredReferenceRow"][];
+        };
+        /**
+         * RetiredNotice
+         * @description Una cosa que el agente nombra y ya no existe, con el texto para el dueño (sin códigos internos).
+         */
+        RetiredNotice: {
+            /**
+             * Field
+             * @description Dónde del contenido del agente está (p. ej. `tools[3].tool`), para señalar el control en el editor. Es un localizador técnico: no se muestra al dueño.
+             */
+            field: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "action" | "procedure";
+            /**
+             * Message
+             * @description Qué ya no existe y qué hacer, en palabras simples. Es el texto que se muestra.
+             */
+            message: string;
+            /**
+             * Name
+             * @description Cómo se llamaba lo retirado (p. ej. `informar_plan`).
+             */
+            name: string;
+            /**
+             * Scope
+             * @description `draft`: está en el borrador (publicar falla hasta corregirlo). `published`: está en la última versión publicada. `in_use`: lo que corre hoy en una conexión lo nombra, aunque el borrador y la última versión ya estén limpios.
+             * @enum {string}
+             */
+            scope: "draft" | "published" | "in_use";
+        };
+        /**
+         * RetiredReferenceRow
+         * @description Una referencia retirada, con el mismo contenido que una fila de `auditar-referencias`.
+         */
+        RetiredReferenceRow: {
+            /**
+             * Agent
+             * @description Key del agente.
+             */
+            agent: string;
+            /**
+             * Code
+             * @description `accion_inexistente` o `procedimiento_inexistente` (código interno: solo para el equipo).
+             */
+            code: string;
+            /**
+             * Destination
+             * @description Lo que haría `migrar-referencias`: «quitar» o «reemplazar por <id> <rango>».
+             */
+            destination: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "action" | "procedure";
+            /**
+             * Message
+             * @description El mismo aviso en palabras simples que ve el dueño.
+             */
+            message: string;
+            /** Name */
+            name: string;
+            /**
+             * Path
+             * @description Ruta en el contenido (p. ej. `tools[3].tool`).
+             */
+            path: string;
+            /**
+             * Scope
+             * @description `version`: la última versión publicada del agente. `draft`: el borrador, si difiere de esa versión (se avisa, no cuenta como falla). `release`: el manifiesto de una release activa.
+             * @enum {string}
+             */
+            scope: "version" | "draft" | "release";
+            /**
+             * Version
+             * @description Número de versión (null en el borrador).
+             */
+            version: number | null;
+            /**
+             * Where
+             * @description Releases activas que lo contienen («conexión <id> release #n»).
+             */
+            where: string[];
+        };
+        /** RetiredReferencesOut */
+        RetiredReferencesOut: {
+            /** Affected Agents */
+            affected_agents: number;
+            /**
+             * Agents
+             * @description Solo los agentes con al menos un aviso.
+             */
+            agents: components["schemas"]["AgentRetiredNotices"][];
+        };
+        /** RetiredReferencesReport */
+        RetiredReferencesReport: {
+            /**
+             * Affected
+             * @description Hay versiones o releases activas con referencias retiradas (lo que pone el exit code del CLI).
+             */
+            affected: boolean;
+            /** Affected Connections */
+            affected_connections: components["schemas"]["RetiredAffectedConnection"][];
+            /** Agents Affected */
+            agents_affected: number;
+            /** Aside */
+            aside: components["schemas"]["RetiredAsideConnection"][];
+            /**
+             * Drafts
+             * @description Borradores con referencias retiradas: se avisan, no cuentan.
+             */
+            drafts: components["schemas"]["RetiredReferenceRow"][];
+            /**
+             * Error
+             * @description Si la auditoría de este negocio falló, por qué; el resto del informe puede estar vacío.
+             */
+            error: string | null;
+            /** Releases Affected */
+            releases_affected: number;
+            /**
+             * Rows
+             * @description Versiones publicadas y releases activas: lo que cuenta.
+             */
+            rows: components["schemas"]["RetiredReferenceRow"][];
+            /** Slug */
+            slug: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
         };
         /** RevealCredentialsRequest */
         RevealCredentialsRequest: {
@@ -22765,6 +23341,40 @@ export interface operations {
             };
         };
     };
+    get_retired_references_api_v1_admin_agents__agent_id__retired_references_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentRetiredNotices"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_versions_api_v1_admin_agents__agent_id__versions_get: {
         parameters: {
             query?: never;
@@ -23127,6 +23737,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentsOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_retired_references_api_v1_admin_agents_retired_references_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetiredReferencesOut"];
                 };
             };
             /** @description Validation Error */
@@ -29611,6 +30253,324 @@ export interface operations {
             };
         };
     };
+    list_crons_api_v1_admin_platform_crons_get: {
+        parameters: {
+            query?: {
+                /** @description Filtra por estado. */
+                estado?: ("paused" | "running" | "failing" | "ok" | "never" | "untracked") | null;
+                /** @description Filtra por módulo. */
+                module?: string | null;
+                /** @description Busca por nombre o etiqueta. */
+                q?: string | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_cron_api_v1_admin_platform_crons__name__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pause_cron_api_v1_admin_platform_crons__name__pause_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_cron_api_v1_admin_platform_crons__name__resume_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_cron_now_api_v1_admin_platform_crons__name__run_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronRunQueued"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_cron_runs_api_v1_admin_platform_crons__name__runs_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: ("running" | "success" | "failed" | "skipped") | null;
+                trigger?: ("scheduled" | "manual") | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CronRunOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reschedule_cron_api_v1_admin_platform_crons__name__schedule_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CronScheduleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_cron_schedule_api_v1_admin_platform_crons__name__schedule_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crons_summary_api_v1_admin_platform_crons_summary_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_platform_meta_app_api_v1_admin_platform_meta_app_get: {
         parameters: {
             query?: never;
@@ -30441,6 +31401,58 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_retired_references_api_v1_admin_platform_tenants__tenant_id__retired_references_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetiredReferencesReport"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
             };
             /** @description Validation Error */
             422: {

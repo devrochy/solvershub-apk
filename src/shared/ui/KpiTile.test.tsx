@@ -1,3 +1,4 @@
+import { Text } from "react-native";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { shTheme } from "@core/theme/tokens";
 import { formatearDelta, KpiTile } from "./KpiTile";
@@ -66,5 +67,25 @@ describe("KpiTile (kit)", () => {
     await render(<KpiTile label="Recaudo" value="" error="No se pudo cargar" />);
     expect(screen.getByText("No se pudo cargar")).toBeTruthy();
     expect(screen.getByTestId("icono-error-outline")).toBeTruthy();
+  });
+
+  it("con tendencia la dibuja bajo la cifra y no cambia lo que lee el lector de pantalla", async () => {
+    await render(
+      <KpiTile
+        label="Conversaciones"
+        value="40"
+        destacado
+        tendencia={<Text testID="tendencia">~</Text>}
+      />,
+    );
+    expect(screen.getByTestId("tendencia", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByLabelText("Conversaciones: 40")).toBeTruthy();
+  });
+
+  it("no dibuja la tendencia mientras carga ni cuando falla", async () => {
+    const { rerender } = await render(<KpiTile label="X" value="" loading tendencia={<Text testID="t">~</Text>} />);
+    expect(screen.queryByTestId("t", { includeHiddenElements: true })).toBeNull();
+    await rerender(<KpiTile label="X" value="" error="falló" tendencia={<Text testID="t">~</Text>} />);
+    expect(screen.queryByTestId("t", { includeHiddenElements: true })).toBeNull();
   });
 });

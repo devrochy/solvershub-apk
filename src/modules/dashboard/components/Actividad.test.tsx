@@ -1,5 +1,4 @@
-import { Linking } from "react-native";
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import type { KpiResumen, ResumenPorAgente } from "../api";
 import { ActividadDeAgentes, SelectorPeriodo } from "./Actividad";
 
@@ -64,34 +63,21 @@ const DATOS: ResumenPorAgente = {
 };
 
 describe("ActividadDeAgentes (ADR-0171)", () => {
-  it("dibuja la tendencia, la leyenda y la tabla de todos los agentes", async () => {
-    const { getByTestId, getByText, getAllByText } = await render(
-      <ActividadDeAgentes datos={DATOS} dias={7} tenantId="t-1" />,
-    );
+  it("dibuja la evolución diaria con su leyenda y ya no la tabla por agente", async () => {
+    const { getByTestId, getByText, queryByText } = await render(<ActividadDeAgentes datos={DATOS} dias={7} />);
     expect(getByTestId("actividad-grafica")).toBeTruthy();
-    expect(getByText("Tendencia de atención")).toBeTruthy();
-    expect(getAllByText("Ventas").length).toBeGreaterThan(0);
-    expect(getAllByText("General").length).toBeGreaterThan(0);
-    expect(getAllByText("Agenda").length).toBeGreaterThan(0);
-    expect(getAllByText(/Sin actividad/).length).toBeGreaterThan(0);
+    expect(getByText("Evolución diaria")).toBeTruthy();
+    // Solo los agentes con actividad entran en la leyenda; la tabla pasó a las tarjetas de «Agentes».
+    expect(getByText("Ventas")).toBeTruthy();
+    expect(getByText("General")).toBeTruthy();
+    expect(queryByText("Agenda")).toBeNull();
+    expect(queryByText("Actividad por agente")).toBeNull();
   });
 
-  it("cambia la métrica sin recargar y escribe el total de la fila", async () => {
-    const { getByTestId } = await render(
-      <ActividadDeAgentes datos={DATOS} dias={7} tenantId="t-1" />,
-    );
+  it("cambia la métrica sin recargar", async () => {
+    const { getByTestId } = await render(<ActividadDeAgentes datos={DATOS} dias={7} />);
     await fireEvent.press(getByTestId("metrica-conversaciones"));
     expect(getByTestId("metrica-conversaciones").props.accessibilityState.selected).toBe(true);
-  });
-
-  it("al tocar un agente abre su ficha en el panel (la app no tiene detalle de agente)", async () => {
-    const abrir = jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
-    const { getByLabelText } = await render(
-      <ActividadDeAgentes datos={DATOS} dias={7} tenantId="t-1" />,
-    );
-    await fireEvent.press(getByLabelText(/^Ventas,/));
-    await waitFor(() => expect(abrir).toHaveBeenCalledWith(expect.stringContaining("/agentes/ag-1")));
-    abrir.mockRestore();
   });
 });
 

@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 import Svg, { Circle, Line, Path, Text as SvgText } from "react-native-svg";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { emitirNavegacion } from "@shared/navegacion-evento";
-import { urlPanelDestino } from "@shared/panel-urls";
-import { Card, EmptyState, Icono, useKit } from "@shared/ui";
+import { Card, EmptyState, useKit } from "@shared/ui";
 import type { AgenteResumen, PuntoActividad, ResumenPorAgente } from "../api";
 import { DIAS_DEL_RESUMEN, etiquetaDeDias, rangoDePeriodo } from "../periodos";
 import { CajaWidget } from "../screens/WidgetsResumen";
@@ -38,12 +37,6 @@ function serieDe(agente: AgenteResumen | undefined): PuntoActividad[] {
 
 function totalDe(agente: AgenteResumen | undefined, metrica: Metrica): number {
   return serieDe(agente).reduce((suma, p) => suma + (valorDe(p, metrica) ?? 0), 0);
-}
-
-function sinActividad(agente: AgenteResumen): boolean {
-  return serieDe(agente).every(
-    (p) => p.turnos === 0 && p.conversaciones === 0 && (p.costo ?? 0) === 0,
-  );
 }
 
 function esNumero(v: number | null | undefined): v is number {
@@ -186,39 +179,6 @@ export function LineChartActividad({
   );
 }
 
-/** Mini tendencia para una fila de la tabla. Decorativa: las cifras ya están escritas. */
-export function SparklineActividad({
-  values,
-  color,
-  height = 24,
-}: {
-  values: (number | null)[];
-  color: string;
-  height?: number;
-}) {
-  const ancho = 88;
-  const validos = values.filter(esNumero);
-  const maximo = Math.max(0, ...validos) || 1;
-  const n = values.length;
-  const x = (i: number) => (n <= 1 ? ancho / 2 : (i / (n - 1)) * ancho);
-  const y = (v: number) => 2 + (height - 4) * (1 - v / maximo);
-  let d = "";
-  let abierto = false;
-  values.forEach((v, i) => {
-    if (!esNumero(v)) {
-      abierto = false;
-      return;
-    }
-    d += `${abierto ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)} `;
-    abierto = true;
-  });
-  return (
-    <Svg width={ancho} height={height}>
-      <Path d={d.trim()} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 function Chip({
   label,
   activo,
@@ -244,91 +204,6 @@ function Chip({
     >
       <Text style={[shType.caption, { color: activo ? c.textStrong : c.textMuted }]}>{label}</Text>
     </Pressable>
-  );
-}
-
-function FilaDeAgente({
-  agente,
-  metrica,
-  color,
-  tenantId,
-  verCosto,
-}: {
-  agente: AgenteResumen;
-  metrica: Metrica;
-  color: string;
-  tenantId: string | null;
-  verCosto: boolean;
-}) {
-  const { c } = useKit();
-  const formato = formatoDe(metrica);
-  const total = totalDe(agente, metrica);
-  const turnos = totalDe(agente, "turnos");
-  const conversaciones = totalDe(agente, "conversaciones");
-  const costo = totalDe(agente, "costo");
-  const url = urlPanelDestino(
-    { ruta: "agente", params: { ref: agente.ref, pestana: "conversaciones" } },
-    tenantId,
-  );
-  const ultima = agente.ultima_actividad
-    ? new Date(agente.ultima_actividad).toLocaleDateString("es-CO", { day: "numeric", month: "short" })
-    : "sin actividad";
-  const resumen = [
-    agente.name,
-    `${turnos} turnos`,
-    `${conversaciones} conversaciones`,
-    verCosto ? `US$ ${dolares.format(costo)}` : null,
-    `última actividad ${ultima}`,
-  ]
-    .filter(Boolean)
-    .join(", ");
-
-  const contenido = (
-    <View style={[styles.fila, { borderColor: c.borderSoft }]}>
-      <View style={styles.filaTexto}>
-        <Text style={[shType.label, { color: c.textStrong }]} numberOfLines={1}>
-          {agente.name}
-        </Text>
-        <Text style={[shType.caption, { color: c.textMuted }]} numberOfLines={1}>
-          {agente.key === "general" ? "Coordinación y sin asignar" : agente.kind === "specialist" ? "Especialista" : agente.kind}
-          {sinActividad(agente) ? " · Sin actividad" : ""}
-        </Text>
-        <Text style={[shType.caption, styles.tabular, { color: c.textMuted }]} numberOfLines={1}>
-          {`${numero.format(turnos)} turnos · ${numero.format(conversaciones)} conv.`}
-          {verCosto ? ` · US$ ${dolares.format(costo)}` : ""}
-          {` · ${ultima}`}
-        </Text>
-      </View>
-      <View style={styles.filaDerecha}>
-        <Text style={[shType.label, styles.tabular, { color: c.textStrong }]}>
-          {total > 0 ? formato(total) : "—"}
-        </Text>
-        {sinActividad(agente) ? (
-          <Text style={[shType.caption, { color: c.textSoft }]}>Sin actividad</Text>
-        ) : (
-          <SparklineActividad
-            values={serieDe(agente).map((p) => valorDe(p, metrica))}
-            color={color}
-          />
-        )}
-      </View>
-      {url ? <Icono name="open-in-new" size={16} color={c.textSoft} /> : null}
-    </View>
-  );
-
-  return url ? (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={resumen}
-      accessibilityHint="Abre el agente en el panel web"
-      onPress={() => void Linking.openURL(url)}
-    >
-      {contenido}
-    </Pressable>
-  ) : (
-    <View accessible accessibilityLabel={resumen}>
-      {contenido}
-    </View>
   );
 }
 
@@ -364,19 +239,11 @@ export function SelectorPeriodo({
 }
 
 /**
- * Actividad de los agentes en el tiempo (ADR-0171, adenda). El período cambia todo el Resumen;
- * la métrica es una decisión de lectura local. La tabla incluye a los agentes configurados sin
- * actividad para que se note quién está quieto.
+ * Evolución diaria de los agentes (ADR-0171, adenda). El período cambia todo el Resumen; la métrica
+ * es una decisión de lectura local. Solo se dibujan los agentes con actividad: el resto aparece en
+ * su tarjeta de «Agentes», con «Sin actividad en el período».
  */
-export function ActividadDeAgentes({
-  datos,
-  dias,
-  tenantId,
-}: {
-  datos: ResumenPorAgente;
-  dias: number;
-  tenantId: string | null;
-}) {
+export function ActividadDeAgentes({ datos, dias }: { datos: ResumenPorAgente; dias: number }) {
   const { c } = useKit();
   const [metricaElegida, setMetricaElegida] = useState<Metrica>("turnos");
   const agentes = datos.agentes ?? [];
@@ -413,7 +280,6 @@ export function ActividadDeAgentes({
 
   const formato = formatoDe(metrica);
   const etiquetaMetrica = METRICAS.find((m) => m.id === metrica)?.label ?? "Turnos";
-  const colorDe = (key: string) => series.find((s) => s.key === key)?.color ?? c.dataAxis;
   const totalDeSerie = (key: string) =>
     key === CLAVE_OTROS
       ? otros.reduce((suma, a) => suma + totalDe(a, metrica), 0)
@@ -423,7 +289,7 @@ export function ActividadDeAgentes({
     .join(". ")}`;
 
   return (
-    <CajaWidget clave="chart.tendencia_atencion" titulo="Tendencia de atención">
+    <CajaWidget clave="chart.tendencia_atencion" titulo="Evolución diaria">
       <View style={styles.controles}>
         <View style={styles.grupo} accessibilityRole="toolbar" accessibilityLabel="Métrica de la actividad">
           {METRICAS.filter((m) => m.id !== "costo" || verCosto).map((m) => (
@@ -468,29 +334,11 @@ export function ActividadDeAgentes({
                 ))}
               </View>
               <Text style={[shType.caption, { color: c.textSoft }]}>
-                El General incluye lo no asignado. Los turnos del Coordinador van en el bloque del negocio.
+                El General incluye lo no asignado. Los turnos del Coordinador van en «Agente general».
                 {otros.length > 0 ? " Los 4 agentes con más turnos van en la gráfica; el resto se suma en «Otros»." : ""}
               </Text>
             </>
           )}
-        </View>
-      </Card>
-
-      <Text accessibilityRole="header" style={[shType.block, { color: c.textStrong }]}>
-        Actividad por agente
-      </Text>
-      <Card>
-        <View>
-          {agentes.map((a) => (
-            <FilaDeAgente
-              key={a.ref}
-              agente={a}
-              metrica={metrica}
-              color={colorDe(a.ref)}
-              tenantId={tenantId}
-              verCosto={verCosto}
-            />
-          ))}
         </View>
       </Card>
     </CajaWidget>

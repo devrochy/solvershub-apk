@@ -6,7 +6,7 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { shSpace, shType } from "@core/theme/tokens";
 import { emitirNavegacion } from "@shared/navegacion-evento";
-import { Badge, Button, EmptyState, KpiTile, Skeleton, useKit } from "@shared/ui";
+import { Badge, Button, EmptyState, KpiTile, Skeleton, Sparkline, useKit } from "@shared/ui";
 import { cargarDashboard, cargarResumenAgentes, cargarResumenCobranza, type KpiResumen } from "../api";
 import { kpiDeRespaldo, kpiDeWidget } from "../datos";
 import { propsDeKpi } from "../kpi";
@@ -15,7 +15,8 @@ import { useCarga } from "../use-carga";
 import { widgetsDelPerfil, type DefWidget } from "../widgets";
 import { ActividadDeAgentes, SelectorPeriodo } from "../components/Actividad";
 import { diasValidos, type DiasDelResumen } from "../periodos";
-import { ResumenAgentes, tieneResumen } from "./ResumenAgentes";
+import { SeccionResumen } from "../components/SeccionResumen";
+import { ModulosSinAgente, ResumenAgentes, tieneResumen } from "./ResumenAgentes";
 import {
   CajaWidget,
   WidgetAcciones,
@@ -30,6 +31,27 @@ import {
 
 type PaginaEscalaciones = { items: EscalacionResumen[] };
 type EstadoBot = components["schemas"]["BotPausedState"];
+
+type GrupoKpi = "general" | "cobranza" | "operacion" | "atender";
+
+const PRINCIPAL_POR_GRUPO: Partial<Record<GrupoKpi, string>> = {
+  general: "kpi.conversaciones",
+  cobranza: "kpi.recaudo_hoy",
+  atender: "kpi.por_atender",
+};
+
+function seccionDe(grupo: GrupoKpi, dias: number): { titulo: string; apoyo: string } {
+  switch (grupo) {
+    case "general":
+      return { titulo: "Agente general", apoyo: `Todo el negocio, últimos ${dias} días.` };
+    case "cobranza":
+      return { titulo: "Cobranza", apoyo: `Lo cobrado y lo que está en riesgo · últimos ${dias} días` };
+    case "operacion":
+      return { titulo: "Operación del día", apoyo: "Pedidos y citas." };
+    case "atender":
+      return { titulo: "Por atender", apoyo: "Conversaciones que esperan a una persona." };
+  }
+}
 
 /** Un negocio sin conversaciones no ve un «0» suelto: se le invita a conectar el canal. */
 function esVacioDeConversaciones(def: DefWidget, k: KpiResumen): boolean {
@@ -125,12 +147,34 @@ export function DashboardScreen() {
   }
 
   // Agrupa los KPI contiguos en una grilla de dos columnas; el resto va en su propio bloque.
-  const bloques: (DefWidget | DefWidget[])[] = [];
-  for (const w of widgets) {
+  // El Dueño ve las cifras de cada módulo dentro de la tarjeta de su agente («Agentes»): arriba solo
+  // va lo del negocio entero. Sin esa tarjeta (módulo fuera del resumen) la cifra sigue arriba.
+  const esDueno = perfil === "dueno";
+  const arriba = widgets.filter(
+    (w) => !(esDueno && w.kpi?.modulo && modulosEnResumen.has(w.kpi.modulo)),
+  );
+  // Cada perfil agrupa sus cifras en secciones (SPEC-29, HU-DS-13): el Dueño lee el negocio entero;
+  // el Supervisor, su cobranza y la operación; el Operador, lo que debe atender.
+  const grupoDe = (w: DefWidget): GrupoKpi => {
+    if (perfil === "dueno") return "general";
+    if (perfil === "operador") return "atender";
+    return w.kpi?.modulo === "pack_cobranza" ? "cobranza" : "operacion";
+  };
+  type Bloque = DefWidget | { grupo: GrupoKpi; defs: DefWidget[] };
+  const bloques: Bloque[] = [];
+  for (const w of arriba) {
+    if (w.forma !== "kpi") {
+      bloques.push(w);
+      continue;
+    }
+    const grupo = grupoDe(w);
     const ultimo = bloques[bloques.length - 1];
-    if (w.forma === "kpi" && Array.isArray(ultimo)) ultimo.push(w);
-    else bloques.push(w.forma === "kpi" ? [w] : w);
+    if (ultimo && "defs" in ultimo && ultimo.grupo === grupo) ultimo.defs.push(w);
+    else bloques.push({ grupo, defs: [w] });
   }
+
+  /** La cifra principal de cada sección ocupa todo el ancho y es un poco más grande. */
+  const esPrincipal = (def: DefWidget) => PRINCIPAL_POR_GRUPO[grupoDe(def)] === def.clave;
 
   const kpiCelda = (def: DefWidget): React.ReactNode => {
     if (def.clave === "kpi.consumo") {
@@ -151,15 +195,30 @@ export function DashboardScreen() {
         />
       );
     }
+    const principal = esPrincipal(def);
+    const conversacionesPorDia = (resumen?.general.serie ?? []).map((p) => p.conversaciones);
     return (
       <KpiTile
         testID={`kpi-${def.clave}`}
         {...propsDeKpi(k, { dias, tenantId: sesion?.tenantId ?? null })}
+        destacado={principal}
+        tendencia={
+          principal && def.clave === "kpi.conversaciones" && conversacionesPorDia.length > 1 ? (
+            <Sparkline
+              testID="tendencia-conversaciones"
+              values={conversacionesPorDia}
+              color={c.dataSingle}
+              fondo={c.surface}
+              height={56}
+              area
+            />
+          ) : undefined
+        }
       />
     );
   };
 
-  const bloqueKpis = (defs: DefWidget[], clave: string) => {
+  const bloqueKpis = (grupo: GrupoKpi, defs: DefWidget[], clave: string) => {
     const celdas = defs.map((d) => ({ d, nodo: kpiCelda(d) })).filter((x) => x.nodo !== null);
     const sinCifras = agentes.estado === "error" && !defs.some((d) => d.fuente === "dashboard") && celdas.length === 0;
     if (sinCifras) {
@@ -179,12 +238,12 @@ export function DashboardScreen() {
         </View>
       ) : null;
     if (celdas.length === 0 && !planas) return null;
-    return (
+    const contenido = (
       <View key={clave} style={styles.bloque}>
         {celdas.length > 0 ? (
           <View style={styles.grilla}>
             {celdas.map(({ d, nodo }) => (
-              <View key={d.clave} style={styles.celda}>
+              <View key={d.clave} style={esPrincipal(d) ? styles.celdaAncha : styles.celda}>
                 {nodo}
               </View>
             ))}
@@ -196,6 +255,15 @@ export function DashboardScreen() {
           </CajaWidget>
         ) : null}
       </View>
+    );
+    const { titulo, apoyo } = seccionDe(grupo, dias);
+    return (
+      <SeccionResumen key={clave} testID={`resumen-${grupo}`} titulo={titulo} apoyo={apoyo}>
+        {contenido}
+        {grupo === "general" && resumen ? (
+          <ModulosSinAgente datos={resumen} dias={dias} tenantId={sesion?.tenantId ?? null} />
+        ) : null}
+      </SeccionResumen>
     );
   };
 
@@ -238,12 +306,10 @@ export function DashboardScreen() {
           return <Skeleton key={w.clave} shape="rect" height={260} />;
         }
         return resumen ? (
-          <ActividadDeAgentes
-            key={w.clave}
-            datos={resumen}
-            dias={dias}
-            tenantId={sesion?.tenantId ?? null}
-          />
+          <View key={w.clave} style={styles.seccionesDelDueno}>
+            <ActividadDeAgentes datos={resumen} dias={dias} />
+            {esDueno ? <ResumenAgentes datos={resumen} dias={dias} tenantId={sesion?.tenantId ?? null} /> : null}
+          </View>
         ) : null;
       case "acciones.rapidas":
         return (
@@ -276,7 +342,7 @@ export function DashboardScreen() {
         <Badge testID="resumen-perfil" label={ETIQUETA_PERFIL[perfil]} />
       </View>
 
-      {usa("agentes") ? (
+      {usa("agentes") && perfil !== "operador" ? (
         <SelectorPeriodo
           dias={dias}
           alCambiar={(d) => setDias(diasValidos(d))}
@@ -287,17 +353,9 @@ export function DashboardScreen() {
       {widgets.length === 0 ? (
         <Skeleton shape="rect" height={80} />
       ) : (
-        bloques.map((b, i) => (Array.isArray(b) ? bloqueKpis(b, `kpis-${i}`) : renderWidget(b)))
+        bloques.map((b, i) => ("defs" in b ? bloqueKpis(b.grupo, b.defs, `kpis-${i}`) : renderWidget(b)))
       )}
 
-      {perfil === "dueno" && resumen ? (
-        <ResumenAgentes
-          datos={resumen}
-          soloAgentes
-          dias={dias}
-          tenantId={sesion?.tenantId ?? null}
-        />
-      ) : null}
     </ScrollView>
   );
 }
@@ -310,4 +368,6 @@ const styles = StyleSheet.create({
   bloque: { gap: shSpace[3] },
   grilla: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[2] },
   celda: { minWidth: 140, flexGrow: 1, flexBasis: "45%" },
+  celdaAncha: { flexBasis: "100%", flexGrow: 1 },
+  seccionesDelDueno: { gap: shSpace[6] },
 });

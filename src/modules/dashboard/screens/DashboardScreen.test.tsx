@@ -54,6 +54,7 @@ const SESION = {
     plan: "write",
     settings: "write",
     agents: "write",
+    costs: "read",
   },
 };
 
@@ -101,7 +102,18 @@ const POR_AGENTE = {
         polaridad: "up-bad",
         destino: { ruta: "escalaciones", params: {} },
       }),
-      kpi({ id: "costo_llm", label: "Costo de IA", valor: 1.5, unidad: "usd" }),
+      kpi({ id: "tasa_escalamiento", label: "Tasa de escalamiento", valor: 4.8, unidad: "pct", previo: 5.4, delta_pct: -11, polaridad: "up-bad" }),
+      kpi({ id: "consistencia", label: "Consistencia", valor: 92, unidad: "pct", previo: 89, delta_pct: 3 }),
+      kpi({ id: "costo_llm", label: "Costo de IA", valor: 1.5, unidad: "usd", polaridad: "up-bad" }),
+    ],
+    serie: [
+      { fecha: "2026-10-21", turnos: 3, conversaciones: 2, costo: 0.02 },
+      { fecha: "2026-10-22", turnos: 4, conversaciones: 3, costo: 0.02 },
+      { fecha: "2026-10-23", turnos: 1, conversaciones: 1, costo: 0 },
+      { fecha: "2026-10-24", turnos: 5, conversaciones: 4, costo: 0.03 },
+      { fecha: "2026-10-25", turnos: 3, conversaciones: 2, costo: 0.02 },
+      { fecha: "2026-10-26", turnos: 5, conversaciones: 3, costo: 0.03 },
+      { fecha: "2026-10-27", turnos: 3, conversaciones: 2, costo: 0.02 },
     ],
   },
   agentes: [
@@ -135,7 +147,7 @@ const POR_AGENTE = {
       ref: "ag-2",
       key: "cobranza",
       name: "Cobranza",
-      kind: "specialist",
+      kind: "backoffice",
       kpis: [],
       serie: [],
       modulos: [
@@ -150,6 +162,15 @@ const POR_AGENTE = {
           ],
         },
       ],
+    },
+    {
+      ref: "ag-core",
+      key: "coordinador",
+      name: "Coordinador",
+      kind: "core",
+      kpis: [kpi({ id: "turnos", label: "Turnos", valor: 4 })],
+      serie: [],
+      modulos: [],
     },
   ],
 };
@@ -221,14 +242,65 @@ describe("DashboardScreen: Resumen por rol (HU-DS-13)", () => {
       expect(queryByText("Cola de escalaciones")).toBeNull();
     });
 
-    it("conserva la sección por agente del Resumen por agente (HU-DS-14)", async () => {
-      const { getByTestId, getByText, queryByText } = await render(<DashboardScreen />);
+    it("ordena el Resumen en secciones: agente general, evolución diaria y agentes", async () => {
+      const { getByTestId, getByText } = await render(<DashboardScreen />);
       await waitFor(() => expect(getByTestId("resumen-agentes")).toBeTruthy());
-      expect(getByText("Tendencia de atención")).toBeTruthy();
-      expect(getByText("Módulos por agente")).toBeTruthy();
+      expect(getByText("Agente general")).toBeTruthy();
+      expect(getByText("Evolución diaria")).toBeTruthy();
+      expect(getByText("Agentes")).toBeTruthy();
+      // La tabla «Actividad por agente» y el rótulo de antes ya no están.
+      expect(() => getByText("Actividad por agente")).toThrow();
+      expect(() => getByText("Módulos por agente")).toThrow();
+    });
+
+    it("el agente general lleva la cifra principal con la tendencia del negocio", async () => {
+      const { getByTestId } = await render(<DashboardScreen />);
+      // La tendencia es decorativa (la cifra ya está escrita), así que no cuenta para accesibilidad.
+      await waitFor(() => expect(getByTestId("tendencia-conversaciones", { includeHiddenElements: true })).toBeTruthy());
+      expect(within(getByTestId("resumen-general")).getByTestId("kpi-kpi.conversaciones")).toBeTruthy();
+    });
+
+    it("cada agente es una tarjeta plegable: la primera abierta, sin Coordinador y con insignia solo de back-office", async () => {
+      const { getByTestId, queryByTestId, queryByText, getByText } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("resumen-ag-1")).toBeTruthy());
+      // Ventas abierta: su módulo se ve; Cobranza plegada: solo sus dos cifras.
       expect(getByText("Módulo · Comercio")).toBeTruthy();
-      // El bloque del negocio no se repite bajo «Agente general».
-      expect(queryByText("Agente general")).toBeNull();
+      expect(queryByText("Módulo · Cobranza")).toBeNull();
+      expect(getByText("Recaudo $ 1.250.000 · Cartera en mora 8")).toBeTruthy();
+      expect(queryByTestId("resumen-ag-core")).toBeNull();
+      expect(queryByText("Especialista")).toBeNull();
+      // Abrir Cobranza enseña su insignia y su módulo.
+      await fireEvent.press(getByTestId("resumen-ag-2-cabecera"));
+      expect(getByText("Back-office")).toBeTruthy();
+      expect(getByText("Módulo · Cobranza")).toBeTruthy();
+    });
+
+    it("el agente general suma tasa de escalamiento, consistencia y costo IA", async () => {
+      const { getByTestId, getByText } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("kpi-kpi.tasa_escalamiento")).toBeTruthy());
+      const general = within(getByTestId("resumen-general"));
+      expect(general.getByText("Tasa de escalamiento")).toBeTruthy();
+      expect(general.getByText("4,8 %")).toBeTruthy();
+      expect(general.getByText("Consistencia")).toBeTruthy();
+      expect(general.getByText("92 %")).toBeTruthy();
+      expect(general.getByTestId("kpi-kpi.costo_ia")).toBeTruthy();
+      expect(getByText("US$ 1,50")).toBeTruthy();
+    });
+
+    it("sin permiso de costos o de agentes, esas cifras no salen", async () => {
+      mockSesion = { ...SESION, permissions: { ...SESION.permissions, costs: null, agents: null } };
+      const { getByTestId, queryByTestId } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("kpi-kpi.conversaciones")).toBeTruthy());
+      expect(queryByTestId("kpi-kpi.costo_ia")).toBeNull();
+      expect(queryByTestId("kpi-kpi.tasa_escalamiento")).toBeNull();
+      expect(queryByTestId("kpi-kpi.consistencia")).toBeNull();
+    });
+
+    it("las cifras de un módulo no se repiten arriba cuando la tarjeta de su agente las trae", async () => {
+      const { getByTestId, queryByTestId } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("resumen-agentes")).toBeTruthy());
+      expect(queryByTestId("kpi-kpi.pedidos")).toBeNull();
+      expect(queryByTestId("kpi-kpi.recaudo_hoy")).toBeNull();
     });
 
     it("tocar una cifra con pantalla navega a ella", async () => {
@@ -275,6 +347,36 @@ describe("DashboardScreen: Resumen por rol (HU-DS-13)", () => {
       expect(queryByText("Acciones rápidas")).toBeNull();
     });
 
+    it("se lee por secciones: Cobranza con el recaudo como cifra principal", async () => {
+      const { getByTestId, getByText } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("resumen-cobranza")).toBeTruthy());
+      expect(getByText("Cobranza")).toBeTruthy();
+      const cobranza = within(getByTestId("resumen-cobranza"));
+      expect(cobranza.getByTestId("kpi-kpi.recaudo_hoy")).toBeTruthy();
+      expect(cobranza.getByTestId("kpi-kpi.mora")).toBeTruthy();
+      expect(cobranza.getByTestId("kpi-kpi.promesas_hoy")).toBeTruthy();
+    });
+
+    it("con pedidos y citas suma la sección «Operación del día» aparte de Cobranza", async () => {
+      mockSesion = {
+        ...SUPERVISOR,
+        permissions: { ...SUPERVISOR.permissions, pack_commerce: "write" },
+      };
+      responder({
+        agentes: {
+          ...POR_AGENTE,
+          agentes: [
+            POR_AGENTE.agentes[0],
+            POR_AGENTE.agentes[1],
+          ],
+        },
+      });
+      const { getByTestId } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("resumen-operacion")).toBeTruthy());
+      expect(within(getByTestId("resumen-operacion")).getByTestId("kpi-kpi.pedidos")).toBeTruthy();
+      expect(within(getByTestId("resumen-cobranza")).queryByTestId("kpi-kpi.pedidos")).toBeNull();
+    });
+
     it("sin el módulo en el resumen por agente conserva las cifras planas de cobranza", async () => {
       responder({
         agentes: { ...POR_AGENTE, agentes: [] },
@@ -295,6 +397,15 @@ describe("DashboardScreen: Resumen por rol (HU-DS-13)", () => {
   describe("perfil Operador", () => {
     beforeEach(() => {
       mockSesion = OPERADOR;
+    });
+
+    it("se lee en «Por atender» sin selector de período y con la cola debajo", async () => {
+      const { getByTestId, getByText, queryByTestId } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("resumen-atender")).toBeTruthy());
+      expect(getByText("Por atender")).toBeTruthy();
+      expect(within(getByTestId("resumen-atender")).getByTestId("kpi-kpi.por_atender")).toBeTruthy();
+      expect(queryByTestId("periodo-7")).toBeNull();
+      await waitFor(() => expect(getByText("Cola de escalaciones")).toBeTruthy());
     });
 
     it("ve lo que hay por atender, la cola con antigüedad y ninguna cifra de costos, plan ni packs", async () => {
