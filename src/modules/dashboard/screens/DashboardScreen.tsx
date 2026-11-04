@@ -32,6 +32,27 @@ import {
 type PaginaEscalaciones = { items: EscalacionResumen[] };
 type EstadoBot = components["schemas"]["BotPausedState"];
 
+type GrupoKpi = "general" | "cobranza" | "operacion" | "atender";
+
+const PRINCIPAL_POR_GRUPO: Partial<Record<GrupoKpi, string>> = {
+  general: "kpi.conversaciones",
+  cobranza: "kpi.recaudo_hoy",
+  atender: "kpi.por_atender",
+};
+
+function seccionDe(grupo: GrupoKpi, dias: number): { titulo: string; apoyo: string } {
+  switch (grupo) {
+    case "general":
+      return { titulo: "Agente general", apoyo: `Todo el negocio, últimos ${dias} días.` };
+    case "cobranza":
+      return { titulo: "Cobranza", apoyo: `Lo cobrado y lo que está en riesgo · últimos ${dias} días` };
+    case "operacion":
+      return { titulo: "Operación del día", apoyo: "Pedidos y citas." };
+    case "atender":
+      return { titulo: "Por atender", apoyo: "Conversaciones que esperan a una persona." };
+  }
+}
+
 /** Un negocio sin conversaciones no ve un «0» suelto: se le invita a conectar el canal. */
 function esVacioDeConversaciones(def: DefWidget, k: KpiResumen): boolean {
   return def.clave === "kpi.conversaciones" && k.valor === 0 && (k.previo === 0 || k.previo === null);
@@ -132,12 +153,28 @@ export function DashboardScreen() {
   const arriba = widgets.filter(
     (w) => !(esDueno && w.kpi?.modulo && modulosEnResumen.has(w.kpi.modulo)),
   );
-  const bloques: (DefWidget | DefWidget[])[] = [];
+  // Cada perfil agrupa sus cifras en secciones (SPEC-29, HU-DS-13): el Dueño lee el negocio entero;
+  // el Supervisor, su cobranza y la operación; el Operador, lo que debe atender.
+  const grupoDe = (w: DefWidget): GrupoKpi => {
+    if (perfil === "dueno") return "general";
+    if (perfil === "operador") return "atender";
+    return w.kpi?.modulo === "pack_cobranza" ? "cobranza" : "operacion";
+  };
+  type Bloque = DefWidget | { grupo: GrupoKpi; defs: DefWidget[] };
+  const bloques: Bloque[] = [];
   for (const w of arriba) {
+    if (w.forma !== "kpi") {
+      bloques.push(w);
+      continue;
+    }
+    const grupo = grupoDe(w);
     const ultimo = bloques[bloques.length - 1];
-    if (w.forma === "kpi" && Array.isArray(ultimo)) ultimo.push(w);
-    else bloques.push(w.forma === "kpi" ? [w] : w);
+    if (ultimo && "defs" in ultimo && ultimo.grupo === grupo) ultimo.defs.push(w);
+    else bloques.push({ grupo, defs: [w] });
   }
+
+  /** La cifra principal de cada sección ocupa todo el ancho y es un poco más grande. */
+  const esPrincipal = (def: DefWidget) => PRINCIPAL_POR_GRUPO[grupoDe(def)] === def.clave;
 
   const kpiCelda = (def: DefWidget): React.ReactNode => {
     if (def.clave === "kpi.consumo") {
@@ -158,7 +195,7 @@ export function DashboardScreen() {
         />
       );
     }
-    const principal = esDueno && def.clave === "kpi.conversaciones";
+    const principal = esPrincipal(def);
     const conversacionesPorDia = (resumen?.general.serie ?? []).map((p) => p.conversaciones);
     return (
       <KpiTile
@@ -166,7 +203,7 @@ export function DashboardScreen() {
         {...propsDeKpi(k, { dias, tenantId: sesion?.tenantId ?? null })}
         destacado={principal}
         tendencia={
-          principal && conversacionesPorDia.length > 1 ? (
+          principal && def.clave === "kpi.conversaciones" && conversacionesPorDia.length > 1 ? (
             <Sparkline
               testID="tendencia-conversaciones"
               values={conversacionesPorDia}
@@ -181,7 +218,7 @@ export function DashboardScreen() {
     );
   };
 
-  const bloqueKpis = (defs: DefWidget[], clave: string) => {
+  const bloqueKpis = (grupo: GrupoKpi, defs: DefWidget[], clave: string) => {
     const celdas = defs.map((d) => ({ d, nodo: kpiCelda(d) })).filter((x) => x.nodo !== null);
     const sinCifras = agentes.estado === "error" && !defs.some((d) => d.fuente === "dashboard") && celdas.length === 0;
     if (sinCifras) {
@@ -206,7 +243,7 @@ export function DashboardScreen() {
         {celdas.length > 0 ? (
           <View style={styles.grilla}>
             {celdas.map(({ d, nodo }) => (
-              <View key={d.clave} style={esDueno && d.clave === "kpi.conversaciones" ? styles.celdaAncha : styles.celda}>
+              <View key={d.clave} style={esPrincipal(d) ? styles.celdaAncha : styles.celda}>
                 {nodo}
               </View>
             ))}
@@ -219,21 +256,15 @@ export function DashboardScreen() {
         ) : null}
       </View>
     );
-    // En el Dueño, el bloque de cifras es el «Agente general»: todo el negocio, con los módulos sin agente.
-    if (esDueno && defs.some((d) => d.clave === "kpi.conversaciones")) {
-      return (
-        <SeccionResumen
-          key={clave}
-          testID="resumen-general"
-          titulo="Agente general"
-          apoyo={`Todo el negocio, últimos ${dias} días.`}
-        >
-          {contenido}
-          {resumen ? <ModulosSinAgente datos={resumen} dias={dias} tenantId={sesion?.tenantId ?? null} /> : null}
-        </SeccionResumen>
-      );
-    }
-    return contenido;
+    const { titulo, apoyo } = seccionDe(grupo, dias);
+    return (
+      <SeccionResumen key={clave} testID={`resumen-${grupo}`} titulo={titulo} apoyo={apoyo}>
+        {contenido}
+        {grupo === "general" && resumen ? (
+          <ModulosSinAgente datos={resumen} dias={dias} tenantId={sesion?.tenantId ?? null} />
+        ) : null}
+      </SeccionResumen>
+    );
   };
 
   const renderWidget = (w: DefWidget) => {
@@ -311,7 +342,7 @@ export function DashboardScreen() {
         <Badge testID="resumen-perfil" label={ETIQUETA_PERFIL[perfil]} />
       </View>
 
-      {usa("agentes") ? (
+      {usa("agentes") && perfil !== "operador" ? (
         <SelectorPeriodo
           dias={dias}
           alCambiar={(d) => setDias(diasValidos(d))}
@@ -322,7 +353,7 @@ export function DashboardScreen() {
       {widgets.length === 0 ? (
         <Skeleton shape="rect" height={80} />
       ) : (
-        bloques.map((b, i) => (Array.isArray(b) ? bloqueKpis(b, `kpis-${i}`) : renderWidget(b)))
+        bloques.map((b, i) => ("defs" in b ? bloqueKpis(b.grupo, b.defs, `kpis-${i}`) : renderWidget(b)))
       )}
 
     </ScrollView>

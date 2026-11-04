@@ -60,6 +60,22 @@ describe("widgetsDelPerfil", () => {
     expect(r).not.toContain("kpi.resueltas_sin_humano");
   });
 
+  it("tasa de escalamiento, consistencia y costo IA piden agentes y costos; solo son del dueño", () => {
+    const con = claves("dueno", { conversations: "read", agents: "read", costs: "read" });
+    expect(con).toEqual(expect.arrayContaining(["kpi.tasa_escalamiento", "kpi.consistencia", "kpi.costo_ia"]));
+    const sin = claves("dueno", { conversations: "read" });
+    expect(sin).not.toEqual(expect.arrayContaining(["kpi.tasa_escalamiento"]));
+    expect(sin).not.toContain("kpi.consistencia");
+    expect(sin).not.toContain("kpi.costo_ia");
+    const soloAgentes = claves("dueno", { agents: "read" });
+    expect(soloAgentes).toContain("kpi.consistencia");
+    expect(soloAgentes).not.toContain("kpi.costo_ia");
+    for (const perfil of ["supervisor", "operador"] as const) {
+      const r = claves(perfil, { agents: "write", costs: "write", conversations: "read", escalations: "write", "pack_cobranza:resumen": "write" });
+      expect(r.some((k) => ["kpi.tasa_escalamiento", "kpi.consistencia", "kpi.costo_ia"].includes(k))).toBe(false);
+    }
+  });
+
   it("nunca devuelve un widget sin permiso", () => {
     const r = claves("dueno", { conversations: "read" });
     expect(r).not.toContain("kpi.consumo");
