@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Icono } from "./icono";
@@ -21,6 +22,10 @@ export interface KpiTileProps {
   loading?: boolean;
   /** Qué pasó al cargar la cifra. */
   error?: string;
+  /** Tendencia bajo la cifra (una `Sparkline`); decorativa, la cifra ya dice todo. */
+  tendencia?: ReactNode;
+  /** Cifra principal de una sección: más aire (una por pantalla). */
+  destacado?: boolean;
   onPress?: () => void;
   testID?: string;
 }
@@ -55,6 +60,8 @@ export function KpiTile({
   polarity = "up-good",
   loading = false,
   error,
+  tendencia,
+  destacado = false,
   onPress,
   testID,
 }: KpiTileProps) {
@@ -102,10 +109,15 @@ export function KpiTile({
           </Text>
         </View>
       ) : null}
+      {tendencia && !loading && !error ? <View style={styles.tendencia}>{tendencia}</View> : null}
     </>
   );
 
-  const caja = [styles.caja, { backgroundColor: c.surface, borderColor: c.borderSoft }];
+  const caja = [
+    styles.caja,
+    destacado && styles.destacada,
+    { backgroundColor: c.surface, borderColor: c.borderSoft },
+  ];
   const a11y = {
     testID,
     accessible: true,
@@ -141,6 +153,8 @@ const styles = StyleSheet.create({
     gap: shSpace[1],
     overflow: "hidden",
   },
+  destacada: { padding: shSpace[6] },
+  tendencia: { marginTop: shSpace[3] },
   esqueleto: { paddingVertical: shSpace[1] },
   cifra: { fontVariant: ["tabular-nums"] },
   fila: { flexDirection: "row", alignItems: "center", gap: shSpace[1] },

@@ -19,6 +19,7 @@ export { ListItem, RecordRow, type ListItemProps, type RecordRowProps } from "./
 export { MapaCliente, type MapaClienteProps } from "./MapaCliente";
 export { MapaPin, type MapaPinProps } from "./MapaPin";
 export { NavGroup, type NavGroupProps } from "./NavGroup";
+export { Sparkline, type SparklineProps } from "./Sparkline";
 export { curva, duracion, useReduceMotion, type CurvaMotion, type DuracionMotion } from "./motion";
 export { PageHeader, type PageHeaderProps } from "./PageHeader";
 export { PasswordField, type PasswordFieldProps } from "./PasswordField";

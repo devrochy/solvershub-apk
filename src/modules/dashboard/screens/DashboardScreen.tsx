@@ -6,7 +6,7 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { shSpace, shType } from "@core/theme/tokens";
 import { emitirNavegacion } from "@shared/navegacion-evento";
-import { Badge, Button, EmptyState, KpiTile, Skeleton, useKit } from "@shared/ui";
+import { Badge, Button, EmptyState, KpiTile, Skeleton, Sparkline, useKit } from "@shared/ui";
 import { cargarDashboard, cargarResumenAgentes, cargarResumenCobranza, type KpiResumen } from "../api";
 import { kpiDeRespaldo, kpiDeWidget } from "../datos";
 import { propsDeKpi } from "../kpi";
@@ -15,7 +15,8 @@ import { useCarga } from "../use-carga";
 import { widgetsDelPerfil, type DefWidget } from "../widgets";
 import { ActividadDeAgentes, SelectorPeriodo } from "../components/Actividad";
 import { diasValidos, type DiasDelResumen } from "../periodos";
-import { ResumenAgentes, tieneResumen } from "./ResumenAgentes";
+import { SeccionResumen } from "../components/SeccionResumen";
+import { ModulosSinAgente, ResumenAgentes, tieneResumen } from "./ResumenAgentes";
 import {
   CajaWidget,
   WidgetAcciones,
@@ -125,8 +126,14 @@ export function DashboardScreen() {
   }
 
   // Agrupa los KPI contiguos en una grilla de dos columnas; el resto va en su propio bloque.
+  // El Dueño ve las cifras de cada módulo dentro de la tarjeta de su agente («Agentes»): arriba solo
+  // va lo del negocio entero. Sin esa tarjeta (módulo fuera del resumen) la cifra sigue arriba.
+  const esDueno = perfil === "dueno";
+  const arriba = widgets.filter(
+    (w) => !(esDueno && w.kpi?.modulo && modulosEnResumen.has(w.kpi.modulo)),
+  );
   const bloques: (DefWidget | DefWidget[])[] = [];
-  for (const w of widgets) {
+  for (const w of arriba) {
     const ultimo = bloques[bloques.length - 1];
     if (w.forma === "kpi" && Array.isArray(ultimo)) ultimo.push(w);
     else bloques.push(w.forma === "kpi" ? [w] : w);
@@ -151,10 +158,25 @@ export function DashboardScreen() {
         />
       );
     }
+    const principal = esDueno && def.clave === "kpi.conversaciones";
+    const conversacionesPorDia = (resumen?.general.serie ?? []).map((p) => p.conversaciones);
     return (
       <KpiTile
         testID={`kpi-${def.clave}`}
         {...propsDeKpi(k, { dias, tenantId: sesion?.tenantId ?? null })}
+        destacado={principal}
+        tendencia={
+          principal && conversacionesPorDia.length > 1 ? (
+            <Sparkline
+              testID="tendencia-conversaciones"
+              values={conversacionesPorDia}
+              color={c.dataSingle}
+              fondo={c.surface}
+              height={56}
+              area
+            />
+          ) : undefined
+        }
       />
     );
   };
@@ -179,12 +201,12 @@ export function DashboardScreen() {
         </View>
       ) : null;
     if (celdas.length === 0 && !planas) return null;
-    return (
+    const contenido = (
       <View key={clave} style={styles.bloque}>
         {celdas.length > 0 ? (
           <View style={styles.grilla}>
             {celdas.map(({ d, nodo }) => (
-              <View key={d.clave} style={styles.celda}>
+              <View key={d.clave} style={esDueno && d.clave === "kpi.conversaciones" ? styles.celdaAncha : styles.celda}>
                 {nodo}
               </View>
             ))}
@@ -197,6 +219,21 @@ export function DashboardScreen() {
         ) : null}
       </View>
     );
+    // En el Dueño, el bloque de cifras es el «Agente general»: todo el negocio, con los módulos sin agente.
+    if (esDueno && defs.some((d) => d.clave === "kpi.conversaciones")) {
+      return (
+        <SeccionResumen
+          key={clave}
+          testID="resumen-general"
+          titulo="Agente general"
+          apoyo={`Todo el negocio, últimos ${dias} días.`}
+        >
+          {contenido}
+          {resumen ? <ModulosSinAgente datos={resumen} dias={dias} tenantId={sesion?.tenantId ?? null} /> : null}
+        </SeccionResumen>
+      );
+    }
+    return contenido;
   };
 
   const renderWidget = (w: DefWidget) => {
@@ -238,12 +275,10 @@ export function DashboardScreen() {
           return <Skeleton key={w.clave} shape="rect" height={260} />;
         }
         return resumen ? (
-          <ActividadDeAgentes
-            key={w.clave}
-            datos={resumen}
-            dias={dias}
-            tenantId={sesion?.tenantId ?? null}
-          />
+          <View key={w.clave} style={styles.seccionesDelDueno}>
+            <ActividadDeAgentes datos={resumen} dias={dias} />
+            {esDueno ? <ResumenAgentes datos={resumen} dias={dias} tenantId={sesion?.tenantId ?? null} /> : null}
+          </View>
         ) : null;
       case "acciones.rapidas":
         return (
@@ -290,14 +325,6 @@ export function DashboardScreen() {
         bloques.map((b, i) => (Array.isArray(b) ? bloqueKpis(b, `kpis-${i}`) : renderWidget(b)))
       )}
 
-      {perfil === "dueno" && resumen ? (
-        <ResumenAgentes
-          datos={resumen}
-          soloAgentes
-          dias={dias}
-          tenantId={sesion?.tenantId ?? null}
-        />
-      ) : null}
     </ScrollView>
   );
 }
@@ -310,4 +337,6 @@ const styles = StyleSheet.create({
   bloque: { gap: shSpace[3] },
   grilla: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[2] },
   celda: { minWidth: 140, flexGrow: 1, flexBasis: "45%" },
+  celdaAncha: { flexBasis: "100%", flexGrow: 1 },
+  seccionesDelDueno: { gap: shSpace[6] },
 });

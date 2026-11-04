@@ -103,6 +103,15 @@ const POR_AGENTE = {
       }),
       kpi({ id: "costo_llm", label: "Costo de IA", valor: 1.5, unidad: "usd" }),
     ],
+    serie: [
+      { fecha: "2026-10-21", turnos: 3, conversaciones: 2, costo: 0.02 },
+      { fecha: "2026-10-22", turnos: 4, conversaciones: 3, costo: 0.02 },
+      { fecha: "2026-10-23", turnos: 1, conversaciones: 1, costo: 0 },
+      { fecha: "2026-10-24", turnos: 5, conversaciones: 4, costo: 0.03 },
+      { fecha: "2026-10-25", turnos: 3, conversaciones: 2, costo: 0.02 },
+      { fecha: "2026-10-26", turnos: 5, conversaciones: 3, costo: 0.03 },
+      { fecha: "2026-10-27", turnos: 3, conversaciones: 2, costo: 0.02 },
+    ],
   },
   agentes: [
     {
@@ -135,7 +144,7 @@ const POR_AGENTE = {
       ref: "ag-2",
       key: "cobranza",
       name: "Cobranza",
-      kind: "specialist",
+      kind: "backoffice",
       kpis: [],
       serie: [],
       modulos: [
@@ -150,6 +159,15 @@ const POR_AGENTE = {
           ],
         },
       ],
+    },
+    {
+      ref: "ag-core",
+      key: "coordinador",
+      name: "Coordinador",
+      kind: "core",
+      kpis: [kpi({ id: "turnos", label: "Turnos", valor: 4 })],
+      serie: [],
+      modulos: [],
     },
   ],
 };
@@ -221,14 +239,44 @@ describe("DashboardScreen: Resumen por rol (HU-DS-13)", () => {
       expect(queryByText("Cola de escalaciones")).toBeNull();
     });
 
-    it("conserva la sección por agente del Resumen por agente (HU-DS-14)", async () => {
-      const { getByTestId, getByText, queryByText } = await render(<DashboardScreen />);
+    it("ordena el Resumen en secciones: agente general, evolución diaria y agentes", async () => {
+      const { getByTestId, getByText } = await render(<DashboardScreen />);
       await waitFor(() => expect(getByTestId("resumen-agentes")).toBeTruthy());
-      expect(getByText("Tendencia de atención")).toBeTruthy();
-      expect(getByText("Módulos por agente")).toBeTruthy();
+      expect(getByText("Agente general")).toBeTruthy();
+      expect(getByText("Evolución diaria")).toBeTruthy();
+      expect(getByText("Agentes")).toBeTruthy();
+      // La tabla «Actividad por agente» y el rótulo de antes ya no están.
+      expect(() => getByText("Actividad por agente")).toThrow();
+      expect(() => getByText("Módulos por agente")).toThrow();
+    });
+
+    it("el agente general lleva la cifra principal con la tendencia del negocio", async () => {
+      const { getByTestId } = await render(<DashboardScreen />);
+      // La tendencia es decorativa (la cifra ya está escrita), así que no cuenta para accesibilidad.
+      await waitFor(() => expect(getByTestId("tendencia-conversaciones", { includeHiddenElements: true })).toBeTruthy());
+      expect(within(getByTestId("resumen-general")).getByTestId("kpi-kpi.conversaciones")).toBeTruthy();
+    });
+
+    it("cada agente es una tarjeta plegable: la primera abierta, sin Coordinador y con insignia solo de back-office", async () => {
+      const { getByTestId, queryByTestId, queryByText, getByText } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("resumen-ag-1")).toBeTruthy());
+      // Ventas abierta: su módulo se ve; Cobranza plegada: solo sus dos cifras.
       expect(getByText("Módulo · Comercio")).toBeTruthy();
-      // El bloque del negocio no se repite bajo «Agente general».
-      expect(queryByText("Agente general")).toBeNull();
+      expect(queryByText("Módulo · Cobranza")).toBeNull();
+      expect(getByText("Recaudo $ 1.250.000 · Cartera en mora 8")).toBeTruthy();
+      expect(queryByTestId("resumen-ag-core")).toBeNull();
+      expect(queryByText("Especialista")).toBeNull();
+      // Abrir Cobranza enseña su insignia y su módulo.
+      await fireEvent.press(getByTestId("resumen-ag-2-cabecera"));
+      expect(getByText("Back-office")).toBeTruthy();
+      expect(getByText("Módulo · Cobranza")).toBeTruthy();
+    });
+
+    it("las cifras de un módulo no se repiten arriba cuando la tarjeta de su agente las trae", async () => {
+      const { getByTestId, queryByTestId } = await render(<DashboardScreen />);
+      await waitFor(() => expect(getByTestId("resumen-agentes")).toBeTruthy());
+      expect(queryByTestId("kpi-kpi.pedidos")).toBeNull();
+      expect(queryByTestId("kpi-kpi.recaudo_hoy")).toBeNull();
     });
 
     it("tocar una cifra con pantalla navega a ella", async () => {
