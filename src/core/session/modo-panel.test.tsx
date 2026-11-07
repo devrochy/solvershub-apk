@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react-native";
 import { ApiAuthError } from "@core/api/auth-admin";
-import { reintentarCampoAprobado, useModoPanel } from "./modo-panel";
+import { claveDeSesion, reintentarCampoAprobado, useModoPanel } from "./modo-panel";
 
 describe("useModoPanel (apk#220)", () => {
   const montar = (adminId: string | null, rolDeCampo: string | null) =>
@@ -58,6 +58,31 @@ describe("useModoPanel (apk#220)", () => {
     await act(async () => result.current.entrarPanel());
     await rerender({ adminId: "u-1", rolDeCampo: null });
     expect(result.current.enPanel).toBe(true);
+  });
+});
+
+describe("claveDeSesion (apk#220)", () => {
+  // Las sesiones guardadas antes de leer `admin_id` no traen `adminId`: la clave no depende de él.
+  const sesionReal = (token: string) => ({ token, adminId: undefined as unknown as string });
+
+  it("no usa adminId: dos usuarios distintos dan claves distintas", () => {
+    expect(claveDeSesion(sesionReal("tok-colaborador"))).not.toBe(claveDeSesion(sesionReal("tok-gestor")));
+  });
+
+  it("sin sesión no hay clave", () => {
+    expect(claveDeSesion(null)).toBeNull();
+  });
+
+  it("apaga el modo panel al entrar otro usuario aunque adminId no venga", async () => {
+    const { result, rerender } = await renderHook(
+      (p: { sesion: { token: string; adminId: string } | null }) => useModoPanel(claveDeSesion(p.sesion), null),
+      { initialProps: { sesion: sesionReal("tok-colaborador") as { token: string; adminId: string } | null } },
+    );
+    await act(async () => result.current.entrarPanel());
+    expect(result.current.enPanel).toBe(true);
+    await rerender({ sesion: null });
+    await rerender({ sesion: sesionReal("tok-gestor") });
+    expect(result.current.enPanel).toBe(false);
   });
 });
 
