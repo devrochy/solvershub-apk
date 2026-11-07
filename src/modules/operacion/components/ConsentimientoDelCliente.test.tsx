@@ -79,6 +79,19 @@ describe("ConsentimientoDelCliente", () => {
     expect(await findByText("Se dio de baja")).toBeTruthy();
   });
 
+  it("el detalle es obligatorio con cualquier «Cómo lo obtuviste»: Guardar sigue apagado si está vacío o en blanco", async () => {
+    const { findByTestId, getByTestId } = await render(<ConsentimientoDelCliente leadId="c-1" esPropietario />);
+    await fireEvent.press(await findByTestId("consentimiento-marcar"));
+    for (const como of ["en_el_local", "por_telefono", "por_escrito", "otro"]) {
+      await fireEvent.press(getByTestId(`consentimiento-como-${como}`));
+      await fireEvent.changeText(getByTestId("consentimiento-evidencia"), "   ");
+      expect(getByTestId("consentimiento-guardar").props.accessibilityState.disabled).toBe(true);
+      await fireEvent.changeText(getByTestId("consentimiento-evidencia"), "Dijo que sí");
+      expect(getByTestId("consentimiento-guardar").props.accessibilityState.disabled).toBe(false);
+    }
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
   describe("quién ofrece «Aceptó recibir promociones» (D-SPEC-33-9)", () => {
     const sesiones = {
       propietario: { role: "user", tenantRole: "owner" },
@@ -166,6 +179,7 @@ describe("ConsentimientoDelCliente", () => {
       mockPost.mockRejectedValue(error);
       const vista = await render(<ConsentimientoDelCliente leadId="c-1" esPropietario />);
       await fireEvent.press(await vista.findByTestId("consentimiento-marcar"));
+      await fireEvent.changeText(vista.getByTestId("consentimiento-evidencia"), "Firmó la planilla");
       if (despues) mockGet.mockResolvedValue(despues);
       await fireEvent.press(vista.getByTestId("consentimiento-guardar"));
       return vista;

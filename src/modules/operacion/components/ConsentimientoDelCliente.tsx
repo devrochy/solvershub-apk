@@ -151,7 +151,8 @@ export function ConsentimientoDelCliente({
       ) : (
         <View style={[styles.formulario, { borderColor: c.borderSoft }]}>
           <Text style={[shType.caption, { color: c.textMuted }]}>
-            Márcalo solo si el cliente aceptó. Queda registrado con tu nombre y cómo lo obtuviste.
+            Márcalo solo si el cliente aceptó. Queda registrado con tu nombre, cómo lo obtuviste y el detalle, que es
+            obligatorio: es la prueba de que aceptó.
           </Text>
           <View style={styles.chips}>
             {COMO.map((opcion) => (
@@ -178,11 +179,11 @@ export function ConsentimientoDelCliente({
           </View>
           <TextField
             testID="consentimiento-evidencia"
-            accessibilityLabel={como === "otro" ? "Cuéntalo" : "Detalle opcional"}
+            accessibilityLabel={como === "otro" ? "Cuéntalo (obligatorio)" : "Detalle (obligatorio)"}
             value={evidencia}
             onChangeText={setEvidencia}
             maxLength={400}
-            placeholder={como === "otro" ? "Cuéntalo" : "Ej.: firmó la planilla del local"}
+            placeholder={como === "otro" ? "Cuéntalo (obligatorio)" : "Detalle obligatorio. Ej.: firmó la planilla del local"}
           />
           <View style={styles.acciones}>
             <Button
@@ -197,7 +198,7 @@ export function ConsentimientoDelCliente({
               testID="consentimiento-guardar"
               size="sm"
               loading={cargando}
-              disabled={como === "otro" && !evidencia.trim()}
+              disabled={!evidencia.trim()}
               onPress={() => void guardar("otorgado")}
             >
               Guardar

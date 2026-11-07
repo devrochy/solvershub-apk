@@ -322,12 +322,13 @@ describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
     mockPost.mockResolvedValue({ estado: "otorgado", historial: [] });
     const { findByTestId, getByTestId, findByText } = await pantalla();
     await fireEvent.press(await findByTestId("consentimiento-marcar"));
+    await fireEvent.changeText(getByTestId("consentimiento-evidencia"), "Firmó la planilla");
     await fireEvent.press(getByTestId("consentimiento-guardar"));
     await waitFor(() =>
       expect(mockPost).toHaveBeenCalledWith("/admin/leads/c-1/consentimiento", {
         estado: "otorgado",
         como: "en_el_local",
-        evidencia: "",
+        evidencia: "Firmó la planilla",
       }),
     );
     expect(await findByText("Acepta promociones")).toBeTruthy();
