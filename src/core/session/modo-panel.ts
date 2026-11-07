@@ -4,21 +4,31 @@ import { ApiAuthError } from "@core/api/auth-admin";
 /**
  * «Modo panel»: la sesión admin actual se opera como panel (sin app de campo). Lo enciende
  * quien lo decide (el 403 `sin_acceso_campo` del intercambio a campo, o la hidratación de una
- * sesión admin sin tokens de campo) y vale solo para el usuario que lo encendió: cerrar sesión o
- * entrar con otro usuario lo apaga, y una sesión de campo con rol `gestor` siempre gana (apk#220).
+ * sesión admin sin tokens de campo) y vale solo para la sesión que lo encendió, identificada por
+ * `clave` (ver `claveDeSesion`): cerrar sesión o entrar con otro usuario lo apaga, y una sesión de
+ * campo con rol `gestor` siempre gana (apk#220).
  */
-export function useModoPanel(adminId: string | null, rolDeCampo: string | null) {
+export function useModoPanel(clave: string | null, rolDeCampo: string | null) {
   const [forzado, setForzado] = useState(false);
-  const [adminVisto, setAdminVisto] = useState(adminId);
+  const [claveVista, setClaveVista] = useState(clave);
   // Ajuste de estado durante el render (patrón de React): sin un render intermedio con el panel viejo.
-  if (adminId !== adminVisto) {
-    setAdminVisto(adminId);
+  if (clave !== claveVista) {
+    setClaveVista(clave);
     setForzado(false);
   }
   const entrarPanel = useCallback(() => setForzado(true), []);
   const deCampoDePanel = rolDeCampo !== null && rolDeCampo !== "gestor";
   const enPanel = deCampoDePanel || (forzado && rolDeCampo !== "gestor");
   return { enPanel, entrarPanel };
+}
+
+/**
+ * Clave de la sesión admin: su token, que cambia en cada inicio de sesión. No sirve `adminId`: el
+ * backend responde el login con `admin_id` y la app lee `adminId`, así que en sesiones reales
+ * llega `undefined` y la clave sería siempre `null` (el modo panel no se apagaba, apk#220).
+ */
+export function claveDeSesion(sesion: { token: string } | null | undefined): string | null {
+  return sesion?.token ?? null;
 }
 
 export interface ReintentoDeCampo {

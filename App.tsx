@@ -39,7 +39,7 @@ import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/Seleccio
 import { EquipoEnEsperaScreen } from "./src/modules/auth/screens/EquipoEnEsperaScreen";
 import { consultarEquipo } from "./src/core/api/acceso";
 import { apiGestorToken } from "./src/core/api/auth-admin";
-import { reintentarCampoAprobado, useModoPanel } from "./src/core/session/modo-panel";
+import { claveDeSesion, reintentarCampoAprobado, useModoPanel } from "./src/core/session/modo-panel";
 import { suscribirAccesoDeEquipo, type CodigoDeEquipo } from "@shared/acceso-evento";
 import { PanelShell } from "./src/navigation/PanelShell";
 import { campoNavRef } from "./src/navigation/refs";
@@ -180,8 +180,8 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
   } = useSession();
   const { sesion: sesionAdmin, loading: loadingAdmin, logout: logoutAdmin } = useAdminSession();
   const bio = useBloqueoBiometrico(sesionAdmin?.adminId ?? null);
-  // El modo panel vale solo para la sesión admin que lo encendió (apk#220).
-  const { enPanel: modoPanel, entrarPanel } = useModoPanel(sesionAdmin?.adminId ?? null, gestor?.rol ?? null);
+  // El modo panel vale solo para la sesión admin que lo encendió (apk#220); se identifica por el token.
+  const { enPanel: modoPanel, entrarPanel } = useModoPanel(claveDeSesion(sesionAdmin), gestor?.rol ?? null);
   const [bloqueoDeEquipo, setBloqueoDeEquipo] = useState<CodigoDeEquipo | null>(null);
   const [introAlInicio, setIntroAlInicio] = useState<boolean | null>(null);
   const [introTerminada, setIntroTerminada] = useState(false);
