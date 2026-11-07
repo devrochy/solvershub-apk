@@ -62,8 +62,7 @@ describe("useModoPanel (apk#220)", () => {
 });
 
 describe("claveDeSesion (apk#220)", () => {
-  // El backend responde el login con `admin_id` y la app lee `adminId`: en sesiones reales
-  // `adminId` llega `undefined`, así que la clave no puede depender de él.
+  // Las sesiones guardadas antes de leer `admin_id` no traen `adminId`: la clave no depende de él.
   const sesionReal = (token: string) => ({ token, adminId: undefined as unknown as string });
 
   it("no usa adminId: dos usuarios distintos dan claves distintas", () => {

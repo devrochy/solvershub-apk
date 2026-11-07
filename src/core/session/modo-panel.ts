@@ -23,9 +23,8 @@ export function useModoPanel(clave: string | null, rolDeCampo: string | null) {
 }
 
 /**
- * Clave de la sesión admin: su token, que cambia en cada inicio de sesión. No sirve `adminId`: el
- * backend responde el login con `admin_id` y la app lee `adminId`, así que en sesiones reales
- * llega `undefined` y la clave sería siempre `null` (el modo panel no se apagaba, apk#220).
+ * Clave de la sesión admin: su token, que cambia en cada inicio de sesión (también cuando el mismo
+ * usuario vuelve a entrar) y existe aunque una sesión guardada antigua no traiga `adminId`.
  */
 export function claveDeSesion(sesion: { token: string } | null | undefined): string | null {
   return sesion?.token ?? null;

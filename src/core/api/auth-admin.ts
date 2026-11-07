@@ -62,7 +62,16 @@ export async function apiLoginAdmin(
   if (!res.ok) {
     throw await parseError(res);
   }
-  return (await res.json()) as LoginAdminResult;
+  // El backend responde en snake_case (`LoginResponse`: token, admin_id, expires_in); se acepta
+  // también camelCase. Sin esto `adminId` llegaba `undefined` a la sesión (apk#220).
+  const cuerpo = (await res.json()) as Partial<
+    LoginAdminResult & { admin_id: string; expires_in: number }
+  >;
+  return {
+    token: cuerpo.token as string,
+    adminId: (cuerpo.admin_id ?? cuerpo.adminId) as string,
+    expiresIn: (cuerpo.expires_in ?? cuerpo.expiresIn) as number,
+  };
 }
 
 export async function apiMeAdmin(token: string, tenantId?: string): Promise<MeAdmin> {
