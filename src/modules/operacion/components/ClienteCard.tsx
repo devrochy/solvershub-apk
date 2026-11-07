@@ -92,7 +92,8 @@ export function ClienteCard({
   const activo = !(item.bot_paused ?? false);
   const tono = tonos[clasificacion.tone === "accent" ? "accent" : clasificacion.tone];
   const etapa = etapaDeFila(item, opcionesEtapa);
-  const textoDeEtapa = etapa ? etapa.label : delCliente.has("ventas") ? "Sin lead de venta" : null;
+  // Sin lead lo dice siempre, sea o no de Ventas (HU-CRM-19, apk#222): la lista no deja el hueco en blanco.
+  const textoDeEtapa = etapa ? etapa.label : "Sin lead de venta";
   const puedeCambiarEtapa = puedeEscribir && !!etapa && !!onCambiarEtapa;
   const seguimiento = seguimientoDeFila(item);
   // Valor estimado y, si está perdido, su motivo (HU-CRM-23): una línea corta bajo la etapa.

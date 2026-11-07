@@ -112,9 +112,16 @@ describe("ClienteCard (CRM)", () => {
       expect(queryByRole("button", { name: /Cambiar la etapa/ })).toBeNull();
     });
 
-    it("no muestra nada de etapa a quien no es de Ventas ni tiene lead", async () => {
-      const { queryByTestId } = await tarjeta({ item: { ...ITEM, agentes: ["general"] } as LeadRow });
-      expect(queryByTestId("lead-etapa-l-1")).toBeNull();
+    it("dice «Sin lead de venta» a todo cliente sin lead, aunque no sea de Ventas (apk#222)", async () => {
+      const { getByText, getByTestId, queryByRole } = await tarjeta({ item: { ...ITEM, agentes: ["general"] } as LeadRow });
+      expect(getByText("Sin lead de venta")).toBeTruthy();
+      expect(getByTestId("lead-l-1").props.accessibilityLabel).toContain("Etapa Sin lead de venta");
+      expect(queryByRole("button", { name: /Cambiar la etapa/ })).toBeNull();
+    });
+
+    it("dice «Sin lead de venta» aunque el cliente no tenga ningún agente (apk#222)", async () => {
+      const { getByText } = await tarjeta({ item: { ...ITEM, agentes: [] } as LeadRow });
+      expect(getByText("Sin lead de venta")).toBeTruthy();
     });
 
     it("al tocar la etapa pide cambiarla sin abrir la ficha", async () => {
