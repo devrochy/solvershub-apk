@@ -38,7 +38,8 @@ import {
 import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/SeleccionNegocioAdminScreen";
 import { EquipoEnEsperaScreen } from "./src/modules/auth/screens/EquipoEnEsperaScreen";
 import { consultarEquipo } from "./src/core/api/acceso";
-import { ApiAuthError, apiGestorToken } from "./src/core/api/auth-admin";
+import { apiGestorToken } from "./src/core/api/auth-admin";
+import { reintentarCampoAprobado, useModoPanel } from "./src/core/session/modo-panel";
 import { suscribirAccesoDeEquipo, type CodigoDeEquipo } from "@shared/acceso-evento";
 import { PanelShell } from "./src/navigation/PanelShell";
 import { campoNavRef } from "./src/navigation/refs";
@@ -139,7 +140,7 @@ function AuthNavigator() {
             onAutenticado={aplicarCampo}
             onFlujoLegado={(usuario, password) => loginLegado(usuario, password)}
             alSeleccionarNegocios={() => navigation.navigate("SeleccionNegocioAdmin")}
-            onEntrarPanel={() => setModoPanelRef.current?.(true)}
+            onEntrarPanel={() => entrarPanelRef.current?.()}
             irARecuperarContrasena={() => navigation.navigate("RecuperarContrasena")}
           />
         )}
@@ -148,7 +149,7 @@ function AuthNavigator() {
         {() => (
           <SeleccionNegocioAdminScreen
             onAutenticado={aplicarCampo}
-            onEntrarPanel={() => setModoPanelRef.current?.(true)}
+            onEntrarPanel={() => entrarPanelRef.current?.()}
             onCancelar={() => undefined}
           />
         )}
@@ -164,8 +165,8 @@ function AuthNavigator() {
   );
 }
 
-/** Ref del setter de "modo panel" para pasarlo al AuthNavigator sin prop drilling. */
-const setModoPanelRef: { current: ((v: boolean) => void) | null } = { current: null };
+/** Ref de "entrar al panel" para pasarlo al AuthNavigator sin prop drilling. */
+const entrarPanelRef: { current: (() => void) | null } = { current: null };
 
 function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
   const {
@@ -179,7 +180,8 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
   } = useSession();
   const { sesion: sesionAdmin, loading: loadingAdmin, logout: logoutAdmin } = useAdminSession();
   const bio = useBloqueoBiometrico(sesionAdmin?.adminId ?? null);
-  const [modoPanel, setModoPanel] = useState(false);
+  // El modo panel vale solo para la sesión admin que lo encendió (apk#220).
+  const { enPanel: modoPanel, entrarPanel } = useModoPanel(sesionAdmin?.adminId ?? null, gestor?.rol ?? null);
   const [bloqueoDeEquipo, setBloqueoDeEquipo] = useState<CodigoDeEquipo | null>(null);
   const [introAlInicio, setIntroAlInicio] = useState<boolean | null>(null);
   const [introTerminada, setIntroTerminada] = useState(false);
@@ -187,13 +189,13 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
     setIntroTerminada(true);
     void presentacion.marcarVista();
   }, [presentacion.marcarVista]);
-  // El setter es estable: se publica tras montar para los handlers de fuera del árbol.
+  // La función es estable: se publica tras montar para los handlers de fuera del árbol.
   useEffect(() => {
-    setModoPanelRef.current = setModoPanel;
+    entrarPanelRef.current = entrarPanel;
     return () => {
-      setModoPanelRef.current = null;
+      entrarPanelRef.current = null;
     };
-  }, []);
+  }, [entrarPanel]);
 
   // Equipo no autorizado (ADR-0174, HU-ACC-05): cualquier 403 de equipo o la consulta de
   // `device-session` muestran la pantalla de espera/bloqueo en vez de un error suelto.
@@ -227,17 +229,16 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
   );
   const equipoAprobado = useCallback(async () => {
     setBloqueoDeEquipo(null);
-    if (!tokenAdmin || !negocioAdmin || gestor || modoPanel) return;
     // Entra sola: repite el intercambio a campo que el 403 había frenado, sin pedir la clave.
-    try {
-      const campo = await apiGestorToken(tokenAdmin, negocioAdmin);
-      await aplicarSesionExterna?.(campo);
-    } catch (err) {
-      if (err instanceof ApiAuthError && err.status === 403 && err.code === "sin_acceso_campo") {
-        setModoPanel(true);
-      }
-    }
-  }, [tokenAdmin, negocioAdmin, gestor, modoPanel, aplicarSesionExterna]);
+    await reintentarCampoAprobado({
+      token: tokenAdmin,
+      negocio: negocioAdmin,
+      hayCampo: Boolean(gestor),
+      pedirCampo: apiGestorToken,
+      aplicarCampo: async (campo) => aplicarSesionExterna?.(campo as never),
+      entrarPanel,
+    });
+  }, [tokenAdmin, negocioAdmin, gestor, aplicarSesionExterna, entrarPanel]);
   const salirDelEquipo = useCallback(async () => {
     setBloqueoDeEquipo(null);
     await logoutCampo();
@@ -251,8 +252,7 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
     if (!loadingAdmin && !loading && !hidratado.current) {
       hidratado.current = true;
       if (sesionAdmin && !gestor) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación única al restaurar la sesión
-        setModoPanel(true);
+        entrarPanel();
       }
       // La decisión se toma una sola vez por arranque: si había sesión, el intro
       // no reaparece después de cerrar sesión en la misma ejecución.
@@ -270,6 +270,7 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
     loading,
     sesionAdmin,
     gestor,
+    entrarPanel,
     presentacion.vista,
     presentacion.reduceMotion,
   ]);
@@ -318,7 +319,7 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
 
   // Usuario de panel (sin tokens de campo o con rol distinto de gestor):
   // shell del panel armado por permisos (ADR-APP-02, HU-APP-03).
-  if (modoPanel || (gestor && gestor.rol !== "gestor")) {
+  if (modoPanel) {
     return <PanelShell />;
   }
 
