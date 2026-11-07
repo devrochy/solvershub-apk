@@ -12,7 +12,7 @@ export interface CentroNotificaciones {
   abrir(): void;
 }
 
-const SIN_CENTRO: CentroNotificaciones = { disponible: false, noLeidas: 0, abrir: () => undefined };
+export const SIN_CENTRO: CentroNotificaciones = { disponible: false, noLeidas: 0, abrir: () => undefined };
 
 export const CentroNotificacionesContext = createContext<CentroNotificaciones>(SIN_CENTRO);
 

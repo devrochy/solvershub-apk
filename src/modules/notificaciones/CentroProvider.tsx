@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { CentroNotificacionesContext } from "@core/notificaciones/centro-context";
+import {
+  CentroNotificacionesContext,
+  SIN_CENTRO,
+  type CentroNotificaciones,
+} from "@core/notificaciones/centro-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { emitirNavegacion } from "@shared/navegacion-evento";
@@ -22,23 +26,34 @@ export function CentroNotificacionesProvider({
   refrescarRef?: { current: (() => void) | null };
 }) {
   const { sesion } = useAdminSession();
-  if (!sesion?.token || !sesion.tenantId) {
-    return <>{children}</>;
-  }
-  // La clave es el negocio: al cambiarlo el estado arranca limpio.
+  const clave = sesion?.token && sesion.tenantId ? `${sesion.adminId}:${sesion.tenantId}` : null;
+  const [publicado, setPublicado] = useState<{ clave: string; valor: CentroNotificaciones } | null>(null);
+  // `children` es toda la app: siempre cuelga de la misma envoltura y en la misma posición, para
+  // que iniciar o cerrar sesión no la vuelva a montar (apk#220). El estado del centro vive en un
+  // hermano con clave (al cambiar de negocio arranca limpio) y publica aquí su valor.
+  const valor = clave && publicado?.clave === clave ? publicado.valor : SIN_CENTRO;
   return (
-    <CentroActivo key={`${sesion.adminId}:${sesion.tenantId}`} refrescarRef={refrescarRef}>
+    <CentroNotificacionesContext.Provider value={valor}>
       {children}
-    </CentroActivo>
+      {clave ? (
+        <CentroActivo
+          key={clave}
+          clave={clave}
+          refrescarRef={refrescarRef}
+          publicar={(v) => setPublicado({ clave, valor: v })}
+        />
+      ) : null}
+    </CentroNotificacionesContext.Provider>
   );
 }
 
 function CentroActivo({
-  children,
   refrescarRef,
+  publicar,
 }: {
-  children: ReactNode;
+  clave: string;
   refrescarRef?: { current: (() => void) | null };
+  publicar: (valor: CentroNotificaciones) => void;
 }) {
   const api = useAdminApi();
   const [abierto, setAbierto] = useState(false);
@@ -71,11 +86,11 @@ function CentroActivo({
   );
 
   const valor = useMemo(() => ({ disponible: true, noLeidas: n.noLeidas, abrir }), [n.noLeidas, abrir]);
+  useEffect(() => {
+    publicar(valor);
+    // `publicar` cambia en cada render del padre; solo importa el valor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valor]);
 
-  return (
-    <CentroNotificacionesContext.Provider value={valor}>
-      {children}
-      <CentroSheet visible={abierto} onClose={() => setAbierto(false)} n={n} onAbrirNotificacion={alAbrirNotificacion} />
-    </CentroNotificacionesContext.Provider>
-  );
+  return <CentroSheet visible={abierto} onClose={() => setAbierto(false)} n={n} onAbrirNotificacion={alAbrirNotificacion} />;
 }
