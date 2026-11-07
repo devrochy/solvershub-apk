@@ -60,6 +60,7 @@ import {
 import type { OperacionStackParamList } from "../navigation";
 import { AgentIcon, ChannelIcon } from "../components/iconos-clientes";
 import { ConsentimientoDelCliente } from "../components/ConsentimientoDelCliente";
+import { esPropietarioOPlataforma } from "../consentimiento-promos";
 import { AvatarDelCliente } from "../components/AvatarDelCliente";
 import { BadgeDeClasificacion, metaDeClasificacion } from "../components/ClienteCard";
 import {
@@ -465,7 +466,7 @@ export function ClienteDetalleScreen({ route, navigation }: Props) {
           ) : null}
 
           {ficha.canal === "whatsapp" && puedeEscribir ? (
-            <ConsentimientoDelCliente leadId={ficha.id} />
+            <ConsentimientoDelCliente leadId={ficha.id} esPropietario={esPropietarioOPlataforma(sesion)} />
           ) : null}
 
           <NotasYHistoria
