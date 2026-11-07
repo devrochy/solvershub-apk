@@ -396,23 +396,23 @@ export function HerramientasScreen({
               testID={`negocio-plataforma-${item.slug}`}
               style={[styles.tarjeta, { borderColor: c.borderSoft, backgroundColor: c.surface }]}
             >
-              <View style={styles.tarjetaCabecera}>
-                <View style={styles.tarjetaTextos}>
-                  <Text style={[shType.block, { color: c.text }]} numberOfLines={2}>
-                    {item.name}
-                  </Text>
-                  <Text style={[shType.caption, { color: c.textMuted }]} numberOfLines={1}>
-                    {item.slug}
-                  </Text>
-                </View>
-                <Switch
-                  testID={`negocio-estado-${item.slug}`}
-                  label={item.status === "active" ? "Activo" : "Suspendido"}
-                  value={item.status === "active"}
-                  onValueChange={() => confirmarEstado(item)}
-                  disabled={cambiandoEstado === item.id}
-                />
+              <View style={styles.tarjetaTextos}>
+                <Text style={[shType.block, { color: c.text }]} numberOfLines={2}>
+                  {item.name}
+                </Text>
+                <Text style={[shType.caption, { color: c.textMuted }]} numberOfLines={1}>
+                  {item.slug}
+                </Text>
               </View>
+              {/* El interruptor del kit es una fila completa (su texto es flex:1): junto al nombre
+                  en una misma fila se queda con todo el ancho y el nombre desaparece (apk#219). */}
+              <Switch
+                testID={`negocio-estado-${item.slug}`}
+                label={item.status === "active" ? "Activo" : "Suspendido"}
+                value={item.status === "active"}
+                onValueChange={() => confirmarEstado(item)}
+                disabled={cambiandoEstado === item.id}
+              />
 
               <View style={styles.tarjetaPie}>
                 <Pressable
@@ -627,12 +627,7 @@ const styles = StyleSheet.create({
     padding: shSpace[3],
     gap: shSpace[2],
   },
-  tarjetaCabecera: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: shSpace[3],
-  },
-  tarjetaTextos: { flex: 1, gap: 2 },
+  tarjetaTextos: { gap: 2 },
   tarjetaPie: {
     flexDirection: "row",
     alignItems: "center",

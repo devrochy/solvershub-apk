@@ -5,7 +5,7 @@ jest.mock("@core/session/admin-session-context", () => ({
   useAdminSession: () => ({ sesion: mockSesion, loading: false }),
 }));
 
-import { Alert } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { HerramientasScreen } from "./HerramientasScreen";
@@ -13,6 +13,16 @@ import { HerramientasScreen } from "./HerramientasScreen";
 const mockUseAdminApi = useAdminApi as jest.Mock;
 const mockGet = jest.fn();
 const mockPost = jest.fn();
+/** Los ancestros en fila de un nodo, hasta la tarjeta (el motor de layout no corre en Jest). */
+function filasAncestras(nodo: { parent: unknown }, tarjeta: unknown) {
+  const filas: unknown[] = [];
+  let actual = nodo.parent as { parent: unknown; props?: { style?: unknown } } | null;
+  while (actual && actual !== tarjeta) {
+    if (StyleSheet.flatten(actual.props?.style as never)?.flexDirection === "row") filas.push(actual);
+    actual = actual.parent as typeof actual;
+  }
+  return filas;
+}
 const cliente = { get: mockGet, post: mockPost, put: jest.fn(), patch: jest.fn(), del: jest.fn() };
 
 describe("HerramientasScreen (HU-APP-13)", () => {
@@ -82,6 +92,27 @@ describe("HerramientasScreen (HU-APP-13)", () => {
     const { getByTestId } = await render(<HerramientasScreen />);
     await waitFor(() => expect(getByTestId("herramientas-lista-dlq")).toBeTruthy());
     expect(mockGet).not.toHaveBeenCalledWith("/admin/platform/tenants", expect.anything());
+  });
+
+  it("la tarjeta muestra el nombre y el identificador sin compartir fila con el interruptor (apk#219)", async () => {
+    mockSesion = { token: "t", role: "master", permissions: {} };
+    const { getByTestId, getByText } = await render(
+      <HerramientasScreen pestanaInicial={{ pestana: "negocios", n: 1 }} />,
+    );
+    await waitFor(() => expect(getByText("Negocio Uno")).toBeTruthy());
+
+    const tarjeta = getByTestId("negocio-plataforma-uno");
+    expect(within(tarjeta).getByText("Negocio Uno")).toBeTruthy();
+    expect(within(tarjeta).getByText("uno")).toBeTruthy();
+    expect(within(tarjeta).getByText("Activo")).toBeTruthy();
+    // El interruptor del kit ocupa toda la fila (su texto es flex:1): en una fila con el nombre
+    // lo deja sin ancho. Nombre e identificador van en su propia fila, encima del interruptor.
+    const interruptor = getByTestId("negocio-estado-uno");
+    const filasDelInterruptor = filasAncestras(interruptor, tarjeta);
+    for (const texto of ["Negocio Uno", "uno"]) {
+      const filasDelTexto = filasAncestras(getByText(texto), tarjeta);
+      expect(filasDelTexto.some((f) => filasDelInterruptor.includes(f))).toBe(false);
+    }
   });
 
   it("master suspende un negocio con confirmación", async () => {
