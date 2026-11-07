@@ -9,6 +9,12 @@ import {
   type Consentimiento,
   type ConsentimientoIn,
 } from "../api";
+import {
+  AVISO_BAJA_DEL_CLIENTE,
+  AVISO_SOLO_PROPIETARIO,
+  esBajaDelCliente,
+  mensajeDeErrorAlGuardarConsentimiento,
+} from "../consentimiento-promos";
 
 const ESTADOS: Record<
   Consentimiento["estado"],
@@ -30,8 +36,19 @@ const COMO: { value: ConsentimientoIn["como"]; label: string }[] = [
  * Consentimiento para promociones (HU-CRM-06): solo quien aceptó recibe un
  * envío. Se marca con cómo se obtuvo y queda quién lo marcó; nunca se edita lo
  * anterior, se agrega.
+ *
+ * D-SPEC-33-9: registrar que aceptó es solo del propietario (o la plataforma) y nunca sobre una baja que
+ * pidió el cliente o impuso Meta; registrar que ya no acepta sigue abierto a quien tiene Clientes en
+ * escritura. El servidor lo exige igual (403 / 409 `baja_del_cliente`); aquí no se ofrece lo que no se puede.
  */
-export function ConsentimientoDelCliente({ leadId }: { leadId: string }) {
+export function ConsentimientoDelCliente({
+  leadId,
+  esPropietario = false,
+}: {
+  leadId: string;
+  /** Propietario o admin de plataforma. Sin esto no se ofrece «Aceptó recibir promociones». */
+  esPropietario?: boolean;
+}) {
   const { c, relleno } = useKit();
   const api = useAdminApi();
   const [datos, setDatos] = useState<Consentimiento | null>(null);
@@ -67,8 +84,11 @@ export function ConsentimientoDelCliente({ leadId }: { leadId: string }) {
       setMarcando(false);
       setEvidencia("");
       setError(null);
-    } catch {
-      setError("No se pudo guardar el consentimiento.");
+    } catch (e) {
+      // Pudo llegar una baja del cliente mientras estaba el formulario abierto: se vuelve a leer el estado
+      // (que limpia el error) y después se muestra el motivo.
+      if (estado === "otorgado") await cargar();
+      setError(mensajeDeErrorAlGuardarConsentimiento(e));
     } finally {
       setCargando(false);
     }
@@ -76,6 +96,8 @@ export function ConsentimientoDelCliente({ leadId }: { leadId: string }) {
 
   const estado = ESTADOS[datos?.estado ?? "sin_registro"];
   const ultimo = datos?.historial[0];
+  const bajaDelCliente = esBajaDelCliente(datos);
+  const puedeMarcarQueAcepto = esPropietario && !bajaDelCliente;
 
   return (
     <View style={styles.contenedor}>
@@ -90,9 +112,20 @@ export function ConsentimientoDelCliente({ leadId }: { leadId: string }) {
         </Text>
       ) : null}
 
-      {!marcando ? (
+      {bajaDelCliente ? (
+        <Text testID="consentimiento-baja-del-cliente" style={[shType.caption, { color: c.textMuted }]}>
+          {AVISO_BAJA_DEL_CLIENTE}
+        </Text>
+      ) : null}
+      {!bajaDelCliente && !esPropietario && datos && datos.estado !== "otorgado" ? (
+        <Text testID="consentimiento-solo-propietario" style={[shType.caption, { color: c.textMuted }]}>
+          {AVISO_SOLO_PROPIETARIO}
+        </Text>
+      ) : null}
+
+      {!marcando || !puedeMarcarQueAcepto ? (
         <View style={styles.acciones}>
-          {datos?.estado !== "otorgado" ? (
+          {datos && datos.estado !== "otorgado" && puedeMarcarQueAcepto ? (
             <Button
               testID="consentimiento-marcar"
               variant="secondary"
@@ -102,7 +135,8 @@ export function ConsentimientoDelCliente({ leadId }: { leadId: string }) {
             >
               Aceptó recibir promociones
             </Button>
-          ) : (
+          ) : null}
+          {datos?.estado === "otorgado" ? (
             <Button
               testID="consentimiento-revocar"
               variant="secondary"
@@ -112,7 +146,7 @@ export function ConsentimientoDelCliente({ leadId }: { leadId: string }) {
             >
               Ya no quiere promociones
             </Button>
-          )}
+          ) : null}
         </View>
       ) : (
         <View style={[styles.formulario, { borderColor: c.borderSoft }]}>
