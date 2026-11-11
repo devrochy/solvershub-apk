@@ -1,15 +1,13 @@
 import { StyleSheet, Text, View } from "react-native";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
-import { Avatar, IconButton, Icono, Switch, useKit } from "@shared/ui";
+import { Avatar, CanalIcono, IconButton, Icono, Switch, useKit } from "@shared/ui";
 import type { ConversationDetail } from "../api";
 import { BadgeEstado } from "./BadgeEstado";
 import {
-  colorDelCanal,
   conexionDelChat,
   ESTADO_AGENTE,
   estadoDeConversacion,
   formatearCostoYTokens,
-  iconoDelCanal,
   nombreDelChat,
   tipoDelChat,
 } from "../presentacion";
@@ -59,7 +57,7 @@ export function ChatHeader({
             {nombre}
           </Text>
           <View style={styles.canal}>
-            <Icono name={iconoDelCanal(tipo)} size={14} color={colorDelCanal(tipo, c)} />
+            <CanalIcono canal={tipo} size={18} />
             <Text style={[shType.caption, styles.conexion, { color: c.textSoft }]} numberOfLines={1}>
               {conexionDelChat(detalle)}
               {detalle.external_id ? ` · ${detalle.external_id}` : ""}

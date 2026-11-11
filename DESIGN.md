@@ -38,7 +38,8 @@ revisa si ya existe en el kit; si se usa en 2 módulos o más, sube al kit.
   su número.
 - Texto e íconos de estado con `statusXFg`, nunca con `shColor.success/warning/danger`
   (como texto no cumplen AA en claro). Siempre con ícono o texto: el color nunca va solo.
-- Identidades y series (canales, gráficos) con `dataCat1…4`, en orden fijo.
+- Series e identidades de gráficos con `dataCat1…4`, en orden fijo.
+- Canales con `CanalIcono`: el logo oficial (WhatsApp, Instagram, Messenger) o un icono genérico, enmarcado y desvanecido en un solo tono, el `link` del tema (fondo al 14 %, borde al 30 %), igual que en el panel. Es decorativo: el nombre del canal va escrito al lado.
 
 ## Tipografía
 

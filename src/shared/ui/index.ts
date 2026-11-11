@@ -8,6 +8,7 @@ export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from ".
 export { Card, type CardProps } from "./Card";
 export { CampanaDelPanel, CampanaNotificaciones, textoContador, type CampanaNotificacionesProps } from "./CampanaNotificaciones";
 export { CampoTelefono } from "./CampoTelefono";
+export { CanalIcono, marcaDelCanal, type CanalIconoProps } from "./CanalIcono";
 export { Checkbox, type CheckboxProps } from "./Checkbox";
 export { Drawer, type DrawerProps } from "./Drawer";
 export { EmptyState, type EmptyStateAction, type EmptyStateProps } from "./EmptyState";
