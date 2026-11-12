@@ -15858,6 +15858,24 @@ export interface components {
             /** Mensajes */
             mensajes: components["schemas"]["MensajeGuardadoOut"][];
         };
+        /**
+         * MePlanSummary
+         * @description Plan del negocio activo, para el shell del panel y de la app (HU-BILL-15).
+         */
+        MePlanSummary: {
+            /** Days Left */
+            days_left?: number | null;
+            /** Has Plan */
+            has_plan: boolean;
+            /** Plan Id */
+            plan_id: string | null;
+            /** Plan Name */
+            plan_name: string;
+            /** Status */
+            status: string;
+            /** Trial Ends At */
+            trial_ends_at?: string | null;
+        };
         /** MeResponse */
         MeResponse: {
             /**
@@ -15877,6 +15895,7 @@ export interface components {
             permissions: {
                 [key: string]: string | null;
             };
+            plan?: components["schemas"]["MePlanSummary"] | null;
             /**
              * Qa Testers Habilitados
              * @default false

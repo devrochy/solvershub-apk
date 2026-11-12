@@ -4,6 +4,8 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { shSpace, shType } from "@core/theme/tokens";
 import { CampanaDelPanel, IconButton, useKit } from "@shared/ui";
 import { AvisoDeOnboarding } from "../modules/onboarding";
+import { AvisoDePlanFree } from "../modules/plan/AvisoDePlanFree";
+import { avisoDePlanFree, puedeMejorarPlan } from "../modules/plan/plan-free";
 import { useMenuPanel } from "./menu-panel-context";
 
 /**
@@ -16,9 +18,13 @@ import { useMenuPanel } from "./menu-panel-context";
  */
 export function HeaderPanel({ titulo, conBusqueda = true }: { titulo: string; conBusqueda?: boolean }) {
   const { c } = useKit();
-  const { sesion } = useAdminSession();
+  const { sesion, avisoPlanCerrado } = useAdminSession();
   const { abrir, irA } = useMenuPanel();
   const insets = useSafeAreaInsets();
+  const avisoPlan =
+    !!avisoDePlanFree(sesion?.plan) &&
+    !avisoPlanCerrado &&
+    puedeMejorarPlan(sesion?.permissions, sesion?.role === "master");
 
   return (
     <>
@@ -42,10 +48,11 @@ export function HeaderPanel({ titulo, conBusqueda = true }: { titulo: string; co
             <IconButton testID="panel-buscar" icon="search" label="Buscar" onPress={() => irA({ modulo: "busqueda" })} />
           ) : null}
           {/* Siempre al extremo derecho (ADR-0167). */}
-          <CampanaDelPanel />
+          <CampanaDelPanel avisoPlan={avisoPlan} />
         </View>
       </View>
       <AvisoDeOnboarding />
+      <AvisoDePlanFree />
     </>
   );
 }
