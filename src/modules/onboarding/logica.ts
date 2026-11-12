@@ -42,7 +42,7 @@ export const TIPOS_DE_NEGOCIO: {
 }[] = [
   {
     id: "ventas",
-    titulo: "Vendo productos o planes",
+    titulo: "Vendo productos",
     ayuda: "Responde dudas, cotiza y toma el pedido.",
     contenido: "catalogo",
     nombres: ["Sofía", "Vera", "Mateo"],
@@ -63,8 +63,8 @@ export const TIPOS_DE_NEGOCIO: {
   },
   {
     id: "suscripciones",
-    titulo: "Gestiono suscripciones",
-    ayuda: "Atiende a quien ya es cliente de un plan.",
+    titulo: "Vendo y gestiono planes",
+    ayuda: "Contrata planes y atiende a quien ya está suscrito.",
     contenido: null,
     nombres: ["Alma", "Planes", "Leo"],
   },
@@ -566,8 +566,8 @@ export const FRASES_DE_PRUEBA: Record<TipoDeNegocio, string[]> = {
     "¿Cómo pago mi cuota?",
   ],
   suscripciones: [
-    "Hola, quiero cambiar mi plan",
+    "Hola, ¿qué planes tienen?",
+    "Quiero cambiar mi plan",
     "¿Cuándo es mi próximo cobro?",
-    "Quiero cancelar mi suscripción",
   ],
 };
