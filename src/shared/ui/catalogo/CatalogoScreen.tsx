@@ -7,6 +7,7 @@ import {
   Avatar,
   Badge,
   Button,
+  CanalIcono,
   Card,
   Checkbox,
   Drawer,
@@ -186,6 +187,17 @@ function Catalogo() {
             { value: "cobranza", label: "Cobranza", disabled: true },
           ]}
         />
+      </Seccion>
+
+      <Seccion titulo="Canales">
+        <Fila>
+          <CanalIcono canal="whatsapp" />
+          <CanalIcono canal="instagram" />
+          <CanalIcono canal="messenger" />
+          <CanalIcono canal="webchat" />
+          <CanalIcono canal="whatsapp_waweb" size={18} />
+          <CanalIcono canal="instagram" muted />
+        </Fila>
       </Seccion>
 
       <Seccion titulo="Avatar">

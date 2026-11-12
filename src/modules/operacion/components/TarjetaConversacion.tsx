@@ -1,6 +1,6 @@
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
-import { Avatar, Icono, useKit, type AvatarStatus } from "@shared/ui";
+import { Avatar, CanalIcono, useKit, type AvatarStatus } from "@shared/ui";
 import type { ConversationSummary } from "../api";
 import { BadgeEstado } from "./BadgeEstado";
 import {
@@ -9,7 +9,6 @@ import {
   contadorPendientes,
   estadoDeConversacion,
   formatearHoraChat,
-  iconoDelCanal,
   nombreDelChat,
   PREFIJO_REMITENTE,
   textoPendientes,
@@ -123,7 +122,7 @@ export function TarjetaConversacion({
 
         <View style={styles.meta}>
           <View style={styles.canal}>
-            <Icono name={iconoDelCanal(tipo)} size={14} color={c.textSoft} />
+            <CanalIcono canal={tipo} size={18} />
             <Text style={[shType.caption, styles.conexion, { color: c.textSoft }]} numberOfLines={1}>
               {conexionDelChat(chat)}
             </Text>

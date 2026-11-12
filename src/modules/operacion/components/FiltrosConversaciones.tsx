@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
-import { Button, IconButton, Icono, RadioGroup, Sheet, TextField, useKit } from "@shared/ui";
+import { Button, CanalIcono, IconButton, Icono, RadioGroup, Sheet, TextField, useKit } from "@shared/ui";
 import type { ConversationConnection } from "../api";
-import { canalLabel, colorDelCanal, iconoDelCanal } from "../presentacion";
+import { canalLabel } from "../presentacion";
 
 export interface FiltrosDeConversaciones {
   q: string;
@@ -119,11 +119,11 @@ export function FiltrosConversaciones({
             },
           ]}
         >
-          <Icono
-            name={conexion && tipo ? iconoDelCanal(tipo) : "layers"}
-            size={20}
-            color={conexion && tipo ? colorDelCanal(tipo, c) : c.textMuted}
-          />
+          {conexion && tipo ? (
+            <CanalIcono canal={tipo} size={24} />
+          ) : (
+            <Icono name="layers" size={20} color={c.textMuted} />
+          )}
           <Text
             style={[shType.label, styles.conexionTexto, { color: conexion ? c.text : c.textMuted }]}
             numberOfLines={1}
@@ -167,8 +167,7 @@ export function FiltrosConversaciones({
                 value: x.id,
                 label: x.label || canalLabel(tipoConexion),
                 description: canalLabel(tipoConexion),
-                icono: iconoDelCanal(tipoConexion),
-                iconColor: colorDelCanal(tipoConexion, c),
+                icono: <CanalIcono canal={tipoConexion} size={24} />,
               };
             }),
           ]}

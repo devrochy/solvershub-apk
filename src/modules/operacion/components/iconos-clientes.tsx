@@ -1,22 +1,9 @@
 import { StyleSheet, View } from "react-native";
-import { Icono, useKit, type IconName } from "@shared/ui";
+import { CanalIcono, Icono, useKit, type IconName } from "@shared/ui";
 import { etiquetaCanal } from "@shared/domain/formato-clientes";
 
 type Colores = ReturnType<typeof useKit>["c"];
 type Meta = { icon: IconName; color: (c: Colores) => string };
-
-const CANALES: Record<string, Meta> = {
-  whatsapp: { icon: "chat", color: (c) => c.statusSuccessFg },
-  whatsapp_cloud: { icon: "chat", color: (c) => c.statusSuccessFg },
-  whatsapp_waweb: { icon: "qr-code", color: (c) => c.statusSuccessFg },
-  instagram: { icon: "photo-camera", color: (c) => c.statusDangerFg },
-  messenger: { icon: "send", color: (c) => c.link },
-  facebook: { icon: "send", color: (c) => c.link },
-  email: { icon: "mail", color: (c) => c.dataCat2 },
-  sms: { icon: "sms", color: (c) => c.link },
-  webchat: { icon: "language", color: (c) => c.dataCat4 },
-  web: { icon: "language", color: (c) => c.dataCat4 },
-};
 
 const AGENTES: Record<string, Meta> = {
   general: { icon: "smart-toy", color: (c) => c.dataCat2 },
@@ -27,6 +14,7 @@ const AGENTES: Record<string, Meta> = {
   pagos: { icon: "payments", color: (c) => c.statusSuccessFg },
 };
 
+/** El canal del cliente: el logo oficial en el tono de la marca (`CanalIcono`). */
 export function ChannelIcon({
   canal,
   size = 28,
@@ -36,26 +24,7 @@ export function ChannelIcon({
   size?: number;
   muted?: boolean;
 }) {
-  const { c } = useKit();
-  const meta = (canal && CANALES[canal]) || { icon: "public" as IconName, color: () => c.textMuted };
-  return (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={[
-        styles.caja,
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 3,
-          backgroundColor: c.surfaceRaised,
-          opacity: muted ? 0.45 : 1,
-        },
-      ]}
-    >
-      <Icono name={meta.icon} size={Math.round(size * 0.55)} color={meta.color(c)} />
-    </View>
-  );
+  return <CanalIcono canal={canal} size={size} muted={muted} />;
 }
 
 export function AgentIcon({
