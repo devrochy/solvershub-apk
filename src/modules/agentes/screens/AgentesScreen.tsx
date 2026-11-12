@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { shSpace, shType } from "@core/theme/tokens";
 import { Badge, Button, EmptyState, ListItem, useKit } from "@shared/ui";
 import { cargarAgentes, type AgenteDeLista, type VistaDeAgentes } from "../api";
-import { etiquetaDeAgente, puedeCrearAgentes } from "../asistente";
+import { avisoDeTopeDeAgentes, etiquetaDeAgente, puedeCrearAgentes } from "../asistente";
 import { AsistenteDeAgente } from "./AsistenteDeAgente";
 import { FichaDeAgente } from "./FichaDeAgente";
 
@@ -78,10 +78,18 @@ export function AgentesScreen() {
   }
 
   const puedeCrear = puedeCrearAgentes(sesion ?? {}, vista.runtime);
+  const avisoTope = avisoDeTopeDeAgentes(vista.cuota_agentes);
+  const abrirAsistente = () => {
+    if (avisoTope) {
+      Alert.alert("Llegaste al tope de agentes", avisoTope, [{ text: "Entendido" }]);
+      return;
+    }
+    setCreando(true);
+  };
   return (
     <ScrollView contentContainerStyle={styles.contenido} testID="agentes-lista">
       {puedeCrear && (
-        <Button variant="primary" onPress={() => setCreando(true)} fullWidth testID="agentes-nuevo">
+        <Button variant="primary" onPress={abrirAsistente} fullWidth testID="agentes-nuevo">
           Nuevo agente
         </Button>
       )}
@@ -91,7 +99,7 @@ export function AgentesScreen() {
             icon="smart-toy"
             title="Todavía no tienes agentes"
             description="Crea el primero con el asistente: te hace unas preguntas y lo deja listo."
-            action={{ label: "Nuevo agente", onPress: () => setCreando(true) }}
+            action={{ label: "Nuevo agente", onPress: abrirAsistente }}
           />
         ) : (
           <EmptyState

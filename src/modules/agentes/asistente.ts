@@ -139,3 +139,15 @@ export function puedeCrearAgentes(sesion: { role?: string | null; permissions?: 
   if (sesion.role === "master") return true;
   return runtime === "v3" && sesion.permissions?.settings === "write";
 }
+
+type CuotaDeAgentes = { used: number; limit: number | null; allowed: boolean } | null | undefined;
+
+/**
+ * Aviso para no abrir el asistente cuando el plan ya tiene todos sus agentes publicados.
+ * `null` si hay cupo, si el plan no limita o si el billing no respondió.
+ */
+export function avisoDeTopeDeAgentes(cuota: CuotaDeAgentes): string | null {
+  if (!cuota || cuota.allowed || cuota.limit === null) return null;
+  const permitidos = cuota.limit === 1 ? "1 agente publicado" : `${cuota.limit} agentes publicados`;
+  return `Tu plan permite ${permitidos} y ya tienes ${cuota.used}. Mejora tu plan para crear otro agente.`;
+}
