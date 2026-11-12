@@ -155,3 +155,14 @@ export function agruparAcciones(
 export function accionEncendida(a: AccionDeAgente): boolean {
   return a.in_agent && a.enabled;
 }
+
+export type EstadoDeAccion = "encendida" | "por_superpoder" | "apagada";
+
+/**
+ * Cómo está la acción en el agente. Sin binding, la acción igual corre si la concede un superpoder que el agente declara
+ * (D-67); un binding apagado la niega aunque la conceda un superpoder.
+ */
+export function estadoDeAccion(a: AccionDeAgente): EstadoDeAccion {
+  if (a.in_agent) return a.enabled ? "encendida" : "apagada";
+  return a.by_superpower ? "por_superpoder" : "apagada";
+}

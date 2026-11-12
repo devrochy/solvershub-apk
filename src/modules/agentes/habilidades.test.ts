@@ -1,5 +1,12 @@
 import type { AccionDeAgente } from "./api";
-import { agruparAcciones, cuentaDelAgente, estadoDeHabilidad, nombreDeAccion, tituloDeGrupo } from "./habilidades";
+import {
+  agruparAcciones,
+  cuentaDelAgente,
+  estadoDeAccion,
+  estadoDeHabilidad,
+  nombreDeAccion,
+  tituloDeGrupo,
+} from "./habilidades";
 
 const accion = (tool: string, group: string): AccionDeAgente => ({
   tool,
@@ -7,6 +14,7 @@ const accion = (tool: string, group: string): AccionDeAgente => ({
   pack_id: "pack_x",
   enabled: true,
   in_agent: true,
+  by_superpower: false,
   max_calls_per_conversation: null,
   requires_confirmation: false,
 });
@@ -43,5 +51,13 @@ describe("habilidades del agente (HU-AOS-66)", () => {
     const cuenta = { id: "c1", name: "Tienda", sandbox: true } as never;
     expect(cuentaDelAgente(pagos, [cuenta])).toBe(cuenta);
     expect(cuentaDelAgente({ ...pagos, config: {} }, [cuenta])).toBeUndefined();
+  });
+
+  it("una acción sin binding que concede un superpoder no se muestra apagada (D-67)", () => {
+    const base = accion("crear_pedido", "pedidos");
+    expect(estadoDeAccion(base)).toBe("encendida");
+    expect(estadoDeAccion({ ...base, enabled: false })).toBe("apagada");
+    expect(estadoDeAccion({ ...base, in_agent: false, enabled: false, by_superpower: true })).toBe("por_superpoder");
+    expect(estadoDeAccion({ ...base, in_agent: false, enabled: false })).toBe("apagada");
   });
 });

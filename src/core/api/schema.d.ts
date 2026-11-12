@@ -9427,6 +9427,11 @@ export interface components {
         };
         /** AgentAction */
         AgentAction: {
+            /**
+             * By Superpower
+             * @default false
+             */
+            by_superpower: boolean;
             /** Enabled */
             enabled: boolean;
             /** Group */

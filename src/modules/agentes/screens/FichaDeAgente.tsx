@@ -13,7 +13,7 @@ import {
 } from "../api";
 import {
   PAGOS,
-  accionEncendida,
+  estadoDeAccion,
   agruparAcciones,
   cuentaDelAgente,
   estadoDeHabilidad,
@@ -151,8 +151,10 @@ export function FichaDeAgente({
                 title={nombreDeAccion(a.tool)}
                 subtitle={a.requires_confirmation ? "Pide confirmación antes de hacerlo" : undefined}
                 badge={
-                  accionEncendida(a) ? (
+                  estadoDeAccion(a) === "encendida" ? (
                     <Badge tone="success" icon="check-circle" label="Encendida" />
+                  ) : estadoDeAccion(a) === "por_superpoder" ? (
+                    <Badge tone="success" icon="check-circle" label="La usa un superpoder" />
                   ) : (
                     <Badge label="Apagada" />
                   )
