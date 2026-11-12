@@ -4,13 +4,15 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { shSpace, shType } from "@core/theme/tokens";
 import { Badge, Button, EmptyState, ListItem, useKit } from "@shared/ui";
-import { cargarAgentes, type VistaDeAgentes } from "../api";
+import { cargarAgentes, type AgenteDeLista, type VistaDeAgentes } from "../api";
 import { etiquetaDeAgente, puedeCrearAgentes } from "../asistente";
 import { AsistenteDeAgente } from "./AsistenteDeAgente";
+import { FichaDeAgente } from "./FichaDeAgente";
 
 /**
  * Agentes del negocio (HU-AOS-56): lista mínima —nombre, tipo y si está publicado— y el asistente
- * de creación para quien puede crear. Lo avanzado (frases, modelo, versiones) sigue en el panel web.
+ * de creación para quien puede crear. Cada agente abre su ficha de solo lectura (habilidades y acciones,
+ * HU-AOS-66). Lo avanzado (frases, modelo, versiones) sigue en el panel web.
  */
 export function AgentesScreen() {
   const api = useAdminApi();
@@ -19,6 +21,7 @@ export function AgentesScreen() {
   const [vista, setVista] = useState<VistaDeAgentes | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creando, setCreando] = useState(false);
+  const [abierto, setAbierto] = useState<AgenteDeLista | null>(null);
 
   // Cada cambio de `intento` vuelve a pedir la lista (reintentar, y al volver del asistente).
   const [intento, setIntento] = useState(0);
@@ -48,6 +51,10 @@ export function AgentesScreen() {
         }}
       />
     );
+  }
+
+  if (abierto?.id) {
+    return <FichaDeAgente agentId={abierto.id} nombre={abierto.name} onVolver={() => setAbierto(null)} />;
   }
 
   if (error) {
@@ -100,6 +107,9 @@ export function AgentesScreen() {
             key={a.ref}
             title={a.name}
             subtitle={etiquetaDeAgente(a)}
+            // Los agentes virtuales (sin id) no tienen ficha propia.
+            onPress={a.id ? () => setAbierto(a) : undefined}
+            testID={`agente-${a.ref}`}
             badge={
               a.published ? (
                 <Badge tone="success" icon="check-circle" label="Publicado" />

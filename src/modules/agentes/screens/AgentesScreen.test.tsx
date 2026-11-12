@@ -12,7 +12,7 @@ const cliente = { get: mockGet, post: jest.fn(), put: jest.fn(), patch: jest.fn(
 
 const vista = (runtime: string, items: unknown[]) => ({ runtime, items, sin_atribuir: {} });
 const general = { ref: "general", key: "general", kind: "specialist", name: "General", published: true };
-const ventas = { ref: "ag-2", key: "ventas", kind: "specialist", name: "Ventas", published: false };
+const ventas = { ref: "ag-2", id: "ag-2", key: "ventas", kind: "specialist", name: "Ventas", published: false };
 
 function sesion(permissions: Record<string, string>, role = "owner") {
   (useAdminSession as jest.Mock).mockReturnValue({ sesion: { token: "t", role, permissions } });
@@ -51,5 +51,21 @@ describe("AgentesScreen (HU-AOS-56)", () => {
     await waitFor(() => getByText(/No pudimos cargar tus agentes/));
     await fireEvent.press(getByText("Reintentar"));
     await waitFor(() => getByText("Publicado"));
+  });
+
+  it("abre la ficha de solo lectura del agente y vuelve a la lista", async () => {
+    sesion({ settings: "read" });
+    mockGet.mockImplementation((ruta: string) => {
+      if (ruta === "/admin/agents/overview") return Promise.resolve(vista("v3", [general, ventas]));
+      if (ruta === "/pack/payments/accounts") return Promise.resolve([]);
+      return Promise.resolve({ items: [], has_more: false });
+    });
+    const { getByText, getByTestId, getByLabelText } = await render(<AgentesScreen />);
+    await waitFor(() => getByText("Ventas"));
+    await fireEvent.press(getByTestId("agente-ag-2"));
+    await waitFor(() => getByText("Habilidades"));
+    expect(mockGet).toHaveBeenCalledWith("/admin/agents/ag-2/skills", { page: 1, page_size: 100 });
+    await fireEvent.press(getByLabelText("Volver a agentes"));
+    await waitFor(() => getByTestId("agentes-lista"));
   });
 });
