@@ -1231,7 +1231,7 @@ export interface paths {
         /**
          * Start Canary
          * @description Prueba la versión con una parte de las conversaciones nuevas (HU-AOS-32). Mismas reglas que
-         *     publicar: dueño o master, gate aprobado si está cerrado, `aos_runtime = v3` (409 `requiere_v3`).
+         *     publicar: dueño o master y gate aprobado si está cerrado.
          *     Si la plataforma la apagó (`CANARY_DISPONIBLE`), responde 409 `canary_no_disponible`.
          */
         post: operations["start_canary_api_v1_admin_connections__connection_id__releases__release_id__canary_post"];
@@ -4640,15 +4640,13 @@ export interface paths {
         };
         /**
          * Get Agent Os
-         * @description Banderas del Agent OS del negocio, la global del entorno y el último cambio (quién y cuándo).
+         * @description Banderas del Agent OS del negocio y el último cambio (quién y cuándo).
          */
         get: operations["get_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_get"];
         /**
          * Put Agent Os
-         * @description Lleva el negocio al estado pedido (HU-AOS-15, orden de ADR-0112): al pasar a v3 corre los
-         *     backfills del negocio y `migrar-a-v3` (con `construir` si se pide); al volver a legacy apaga
-         *     todo. Escribe con `aos_fijar_banderas` (auditada). 422 `agent_os_orden` (combinación fuera de
-         *     orden), 409 `agent_os_bloqueado` (precondiciones; `details` trae bloqueos y avisos) o
+         * @description Lleva el negocio al estado pedido (HU-AOS-15, orden de ADR-0112 y ADR-0138). Escribe con
+         *     `aos_fijar_banderas` (auditada). 422 `agent_os_orden` (modo de enrutamiento no válido) o 409
          *     `agent_os_en_curso` (otro cambio en curso).
          */
         put: operations["put_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_put"];
@@ -4670,8 +4668,8 @@ export interface paths {
         put?: never;
         /**
          * Simular Agent Os
-         * @description Dry-run del cambio: bloqueos, avisos y los pasos que aplicaría. No escribe nada (ni
-         *     backfills, ni releases, ni banderas). 422 `agent_os_orden` si el objetivo viola el orden.
+         * @description Dry-run del cambio: avisos y los pasos que aplicaría. No escribe nada. 422 `agent_os_orden`
+         *     si el modo de enrutamiento no es válido.
          */
         post: operations["simular_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_simular_post"];
         delete?: never;
@@ -9684,7 +9682,8 @@ export interface components {
         };
         /**
          * AgentOSBanderas
-         * @description Estado de las banderas del Agent OS de un negocio (ADR-0112, ADR-0138).
+         * @description Estado de las banderas del Agent OS de un negocio (ADR-0112, ADR-0138). El runtime ya no es
+         *     bandera: todo negocio corre en el Agent OS (ADR-0191).
          */
         AgentOSBanderas: {
             /** Procedures */
@@ -9694,11 +9693,6 @@ export interface components {
              * @enum {string}
              */
             routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
         };
         /** AgentOSCambio */
         AgentOSCambio: {
@@ -9712,8 +9706,6 @@ export interface components {
         };
         /** AgentOSEstado */
         AgentOSEstado: {
-            /** Aos Connection Routing */
-            aos_connection_routing: boolean;
             /** Procedures */
             procedures: boolean;
             /**
@@ -9721,20 +9713,10 @@ export interface components {
              * @enum {string}
              */
             routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
             ultimo_cambio?: components["schemas"]["AgentOSCambio"] | null;
         };
         /** AgentOSObjetivo */
         AgentOSObjetivo: {
-            /**
-             * Construir
-             * @default false
-             */
-            construir: boolean;
             /** Procedures */
             procedures: boolean;
             /**
@@ -9742,19 +9724,12 @@ export interface components {
              * @enum {string}
              */
             routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
         };
         /** AgentOSResultado */
         AgentOSResultado: {
             /** Accion */
             accion: string;
             antes: components["schemas"]["AgentOSBanderas"];
-            /** Aos Connection Routing */
-            aos_connection_routing: boolean;
             /** Avisos */
             avisos: string[];
             /** Bloqueos */
@@ -9911,8 +9886,14 @@ export interface components {
             cuota_agentes?: components["schemas"]["AgentCreationQuota"] | null;
             /** Items */
             items: components["schemas"]["AgentOverviewItem"][];
-            /** Runtime */
-            runtime: string;
+            /**
+             * Runtime
+             * @deprecated
+             * @description Deprecado: siempre `v3` (ADR-0191). Solo para la APK instalada; no lo leas.
+             * @default v3
+             * @constant
+             */
+            runtime: "v3";
             sin_atribuir: components["schemas"]["Activity"];
         };
         /** AgentSummary */
@@ -11242,11 +11223,6 @@ export interface components {
         /** Catalogo */
         Catalogo: {
             /**
-             * Aos Runtime
-             * @default legacy
-             */
-            aos_runtime: string;
-            /**
              * Asistente
              * @default []
              */
@@ -12077,11 +12053,6 @@ export interface components {
              * @enum {string}
              */
             routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
             /** Total */
             total: number;
             /**
@@ -20253,8 +20224,6 @@ export interface components {
             agentes: components["schemas"]["AgenteResumen"][];
             general: components["schemas"]["BloqueGeneral"];
             periodo: components["schemas"]["PeriodoOut"];
-            /** Runtime */
-            runtime: string;
         };
         /** RetiredAffectedConnection */
         RetiredAffectedConnection: {
