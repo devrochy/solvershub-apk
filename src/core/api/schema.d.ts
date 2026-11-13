@@ -9575,6 +9575,15 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** AgentCreationQuota */
+        AgentCreationQuota: {
+            /** Allowed */
+            allowed: boolean;
+            /** Limit */
+            limit: number | null;
+            /** Used */
+            used: number;
+        };
         /** AgentCustomer */
         AgentCustomer: {
             /** Channel */
@@ -9898,6 +9907,8 @@ export interface components {
         };
         /** AgentsOverview */
         AgentsOverview: {
+            /** Cuota Agentes */
+            cuota_agentes?: components["schemas"]["AgentCreationQuota"] | null;
             /** Items */
             items: components["schemas"]["AgentOverviewItem"][];
             /** Runtime */
@@ -23583,6 +23594,13 @@ export interface operations {
                     "application/json": components["schemas"]["FromTemplateOut"];
                 };
             };
+            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -24689,6 +24707,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FromScriptOut"];
                 };
+            };
+            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
