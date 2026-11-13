@@ -133,10 +133,9 @@ export function etiquetaDeAgente(a: { key: string; kind: string }): string {
   return "Especialista";
 }
 
-/** Con permiso de escritura en Ajustes y negocio v3 (o master): quien puede crear agentes. */
-export function puedeCrearAgentes(sesion: { role?: string | null; permissions?: Record<string, string | null> | null }, runtime: string): boolean {
-  if (sesion.role === "master") return true;
-  return runtime === "v3" && sesion.permissions?.settings === "write";
+/** Con permiso de escritura en Ajustes (o master): quien puede crear agentes. Todo negocio corre en el Agent OS (ADR-0191). */
+export function puedeCrearAgentes(sesion: { role?: string | null; permissions?: Record<string, string | null> | null }): boolean {
+  return sesion.role === "master" || sesion.permissions?.settings === "write";
 }
 
 type CuotaDeAgentes = { used: number; limit: number | null; allowed: boolean } | null | undefined;

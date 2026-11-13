@@ -90,10 +90,9 @@ describe("asistente de creación de agentes (HU-AOS-56)", () => {
     expect(etiquetaDeAgente({ key: "coordinador", kind: "core" })).toBe("Coordinador");
     expect(etiquetaDeAgente({ key: "general", kind: "specialist" })).toBe("Especialista"); // ya no hay General (ADR-0192)
     expect(etiquetaDeAgente({ key: "ventas", kind: "specialist" })).toBe("Especialista");
-    expect(puedeCrearAgentes({ role: "master" }, "legacy")).toBe(true);
-    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } }, "v3")).toBe(true);
-    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } }, "legacy")).toBe(false);
-    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "read" } }, "v3")).toBe(false);
+    expect(puedeCrearAgentes({ role: "master" })).toBe(true);
+    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } })).toBe(true);
+    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "read" } })).toBe(false);
   });
 
   it("avisa del tope de agentes solo cuando no queda cupo", () => {

@@ -77,7 +77,7 @@ export function AgentesScreen() {
     );
   }
 
-  const puedeCrear = puedeCrearAgentes(sesion ?? {}, vista.runtime);
+  const puedeCrear = puedeCrearAgentes(sesion ?? {});
   const avisoTope = avisoDeTopeDeAgentes(vista.cuota_agentes);
   const abrirAsistente = () => {
     if (avisoTope) {
