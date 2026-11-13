@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Button, EmptyState, IconButton, Icono, Sheet, Skeleton, useKit } from "@shared/ui";
 import { FilaNotificacion } from "./FilaNotificacion";
+import { TarjetaPlanFree } from "../plan/TarjetaPlanFree";
 import {
   CATEGORIA,
   CATEGORIAS,
@@ -49,6 +50,7 @@ export function CentroSheet({
       ) : (
         <Lista
           n={n}
+          onCerrar={cerrar}
           onAbrirNotificacion={onAbrirNotificacion}
           onPreferencias={() => {
             setVerPreferencias(true);
@@ -62,10 +64,12 @@ export function CentroSheet({
 
 function Lista({
   n,
+  onCerrar,
   onAbrirNotificacion,
   onPreferencias,
 }: {
   n: EstadoCentro;
+  onCerrar: () => void;
   onAbrirNotificacion: (item: NotificacionItem) => void;
   onPreferencias: () => void;
 }) {
@@ -74,6 +78,7 @@ function Lista({
 
   return (
     <View style={styles.contenido}>
+      <TarjetaPlanFree onCerrar={onCerrar} />
       <View style={styles.barra}>
         <View style={styles.pestanas} accessibilityRole="tablist">
           {(["todas", "no_leidas"] as const).map((p) => {

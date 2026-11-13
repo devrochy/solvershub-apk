@@ -32,6 +32,9 @@ export interface AdminSessionValue {
   refrescarPerfil(): Promise<PerfilAdmin | null>;
   /** Aplica la respuesta de `/admin/me` tras guardar el perfil o la foto. */
   aplicarPerfil(me: MeAdmin): Promise<PerfilAdmin>;
+  /** El aviso de plan Free se cerró en esta sesión del panel (no se persiste). */
+  avisoPlanCerrado: boolean;
+  cerrarAvisoPlan(): void;
   logout(): Promise<void>;
 }
 
@@ -57,6 +60,8 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
   // aunque la sesión cambie (si dependieran de `sesion`, un refresco se
   // retroalimentaría al aplicarse y volvería a pedir el perfil en bucle).
   const sesionRef = useRef<AdminSesion | null>(null);
+  // Negocio cuyo aviso de plan Free se cerró en esta sesión: al cambiar de negocio vuelve a verse.
+  const [avisoPlanCerradoPara, setAvisoPlanCerradoPara] = useState<string | null>(null);
 
   const guardarSesion = useCallback((siguiente: AdminSesion | null) => {
     sesionRef.current = siguiente;
@@ -83,6 +88,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
   }, [guardarSesion]);
 
   const login = useCallback(async (identifier: string, password: string) => {
+    setAvisoPlanCerradoPara(null);
     const result = await apiLoginAdmin(identifier, password);
     const me = await apiMeAdmin(result.token);
     const nueva: AdminSesion = {
@@ -98,6 +104,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
       tenantName: me.tenant?.name ?? null,
       tenantRole: me.tenant?.role ?? null,
       permissions: me.permissions,
+      plan: me.plan ?? null,
     };
     await secureSet(CLAVE_SESION_ADMIN, JSON.stringify(nueva));
     guardarSesion(nueva);
@@ -124,6 +131,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
         tenantName: me.tenant?.name ?? actual.tenantName,
         tenantRole: me.tenant?.role ?? actual.tenantRole ?? null,
         permissions: me.permissions,
+        plan: me.plan ?? actual.plan ?? null,
       };
       await secureSet(CLAVE_SESION_ADMIN, JSON.stringify(actualizada));
       guardarSesion(actualizada);
@@ -152,6 +160,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
         tenantName: siguientePerfil.tenantName ?? actual.tenantName,
         tenantRole: me.tenant?.role ?? actual.tenantRole ?? null,
         permissions: me.permissions,
+        plan: me.plan ?? actual.plan ?? null,
       };
       await secureSet(CLAVE_SESION_ADMIN, JSON.stringify(actualizada));
       guardarSesion(actualizada);
@@ -170,13 +179,42 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await secureDelete(CLAVE_SESION_ADMIN);
+    setAvisoPlanCerradoPara(null);
     guardarSesion(null);
     setPerfil(null);
   }, [guardarSesion]);
 
+  const avisoPlanCerrado = !!sesion?.tenantId && avisoPlanCerradoPara === sesion.tenantId;
+  const cerrarAvisoPlan = useCallback(() => {
+    const tenantId = sesionRef.current?.tenantId;
+    if (tenantId) setAvisoPlanCerradoPara(tenantId);
+  }, []);
+
   const value = useMemo(
-    () => ({ sesion, loading, perfil, login, seleccionarNegocio, refrescarPerfil, aplicarPerfil, logout }),
-    [sesion, loading, perfil, login, seleccionarNegocio, refrescarPerfil, aplicarPerfil, logout],
+    () => ({
+      sesion,
+      loading,
+      perfil,
+      login,
+      seleccionarNegocio,
+      refrescarPerfil,
+      aplicarPerfil,
+      avisoPlanCerrado,
+      cerrarAvisoPlan,
+      logout,
+    }),
+    [
+      sesion,
+      loading,
+      perfil,
+      login,
+      seleccionarNegocio,
+      refrescarPerfil,
+      aplicarPerfil,
+      avisoPlanCerrado,
+      cerrarAvisoPlan,
+      logout,
+    ],
   );
 
   return <AdminSessionContext.Provider value={value}>{children}</AdminSessionContext.Provider>;
@@ -188,4 +226,9 @@ export function useAdminSession(): AdminSessionValue {
     throw new Error("useAdminSession debe usarse dentro de AdminSessionProvider");
   }
   return ctx;
+}
+
+/** Igual que `useAdminSession`, pero devuelve `null` sin proveedor (catálogo y tests aislados). */
+export function useAdminSessionOpcional(): AdminSessionValue | null {
+  return useContext(AdminSessionContext);
 }
