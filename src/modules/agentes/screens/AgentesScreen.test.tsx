@@ -40,7 +40,7 @@ describe("AgentesScreen (HU-AOS-56)", () => {
     await waitFor(() => getByTestId("asistente-stepper"));
   });
 
-  it("sin permiso de edición o en runtime legacy no ofrece crear", async () => {
+  it("sin permiso de edición no ofrece crear", async () => {
     sesion({ settings: "read" });
     mockGet.mockResolvedValue(vista("v3", [general]));
     const { getByText, queryByTestId } = await render(<AgentesScreen />);
