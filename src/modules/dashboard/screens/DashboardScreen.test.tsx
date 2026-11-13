@@ -484,7 +484,7 @@ describe("DashboardScreen: Resumen por rol (HU-DS-13)", () => {
 
     it.each([
       ["el endpoint falla", new Error("500")],
-      ["llega vacío", { periodo: {}, runtime: "legacy", general: { kpis: [] }, agentes: [] }],
+      ["llega vacío", { periodo: {}, general: { kpis: [] }, agentes: [] }],
       ["llega mal formado", { kpis: [] }],
     ])("si el Resumen por agente %s, quedan las cifras de siempre", async (_caso, respuesta) => {
       responder({ agentes: respuesta });

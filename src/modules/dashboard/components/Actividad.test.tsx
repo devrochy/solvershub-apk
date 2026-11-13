@@ -26,7 +26,6 @@ const DATOS: ResumenPorAgente = {
     previo_hasta: "2026-10-20T00:00:00Z",
     dias: 7,
   },
-  runtime: "v3",
   general: { kpis: [kpi({ id: "conversaciones", label: "Conversaciones", valor: 10 })] },
   agentes: [
     {
