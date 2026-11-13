@@ -88,7 +88,7 @@ describe("asistente de creación de agentes (HU-AOS-56)", () => {
     expect(textoDeRespuesta(t.questions[0], { ...ESTADO_INICIAL, respuestas: { q0: "b" } })).toBe("Opción B");
     expect(textoDeRespuesta(t.questions[0], ESTADO_INICIAL)).toBe("—");
     expect(etiquetaDeAgente({ key: "coordinador", kind: "core" })).toBe("Coordinador");
-    expect(etiquetaDeAgente({ key: "general", kind: "specialist" })).toBe("General");
+    expect(etiquetaDeAgente({ key: "general", kind: "specialist" })).toBe("Especialista"); // ya no hay General (ADR-0192)
     expect(etiquetaDeAgente({ key: "ventas", kind: "specialist" })).toBe("Especialista");
     expect(puedeCrearAgentes({ role: "master" }, "legacy")).toBe(true);
     expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } }, "v3")).toBe(true);

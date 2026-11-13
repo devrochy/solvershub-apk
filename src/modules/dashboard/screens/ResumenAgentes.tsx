@@ -170,6 +170,7 @@ export function tieneResumen(datos: ResumenPorAgente | null | undefined): datos 
   if (!datos?.general?.kpis || !Array.isArray(datos.agentes)) return false;
   return (
     datos.general.kpis.length > 0 ||
+    (datos.general.modulos_sin_agente?.length ?? 0) > 0 ||
     datos.agentes.some((a) => a.kpis.length > 0 || a.modulos.length > 0)
   );
 }

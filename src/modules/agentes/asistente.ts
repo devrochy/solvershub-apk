@@ -125,12 +125,11 @@ export function textoDeRespuesta(pregunta: PreguntaDeAgente, estado: EstadoDelAs
   return pregunta.options.find((o) => o.id === estado.respuestas[pregunta.id])?.text ?? "—";
 }
 
-export type TipoDeAgente = "coordinator" | "specialist" | "core" | "general" | string;
+export type TipoDeAgente = "coordinator" | "specialist" | "core" | string;
 
-/** «Coordinador», «General» o «Especialista» para la lista (por la key y el tipo del agente). */
+/** «Coordinador» o «Especialista» para la lista (por la key y el tipo del agente; ya no hay General, ADR-0192). */
 export function etiquetaDeAgente(a: { key: string; kind: string }): string {
   if (a.key === "coordinador" || a.kind === "core") return "Coordinador";
-  if (a.key === "general") return "General";
   return "Especialista";
 }
 

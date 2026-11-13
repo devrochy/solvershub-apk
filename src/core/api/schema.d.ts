@@ -9668,7 +9668,7 @@ export interface components {
             name: string;
             /**
              * Ref
-             * @description Id del agente o el literal `general`, como en `/admin/agents/{ref}`.
+             * @description Id del agente, como en `/admin/agents/{ref}`.
              */
             ref: string;
             /**
@@ -10556,6 +10556,11 @@ export interface components {
         BloqueGeneral: {
             /** Kpis */
             kpis: components["schemas"]["KpiOut"][];
+            /**
+             * Modulos Sin Agente
+             * @description Módulos activos del negocio que ningún agente cubre (ADR-0192: ya no cuelgan del General).
+             */
+            modulos_sin_agente?: components["schemas"]["ModuloOut"][];
             /**
              * Serie
              * @description Serie diaria cero-rellena de todo el negocio (todos los agentes, el Coordinador y lo no atribuido); vacía sin la sección `agents`.
@@ -13223,8 +13228,6 @@ export interface components {
             connections: components["schemas"]["PublishedConnection"][];
             /** Created */
             created: boolean;
-            /** General Updated */
-            general_updated?: number | null;
             version: components["schemas"]["AgentVersionSummary"];
             /** Warnings */
             warnings: string[];
