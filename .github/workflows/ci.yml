@@ -26,8 +26,9 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
+          # Sin `cache: npm`: en el runner self-hosted la restauración del caché se cuelga
+          # (setup-node queda sin I/O). El toolcache local ya tiene Node 22.
           node-version: 22
-          cache: npm
 
       - name: Install
         run: npm ci
