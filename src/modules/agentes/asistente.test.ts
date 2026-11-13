@@ -1,5 +1,6 @@
 import {
   MAX_PASOS,
+  avisoDeTopeDeAgentes,
   cuerpoDeCreacion,
   elegirTipo,
   errorDelPaso,
@@ -93,5 +94,13 @@ describe("asistente de creación de agentes (HU-AOS-56)", () => {
     expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } }, "v3")).toBe(true);
     expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } }, "legacy")).toBe(false);
     expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "read" } }, "v3")).toBe(false);
+  });
+
+  it("avisa del tope de agentes solo cuando no queda cupo", () => {
+    expect(avisoDeTopeDeAgentes({ used: 1, limit: 1, allowed: false })).toMatch(/ya tienes 1.*Mejora tu plan/);
+    expect(avisoDeTopeDeAgentes({ used: 1, limit: 2, allowed: true })).toBeNull();
+    expect(avisoDeTopeDeAgentes({ used: 99, limit: null, allowed: true })).toBeNull();
+    expect(avisoDeTopeDeAgentes(null)).toBeNull();
+    expect(avisoDeTopeDeAgentes(undefined)).toBeNull();
   });
 });
