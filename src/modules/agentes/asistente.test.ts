@@ -1,5 +1,6 @@
 import {
   MAX_PASOS,
+  avisoDeTopeDeAgentes,
   cuerpoDeCreacion,
   elegirTipo,
   errorDelPaso,
@@ -43,7 +44,7 @@ describe("asistente de creación de agentes (HU-AOS-56)", () => {
   it("sin tipo solo hay un paso; con tipo suma preguntas y cierres", () => {
     expect(pasosDelAsistente(null).map((p) => p.id)).toEqual(["tipo"]);
     const ids = pasosDelAsistente(plantilla(2)).map((p) => p.id);
-    expect(ids).toEqual(["tipo", "q0", "q1", "nombre", "contenido", "revisar", "publicar"]);
+    expect(ids).toEqual(["tipo", "q0", "q1", "nombre", "revisar", "datos", "cargado", "publicar"]);
   });
 
   it("nunca pasa de diez pasos aunque el guion traiga más preguntas", () => {
@@ -87,11 +88,18 @@ describe("asistente de creación de agentes (HU-AOS-56)", () => {
     expect(textoDeRespuesta(t.questions[0], { ...ESTADO_INICIAL, respuestas: { q0: "b" } })).toBe("Opción B");
     expect(textoDeRespuesta(t.questions[0], ESTADO_INICIAL)).toBe("—");
     expect(etiquetaDeAgente({ key: "coordinador", kind: "core" })).toBe("Coordinador");
-    expect(etiquetaDeAgente({ key: "general", kind: "specialist" })).toBe("General");
+    expect(etiquetaDeAgente({ key: "general", kind: "specialist" })).toBe("Especialista"); // ya no hay General (ADR-0192)
     expect(etiquetaDeAgente({ key: "ventas", kind: "specialist" })).toBe("Especialista");
-    expect(puedeCrearAgentes({ role: "master" }, "legacy")).toBe(true);
-    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } }, "v3")).toBe(true);
-    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } }, "legacy")).toBe(false);
-    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "read" } }, "v3")).toBe(false);
+    expect(puedeCrearAgentes({ role: "master" })).toBe(true);
+    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "write" } })).toBe(true);
+    expect(puedeCrearAgentes({ role: "owner", permissions: { settings: "read" } })).toBe(false);
+  });
+
+  it("avisa del tope de agentes solo cuando no queda cupo", () => {
+    expect(avisoDeTopeDeAgentes({ used: 1, limit: 1, allowed: false })).toMatch(/ya tienes 1.*Mejora tu plan/);
+    expect(avisoDeTopeDeAgentes({ used: 1, limit: 2, allowed: true })).toBeNull();
+    expect(avisoDeTopeDeAgentes({ used: 99, limit: null, allowed: true })).toBeNull();
+    expect(avisoDeTopeDeAgentes(null)).toBeNull();
+    expect(avisoDeTopeDeAgentes(undefined)).toBeNull();
   });
 });

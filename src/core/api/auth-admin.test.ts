@@ -35,6 +35,14 @@ describe("api admin (ADR-0094)", () => {
     expect(JSON.parse(init.body)).toEqual({ identifier: "correo@x.com", password: "clave" });
   });
 
+  it("login lee el admin_id y expires_in en snake_case, como responde el backend (apk#220)", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(200, { token: "t-opaco", admin_id: "a-1", expires_in: 604800 }),
+    );
+    const result = await apiLoginAdmin("correo@x.com", "clave");
+    expect(result).toEqual({ token: "t-opaco", adminId: "a-1", expiresIn: 604800 });
+  });
+
   it("login con 401 lanza ApiAuthError con el código del servidor", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse(401, { error: { code: "invalid_credentials", message: "Mal." } }),

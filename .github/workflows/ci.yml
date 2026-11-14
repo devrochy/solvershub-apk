@@ -24,10 +24,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v4
         with:
+          # v7 se cuelga en el runner self-hosted (salida infinita en setup); v4 es estable.
           node-version: 22
-          cache: npm
 
       - name: Install
         run: npm ci

@@ -7,8 +7,17 @@
 
 ### Nuevo
 
+- «Documentación» en la tarjeta de cuenta del cajón (entre Perfil y Tema oscuro): abre la wiki del panel (`/ayuda`, exige sesión del panel) en el navegador del sistema. `LICENSE` con el titular del proyecto y aviso de Expo en `NOTICE`.
+- Seguridad del negocio (SPEC-42, ADR-0174): la app registra el teléfono (`X-Device-Id` en toda
+  petición, también el refresh, y `device-session` al elegir negocio y al reanudar) y, si el
+  dueño aún no lo aprueba o lo bloqueó, muestra una pantalla que lo explica en vez de un error;
+  la espera sondea cada 10 s y entra sola al aprobarse. Dispositivos y Alertas de acceso pasan de
+  Cobranza a la entrada «Seguridad» del cajón (secciones `devices` y `access_alerts`).
 - Logo definitivo de SolversHub en el ícono (iOS y adaptativo de Android, con capa
   monocroma para íconos temáticos), el splash y la pantalla de login.
+- Splash compacto (logo a 220 dp sobre navy profundo) que se retiene hasta que la app está
+  lista, y presentación en video de primer inicio para quien aún no tiene sesión: omitible,
+  silenciada por defecto, con botón de sonido y respeto por “reducir movimiento”.
 - Login unificado (panel + campo vía intercambio de tokens), recuperación de contraseña con
   código de un solo uso y desbloqueo biométrico opt-in.
 - PanelShell por permisos: Dashboard con KPIs, Operación (conversaciones con acciones,
@@ -20,6 +29,13 @@
   Google Calendar se conecta desde Conexiones), Negocio (plan/consumo, costos IA), Configuración (colaboradores,
   habilidades, conexiones con checklist de Meta, ajustes del agente: identidad, cerebro y
   memoria) y Herramientas/Plataforma (DLQ, negocios para master).
+- Clientes con paridad al panel: tarjetas con avatar, clasificación, canal,
+  teléfono, ubicación, agentes y estado del bot; filtros por canal, conexión y
+  packs, paginación, exportación CSV y envío de plantilla desde la tarjeta. La
+  ficha del CRM suma perfil editable, pestañas por agente, geocodificación y
+  consentimiento. En Cobranza, los clientes de cartera estrenan tarjetas,
+  filtro por cartera, alta/edición/eliminación y ficha con préstamos,
+  pagos/abonos, cuotas y movimientos.
 - Resumen por agente (ADR-0171): el Resumen muestra los KPIs del agente general y, en una
   sección plegable por especialista, los de su actividad y los de su módulo (pedidos, citas,
   recaudo…), siempre contra los 7 días previos. Cada cifra con pantalla en la app lleva a ella; si
@@ -53,6 +69,12 @@
 
 - Diario, clientes, visitas pago/no-pago, gastos con evidencias, trayectoria GPS,
   liquidación con PDF y cola offline idempotente — intactos, ahora sobre la base cifrada.
+
+### Técnico
+
+- App sobre **Expo SDK 58** (React Native 0.88 y React 19.3): es un cambio nativo, así que
+  necesita binario nuevo (APK/AAB); los binarios anteriores en SDK 57 no reciben el OTA.
+  Requiere Node 22.13+/24.3+ para compilar.
 
 ### Corregido
 

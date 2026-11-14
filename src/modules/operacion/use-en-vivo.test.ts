@@ -29,6 +29,7 @@ function chat(id: string, extra: Partial<ConversationSummary> = {}): Conversatio
     channel: "whatsapp",
     status: "open",
     bot_paused: false,
+    pending_count: 0,
     started_at: "2026-10-06T00:00:00Z",
     ...extra,
   };
@@ -60,6 +61,12 @@ describe("use-en-vivo", () => {
     const nuevas = [chat("a", { status: "closed" }), chat("c")];
     const unidas = unirConversaciones(actuales, nuevas, { status: "open" });
     expect(unidas.map((c) => c.id)).toEqual(["c"]);
+  });
+
+  it("ordena por llegada al unir la lista", () => {
+    const viejo = chat("a", { last_message_at: "2026-10-06T10:00:00Z" });
+    const nuevo = chat("b", { last_message_at: "2026-10-06T11:00:00Z" });
+    expect(unirConversaciones([viejo, nuevo], [], {}).map((c) => c.id)).toEqual(["b", "a"]);
   });
 
   it("consulta cada intervalo sin solapar y se detiene al desmontar", async () => {

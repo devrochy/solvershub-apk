@@ -10,7 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@core/theme/theme-context";
 import type { LoginResult } from "@shared/types/auth";
 import { useAdminSession } from "@core/session/admin-session-context";
-import { apiGestorToken, apiTenantsAdmin } from "@core/api/auth-admin";
+import { ApiAuthError, apiGestorToken, apiTenantsAdmin } from "@core/api/auth-admin";
+import { esCodigoDeEquipo } from "@shared/acceso-evento";
 import type { TenantAdmin } from "@core/session/types";
 
 export interface SeleccionNegocioAdminProps {
@@ -70,10 +71,18 @@ export function SeleccionNegocioAdminScreen({
         await seleccionarNegocio(negocio.id);
         const campo = await apiGestorToken(sesion.token, negocio.id);
         await onAutenticado(campo);
-      } catch {
-        // Sin acceso de campo en este negocio (403 del pack, ADR-0094):
-        // la sesión admin ya quedó con el negocio elegido → panel.
-        onEntrarPanel();
+      } catch (err) {
+        if (err instanceof ApiAuthError && esCodigoDeEquipo(err.code)) {
+          // Equipo pendiente o bloqueado (ADR-0174): la raíz de la app muestra su pantalla.
+          return;
+        }
+        if (err instanceof ApiAuthError && err.status === 403 && err.code === "sin_acceso_campo") {
+          // Sin acceso de campo en este negocio (ADR-0094): la sesión admin ya quedó con el
+          // negocio elegido → panel.
+          onEntrarPanel();
+          return;
+        }
+        setError("No pudimos entrar a ese negocio. Intenta de nuevo.");
       } finally {
         setCargandoId(null);
       }

@@ -42,7 +42,7 @@ export const TIPOS_DE_NEGOCIO: {
 }[] = [
   {
     id: "ventas",
-    titulo: "Vendo productos o planes",
+    titulo: "Vendo productos",
     ayuda: "Responde dudas, cotiza y toma el pedido.",
     contenido: "catalogo",
     nombres: ["Sofía", "Vera", "Mateo"],
@@ -63,31 +63,11 @@ export const TIPOS_DE_NEGOCIO: {
   },
   {
     id: "suscripciones",
-    titulo: "Gestiono suscripciones",
-    ayuda: "Atiende a quien ya es cliente de un plan.",
+    titulo: "Vendo y gestiono planes",
+    ayuda: "Contrata planes y atiende a quien ya está suscrito.",
     contenido: null,
     nombres: ["Alma", "Planes", "Leo"],
   },
-];
-
-export type QueVende = "productos" | "planes" | "ambos";
-
-export const OPCIONES_QUE_VENDE: {
-  id: QueVende;
-  titulo: string;
-  ayuda: string;
-}[] = [
-  {
-    id: "productos",
-    titulo: "Productos",
-    ayuda: "Toma el pedido: ítems, entrega y pago.",
-  },
-  {
-    id: "planes",
-    titulo: "Planes",
-    ayuda: "Contrata el plan que elige el cliente.",
-  },
-  { id: "ambos", titulo: "Los dos", ayuda: "Productos y planes." },
 ];
 
 // --------------------------------------------------------------------------------------- voz
@@ -138,9 +118,10 @@ export const LARGOS: {
   },
 ];
 
-export const CALIDEZ_MIN = 1;
+export const CALIDEZ_MIN = 0;
 export const CALIDEZ_MAX = 5;
 export const CALIDEZ_ETIQUETAS = [
+  "Seco",
   "Sobrio",
   "Reservado",
   "Amable",
@@ -175,12 +156,14 @@ export function muestraDeVoz(
     voz.tono === "formal" || voz.tono === "neutral"
       ? `Le atiende ${quien}${donde ? `, de ${donde}` : ""}.`
       : `Soy ${quien}${donde ? `, de ${donde}` : ""}.`;
-  const calidez =
-    voz.calidez >= 4
-      ? "Me encanta poder ayudarte."
-      : voz.calidez === 3
-        ? "Con gusto te ayudo."
-        : "";
+  const calidez: Record<number, string> = {
+    0: "Vamos al punto.",
+    1: "Claro.",
+    2: "Entiendo.",
+    3: "Claro, te ayudo.",
+    4: "Con gusto te ayudo, cuéntame.",
+    5: "¡Me encanta poder ayudarte!",
+  };
   const detalle =
     voz.largo === "detalladas"
       ? "Puedo contarte los detalles, los precios y los horarios, y dejar todo listo por aquí mismo."
@@ -189,8 +172,14 @@ export function muestraDeVoz(
     voz.emojis === "none" ? "" : voz.emojis === "free" ? " 😊✨" : " 🙂";
   const partes =
     voz.largo === "cortas"
-      ? [saludo[voz.tono], ofrece[voz.tono]]
-      : [saludo[voz.tono], presenta, calidez, detalle, ofrece[voz.tono]];
+      ? [saludo[voz.tono], calidez[voz.calidez] ?? "", ofrece[voz.tono]]
+      : [
+          saludo[voz.tono],
+          presenta,
+          calidez[voz.calidez] ?? "",
+          detalle,
+          ofrece[voz.tono],
+        ];
   return `${partes.filter(Boolean).join(" ")}${emoji}`;
 }
 
@@ -361,7 +350,6 @@ export function motivosDePalabras(palabras: string[]): MotivoDeEscalar[] {
 
 export type EstadoDelAsistente = {
   tipo: TipoDeNegocio | null;
-  queVende: QueVende;
   negocio: string;
   descripcion: string;
   nombreDelAgente: string;
@@ -376,7 +364,6 @@ export type EstadoDelAsistente = {
 
 export const ESTADO_INICIAL: EstadoDelAsistente = {
   tipo: null,
-  queVende: "productos",
   negocio: "",
   descripcion: "",
   nombreDelAgente: "",
@@ -428,10 +415,7 @@ export function plantillaDe(tipo: TipoDeNegocio): string {
 export function respuestasDeCreacion(
   estado: EstadoDelAsistente,
 ): Record<string, string> {
-  return {
-    largo_respuesta: estado.largo,
-    ...(estado.tipo === "ventas" ? { que_vendes: estado.queVende } : {}),
-  };
+  return { largo_respuesta: estado.largo };
 }
 
 /**
@@ -591,8 +575,8 @@ export const FRASES_DE_PRUEBA: Record<TipoDeNegocio, string[]> = {
     "¿Cómo pago mi cuota?",
   ],
   suscripciones: [
-    "Hola, quiero cambiar mi plan",
+    "Hola, ¿qué planes tienen?",
+    "Quiero cambiar mi plan",
     "¿Cuándo es mi próximo cobro?",
-    "Quiero cancelar mi suscripción",
   ],
 };

@@ -27,12 +27,16 @@ import {
   type EstadoDelAsistente,
 } from "../asistente";
 import { copiaDelRequisito } from "../requisitos";
+import type { RegistroDePrueba } from "../carga";
+import { PasoDatos, type Cargado } from "./PasoDatos";
+import { PasoLoCargado } from "./PasoLoCargado";
 
 /**
  * Asistente de creación de agentes en la app (HU-AOS-56, SPEC-39): el mismo guion que el panel,
  * un paso por pantalla. El estado vive aquí: si falla la red a mitad del guion no se pierde lo
- * respondido, y se avisa al reintentar. El borrador se crea al final de «Revisar» y se publica en el
- * último paso, eligiendo la conexión.
+ * respondido, y se avisa al reintentar. El borrador se crea al final de «Revisar»; después se cargan
+ * datos (SPEC-45: generar en test o fotos del catálogo), se ve lo cargado y se publica en el último
+ * paso, eligiendo la conexión.
  */
 export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: string) => void }) {
   const api = useAdminApi();
@@ -49,6 +53,7 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
   const [destinos, setDestinos] = useState<DestinoDePublicacion[]>([]);
   const [elegidas, setElegidas] = useState<string[]>([]);
   const [publicado, setPublicado] = useState(false);
+  const [cargado, setCargado] = useState<Cargado>({ registros: [] as RegistroDePrueba[], resumen: "" });
   const reintento = useRef(0);
 
   useEffect(() => {
@@ -230,14 +235,27 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
         </Field>
       )}
 
-      {paso.id === "contenido" && <Requisitos requisitos={plantilla?.requirements ?? []} titulo="Para que funcione del todo, configura" />}
+      {paso.id === "datos" && creado && (
+        <PasoDatos
+          api={api}
+          agenteId={creado.agent.id}
+          onCargado={(nuevo) => {
+            setCargado(nuevo);
+            setIndice(indice + 1);
+          }}
+        />
+      )}
+
+      {paso.id === "cargado" && creado && (
+        <PasoLoCargado api={api} agenteId={creado.agent.id} locales={cargado.registros} resumen={cargado.resumen || null} />
+      )}
 
       {ultimoDeRevision && (
         <View style={styles.bloque}>
           <Resumen estado={estado} plantilla={plantilla} pasos={pasos} />
           <Text style={[shType.body, { color: c.textMuted }]}>
-            Se crea el borrador sin publicar. En el siguiente paso eliges en qué conexión atiende. Las frases y el
-            modelo van con valores por defecto; los ajustas desde el panel web si quieres.
+            Se crea el borrador sin publicar. Después le cargas datos y eliges en qué conexión atiende. Las frases y
+            el modelo van con valores por defecto; los ajustas desde el panel web si quieres.
           </Text>
           <Requisitos requisitos={plantilla?.requirements ?? []} titulo="Puedes publicar, pero no funcionará del todo hasta que configures:" />
           {existente && (
@@ -292,7 +310,7 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
       )}
 
       <View style={styles.acciones}>
-        {indice > 0 && paso.id !== "publicar" && (
+        {indice > 0 && paso.id !== "publicar" && paso.id !== "datos" && (
           <Button variant="secondary" onPress={() => setIndice(indice - 1)} disabled={enCurso}>
             Atrás
           </Button>
@@ -300,6 +318,10 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
         {paso.id === "publicar" ? (
           <Button variant="primary" onPress={publicar} loading={enCurso} disabled={enCurso || destinos.length === 0} fullWidth>
             Publicar agente
+          </Button>
+        ) : paso.id === "datos" ? (
+          <Button variant="secondary" onPress={() => setIndice(indice + 1)} fullWidth testID="datos-omitir">
+            Seguir sin cargar datos
           </Button>
         ) : ultimoDeRevision ? (
           <Button variant="primary" onPress={crear} loading={enCurso} disabled={enCurso || !plantilla} fullWidth>
@@ -310,8 +332,8 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
             Siguiente
           </Button>
         )}
-        <Button variant="ghost" onPress={() => onTerminar()} disabled={enCurso}>
-          {paso.id === "publicar" ? "Publicar después" : "Cancelar"}
+        <Button variant="ghost" onPress={() => onTerminar(creado?.agent.id)} disabled={enCurso}>
+          {creado ? "Publicar después" : "Cancelar"}
         </Button>
       </View>
     </ScrollView>

@@ -5,9 +5,19 @@ export type CollaboratorItem = components["schemas"]["CollaboratorItem"];
 export type PluginSummary = components["schemas"]["PluginSummary"];
 export type ConnectionItem = components["schemas"]["ConnectionItem"];
 export type ConnectionsResponse = components["schemas"]["ConnectionsResponse"];
+export type PermissionState = components["schemas"]["PermissionState"];
+export type PackRole = components["schemas"]["PackRole"];
+export type OutgoingItem = components["schemas"]["OutgoingItem"];
+export type PlatformTenant = components["schemas"]["PlatformTenant"];
 
-export async function cargarColaboradores(api: ClienteAdmin): Promise<CollaboratorItem[]> {
-  return api.get<CollaboratorItem[]>("/admin/collaborators");
+export async function cargarColaboradores(
+  api: ClienteAdmin,
+  opciones: { todos?: boolean } = {},
+): Promise<CollaboratorItem[]> {
+  return api.get<CollaboratorItem[]>(
+    "/admin/collaborators",
+    opciones.todos ? { todos: 1 } : undefined,
+  );
 }
 
 /** Activa/desactiva una cuenta (POST sin cuerpo: alterna `active`). */
@@ -32,13 +42,110 @@ export async function cargarConexiones(api: ClienteAdmin): Promise<ConnectionsRe
 }
 
 
-// ---------------- HU-APP-20 · escrituras móviles ----------------
+// ---------------- Equipo · colaboradores e invitaciones ----------------
 
-export async function invitarColaborador(
+export interface AltaColaborador {
+  email: string;
+  password: string;
+  role: string;
+  username: string;
+  nombre: string;
+  telefono: string;
+  pack_roles: string[];
+}
+
+export async function crearColaborador(
   api: ClienteAdmin,
-  datos: { email: string; password: string; role: string },
+  datos: AltaColaborador,
+): Promise<{ resultado?: string }> {
+  return api.post<{ resultado?: string }>("/admin/collaborators", datos);
+}
+
+export async function invitarPorCorreo(
+  api: ClienteAdmin,
+  datos: { email: string; role: string; pack_roles: string[] },
 ): Promise<void> {
-  await api.post("/admin/collaborators", datos);
+  await api.post("/admin/invitations", datos);
+}
+
+export async function emailExiste(api: ClienteAdmin, email: string): Promise<boolean> {
+  const res = await api.get<{ existe: boolean }>("/admin/collaborators/existe", { email });
+  return res.existe;
+}
+
+export async function usernameDisponible(api: ClienteAdmin, username: string): Promise<boolean> {
+  const res = await api.get<{ disponible: boolean }>(
+    "/admin/collaborators/username-disponible",
+    { username },
+  );
+  return res.disponible;
+}
+
+export async function cargarPackRoles(api: ClienteAdmin): Promise<PackRole[]> {
+  return api.get<PackRole[]>("/admin/collaborators/pack-roles");
+}
+
+export async function restablecerPasswordColaborador(
+  api: ClienteAdmin,
+  id: string,
+  password: string,
+): Promise<void> {
+  await api.post(`/admin/collaborators/${id}/password`, { password });
+}
+
+export async function cargarPermisosColaborador(
+  api: ClienteAdmin,
+  id: string,
+  tenant = "",
+): Promise<PermissionState[]> {
+  return api.get<PermissionState[]>(
+    `/admin/collaborators/${id}/permissions`,
+    tenant ? { tenant } : undefined,
+  );
+}
+
+export async function guardarPermisosColaborador(
+  api: ClienteAdmin,
+  id: string,
+  tenant: string,
+  permissions: Record<string, string>,
+): Promise<void> {
+  await api.post(`/admin/collaborators/${id}/permissions`, { tenant, permissions });
+}
+
+export async function vincularNegocio(
+  api: ClienteAdmin,
+  id: string,
+  tenant: string,
+  role: string,
+): Promise<void> {
+  await api.post(`/admin/collaborators/${id}/link`, { tenant, role });
+}
+
+export async function desvincularNegocio(
+  api: ClienteAdmin,
+  id: string,
+  tenant: string,
+): Promise<void> {
+  await api.post(`/admin/collaborators/${id}/unlink`, { tenant });
+}
+
+export async function cargarInvitacionesSalientes(api: ClienteAdmin): Promise<OutgoingItem[]> {
+  return api.get<OutgoingItem[]>("/admin/invitations/outgoing");
+}
+
+export async function revocarInvitacion(api: ClienteAdmin, id: string): Promise<void> {
+  await api.post(`/admin/invitations/${id}/revoke`);
+}
+
+export async function buscarNegociosPlataforma(
+  api: ClienteAdmin,
+  q: string,
+): Promise<PlatformTenant[]> {
+  const res = await api.get<{ items: PlatformTenant[] }>("/admin/platform/tenants", {
+    q: q.trim() || undefined,
+  });
+  return res.items;
 }
 
 // ---------------- HU-APP-21 · plantillas ----------------

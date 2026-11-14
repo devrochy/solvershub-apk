@@ -2,6 +2,7 @@ import { authUrl } from "@core/config";
 import { imeiDelEquipo, leerWhatsappVinculacion } from "@shared/dispositivo";
 import { ApiError } from "@core/api/client";
 import type { Invitacion, LoginResult } from "@shared/types/auth";
+import { fetchApi } from "@core/api/http";
 
 export type RolLogin = "gestor" | "propietario";
 
@@ -22,7 +23,7 @@ export async function apiLogin(
     imeiDelEquipo(),
     leerWhatsappVinculacion(),
   ]);
-  const res = await fetch(authUrl("/auth/login"), {
+  const res = await fetchApi(authUrl("/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ usuario, password, tenant, imei, whatsapp }),
@@ -36,7 +37,7 @@ export async function apiLogin(
 
 /** Invitaciones pendientes del usuario (token de campo o de membresía). */
 export async function apiInvitaciones(token: string): Promise<Invitacion[]> {
-  const res = await fetch(authUrl("/auth/invitaciones"), {
+  const res = await fetchApi(authUrl("/auth/invitaciones"), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
@@ -50,7 +51,7 @@ export async function apiResolverInvitacion(
   invitacionId: string,
   accion: "aceptar" | "rechazar",
 ): Promise<void> {
-  const res = await fetch(authUrl(`/auth/invitaciones/${invitacionId}/${accion}`), {
+  const res = await fetchApi(authUrl(`/auth/invitaciones/${invitacionId}/${accion}`), {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });

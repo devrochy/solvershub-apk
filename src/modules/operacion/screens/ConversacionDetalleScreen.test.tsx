@@ -136,21 +136,20 @@ describe("ConversacionDetalleScreen (HU-APP-08)", () => {
     );
   });
 
-  it("pausa y reanuda el asistente desde las acciones", async () => {
-    const { getByTestId, getByLabelText } = await render(
+  it("pausa y reanuda el asistente desde la cabecera", async () => {
+    const { getByTestId } = await render(
       <ConversacionDetalleScreen route={route} navigation={crearNavigation()} />,
     );
-    await waitFor(() => expect(getByTestId("detalle-mas-acciones")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("detalle-toggle-bot")).toBeTruthy());
 
-    await fireEvent.press(getByTestId("detalle-mas-acciones"));
     await fireEvent.press(getByTestId("detalle-toggle-bot"));
     await waitFor(() =>
       expect(mockPost).toHaveBeenCalledWith("/admin/conversations/cv-1/toggle-bot"),
     );
-    expect(getByLabelText("Agente activo")).toBeTruthy();
   });
 
-  it("resolver pide confirmación y llama al endpoint", async () => {
+  it("resolver pide confirmación y llama al endpoint en una escalada", async () => {
+    mockGet.mockResolvedValue(ESCALADA);
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
       botones?.[1]?.onPress?.();
     });
@@ -199,13 +198,12 @@ describe("ConversacionDetalleScreen (HU-APP-08)", () => {
     alertSpy.mockRestore();
   });
 
-  it("agrega una nota interna", async () => {
+  it("agrega una nota interna desde el icono de la cabecera", async () => {
     const { getByTestId, getByText } = await render(
       <ConversacionDetalleScreen route={route} navigation={crearNavigation()} />,
     );
-    await waitFor(() => expect(getByTestId("detalle-mas-acciones")).toBeTruthy());
+    await waitFor(() => expect(getByTestId("detalle-notas")).toBeTruthy());
 
-    await fireEvent.press(getByTestId("detalle-mas-acciones"));
     await fireEvent.press(getByTestId("detalle-notas"));
     expect(getByText("Cliente frecuente")).toBeTruthy();
 
@@ -278,6 +276,16 @@ describe("ConversacionDetalleScreen (HU-APP-08)", () => {
       id: "lead-1",
       titulo: "Juanita",
     });
+  });
+
+  it("no ofrece resolver en una conversación abierta sin escalación", async () => {
+    const { getByTestId, queryByTestId } = await render(
+      <ConversacionDetalleScreen route={route} navigation={crearNavigation()} />,
+    );
+    await waitFor(() => expect(getByTestId("detalle-mas-acciones")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("detalle-mas-acciones"));
+    expect(queryByTestId("detalle-resolver")).toBeNull();
   });
 
   it("muestra el motivo de un mensaje fallido", async () => {

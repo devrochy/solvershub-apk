@@ -29,6 +29,17 @@ describe("RadioGroup (kit)", () => {
     expect(screen.queryByTestId("rg-ventas-punto")).toBeNull();
   });
 
+  it("muestra el icono de la opción cuando se pasa", async () => {
+    await render(
+      <RadioGroup
+        label="Conexión"
+        options={[{ value: "wa", label: "WhatsApp", icono: "chat" }]}
+        value="wa"
+      />,
+    );
+    expect(screen.getByTestId("icono-chat")).toBeTruthy();
+  });
+
   it("sin valor no hay ninguna elegida", async () => {
     await render(<RadioGroup label="Tipo" options={OPCIONES} />);
     for (const r of screen.getAllByRole("radio")) expect(r.props.accessibilityState.checked).toBe(false);

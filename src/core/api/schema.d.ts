@@ -4,6 +4,152 @@
  */
 
 export interface paths {
+    "/api/v1/access/device-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Device Session
+         * @description Registra (o consulta) el equipo de la APK para la cuenta que llama y dice si puede operar.
+         *
+         *     Sirve a cualquier rol del negocio, pero solo para SU propio `admin_id` (el del token): nadie registra un
+         *     equipo en nombre de otro. El equipo pendiente o bloqueado también puede llamarla (ruta exenta de la
+         *     dependencia del principal): así consulta su estado y puede cerrar sesión. Con la política abierta el
+         *     alta es automática; con la restringida queda `pendiente` hasta que un admin lo apruebe.
+         */
+        post: operations["device_session_api_v1_access_device_session_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Devices */
+        get: operations["list_devices_api_v1_access_devices_get"];
+        put?: never;
+        /** Create Device */
+        post: operations["create_device_api_v1_access_devices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices/{device_row_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Device */
+        get: operations["get_device_api_v1_access_devices__device_row_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices/{device_row_id}/aprobar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Device */
+        post: operations["approve_device_api_v1_access_devices__device_row_id__aprobar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices/{device_row_id}/bloquear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Block Device */
+        post: operations["block_device_api_v1_access_devices__device_row_id__bloquear_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/devices/{device_row_id}/dar-de-baja": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove Device */
+        post: operations["remove_device_api_v1_access_devices__device_row_id__dar_de_baja_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Events */
+        get: operations["list_events_api_v1_access_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Policy */
+        get: operations["get_policy_api_v1_access_policy_get"];
+        /** Update Policy */
+        put: operations["update_policy_api_v1_access_policy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/a2a/calls": {
         parameters: {
             query?: never;
@@ -177,6 +323,26 @@ export interface paths {
         patch: operations["patch_agent_api_v1_admin_agents__agent_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Agent Actions
+         * @description Las acciones de las habilidades del agente, agrupadas por lo que hacen, con su binding del borrador.
+         */
+        get: operations["list_agent_actions_api_v1_admin_agents__agent_id__actions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/datos-de-prueba": {
         parameters: {
             query?: never;
@@ -205,6 +371,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/datos-de-prueba/registros": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Registros De Prueba
+         * @description Lo que el agente tiene cargado para probarlo (último lote generado e importado), en palabras.
+         *     Lo de un módulo cuya sección el usuario no puede ver no sale.
+         */
+        get: operations["registros_de_prueba_api_v1_admin_agents__agent_id__datos_de_prueba_registros_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/draft": {
         parameters: {
             query?: never;
@@ -217,6 +404,180 @@ export interface paths {
         /** Save Draft */
         put: operations["save_draft_api_v1_admin_agents__agent_id__draft_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado Importacion
+         * @description Si el agente importa datos, su plantilla (columnas y topes) y lo ya importado.
+         */
+        get: operations["estado_importacion_api_v1_admin_agents__agent_id__importar_datos_get"];
+        put?: never;
+        /**
+         * Importar Datos
+         * @description Importa el archivo. Con errores en alguna fila responde 422 `archivo_con_errores` salvo `solo_validas`.
+         *     Las filas cuya clave ya existe se omiten (idempotente).
+         */
+        post: operations["importar_datos_api_v1_admin_agents__agent_id__importar_datos_post"];
+        /**
+         * Borrar Importacion
+         * @description Retira solo lo que se importó para este agente; lo generado y lo creado a mano no se tocan.
+         */
+        delete: operations["borrar_importacion_api_v1_admin_agents__agent_id__importar_datos_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/filas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importar Precarga
+         * @description Importa la precarga editada: se vuelve a validar contra el esquema del pack. Con errores en
+         *     alguna fila responde 422 `archivo_con_errores` salvo `solo_validas`. Idempotente por clave natural.
+         */
+        post: operations["importar_precarga_api_v1_admin_agents__agent_id__importar_datos_filas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/filas/validar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validar Precarga
+         * @description Vista previa de la precarga editada. No escribe.
+         */
+        post: operations["validar_precarga_api_v1_admin_agents__agent_id__importar_datos_filas_validar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/fotos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importar Foto
+         * @description Una foto → una fila propuesta para la precarga. Cotiza y verifica el crédito antes de llamar a
+         *     la visión (409 `plan_limit_creditos` si no alcanza, sin cobrar); la misma foto otra vez se
+         *     responde sin cobrar. La fila se confirma con el resto en `…/importar-datos/filas`.
+         */
+        post: operations["importar_foto_api_v1_admin_agents__agent_id__importar_datos_fotos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/fotos/cotizacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cotizar Fotos
+         * @description Cuánto cuesta reconocer `fotos` fotos y si el crédito del mes alcanza. No escribe nada.
+         */
+        get: operations["cotizar_fotos_api_v1_admin_agents__agent_id__importar_datos_fotos_cotizacion_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/mapear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mapear Importacion
+         * @description Propone a qué columna de la plantilla va cada cabecera (sinónimos del pack y, para las que no
+         *     reconoce, una llamada a la IA medida en el ledger) y devuelve las filas normalizadas con su vista
+         *     previa. No escribe datos: el cliente edita la precarga y la confirma con `…/importar-datos/filas`.
+         */
+        post: operations["mapear_importacion_api_v1_admin_agents__agent_id__importar_datos_mapear_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/plantilla.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Plantilla Importacion
+         * @description La plantilla CSV del agente: cabeceras y filas de ejemplo (UTF-8 con BOM, para Excel).
+         */
+        get: operations["plantilla_importacion_api_v1_admin_agents__agent_id__importar_datos_plantilla_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/importar-datos/validar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validar Importacion
+         * @description Vista previa del archivo: errores por fila y cuántas filas se crearían o ya existen. No escribe.
+         */
+        post: operations["validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -271,6 +632,69 @@ export interface paths {
          */
         get: operations["list_requirements_api_v1_admin_agents__agent_id__requirements_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/retired-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Retired References
+         * @description Aviso de un agente para el editor y el flujo de publicar (mismo texto que el 422 de publicar).
+         *     Sin avisos, `notices` viene vacío y `blocks_publish` en false. 404 si no es un agente del negocio.
+         */
+        get: operations["get_retired_references_api_v1_admin_agents__agent_id__retired_references_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Agent Skills
+         * @description Habilidades que se agregan a uno o varios agentes (Pagos en línea, Conocimiento) y si este agente las tiene.
+         */
+        get: operations["list_agent_skills_api_v1_admin_agents__agent_id__skills_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/skills/{pack_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Agent Skill
+         * @description Instala, quita o configura una habilidad del agente. Pagos en línea exige `config.cuenta_id`, una cuenta
+         *     Wompi del negocio; sin ella queda `pending_config`. 404 si el agente o la habilidad no existen; 422 si la
+         *     config no valida (sin devolver los valores).
+         */
+        put: operations["put_agent_skill_api_v1_admin_agents__agent_id__skills__pack_id__put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -429,6 +853,27 @@ export interface paths {
         };
         /** Agents Overview */
         get: operations["agents_overview_api_v1_admin_agents_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/retired-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Retired References
+         * @description Avisos del negocio (HU-AOS-59, ADR-0184): por agente, lo que nombra y ya no existe, en palabras
+         *     simples. Solo lectura; solo ve los agentes de su negocio. Solo salen los agentes con avisos.
+         */
+        get: operations["list_retired_references_api_v1_admin_agents_retired_references_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -912,7 +1357,7 @@ export interface paths {
         /**
          * Start Canary
          * @description Prueba la versión con una parte de las conversaciones nuevas (HU-AOS-32). Mismas reglas que
-         *     publicar: dueño o master, gate aprobado si está cerrado, `aos_runtime = v3` (409 `requiere_v3`).
+         *     publicar: dueño o master y gate aprobado si está cerrado.
          *     Si la plataforma la apagó (`CANARY_DISPONIBLE`), responde 409 `canary_no_disponible`.
          */
         post: operations["start_canary_api_v1_admin_connections__connection_id__releases__release_id__canary_post"];
@@ -1047,7 +1492,8 @@ export interface paths {
         };
         /**
          * Connections Catalog
-         * @description Catálogo de tipos de conexión agrupado por categoría (ADR-0069).
+         * @description Catálogo de tipos de conexión agrupado por categoría (ADR-0069). Un tipo que se abre por negocio
+         *     (`bandera_negocio`, ADR-0186 §12) está disponible solo si el negocio tiene su bandera encendida.
          */
         get: operations["connections_catalog_api_v1_admin_connections_catalog_get"];
         put?: never;
@@ -1113,6 +1559,293 @@ export interface paths {
         get: operations["connection_manual_form_api_v1_admin_connections_manual__type_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Conectar
+         * @description Conecta el número elegido: guarda la conexión, registra los webhooks del sender en Twilio y los relee.
+         *     201 si se creó; 200 si el número ya estaba conectado en este negocio. Si registrar los webhooks falla, la
+         *     conexión queda en `error` (con `last_error_code`) y se reintenta con el mismo pedido.
+         */
+        post: operations["conectar_api_v1_admin_connections_twilio_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ver
+         * @description Resumen de una conexión de Twilio del negocio: número, estado y webhooks registrados.
+         */
+        get: operations["ver_api_v1_admin_connections_twilio__connection_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/costs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Costos
+         * @description Lo que Twilio cobró por los mensajes de esta conexión, por moneda.
+         */
+        get: operations["costos_api_v1_admin_connections_twilio__connection_id__costs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rotar Credenciales
+         * @description Cambia el Auth Token (o la cuenta) del número ya conectado. Pide la contraseña; se valida contra Twilio antes
+         *     de guardar. Una conexión pausada no se rota (409 `conexion_pausada`): rotar no debe reactivarla.
+         */
+        put: operations["rotar_credenciales_api_v1_admin_connections_twilio__connection_id__credentials_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Desconectar
+         * @description Desconecta el número (borrado lógico, libera el número) y, si se pide, le devuelve sus webhooks anteriores.
+         */
+        post: operations["desconectar_api_v1_admin_connections_twilio__connection_id__disconnect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refrescar
+         * @description Revisa ahora la cuenta, el número y los webhooks contra Twilio (lo mismo que el chequeo de cada 15 min).
+         */
+        post: operations["refrescar_api_v1_admin_connections_twilio__connection_id__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Plantillas
+         * @description Plantillas de la conexión, con el estado de su aprobación.
+         */
+        get: operations["listar_plantillas_api_v1_admin_connections_twilio__connection_id__templates_get"];
+        put?: never;
+        /**
+         * Crear Plantilla
+         * @description Crea la plantilla en la cuenta de Twilio (sin enviarla a aprobación). Repetirla tras un corte la reconcilia.
+         */
+        post: operations["crear_plantilla_api_v1_admin_connections_twilio__connection_id__templates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/templates/{template_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Borrar Plantilla
+         * @description Borra la plantilla (también en Twilio, si se puede).
+         */
+        delete: operations["borrar_plantilla_api_v1_admin_connections_twilio__connection_id__templates__template_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/templates/{template_id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refrescar Plantilla
+         * @description Consulta ahora el estado de la aprobación.
+         */
+        post: operations["refrescar_plantilla_api_v1_admin_connections_twilio__connection_id__templates__template_id__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/templates/{template_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enviar Plantilla A Aprobacion
+         * @description Pide la aprobación de WhatsApp. Idempotente.
+         */
+        post: operations["enviar_plantilla_a_aprobacion_api_v1_admin_connections_twilio__connection_id__templates__template_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/templates/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sincronizar Plantillas
+         * @description Trae todas las plantillas de la cuenta de Twilio (también las creadas en su consola). Uno por minuto.
+         */
+        post: operations["sincronizar_plantillas_api_v1_admin_connections_twilio__connection_id__templates_sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/test-message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mensaje De Prueba
+         * @description Manda un texto de prueba. WhatsApp exige que ese número le haya escrito al negocio en las últimas 24 h.
+         */
+        post: operations["mensaje_de_prueba_api_v1_admin_connections_twilio__connection_id__test_message_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/webhooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reregistrar
+         * @description Vuelve a apuntar los webhooks del número a solvershub (si alguien los cambió en la consola de Twilio).
+         */
+        post: operations["reregistrar_api_v1_admin_connections_twilio__connection_id__webhooks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Descubrir
+         * @description Valida las credenciales contra Twilio y lista los números de WhatsApp de la cuenta. No guarda nada.
+         */
+        post: operations["descubrir_api_v1_admin_connections_twilio_discover_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1519,6 +2252,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/datos-cliente/aviso": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Aviso */
+        get: operations["get_aviso_api_v1_admin_datos_cliente_aviso_get"];
+        /**
+         * Save Aviso
+         * @description Guarda el texto y el interruptor del aviso. Activarlo exige confirmar la revisión legal del texto.
+         *     El texto completo queda en la auditoría junto con su versión.
+         */
+        put: operations["save_aviso_api_v1_admin_datos_cliente_aviso_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/datos-cliente/politica": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Politica */
+        get: operations["get_politica_api_v1_admin_datos_cliente_politica_get"];
+        /**
+         * Save Politica
+         * @description Reemplaza los ajustes de las acciones habilitadas. Rechaza acciones o datos que el negocio
+         *     no tiene y los pisos técnicos; guarda solo lo que difiere del valor del módulo.
+         */
+        put: operations["save_politica_api_v1_admin_datos_cliente_politica_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/datos-de-prueba/{modulo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado Modulo
+         * @description Estado de los datos de prueba del módulo (Ventas, Agenda, Cobranza o Suscripciones).
+         */
+        get: operations["estado_modulo_api_v1_admin_datos_de_prueba__modulo__get"];
+        put?: never;
+        /**
+         * Generar Modulo
+         * @description Genera los datos del módulo según la descripción del negocio y reemplaza el lote anterior.
+         */
+        post: operations["generar_modulo_api_v1_admin_datos_de_prueba__modulo__post"];
+        /**
+         * Borrar Modulo
+         * @description Retira todos los datos de prueba del módulo; lo creado a mano no se toca.
+         */
+        delete: operations["borrar_modulo_api_v1_admin_datos_de_prueba__modulo__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/dlq": {
         parameters: {
             query?: never;
@@ -1803,6 +2608,33 @@ export interface paths {
         patch: operations["update_lead_api_v1_admin_leads__lead_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/leads/{lead_id}/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Lead Avatar
+         * @description Sube o reemplaza la foto del cliente en el almacenamiento del negocio.
+         *
+         *     La foto queda como dato de una persona (`source="human"`) y la API devuelve el
+         *     `avatar_url` ya firmado para que el panel y la APK lo pinten sin proxys.
+         */
+        post: operations["upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post"];
+        /**
+         * Delete Lead Avatar
+         * @description Quita la foto del cliente y borra el archivo si era del almacenamiento.
+         */
+        delete: operations["delete_lead_avatar_api_v1_admin_leads__lead_id__avatar_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/leads/{lead_id}/consentimiento": {
         parameters: {
             query?: never;
@@ -1820,8 +2652,58 @@ export interface paths {
          * Registrar Consentimiento
          * @description Marca que el cliente aceptó (o ya no acepta) recibir promociones. Se guarda cómo se obtuvo
          *     y quién lo marcó; nunca se edita una fila anterior (ADR-0150).
+         *
+         *     Registrar que **aceptó** exige evidencia con cualquier forma de obtenerlo (400 `evidencia_requerida`
+         *     si viene vacía o solo con espacios) y es solo del propietario o el master (D-SPEC-33-9): es la autorización
+         *     que responde ante Meta y la Ley 1581 y la que gasta créditos del propietario. Y nadie la
+         *     registra sobre una baja pedida por el cliente (`palabra_de_baja`) o impuesta por Meta
+         *     (`meta_131050`): 409 `baja_del_cliente` (y registrar que ya no acepta sobre esa baja no agrega
+         *     fila). Registrar que **ya no acepta** sigue abierto a quien tiene Clientes en escritura (es el
+         *     sentido seguro).
          */
         post: operations["registrar_consentimiento_api_v1_admin_leads__lead_id__consentimiento_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/leads/{lead_id}/consentimiento-datos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ver Consentimiento Datos
+         * @description Estado del cliente frente al aviso de datos (informado, aceptó, rechazó).
+         */
+        get: operations["ver_consentimiento_datos_api_v1_admin_leads__lead_id__consentimiento_datos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/leads/{lead_id}/consentimiento-datos/revocar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revocar Consentimiento Datos
+         * @description El cliente pidió que no se guarden más datos suyos: se registra la revocación y se retiran del
+         *     perfil sus datos personales. Solo dueño o master. Los registros de los módulos (pedidos, citas…)
+         *     no se borran aquí: la supresión en los módulos queda pendiente (aviso en la respuesta y auditoría).
+         */
+        post: operations["revocar_consentimiento_datos_api_v1_admin_leads__lead_id__consentimiento_datos_revocar_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1845,6 +2727,29 @@ export interface paths {
          *     país). La plataforma paga la llamada y hay topes global y por negocio (ADR-0154).
          */
         post: operations["geocodificar_lead_api_v1_admin_leads__lead_id__geocodificar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/leads/{lead_id}/geocodificar/reverso": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Geocodificar Lead Inverso
+         * @description Propone una dirección a partir de un punto del mapa, sin escribir el perfil.
+         *
+         *     Solo se envían latitud y longitud al proveedor. La persona confirma la propuesta y
+         *     el guardado sigue siendo un `PATCH /perfil` normal, con `source="human"`.
+         */
+        post: operations["geocodificar_lead_inverso_api_v1_admin_leads__lead_id__geocodificar_reverso_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2031,7 +2936,7 @@ export interface paths {
         };
         /**
          * Conexiones Para Envio
-         * @description Conexiones de WhatsApp Cloud del negocio con sus plantillas de marketing aprobadas.
+         * @description Conexiones de WhatsApp del negocio (Cloud o Twilio) con sus plantillas de marketing aprobadas.
          */
         get: operations["conexiones_para_envio_api_v1_admin_leads_acciones_plantilla_conexiones_get"];
         put?: never;
@@ -3584,6 +4489,152 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/crons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Crons */
+        get: operations["list_crons_api_v1_admin_platform_crons_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Cron */
+        get: operations["get_cron_api_v1_admin_platform_crons__name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause Cron */
+        post: operations["pause_cron_api_v1_admin_platform_crons__name__pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume Cron */
+        post: operations["resume_cron_api_v1_admin_platform_crons__name__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Cron Now
+         * @description Encola una ejecución manual. Ignora la pausa; no se solapa con otra en curso (409).
+         */
+        post: operations["run_cron_now_api_v1_admin_platform_crons__name__run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cron Runs */
+        get: operations["list_cron_runs_api_v1_admin_platform_crons__name__runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/{name}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reschedule Cron
+         * @description Cambia el horario (5 campos, UTC). El beat lo aplica en ~30 s, sin reiniciar.
+         */
+        put: operations["reschedule_cron_api_v1_admin_platform_crons__name__schedule_put"];
+        post?: never;
+        /**
+         * Reset Cron Schedule
+         * @description Vuelve al horario por defecto del código.
+         */
+        delete: operations["reset_cron_schedule_api_v1_admin_platform_crons__name__schedule_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/crons/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Crons Summary */
+        get: operations["crons_summary_api_v1_admin_platform_crons_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/meta-app": {
         parameters: {
             query?: never;
@@ -3676,7 +4727,11 @@ export interface paths {
         put?: never;
         /**
          * Create Tenant
-         * @description Alta de un negocio (master): tenant + asistente + cuenta admin opcional.
+         * @description Alta de un negocio (master): tenant + asistente + acceso del dueño por correo.
+         *
+         *     Con `admin_email` la cuenta del dueño nace sin contraseña y le llega un enlace de un solo
+         *     uso para definirla (ADR-0175). Si el correo no sale, el negocio se crea igual y la
+         *     respuesta lo dice (`invitation.estado`); se reenvía con `owner-invitation/resend`.
          */
         post: operations["create_tenant_api_v1_admin_platform_tenants_post"];
         delete?: never;
@@ -3702,7 +4757,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/platform/tenants/{tenant_id}/agent-os": {
+    "/api/v1/admin/platform/tenants/{tenant_id}/avisos-por-canal": {
         parameters: {
             query?: never;
             header?: never;
@@ -3710,19 +4765,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Agent Os
-         * @description Banderas del Agent OS del negocio, la global del entorno y el último cambio (quién y cuándo).
+         * Get Avisos Por Canal
+         * @description Bandera de los avisos por evento por canal de texto del negocio (apagada por defecto). Solo el master.
          */
-        get: operations["get_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_get"];
+        get: operations["get_avisos_por_canal_api_v1_admin_platform_tenants__tenant_id__avisos_por_canal_get"];
         /**
-         * Put Agent Os
-         * @description Lleva el negocio al estado pedido (HU-AOS-15, orden de ADR-0112): al pasar a v3 corre los
-         *     backfills del negocio y `migrar-a-v3` (con `construir` si se pide); al volver a legacy apaga
-         *     todo. Escribe con `aos_fijar_banderas` (auditada). 422 `agent_os_orden` (combinación fuera de
-         *     orden), 409 `agent_os_bloqueado` (precondiciones; `details` trae bloqueos y avisos) o
-         *     `agent_os_en_curso` (otro cambio en curso).
+         * Put Avisos Por Canal
+         * @description Enciende o apaga los avisos por canal de texto del negocio (auditado como `avisos_por_canal_bandera`).
+         *     Idempotente. Solo el master; es por negocio y no toca ningún otro.
          */
-        put: operations["put_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_put"];
+        put: operations["put_avisos_por_canal_api_v1_admin_platform_tenants__tenant_id__avisos_por_canal_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3730,21 +4782,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/platform/tenants/{tenant_id}/agent-os/simular": {
+    "/api/v1/admin/platform/tenants/{tenant_id}/canales/{canal}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /**
-         * Simular Agent Os
-         * @description Dry-run del cambio: bloqueos, avisos y los pasos que aplicaría. No escribe nada (ni
-         *     backfills, ni releases, ni banderas). 422 `agent_os_orden` si el objetivo viola el orden.
+         * Get Canal Bandera
+         * @description Bandera de un canal que se abre por negocio (apagada por defecto). Solo el master.
          */
-        post: operations["simular_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_simular_post"];
+        get: operations["get_canal_bandera_api_v1_admin_platform_tenants__tenant_id__canales__canal__get"];
+        /**
+         * Put Canal Bandera
+         * @description Abre o cierra un canal para el negocio (auditado como `canal_bandera`). Idempotente. Solo el master; es por
+         *     negocio y no toca ningún otro.
+         */
+        put: operations["put_canal_bandera_api_v1_admin_platform_tenants__tenant_id__canales__canal__put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3843,6 +4899,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/tenants/{tenant_id}/owner-invitation/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reenvía el acceso al dueño del negocio
+         * @description Reenvía el correo de acceso a la cuenta de la invitación `owner` pendiente del negocio
+         *     (ADR-0175). El destinatario no se recibe: es el de la invitación. Reusa el enlace mientras
+         *     vigente y lo renueva si venció.
+         */
+        post: operations["resend_owner_invitation_api_v1_admin_platform_tenants__tenant_id__owner_invitation_resend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/tenants/{tenant_id}/plan": {
         parameters: {
             query?: never;
@@ -3880,6 +4958,28 @@ export interface paths {
          *     Solo el master, también en test (invariante 8: el tester no purga).
          */
         post: operations["purge_tenant_endpoint_api_v1_admin_platform_tenants__tenant_id__purge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/tenants/{tenant_id}/retired-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Retired References
+         * @description Agentes, versiones, rutas, códigos y releases activas de este negocio que nombran algo que el
+         *     binario ya retiró: el mismo contenido que `agent-core db auditar-referencias --tenant <slug>`.
+         *     Solo lectura: no escribe nada ni corrige. Solo el master (ni el tester ni un colaborador).
+         */
+        get: operations["get_retired_references_api_v1_admin_platform_tenants__tenant_id__retired_references_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3926,6 +5026,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/playground/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Playground Options
+         * @description Envía la plantilla con opciones `clave` a la conversación de prueba, con `send_options_to_conversation`: crea el
+         *     `option_sends` con sus payloads firmados y guarda el mensaje con los botones, sin Meta ni cola. Los errores son
+         *     los de `POST /plantillas-opciones/{clave}/enviar-prueba` (404 si la bandera está apagada o la clave no existe,
+         *     409 si no está publicada, 422 si falta contexto).
+         */
+        post: operations["playground_options_api_v1_admin_playground_options_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/playground/reset": {
         parameters: {
             query?: never;
@@ -3940,6 +5063,28 @@ export interface paths {
          * @description Cierra la prueba actual y arranca una nueva desde cero.
          */
         post: operations["playground_reset_api_v1_admin_playground_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/playground/tap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Playground Tap
+         * @description Simula el toque de un botón de la conversación de prueba con el MISMO resolver que atiende WhatsApp: firma
+         *     por negocio y conversación, vigencia, una sola ejecución y autorización de la tool, sin LLM. Devuelve el
+         *     `outcome` y los mensajes que produjo. **Ejecuta la tool de verdad.** Un payload que no es de opciones es 422.
+         */
+        post: operations["playground_tap_api_v1_admin_playground_tap_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4670,6 +5815,48 @@ export interface paths {
          * @description Activa (o revierte a) una versión concreta del AgentSpec (ADR-0051).
          */
         post: operations["activate_spec_version_endpoint_api_v1_admin_settings_advanced_versions__version_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/settings/asistente/{seccion}/aplicar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Asistente Aplicar
+         * @description Escribe lo que mostró la vista previa. Todo o nada: la configuración del negocio y la persona
+         *     del agente se guardan en una sola transacción, y si lo que se escribiría ya no es lo que se vio
+         *     (la configuración cambió en medio) responde 409 sin escribir.
+         */
+        post: operations["asistente_aplicar_api_v1_admin_settings_asistente__seccion__aplicar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/settings/asistente/{seccion}/vista-previa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Asistente Vista Previa
+         * @description Qué cambiaría el asistente con esas respuestas (valor actual → propuesto), sin escribir nada.
+         */
+        post: operations["asistente_vista_previa_api_v1_admin_settings_asistente__seccion__vista_previa_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5438,6 +6625,117 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mensajes/catalogo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Catalogo
+         * @description Los mensajes del negocio activo en una sola lista, de solo lectura. No sincroniza con Meta (muestra lo último
+         *     guardado) y no descifra nada fuera de la lectura de configuración de los packs. 403 si no se puede leer
+         *     ninguna de las fuentes; 400 `no_tenant` si no hay un negocio seleccionado.
+         */
+        get: operations["catalogo_api_v1_mensajes_catalogo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mensajes/guardados": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar */
+        get: operations["listar_api_v1_mensajes_guardados_get"];
+        put?: never;
+        /**
+         * Crear
+         * @description Crea un mensaje guardado. 409 `clave_repetida` si el negocio ya tiene uno vivo con esa clave; 409
+         *     `limite_de_mensajes` al pasar el tope; 422 por texto, variables, canales o estado inválidos.
+         */
+        post: operations["crear_api_v1_mensajes_guardados_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mensajes/guardados/{clave}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtener */
+        get: operations["obtener_api_v1_mensajes_guardados__clave__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar
+         * @description Borra (lógicamente) el mensaje y libera su clave.
+         */
+        delete: operations["eliminar_api_v1_mensajes_guardados__clave__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Editar
+         * @description Cambia solo los campos que llegan; `estado: archivado` lo archiva y `activo` lo reactiva. 422 `sin_cambios` si
+         *     no llega ninguno.
+         */
+        patch: operations["editar_api_v1_mensajes_guardados__clave__patch"];
+        trace?: never;
+    };
+    "/api/v1/mensajes/guardados/catalogo-opciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Catalogo Opciones
+         * @description Canales y variables que el formulario puede ofrecer, y los topes de largo.
+         */
+        get: operations["catalogo_opciones_api_v1_mensajes_guardados_catalogo_opciones_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mensajes/guardados/vista-previa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vista Previa
+         * @description El texto con valores de muestra, sin guardar ni enviar nada. 422 con el mismo código que al guardar si el texto
+         *     no es válido (`texto_invalido`, `variable_no_permitida`).
+         */
+        post: operations["vista_previa_api_v1_mensajes_guardados_vista_previa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/calendar/appointments": {
         parameters: {
             query?: never;
@@ -5834,7 +7132,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Alerts */
+        /**
+         * List Alerts
+         * @deprecated
+         * @description Wrapper de `GET /api/v1/access/events` con la forma anterior (ADR-0174).
+         */
         get: operations["list_alerts_api_v1_pack_cobranza_alerts_get"];
         put?: never;
         post?: never;
@@ -6042,7 +7344,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Devices */
+        /**
+         * List Devices
+         * @deprecated
+         * @description Wrapper de `GET /api/v1/access/devices` con la forma anterior (ADR-0174): los equipos de los
+         *     gestores salen del core (ids del core) y los dispositivos v1 (código + API key) siguen en el pack.
+         */
         get: operations["list_devices_api_v1_pack_cobranza_devices_get"];
         put?: never;
         /**
@@ -6068,7 +7375,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set Device Status */
+        /**
+         * Set Device Status
+         * @deprecated
+         * @description Wrapper de las acciones de `/api/v1/access/devices/{id}` (ADR-0174): `activo` aprueba o reactiva,
+         *     `bloqueado` bloquea la cuenta en ese equipo. El id es el de la fila del core (o el de un dispositivo v1).
+         */
         post: operations["set_device_status_api_v1_pack_cobranza_devices__device_id__status_post"];
         delete?: never;
         options?: never;
@@ -6707,6 +8019,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pack/commerce/leads/{customer_id}/seguimiento/hecho": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seguimiento Hecho
+         * @description Marca como hecho el seguimiento del lead del cliente. Queda en su línea de tiempo con la nota.
+         */
+        post: operations["seguimiento_hecho_api_v1_pack_commerce_leads__customer_id__seguimiento_hecho_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/commerce/modulos": {
         parameters: {
             query?: never;
@@ -6731,7 +8063,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Orders */
+        /**
+         * List Orders
+         * @description Pedidos del negocio, del más reciente al más antiguo (HU-CRM-20).
+         *
+         *     Conserva la forma de lista (la consumen el panel y la APK); el total de los que coinciden
+         *     con los filtros viaja en la cabecera `X-Total-Count`.
+         */
         get: operations["list_orders_api_v1_pack_commerce_orders_get"];
         put?: never;
         post?: never;
@@ -7008,6 +8346,8 @@ export interface paths {
          *
          *     Reusa el link del cargo (o lo crea si falta, sin duplicar el cargo). Si el cliente no tiene
          *     una conversación de WhatsApp no se envía nada y se devuelve el link para copiarlo.
+         *     Es un contacto de cobro: solo dentro del horario legal del negocio y si el cliente no
+         *     recibió otro aviso de cobro ese día (HU-SUB-18, Ley 2300 de 2023); si no, 409.
          */
         post: operations["reenviar_link_de_cargo_api_v1_pack_pack_subscriptions_cargos__charge_id__reenviar_link_post"];
         delete?: never;
@@ -7082,6 +8422,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pack/pack_subscriptions/planes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Planes
+         * @description Catálogo de planes del negocio (sin los borrados), en el orden en que se ofrecen.
+         */
+        get: operations["listar_planes_api_v1_pack_pack_subscriptions_planes_get"];
+        put?: never;
+        /**
+         * Crear Plan
+         * @description Crea un plan. Código repetido → 409 `codigo_duplicado`; prueba en un plan de pago → 422.
+         */
+        post: operations["crear_plan_api_v1_pack_pack_subscriptions_planes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/pack_subscriptions/planes/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Editar Plan
+         * @description Reemplaza un plan. Las suscripciones ya inscritas conservan su snapshot (precio y nombre de cuando entraron).
+         */
+        put: operations["editar_plan_api_v1_pack_pack_subscriptions_planes__plan_id__put"];
+        post?: never;
+        /**
+         * Borrar Plan
+         * @description Borra el plan (lógico): deja de ofrecerse; las suscripciones vivas siguen cobrándose.
+         */
+        delete: operations["borrar_plan_api_v1_pack_pack_subscriptions_planes__plan_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/pack_subscriptions/promociones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Promociones
+         * @description Promociones de plan del negocio (sin las borradas), de la más reciente a la más antigua.
+         */
+        get: operations["listar_promociones_api_v1_pack_pack_subscriptions_promociones_get"];
+        put?: never;
+        /**
+         * Crear Promocion
+         * @description Crea una promoción. Código repetido → 409 `codigo_duplicado`; porcentaje fuera de 1–99 o períodos > 1 → 422.
+         */
+        post: operations["crear_promocion_api_v1_pack_pack_subscriptions_promociones_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/pack_subscriptions/promociones/{promocion_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Editar Promocion
+         * @description Reemplaza una promoción. Los canjes ya hechos conservan lo que se descontó.
+         */
+        put: operations["editar_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__put"];
+        post?: never;
+        /**
+         * Borrar Promocion
+         * @description Borra la promoción (lógico): su código deja de aplicar.
+         */
+        delete: operations["borrar_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/pack_subscriptions/promociones/{promocion_id}/canjes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Canjes De Promocion
+         * @description Quién canjeó la promoción, en qué estado está cada canje y cuánto se descontó.
+         */
+        get: operations["canjes_de_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__canjes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/pack_subscriptions/suscripciones": {
         parameters: {
             query?: never;
@@ -7097,7 +8553,10 @@ export interface paths {
         put?: never;
         /**
          * Crear Suscripcion Manual
-         * @description Crea (o reutiliza) la suscripción de un `Customer` a un plan.
+         * @description Inscribe a un `Customer` en un plan del catálogo.
+         *
+         *     Un plan de $0 nace activa (o en prueba); uno de pago nace `pendiente_pago` con su cobro y su link (o
+         *     las instrucciones de transferencia). Repetir la petición devuelve la misma inscripción.
          */
         post: operations["crear_suscripcion_manual_api_v1_pack_pack_subscriptions_suscripciones_post"];
         delete?: never;
@@ -7146,6 +8605,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pack/pack_subscriptions/suscripciones/{subscription_id}/confirmar-pago": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar Pago De Inscripcion
+         * @description Confirma a mano el pago por transferencia de una inscripción `pendiente_pago` (o de un cambio de plan).
+         *
+         *     Activa por el mismo camino que el webhook del pago en línea; repetir con la misma referencia responde
+         *     `ya_confirmado`. Queda auditado con el usuario.
+         */
+        post: operations["confirmar_pago_de_inscripcion_api_v1_pack_pack_subscriptions_suscripciones__subscription_id__confirmar_pago_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/pack_subscriptions/suscripciones/{subscription_id}/pausar": {
         parameters: {
             query?: never;
@@ -7184,6 +8666,42 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/payments/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Accounts */
+        get: operations["list_accounts_api_v1_pack_payments_accounts_get"];
+        put?: never;
+        /** Create Account */
+        post: operations["create_account_api_v1_pack_payments_accounts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/payments/accounts/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Account */
+        delete: operations["delete_account_api_v1_pack_payments_accounts__account_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Account */
+        patch: operations["update_account_api_v1_pack_payments_accounts__account_id__patch"];
         trace?: never;
     };
     "/api/v1/plantillas-opciones": {
@@ -7345,6 +8863,8 @@ export interface paths {
          * Catalogo Acciones
          * @description Las tools que el negocio puede usar como acción de una opción: elegibles (marca de su autor, pack activo,
          *     binding explícito y habilitado, sin gobernar por un procedimiento), con su JSON Schema y si son sensibles.
+         *     Con `?agent_id=` (ADR-0190, HU-AOS-67), solo las encendidas en ESE agente (el que atiende la conexión); 404 si
+         *     no es del negocio.
          */
         get: operations["catalogo_acciones_api_v1_plantillas_opciones_catalogo_acciones_get"];
         put?: never;
@@ -7563,6 +9083,20 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** AccessAccountRef */
+        AccessAccountRef: {
+            /** Email */
+            email: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nombre */
+            nombre: string | null;
+            /** Rol */
+            rol: ("master" | "owner" | "colaborador") | null;
+        };
         /** AccessAttempt */
         AccessAttempt: {
             /** Critico */
@@ -7577,6 +9111,237 @@ export interface components {
             motivo: string;
             /** Resultado */
             resultado: string;
+        };
+        /** AccessDeviceBlock */
+        AccessDeviceBlock: {
+            /**
+             * Alcance
+             * @default cuenta
+             * @enum {string}
+             */
+            alcance: "cuenta" | "equipo";
+            /**
+             * Esperado
+             * @default activo
+             * @enum {string}
+             */
+            esperado: "pendiente" | "activo" | "bloqueado";
+            /** Motivo */
+            motivo?: string | null;
+        };
+        /** AccessDeviceCreate */
+        AccessDeviceCreate: {
+            /**
+             * Admin Id
+             * Format: uuid
+             */
+            admin_id: string;
+            /** Device Id */
+            device_id: string;
+            /** Label */
+            label?: string | null;
+            /**
+             * Plataforma
+             * @default android
+             * @enum {string}
+             */
+            plataforma: "android" | "ios";
+        };
+        /**
+         * AccessDeviceDetail
+         * @description El detalle muestra el identificador completo: hay que compararlo al aprobar.
+         */
+        AccessDeviceDetail: {
+            /** Aprobado At */
+            aprobado_at: string | null;
+            /** Bloqueado At */
+            bloqueado_at: string | null;
+            /** Bloqueo Equipo */
+            bloqueo_equipo: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            cuenta: components["schemas"]["AccessAccountRef"] | null;
+            /** Device Id */
+            device_id: string | null;
+            /** Device Id Corto */
+            device_id_corto: string | null;
+            /** Device Label */
+            device_label: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "pendiente" | "activo" | "bloqueado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Legacy */
+            legacy: boolean;
+            /** Motivo */
+            motivo: string | null;
+            /**
+             * Origen
+             * @enum {string}
+             */
+            origen: "autoregistro" | "politica_abierta" | "alta_manual" | "migrado_pack";
+            /**
+             * Plataforma
+             * @enum {string}
+             */
+            plataforma: "android" | "ios";
+            /** Rol Al Registrar */
+            rol_al_registrar: ("owner" | "colaborador" | "gestor") | null;
+            /** Ultima Ip */
+            ultima_ip: string | null;
+            /** Ultimo Uso At */
+            ultimo_uso_at: string | null;
+        };
+        /** AccessDeviceOut */
+        AccessDeviceOut: {
+            /** Aprobado At */
+            aprobado_at: string | null;
+            /** Bloqueado At */
+            bloqueado_at: string | null;
+            /** Bloqueo Equipo */
+            bloqueo_equipo: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            cuenta: components["schemas"]["AccessAccountRef"] | null;
+            /** Device Id Corto */
+            device_id_corto: string | null;
+            /** Device Label */
+            device_label: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "pendiente" | "activo" | "bloqueado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Legacy */
+            legacy: boolean;
+            /** Motivo */
+            motivo: string | null;
+            /**
+             * Origen
+             * @enum {string}
+             */
+            origen: "autoregistro" | "politica_abierta" | "alta_manual" | "migrado_pack";
+            /**
+             * Plataforma
+             * @enum {string}
+             */
+            plataforma: "android" | "ios";
+            /** Rol Al Registrar */
+            rol_al_registrar: ("owner" | "colaborador" | "gestor") | null;
+            /** Ultima Ip */
+            ultima_ip: string | null;
+            /** Ultimo Uso At */
+            ultimo_uso_at: string | null;
+        };
+        /** AccessDevicePage */
+        AccessDevicePage: {
+            /** Items */
+            items: components["schemas"]["AccessDeviceOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** AccessDeviceTransition */
+        AccessDeviceTransition: {
+            /**
+             * Esperado
+             * @enum {string}
+             */
+            esperado: "pendiente" | "activo" | "bloqueado";
+        };
+        /** AccessEventOut */
+        AccessEventOut: {
+            /**
+             * Canal
+             * @enum {string}
+             */
+            canal: "campo" | "panel_apk" | "campo_v1";
+            cuenta: components["schemas"]["AccessAccountRef"] | null;
+            /** Detalle */
+            detalle: {
+                [key: string]: unknown;
+            } | null;
+            /** Device Id Corto */
+            device_id_corto: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Ip */
+            ip: string | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Rol */
+            rol: ("owner" | "colaborador" | "gestor") | null;
+            /**
+             * Severidad
+             * @enum {string}
+             */
+            severidad: "info" | "aviso" | "critico";
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "login_fallido" | "login_bloqueado" | "dispositivo_nuevo" | "dispositivo_pendiente" | "dispositivo_aprobado" | "dispositivo_bloqueado_usado" | "acceso_denegado_politica" | "dispositivo_sin_id" | "dispositivo_compartido" | "politica_cambiada" | "acceso_master" | "legado_pack";
+        };
+        /** AccessEventPage */
+        AccessEventPage: {
+            /** Items */
+            items: components["schemas"]["AccessEventOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** AccessPolicyOut */
+        AccessPolicyOut: {
+            /**
+             * Colaborador
+             * @enum {string}
+             */
+            colaborador: "abierto" | "restringido";
+            /**
+             * Gestor
+             * @enum {string}
+             */
+            gestor: "abierto" | "restringido";
+            /**
+             * Owner
+             * @enum {string}
+             */
+            owner: "abierto" | "restringido";
+        };
+        /** AccessPolicyUpdate */
+        AccessPolicyUpdate: {
+            /** Colaborador */
+            colaborador?: ("abierto" | "restringido") | null;
+            /**
+             * Confirmar
+             * @default false
+             */
+            confirmar: boolean;
+            /** Gestor */
+            gestor?: ("abierto" | "restringido") | null;
+            /** Owner */
+            owner?: ("abierto" | "restringido") | null;
         };
         /**
          * Accion
@@ -7635,6 +9400,17 @@ export interface components {
             motivo_pausa?: string | null;
             /** Proximo Cargo */
             proximo_cargo?: string | null;
+        };
+        /** AccionPoliticaOut */
+        AccionPoliticaOut: {
+            /** Campos */
+            campos: components["schemas"]["CampoPoliticaOut"][];
+            /** Etiqueta */
+            etiqueta: string;
+            /** Id */
+            id: string;
+            /** Modulo */
+            modulo: string;
         };
         /**
          * ActiveEscalation
@@ -7726,6 +9502,28 @@ export interface components {
             /** Versions */
             versions: components["schemas"]["SpecVersion"][];
         };
+        /** AgentAction */
+        AgentAction: {
+            /**
+             * By Superpower
+             * @default false
+             */
+            by_superpower: boolean;
+            /** Enabled */
+            enabled: boolean;
+            /** Group */
+            group: string;
+            /** In Agent */
+            in_agent: boolean;
+            /** Max Calls Per Conversation */
+            max_calls_per_conversation: number | null;
+            /** Pack Id */
+            pack_id: string;
+            /** Requires Confirmation */
+            requires_confirmation: boolean;
+            /** Tool */
+            tool: string;
+        };
         /** AgentChange */
         AgentChange: {
             /**
@@ -7815,6 +9613,28 @@ export interface components {
             /** Turns */
             turns: number;
         };
+        /**
+         * AgentCost
+         * @description Consumo de un agente en 30 días (HU-AOS-35). `agent_id` null = filas sin agente (legacy o
+         *     anteriores a las versiones). `cached_pct` = leído de la caché / entrada, solo sobre filas
+         *     desde la migración 0114; null si no hay ninguna medible.
+         */
+        AgentCost: {
+            /** Agent Id */
+            agent_id: string | null;
+            /** Agent Name */
+            agent_name: string | null;
+            /** Cached Pct */
+            cached_pct: number | null;
+            /** Cached Tokens */
+            cached_tokens: number;
+            /** Cost */
+            cost: number;
+            /** Tokens In */
+            tokens_in: number;
+            /** Turns */
+            turns: number;
+        };
         /** AgentCreate */
         AgentCreate: {
             /**
@@ -7831,6 +9651,15 @@ export interface components {
             kind: "core" | "specialist" | "backoffice";
             /** Name */
             name: string;
+        };
+        /** AgentCreationQuota */
+        AgentCreationQuota: {
+            /** Allowed */
+            allowed: boolean;
+            /** Limit */
+            limit: number | null;
+            /** Used */
+            used: number;
         };
         /** AgentCustomer */
         AgentCustomer: {
@@ -7916,90 +9745,19 @@ export interface components {
             name: string;
             /**
              * Ref
-             * @description Id del agente o el literal `general`, como en `/admin/agents/{ref}`.
+             * @description Id del agente, como en `/admin/agents/{ref}`.
              */
             ref: string;
-        };
-        /**
-         * AgentOSBanderas
-         * @description Estado de las banderas del Agent OS de un negocio (ADR-0112, ADR-0138).
-         */
-        AgentOSBanderas: {
-            /** Procedures */
-            procedures: boolean;
             /**
-             * Routing
-             * @enum {string}
+             * Serie
+             * @description Serie diaria cero-rellena del período (días calendario del negocio).
              */
-            routing: "off" | "shadow" | "active";
+            serie?: components["schemas"]["PuntoActividadOut"][];
             /**
-             * Runtime
-             * @enum {string}
+             * Ultima Actividad
+             * @description Último turno del agente dentro del período.
              */
-            runtime: "legacy" | "v3";
-        };
-        /** AgentOSCambio */
-        AgentOSCambio: {
-            /** Actor */
-            actor: string;
-            /**
-             * Fecha
-             * Format: date-time
-             */
-            fecha: string;
-        };
-        /** AgentOSEstado */
-        AgentOSEstado: {
-            /** Aos Connection Routing */
-            aos_connection_routing: boolean;
-            /** Procedures */
-            procedures: boolean;
-            /**
-             * Routing
-             * @enum {string}
-             */
-            routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
-            ultimo_cambio?: components["schemas"]["AgentOSCambio"] | null;
-        };
-        /** AgentOSObjetivo */
-        AgentOSObjetivo: {
-            /**
-             * Construir
-             * @default false
-             */
-            construir: boolean;
-            /** Procedures */
-            procedures: boolean;
-            /**
-             * Routing
-             * @enum {string}
-             */
-            routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
-        };
-        /** AgentOSResultado */
-        AgentOSResultado: {
-            /** Accion */
-            accion: string;
-            antes: components["schemas"]["AgentOSBanderas"];
-            /** Aos Connection Routing */
-            aos_connection_routing: boolean;
-            /** Avisos */
-            avisos: string[];
-            /** Bloqueos */
-            bloqueos: string[];
-            despues: components["schemas"]["AgentOSBanderas"];
-            /** Pasos */
-            pasos: string[];
+            ultima_actividad?: string | null;
         };
         /** AgentOverviewItem */
         AgentOverviewItem: {
@@ -8092,12 +9850,71 @@ export interface components {
             /** Turns */
             turns: number;
         };
+        /** AgentRetiredNotices */
+        AgentRetiredNotices: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /**
+             * Blocks Publish
+             * @description El borrador nombra algo retirado: publicar da 422 hasta corregirlo.
+             */
+            blocks_publish: boolean;
+            /**
+             * In Use
+             * @description Una conexión viva de tu negocio corre hoy algo que nombra lo retirado.
+             */
+            in_use: boolean;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Notices */
+            notices: components["schemas"]["RetiredNotice"][];
+            /**
+             * Published Version
+             * @description Número de la última versión publicada (null si nunca se publicó).
+             */
+            published_version: number | null;
+        };
+        /** AgentSkill */
+        AgentSkill: {
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
+            /** Installed */
+            installed: boolean;
+            /** Pack Id */
+            pack_id: string;
+            /** Status */
+            status: ("active" | "pending_config") | null;
+        };
+        /** AgentSkillIn */
+        AgentSkillIn: {
+            /** Config */
+            config?: {
+                [key: string]: unknown;
+            } | null;
+            /** Installed */
+            installed: boolean;
+        };
         /** AgentsOverview */
         AgentsOverview: {
+            /** Cuota Agentes */
+            cuota_agentes?: components["schemas"]["AgentCreationQuota"] | null;
             /** Items */
             items: components["schemas"]["AgentOverviewItem"][];
-            /** Runtime */
-            runtime: string;
+            /**
+             * Runtime
+             * @deprecated
+             * @description Deprecado: siempre `v3` (ADR-0191). Solo para la APK instalada; no lo leas.
+             * @default v3
+             * @constant
+             */
+            runtime: "v3";
             sin_atribuir: components["schemas"]["Activity"];
         };
         /** AgentSummary */
@@ -8493,10 +10310,47 @@ export interface components {
              */
             variables: string[];
         };
+        /** AsignacionOut */
+        AsignacionOut: {
+            /**
+             * Cabecera
+             * @description Cabecera tal como viene en el archivo.
+             */
+            cabecera: string;
+            /**
+             * Columna
+             * @description Columna de la plantilla; `null` = se ignora.
+             */
+            columna: string | null;
+            /**
+             * Origen
+             * @enum {string}
+             */
+            origen: "heuristica" | "ia" | "ninguno";
+        };
         /** AsistenciaIn */
         AsistenciaIn: {
             /** Asistio */
             asistio: boolean;
+        };
+        /** AsistenteAplicar */
+        AsistenteAplicar: {
+            /** Huella */
+            huella: string;
+            /** Respuestas */
+            respuestas?: {
+                [key: string]: string | string[];
+            };
+        };
+        /**
+         * AsistenteRespuestas
+         * @description Lo que el dueño contestó: id de pregunta → id de opción (o lista de ids en las de varias).
+         */
+        AsistenteRespuestas: {
+            /** Respuestas */
+            respuestas?: {
+                [key: string]: string | string[];
+            };
         };
         /**
          * AttemptOut
@@ -8559,6 +10413,34 @@ export interface components {
              */
             paso: number;
         };
+        /** AvisoDatosOut */
+        AvisoDatosOut: {
+            /** Activo */
+            activo: boolean;
+            /** Es Borrador */
+            es_borrador: boolean;
+            /** Texto */
+            texto: string;
+            /** Texto Propio */
+            texto_propio: string;
+            /** Version */
+            version: string;
+        };
+        /** AvisoDatosUpdate */
+        AvisoDatosUpdate: {
+            /** Activo */
+            activo: boolean;
+            /**
+             * Confirmo Revision Legal
+             * @default false
+             */
+            confirmo_revision_legal: boolean;
+            /**
+             * Texto
+             * @default
+             */
+            texto: string;
+        };
         /** AvisoOut */
         AvisoOut: {
             /**
@@ -8582,6 +10464,19 @@ export interface components {
             mensaje_estado?: string | null;
             /** Plantilla */
             plantilla?: string | null;
+        };
+        /** AvisosPorCanalBandera */
+        AvisosPorCanalBandera: {
+            /**
+             * Habilitada
+             * @description Si los avisos por evento también salen como texto por QR, chat web, Messenger e Instagram (con el texto que el negocio definió para cada canal en `fallback_text_by_channel`). Apagada: solo conversaciones de WhatsApp, como siempre.
+             */
+            habilitada: boolean;
+        };
+        /** AvisosPorCanalBanderaIn */
+        AvisosPorCanalBanderaIn: {
+            /** Habilitada */
+            habilitada: boolean;
         };
         /**
          * BajasSettings
@@ -8681,6 +10576,16 @@ export interface components {
         BloqueGeneral: {
             /** Kpis */
             kpis: components["schemas"]["KpiOut"][];
+            /**
+             * Modulos Sin Agente
+             * @description Módulos activos del negocio que ningún agente cubre (ADR-0192: ya no cuelgan del General).
+             */
+            modulos_sin_agente?: components["schemas"]["ModuloOut"][];
+            /**
+             * Serie
+             * @description Serie diaria cero-rellena de todo el negocio (todos los agentes, el Coordinador y lo no atribuido); vacía sin la sección `agents`.
+             */
+            serie?: components["schemas"]["PuntoActividadOut"][];
         };
         /** Body_import_products_csv_api_v1_pack_commerce_products_import_post */
         Body_import_products_csv_api_v1_pack_commerce_products_import_post: {
@@ -8688,6 +10593,26 @@ export interface components {
             ally_id?: string | null;
             /** File */
             file: string;
+        };
+        /** Body_importar_datos_api_v1_admin_agents__agent_id__importar_datos_post */
+        Body_importar_datos_api_v1_admin_agents__agent_id__importar_datos_post: {
+            /** Archivo */
+            archivo: string;
+            /**
+             * Solo Validas
+             * @default false
+             */
+            solo_validas: boolean;
+        };
+        /** Body_importar_foto_api_v1_admin_agents__agent_id__importar_datos_fotos_post */
+        Body_importar_foto_api_v1_admin_agents__agent_id__importar_datos_fotos_post: {
+            /** Archivo */
+            archivo: string;
+        };
+        /** Body_mapear_importacion_api_v1_admin_agents__agent_id__importar_datos_mapear_post */
+        Body_mapear_importacion_api_v1_admin_agents__agent_id__importar_datos_mapear_post: {
+            /** Archivo */
+            archivo: string;
         };
         /** Body_subir_documento_api_v1_pack_pack_knowledge_agents__agent_id__documents_post */
         Body_subir_documento_api_v1_pack_pack_knowledge_agents__agent_id__documents_post: {
@@ -8710,8 +10635,18 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post */
+        Body_upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post: {
+            /** File */
+            file: string;
+        };
         /** Body_upload_product_image_api_v1_pack_commerce_products_image_post */
         Body_upload_product_image_api_v1_pack_commerce_products_image_post: {
+            /** Archivo */
+            archivo: string;
+        };
+        /** Body_validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post */
+        Body_validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post: {
             /** Archivo */
             archivo: string;
         };
@@ -9065,6 +11000,61 @@ export interface components {
             /** Tokens */
             tokens: number;
         };
+        /** Cambio */
+        Cambio: {
+            /** Actual */
+            actual?: unknown;
+            /** Clave */
+            clave: string;
+            /**
+             * Editado A Mano
+             * @default false
+             */
+            editado_a_mano: boolean;
+            /** Etiqueta */
+            etiqueta: string;
+            /** Propuesto */
+            propuesto?: unknown;
+        };
+        /** CampoPoliticaOut */
+        CampoPoliticaOut: {
+            /** Ajustable */
+            ajustable: boolean;
+            /** Ajustado */
+            ajustado: boolean;
+            /** Clave */
+            clave: string;
+            /** Etiqueta */
+            etiqueta: string;
+            /**
+             * Nivel
+             * @enum {string}
+             */
+            nivel: "requerido" | "recomendado" | "no_pedir";
+            /**
+             * Por Defecto
+             * @enum {string}
+             */
+            por_defecto: "requerido" | "recomendado" | "no_pedir";
+        };
+        /** CanalBandera */
+        CanalBandera: {
+            /**
+             * Canal
+             * @description Canal que se abre por negocio (hoy solo `whatsapp_twilio`, ADR-0186).
+             */
+            canal: string;
+            /**
+             * Habilitado
+             * @description Si el tipo de conexión del canal está disponible en el catálogo del negocio. Apagado: «Próximamente» y su alta responde 404.
+             */
+            habilitado: boolean;
+        };
+        /** CanalBanderaIn */
+        CanalBanderaIn: {
+            /** Habilitado */
+            habilitado: boolean;
+        };
         /** CanaryIn */
         CanaryIn: {
             /**
@@ -9192,6 +11182,45 @@ export interface components {
             /** Veredicto Guardado */
             veredicto_guardado: boolean;
         };
+        /** CanjeOut */
+        CanjeOut: {
+            /**
+             * Cargo Id
+             * Format: uuid
+             */
+            cargo_id: string;
+            /**
+             * Cliente Id
+             * Format: uuid
+             */
+            cliente_id: string;
+            /** Creado */
+            creado?: string | null;
+            /** Descuento */
+            descuento?: number | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "reservado" | "confirmado" | "agotado" | "terminado" | "liberado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Monto
+             * @description Neto cobrado.
+             */
+            monto?: number | null;
+            /** Monto Bruto */
+            monto_bruto?: number | null;
+            /**
+             * Suscripcion Id
+             * Format: uuid
+             */
+            suscripcion_id: string;
+        };
         /** CargoItem */
         CargoItem: {
             cliente?: components["schemas"]["ClienteRef"] | null;
@@ -9242,10 +11271,30 @@ export interface components {
         };
         /** Catalogo */
         Catalogo: {
+            /**
+             * Asistente
+             * @default []
+             */
+            asistente: components["schemas"]["Guion"][];
             /** Opciones */
             opciones: components["schemas"]["Opcion"][];
             /** Version */
             version: string;
+        };
+        /** CatalogoDeMensajesOut */
+        CatalogoDeMensajesOut: {
+            /** Mensajes */
+            mensajes: components["schemas"]["MensajeDelCatalogo"][];
+            /**
+             * Omitidas
+             * @description Tipos que no se listan y por qué.
+             */
+            omitidas: components["schemas"]["MensajeOmitido"][];
+            /**
+             * Truncado
+             * @description Tipos que pasaron el tope por tipo: la lista está recortada.
+             */
+            truncado: ("meta" | "evento" | "opciones" | "texto_pack" | "guardado")[];
         };
         /** CatalogResponse */
         CatalogResponse: {
@@ -9641,6 +11690,11 @@ export interface components {
             links: components["schemas"]["TenantLink"][];
             /** Nombre */
             nombre: string | null;
+            /**
+             * Pack Profiles
+             * @default []
+             */
+            pack_profiles: components["schemas"]["PackProfile"][];
             /** Permissions */
             permissions: components["schemas"]["PermissionItem"][];
             /** Role */
@@ -9710,6 +11764,15 @@ export interface components {
             /** Permisos */
             permisos: string[];
         };
+        /** ColumnaOut */
+        ColumnaOut: {
+            /** Descripcion */
+            descripcion: string;
+            /** Nombre */
+            nombre: string;
+            /** Obligatoria */
+            obligatoria: boolean;
+        };
         /** CommerceDashboard */
         CommerceDashboard: {
             kpi: components["schemas"]["CommerceKpi"];
@@ -9741,12 +11804,55 @@ export interface components {
             /** Plantillas */
             plantillas: components["schemas"]["PlantillaDeEnvio"][];
         };
+        /** ConexionTwilioOut */
+        ConexionTwilioOut: {
+            /** Account Sid */
+            account_sid: string;
+            /** Active */
+            active: boolean;
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Label */
+            label: string;
+            /** Last Error Code */
+            last_error_code: number | null;
+            /** Sender E164 */
+            sender_e164: string;
+            /** Sender Sid */
+            sender_sid: string;
+            /** Sender Status */
+            sender_status: string;
+            /**
+             * Status
+             * @description `pending`, `connected`, `degraded`, `revoked` o `error`.
+             */
+            status: string;
+            /** Tenia Webhook Previo */
+            tenia_webhook_previo: boolean;
+            /** Webhook Inbound Url */
+            webhook_inbound_url: string;
+            /** Webhook Status Url */
+            webhook_status_url: string;
+        };
         /** ConfiguredSecret */
         ConfiguredSecret: {
             /** Domains */
             domains: string[];
             /** Name */
             name: string;
+        };
+        /** ConfirmarPagoBody */
+        ConfirmarPagoBody: {
+            /**
+             * Referencia
+             * @description Número del comprobante o referencia del pago.
+             */
+            referencia: string;
         };
         /** ConnectedPageOut */
         ConnectedPageOut: {
@@ -9913,6 +12019,16 @@ export interface components {
             coexistence: boolean;
             /** Created At */
             created_at: string | null;
+            /**
+             * Display Name
+             * @description Nombre visible de la conexión (p. ej. perfil de WhatsApp Web); null si no se conoce.
+             */
+            display_name?: string | null;
+            /**
+             * Display Phone Number
+             * @description Número visible de la conexión (WhatsApp Web); null si no se conoce.
+             */
+            display_phone_number?: string | null;
             /** External Id */
             external_id: string;
             /**
@@ -9930,16 +12046,6 @@ export interface components {
             origin: string;
             /** Type Id */
             type_id?: string | null;
-            /**
-             * Display Name
-             * @description Nombre visible de la conexión (p. ej. perfil de WhatsApp Web); null si no se conoce.
-             */
-            display_name?: string | null;
-            /**
-             * Display Phone Number
-             * @description Número visible de la conexión (WhatsApp Web); null si no se conoce.
-             */
-            display_phone_number?: string | null;
         };
         /** ConnectionProduction */
         ConnectionProduction: {
@@ -10000,17 +12106,6 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
-            /**
-             * Routing
-             * @description `tenants.aos_routing`, solo lectura.
-             * @enum {string}
-             */
-            routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
             /** Total */
             total: number;
             /**
@@ -10060,6 +12155,42 @@ export interface components {
             connection_id: string;
             /** Skipped */
             skipped: components["schemas"]["SkippedPageOut"][];
+        };
+        /** ConsentimientoDatosItem */
+        ConsentimientoDatosItem: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "informado" | "otorgado" | "revocado";
+            /** Evidencia */
+            evidencia: string;
+            /** Origen */
+            origen: string;
+            /** Quien */
+            quien: string;
+            /** Version Aviso */
+            version_aviso: string | null;
+        };
+        /**
+         * ConsentimientoDatosOut
+         * @description Estado del cliente frente al aviso de tratamiento de datos y su historial (hasta 20).
+         */
+        ConsentimientoDatosOut: {
+            /** Aviso Activo */
+            aviso_activo: boolean;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "sin_aviso" | "informado" | "otorgado" | "revocado";
+            /** Historial */
+            historial: components["schemas"]["ConsentimientoDatosItem"][];
         };
         /** ConsentimientoIn */
         ConsentimientoIn: {
@@ -10187,7 +12318,20 @@ export interface components {
             coordinator: components["schemas"]["ConsoleAgent"] | null;
             /** Created At */
             created_at: string | null;
-            /** External Id */
+            /**
+             * Display Name
+             * @description Nombre visible del WhatsApp Web (perfil o negocio); null en los demás canales.
+             */
+            display_name?: string | null;
+            /**
+             * Display Phone Number
+             * @description Número visible: en WhatsApp oficial el que sincronizó Meta (p. ej. «+57 300 1234567»); en WhatsApp Web, el del teléfono vinculado. Null si aún no se conoce.
+             */
+            display_phone_number?: string | null;
+            /**
+             * External Id
+             * @description Clave de ruteo del canal; en WhatsApp oficial es el phone_number_id de Meta, no el número.
+             */
             external_id: string;
             /**
              * Health
@@ -10347,6 +12491,11 @@ export interface components {
             /** Notes */
             notes?: components["schemas"]["ConversationNote"][];
             /**
+             * Pending Count
+             * @description Mensajes entrantes después de la última respuesta entregada.
+             */
+            pending_count?: number;
+            /**
              * Started At
              * Format: date-time
              */
@@ -10410,6 +12559,11 @@ export interface components {
              */
             last_message_sender?: string | null;
             /**
+             * Pending Count
+             * @description Mensajes entrantes después de la última respuesta entregada.
+             */
+            pending_count?: number;
+            /**
              * Started At
              * Format: date-time
              */
@@ -10465,6 +12619,11 @@ export interface components {
         };
         /** CostsResponse */
         CostsResponse: {
+            /**
+             * By Agent
+             * @default []
+             */
+            by_agent: components["schemas"]["AgentCost"][];
             /** By Conversation */
             by_conversation: components["schemas"]["ConversationCost"][];
             /** By Model */
@@ -10477,8 +12636,51 @@ export interface components {
             /** Total Turns */
             total_turns: number;
         };
-        /** CrearSuscripcionBody */
+        /** CotizacionFotos */
+        CotizacionFotos: {
+            /**
+             * Alcanza
+             * @description Si el crédito del mes alcanza para todas las fotos.
+             */
+            alcanza: boolean;
+            /**
+             * Creditos
+             * @description Créditos que cuestan todas las fotos (redondeado hacia arriba).
+             */
+            creditos: number;
+            /** Disponible */
+            disponible: number | null;
+            /** Fotos */
+            fotos: number;
+            /**
+             * Limite
+             * @description Créditos del plan al mes; `null` = sin límite.
+             */
+            limite: number | null;
+            /**
+             * Llave Propia
+             * @description El negocio usa su propia llave de visión: solo se cobra el fee.
+             */
+            llave_propia: boolean;
+            /** Por Foto */
+            por_foto: number;
+            /**
+             * Usado
+             * @description Créditos usados en el mes.
+             */
+            usado: number;
+        };
+        /**
+         * CrearSuscripcionBody
+         * @description Inscribe a un `Customer` en un plan del catálogo (SPEC-43). El plan libre (nombre, precio,
+         *     periodicidad, variante de commerce) del contrato v1 se retiró con HU-COM-17.
+         */
         CrearSuscripcionBody: {
+            /**
+             * Codigo Promocion
+             * @description Código de una promoción de plan: el primer cobro sale con descuento (HU-SUB-33).
+             */
+            codigo_promocion?: string | null;
             /**
              * Customer Id
              * Format: uuid
@@ -10486,37 +12688,23 @@ export interface components {
              */
             customer_id: string;
             /**
-             * Moneda
-             * @default COP
+             * Datos Alta
+             * @description Datos del cliente para el alta (nombre, email, teléfono, negocio, vertical).
              */
-            moneda: string;
+            datos_alta?: {
+                [key: string]: string;
+            } | null;
             /**
-             * Nombre
-             * @description Nombre del plan.
+             * Metodo Pago
+             * @default pago_en_linea
+             * @enum {string}
              */
-            nombre: string;
+            metodo_pago: "pago_en_linea" | "transferencia";
             /**
-             * Periodicidad
-             * @default mensual
+             * Plan Codigo
+             * @description Código del plan del catálogo.
              */
-            periodicidad: string;
-            /**
-             * Precio
-             * @description Valor del período.
-             * @default 0
-             */
-            precio: number;
-            /**
-             * Trial Dias
-             * @description Días de prueba (0 = sin prueba).
-             * @default 0
-             */
-            trial_dias: number;
-            /**
-             * Variant Id
-             * @description Variante de commerce (si aplica).
-             */
-            variant_id?: string | null;
+            plan_codigo: string;
         };
         /** CredentialField */
         CredentialField: {
@@ -10594,6 +12782,153 @@ export interface components {
             period_start?: string | null;
             /** Used */
             used?: number | null;
+        };
+        /** CronList */
+        CronList: {
+            /** Items */
+            items: components["schemas"]["CronOut"][];
+            /**
+             * Modules
+             * @description Módulos en el orden de la pantalla.
+             */
+            modules: string[];
+        };
+        /** CronModuleSummary */
+        CronModuleSummary: {
+            /** Con Fallo */
+            con_fallo: number;
+            /** Module */
+            module: string;
+            /** Pausados */
+            pausados: number;
+            /** Total */
+            total: number;
+        };
+        /** CronOut */
+        CronOut: {
+            /**
+             * Acciones
+             * @description Acciones válidas para su estado actual.
+             */
+            acciones: ("run" | "pause" | "resume" | "schedule" | "reset_schedule")[];
+            /** Critical */
+            critical: boolean;
+            /**
+             * Default Schedule
+             * @description Expresión de 5 campos (UTC) del código.
+             */
+            default_schedule: string | null;
+            /** Description */
+            description: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "paused" | "running" | "failing" | "ok" | "never" | "untracked";
+            /** Failures 24H */
+            failures_24h: number;
+            /**
+             * Interval S
+             * @description Segundos, en los crons de intervalo fijo.
+             */
+            interval_s: number | null;
+            /** Label */
+            label: string;
+            last_run: components["schemas"]["CronRunOut"] | null;
+            /** Last Success At */
+            last_success_at: string | null;
+            /** Module */
+            module: string;
+            /** Name */
+            name: string;
+            /** Next Run At */
+            next_run_at: string | null;
+            /** Overridden */
+            overridden: boolean;
+            /** Paused */
+            paused: boolean;
+            /**
+             * Record Success
+             * @description False: no se guarda cada ejecución exitosa.
+             */
+            record_success: boolean;
+            /** Reprogramable */
+            reprogramable: boolean;
+            /** Runs 24H */
+            runs_24h: number;
+            /**
+             * Schedule
+             * @description Horario vigente: el reprogramado o el por defecto.
+             */
+            schedule: string | null;
+            /** Sensitive */
+            sensitive: boolean;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** CronRunOut */
+        CronRunOut: {
+            /** Detail */
+            detail: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Error Class */
+            error_class: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "success" | "failed" | "skipped";
+            /**
+             * Trigger
+             * @enum {string}
+             */
+            trigger: "scheduled" | "manual";
+        };
+        /** CronRunQueued */
+        CronRunQueued: {
+            /** Message */
+            message: string;
+            /**
+             * Queued
+             * @default true
+             */
+            queued: boolean;
+        };
+        /** CronScheduleIn */
+        CronScheduleIn: {
+            /**
+             * Schedule
+             * @description Cinco campos: minuto hora día-del-mes mes día-de-la-semana (UTC).
+             */
+            schedule: string;
+        };
+        /** CronSummary */
+        CronSummary: {
+            /** Activos */
+            activos: number;
+            /** Con Fallo */
+            con_fallo: number;
+            /** Ejecutando */
+            ejecutando: number;
+            /** Modulos */
+            modulos: components["schemas"]["CronModuleSummary"][];
+            /** Pausados */
+            pausados: number;
+            /** Total */
+            total: number;
         };
         /** DashboardResponse */
         DashboardResponse: {
@@ -10769,6 +13104,43 @@ export interface components {
             /** Pendientes */
             pendientes: number;
         };
+        /**
+         * DeviceSessionIn
+         * @description Check-in del equipo de la APK (camelCase: es el contrato de la app, HU-ACC-03).
+         */
+        DeviceSessionIn: {
+            /** Appversion */
+            appVersion?: string | null;
+            /** Deviceid */
+            deviceId: string;
+            /** Label */
+            label?: string | null;
+            /**
+             * Plataforma
+             * @default android
+             * @enum {string}
+             */
+            plataforma: "android" | "ios";
+        };
+        /** DeviceSessionOut */
+        DeviceSessionOut: {
+            /** Dispositivoid */
+            dispositivoId?: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "activo" | "pendiente" | "bloqueado" | "none";
+            /** Permitido */
+            permitido: boolean;
+            /**
+             * Politica
+             * @enum {string}
+             */
+            politica: "abierto" | "restringido" | "plataforma";
+            /** Requierevinculacion */
+            requiereVinculacion: boolean;
+        };
         /** DeviceStatusUpdate */
         DeviceStatusUpdate: {
             /** Estado */
@@ -10919,8 +13291,6 @@ export interface components {
             connections: components["schemas"]["PublishedConnection"][];
             /** Created */
             created: boolean;
-            /** General Updated */
-            general_updated?: number | null;
             version: components["schemas"]["AgentVersionSummary"];
             /** Warnings */
             warnings: string[];
@@ -10974,6 +13344,18 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** ErrorDeFila */
+        ErrorDeFila: {
+            /** Columna */
+            columna: string | null;
+            /**
+             * Fila
+             * @description Número de fila en el archivo (la cabecera es la 1).
+             */
+            fila: number;
+            /** Mensaje */
+            mensaje: string;
+        };
         /** EscalationItem */
         EscalationItem: {
             /**
@@ -10986,6 +13368,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
             /** Customer Name */
             customer_name: string | null;
             /** External Id */
@@ -11090,6 +13477,38 @@ export interface components {
              */
             motivo?: string | null;
         };
+        /** EstadoDatosDePruebaModulo */
+        EstadoDatosDePruebaModulo: {
+            /** Disponible */
+            disponible: boolean;
+            /**
+             * Falta Descripcion
+             * @description El negocio no tiene descripción propia: hay que escribirla antes.
+             */
+            falta_descripcion: boolean;
+            lote: components["schemas"]["LoteDePrueba"] | null;
+            /** Modulo */
+            modulo: string;
+            /**
+             * Motivo
+             * @description Por qué el módulo no tiene datos que generar.
+             */
+            motivo?: string | null;
+            /** Titulo */
+            titulo: string;
+        };
+        /** EstadoImportacion */
+        EstadoImportacion: {
+            /** Disponible */
+            disponible: boolean;
+            importado: components["schemas"]["LoteImportado"] | null;
+            /**
+             * Motivo
+             * @description Por qué el agente no importa datos.
+             */
+            motivo?: string | null;
+            plantilla: components["schemas"]["PlantillaImportacionOut"] | null;
+        };
         /** EvalRunItem */
         EvalRunItem: {
             /** Created At */
@@ -11175,10 +13594,22 @@ export interface components {
              */
             fallback_text: string;
             /**
+             * Fallback Text By Channel
+             * @default {}
+             */
+            fallback_text_by_channel: {
+                [key: string]: string;
+            };
+            /**
              * Language
              * @default es
              */
             language: string;
+            /**
+             * Option Template
+             * @default
+             */
+            option_template: string;
             /**
              * Template
              * @default
@@ -11270,6 +13701,45 @@ export interface components {
              */
             turn_id: string;
         };
+        /** FilaDeFoto */
+        FilaDeFoto: {
+            /**
+             * Creditos
+             * @description Créditos cobrados por esta foto (0 si ya se había procesado).
+             */
+            creditos: number | null;
+            /** Image Key */
+            image_key: string;
+            /** Image Url */
+            image_url: string;
+            /**
+             * Repetida
+             * @description La misma foto ya se había procesado: se respondió sin cobrar otra vez.
+             */
+            repetida: boolean;
+            /**
+             * Valores
+             * @description Fila propuesta para la precarga (columna → texto).
+             */
+            valores: {
+                [key: string]: string;
+            };
+        };
+        /** FilaPrecarga */
+        FilaPrecarga: {
+            /**
+             * Fila
+             * @description Número de fila en el archivo original (la cabecera es la 1).
+             */
+            fila: number;
+            /**
+             * Valores
+             * @description Columna de la plantilla → texto, como en el CSV. Lo demás se ignora.
+             */
+            valores: {
+                [key: string]: string | null;
+            };
+        };
         /** FlowResponse */
         FlowResponse: {
             /** Sections */
@@ -11351,6 +13821,47 @@ export interface components {
             enabled_skills: string[];
             /** Warnings */
             warnings: string[];
+        };
+        /**
+         * FuenteDeMensaje
+         * @description Dónde se edita: el panel arma el enlace con estos ids. Solo vienen los del tipo (el resto es nulo).
+         */
+        FuenteDeMensaje: {
+            /**
+             * Campo
+             * @description `texto_pack`: el campo de la configuración del pack.
+             */
+            campo?: string | null;
+            /**
+             * Clave
+             * @description `opciones` y `guardado`: clave de la plantilla o del mensaje guardado.
+             */
+            clave?: string | null;
+            /**
+             * Connection Id
+             * @description `meta`: la conexión de la WABA que tiene la plantilla.
+             */
+            connection_id?: string | null;
+            /**
+             * Editor
+             * @enum {string}
+             */
+            editor: "meta" | "evento" | "opciones" | "texto_pack" | "guardado";
+            /**
+             * Evento
+             * @description `evento`: clave del evento.
+             */
+            evento?: string | null;
+            /**
+             * Message Template Id
+             * @description `meta`: la fila de `message_templates`.
+             */
+            message_template_id?: string | null;
+            /**
+             * Plugin Id
+             * @description `texto_pack`: el pack dueño del texto.
+             */
+            plugin_id?: string | null;
         };
         /** GateBandera */
         GateBandera: {
@@ -11451,6 +13962,25 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** GuardadoError */
+        GuardadoError: {
+            /** Code */
+            code: string;
+            /** Details */
+            details?: {
+                [key: string]: unknown;
+            } | null;
+            /** Message */
+            message: string;
+        };
+        /**
+         * GuardadoErrorOut
+         * @description El sobre de error de la API (`{error: {code, message, details?}}`). En un 422, `details` trae los valores
+         *     válidos (`permitidas`) y, según el caso, los inválidos (`desconocidas`, `invalidos`).
+         */
+        GuardadoErrorOut: {
+            error: components["schemas"]["GuardadoError"];
+        };
         /** GuardrailsSettings */
         GuardrailsSettings: {
             /** Guardrails Text */
@@ -11465,6 +13995,23 @@ export interface components {
         GuardrailsUpdate: {
             /** Guardrails Text */
             guardrails_text: string;
+        };
+        /** Guion */
+        Guion: {
+            /**
+             * Ayuda
+             * @default
+             */
+            ayuda: string;
+            /** Preguntas */
+            preguntas: components["schemas"]["Pregunta"][];
+            /**
+             * Seccion
+             * @enum {string}
+             */
+            seccion: "voz" | "atencion";
+            /** Titulo */
+            titulo: string;
         };
         /**
          * HealthCheck
@@ -11553,6 +14100,19 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** IAMapeoOut */
+        IAMapeoOut: {
+            /**
+             * Motivo Fallo
+             * @description Si se llamó a la IA y no ayudó; esas cabeceras quedan sin asignar.
+             */
+            motivo_fallo?: ("proveedor" | "formato") | null;
+            /**
+             * Usada
+             * @description La IA asignó al menos una columna.
+             */
+            usada: boolean;
         };
         /** IdentitySettings */
         IdentitySettings: {
@@ -11765,6 +14325,31 @@ export interface components {
              * @deprecated
              */
             tono?: string | null;
+        };
+        /** ImportacionHecha */
+        ImportacionHecha: {
+            /** Con Errores */
+            con_errores: number;
+            /** Conteos */
+            conteos: {
+                [key: string]: number;
+            };
+            /** Creadas */
+            creadas: number;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /** Existentes */
+            existentes: number;
+            /**
+             * Lote Id
+             * Format: uuid
+             */
+            lote_id: string;
+            /** Plantilla */
+            plantilla: string;
         };
         /** ImportResult */
         ImportResult: {
@@ -12460,9 +15045,30 @@ export interface components {
              * Tipo
              * @enum {string}
              */
-            tipo: "opciones" | "texto";
+            tipo: "opciones" | "texto" | "fecha" | "numero";
             /** Value */
             value?: string | null;
+        };
+        /**
+         * LeadFacetaOut
+         * @description Cuántos clientes hay por opción de un filtro, con el resto de los filtros de la lista aplicados
+         *     (pero no el propio, para que las pestañas de un mismo filtro sumen contra el mismo total).
+         */
+        LeadFacetaOut: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Key */
+            key: string;
+            /** Sin Valor */
+            sin_valor: number;
+            /** Sumas */
+            sumas?: {
+                [key: string]: number;
+            } | null;
+            /** Total */
+            total: number;
         };
         /** LeadFact */
         LeadFact: {
@@ -12510,6 +15116,28 @@ export interface components {
             /** Longitud */
             longitud: number;
             perfil: components["schemas"]["LeadPerfilOut"];
+            /** Precision */
+            precision?: string | null;
+            /** Proveedor */
+            proveedor: string;
+        };
+        /**
+         * LeadGeocodificacionInversa
+         * @description Dirección propuesta a partir de un punto del mapa; no se guarda hasta confirmarla.
+         */
+        LeadGeocodificacionInversa: {
+            /** Departamento */
+            departamento?: string | null;
+            /** Direccion */
+            direccion?: string | null;
+            /** Latitud */
+            latitud: number;
+            /** Longitud */
+            longitud: number;
+            /** Municipio */
+            municipio?: string | null;
+            /** Pais */
+            pais?: string | null;
             /** Precision */
             precision?: string | null;
             /** Proveedor */
@@ -12653,6 +15281,8 @@ export interface components {
             perfil: components["schemas"]["LeadPerfilOut"];
             /** Telefono */
             telefono?: string | null;
+            /** Ultima Actividad */
+            ultima_actividad?: string | null;
         };
         /** LeadsResponse */
         LeadsResponse: {
@@ -12660,6 +15290,8 @@ export interface components {
             agents: components["schemas"]["LeadAgentOut"][];
             /** Columns */
             columns: components["schemas"]["LeadColumn"][];
+            /** Facetas */
+            facetas?: components["schemas"]["LeadFacetaOut"][];
             /** Filters */
             filters?: components["schemas"]["LeadFilter"][];
             /** Has More */
@@ -12672,6 +15304,16 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /**
+         * LeadUbicacionInversa
+         * @description Coordenadas que manda el mapa táctil de la ficha.
+         */
+        LeadUbicacionInversa: {
+            /** Latitud */
+            latitud: number;
+            /** Longitud */
+            longitud: number;
         };
         /**
          * LeadUpdate
@@ -12951,6 +15593,23 @@ export interface components {
              */
             retirados: number;
         };
+        /** LoteImportado */
+        LoteImportado: {
+            /**
+             * Conteos
+             * @description Registros importados por tipo (`producto`, `cliente`, `cuota`…).
+             */
+            conteos: {
+                [key: string]: number;
+            };
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /** Lotes */
+            lotes: number;
+        };
         /** ManualConnectionIn */
         ManualConnectionIn: {
             /**
@@ -12999,6 +15658,21 @@ export interface components {
             values: {
                 [key: string]: unknown;
             };
+        };
+        /** MapeoPropuesto */
+        MapeoPropuesto: {
+            /**
+             * Columnas Faltantes
+             * @description Obligatorias sin cabecera: el cliente debe completarlas.
+             */
+            columnas_faltantes: string[];
+            /** Filas */
+            filas: components["schemas"]["FilaPrecarga"][];
+            ia: components["schemas"]["IAMapeoOut"];
+            /** Mapeo */
+            mapeo: components["schemas"]["AsignacionOut"][];
+            plantilla: components["schemas"]["PlantillaImportacionOut"];
+            vista_previa: components["schemas"]["VistaPreviaImportacion"];
         };
         /** MarkReadRequest */
         MarkReadRequest: {
@@ -13170,6 +15844,182 @@ export interface components {
             /** Short Term Turns */
             short_term_turns: number;
         };
+        /** MensajeDelCatalogo */
+        MensajeDelCatalogo: {
+            /**
+             * Actualizado En
+             * @description `meta`: la última sincronización con Meta (el estado puede estar desfasado: no se sincroniza al listar); `opciones` y `guardado`: la última edición. Nulo en `evento` y `texto_pack`.
+             */
+            actualizado_en: string | null;
+            /**
+             * Canales Soportados
+             * @description Canales por los que sale hoy (de la tabla de capacidades por canal, pista C1). `guardado`: los canales de los tipos de conexión que el mensaje declara (todos si no declara ninguno); no promete envío: nada lo envía todavía.
+             */
+            canales_soportados: string[];
+            /** Clave */
+            clave: string;
+            /**
+             * Dialecto Variables
+             * @enum {string}
+             */
+            dialecto_variables: "meta_posicionales" | "meta_nombradas" | "llaves_con_ruta";
+            /**
+             * Estado
+             * @description `meta`: el de Meta (`APPROVED`, `PENDING`…); `evento`: `sin_mapear`, `mapeado` o `plantilla_no_aprobada`; `opciones`: `draft`, `published` o `retired`; `texto_pack`: `por_defecto`, `personalizado` o `config_invalida`; `guardado`: `borrador`, `activo` o `archivado`.
+             */
+            estado: string;
+            /**
+             * Estado Detalle
+             * @description `meta`: categoría; `evento`: plantilla mapeada; `opciones`: estado de su plantilla en Meta si se publicó allí; `texto_pack`: nombre del pack.
+             */
+            estado_detalle: string | null;
+            fuente: components["schemas"]["FuenteDeMensaje"];
+            /**
+             * Id
+             * @description Estable y único en el catálogo (`<tipo>:<…>`).
+             */
+            id: string;
+            /**
+             * Idioma
+             * @description `meta`: idioma de la plantilla; `evento`: el del mapeo, si hay.
+             */
+            idioma: string | null;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Resumen
+             * @description Primeros ~160 caracteres del texto propio del negocio (nunca datos de un cliente).
+             */
+            resumen: string | null;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "meta" | "evento" | "opciones" | "texto_pack" | "guardado";
+            /**
+             * Variables
+             * @description Tal como las usa la fuente, sin normalizar: marcadores de Meta, rutas permitidas del evento, variables de la definición o llaves del texto.
+             */
+            variables: string[];
+        };
+        /** MensajeGuardadoCrearIn */
+        MensajeGuardadoCrearIn: {
+            /**
+             * Canales
+             * @description `ConnectionType.id` donde puede salir. Vacío o `todos`: todos los canales.
+             */
+            canales?: string[];
+            /**
+             * Clave
+             * @description Única entre los mensajes vivos del negocio.
+             */
+            clave: string;
+            /**
+             * Estado
+             * @default borrador
+             * @enum {string}
+             */
+            estado: "borrador" | "activo";
+            /**
+             * Texto
+             * @description Hasta 1024 caracteres; solo variables permitidas.
+             */
+            texto: string;
+            /** Titulo */
+            titulo: string;
+        };
+        /**
+         * MensajeGuardadoEditarIn
+         * @description Solo cambian los campos que llegan. La clave no se cambia.
+         */
+        MensajeGuardadoEditarIn: {
+            /** Canales */
+            canales?: string[] | null;
+            /** Estado */
+            estado?: ("borrador" | "activo" | "archivado") | null;
+            /** Texto */
+            texto?: string | null;
+            /** Titulo */
+            titulo?: string | null;
+        };
+        /** MensajeGuardadoOut */
+        MensajeGuardadoOut: {
+            /**
+             * Actualizado En
+             * Format: date-time
+             */
+            actualizado_en: string;
+            /**
+             * Canales
+             * @description `ConnectionType.id` donde puede salir; vacío si es para todos.
+             */
+            canales: string[];
+            /** Clave */
+            clave: string;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "borrador" | "activo" | "archivado";
+            /**
+             * Texto
+             * @description Con variables `{cliente.nombre}`; conserva los saltos de línea.
+             */
+            texto: string;
+            /** Titulo */
+            titulo: string;
+            /**
+             * Todos Los Canales
+             * @description `canales` vacío: vale para todos los canales que atienden conversaciones.
+             */
+            todos_los_canales: boolean;
+            /**
+             * Variables
+             * @description Las que cita el texto, en orden y sin repetir.
+             */
+            variables: string[];
+        };
+        /** MensajeOmitido */
+        MensajeOmitido: {
+            /**
+             * Motivo
+             * @enum {string}
+             */
+            motivo: "sin_permiso" | "bandera_apagada";
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "meta" | "evento" | "opciones" | "texto_pack" | "guardado";
+        };
+        /** MensajesGuardadosOut */
+        MensajesGuardadosOut: {
+            /** Mensajes */
+            mensajes: components["schemas"]["MensajeGuardadoOut"][];
+        };
+        /**
+         * MePlanSummary
+         * @description Plan del negocio activo, para el shell del panel y de la app (HU-BILL-15).
+         */
+        MePlanSummary: {
+            /** Days Left */
+            days_left?: number | null;
+            /** Has Plan */
+            has_plan: boolean;
+            /** Plan Id */
+            plan_id: string | null;
+            /** Plan Name */
+            plan_name: string;
+            /** Status */
+            status: string;
+            /** Trial Ends At */
+            trial_ends_at?: string | null;
+        };
         /** MeResponse */
         MeResponse: {
             /**
@@ -13189,6 +16039,7 @@ export interface components {
             permissions: {
                 [key: string]: string | null;
             };
+            plan?: components["schemas"]["MePlanSummary"] | null;
             /**
              * Qa Testers Habilitados
              * @default false
@@ -13468,7 +16319,7 @@ export interface components {
             canceladas: number;
             /**
              * Churn Mes
-             * @description Bajas del mes ÷ suscripciones vivas al inicio del mes (0–1).
+             * @description Bajas del mes ÷ suscripciones vivas al inicio del mes (0 a 1).
              */
             churn_mes?: number | null;
             /** Cohortes */
@@ -13490,6 +16341,12 @@ export interface components {
              */
             mrr: number;
             /**
+             * Mrr Descuento
+             * @description Descuento vigente por mes (SPEC-43): de las activas de pago con descuento y períodos por consumir, valor del período por el porcentaje, normalizado a mes. El MRR no lo resta.
+             * @default 0
+             */
+            mrr_descuento: number;
+            /**
              * Mrr Mes Anterior
              * @description Aproximado: suscripciones vivas al cierre del mes anterior, a su precio actual.
              */
@@ -13501,6 +16358,18 @@ export interface components {
             otras_monedas: number;
             /** Pausadas */
             pausadas: number;
+            /**
+             * Pendientes De Pago
+             * @description Inscripciones esperando su primer pago: no son suscripciones vivas y no suman a nada.
+             * @default 0
+             */
+            pendientes_de_pago: number;
+            /**
+             * Suscripciones Con Descuento
+             * @description Activas de pago con descuento vigente.
+             * @default 0
+             */
+            suscripciones_con_descuento: number;
             /** Vencidas */
             vencidas: number;
         };
@@ -13800,6 +16669,8 @@ export interface components {
              * @description conversacion, escalacion, lead, cliente, pedido, pago, suscripcion, cobro, cita, conexion, mensaje_fallido, cobranza
              */
             entity: string;
+            /** Filtro */
+            filtro?: string | null;
             /** Id */
             id: string | null;
             /** Section */
@@ -13811,6 +16682,15 @@ export interface components {
             numbers: components["schemas"]["PhoneNumberItem"][];
             /** Sync Error */
             sync_error?: string | null;
+        };
+        /** Omitido */
+        Omitido: {
+            /** Clave */
+            clave: string;
+            /** Etiqueta */
+            etiqueta: string;
+            /** Motivo */
+            motivo: string;
         };
         /**
          * Opcion
@@ -13847,7 +16727,7 @@ export interface components {
              * Grupo
              * @enum {string}
              */
-            grupo: "identidad" | "voz" | "respuesta" | "escalamiento" | "horario" | "calidad" | "bajas" | "whatsapp_web" | "coordinador" | "agent_os";
+            grupo: "identidad" | "voz" | "respuesta" | "escalamiento" | "horario" | "calidad" | "bajas" | "whatsapp_web" | "coordinador" | "agent_os" | "cerebro" | "memoria" | "chat_web" | "multimedia";
             /** Maximo */
             maximo?: number | null;
             /** Minimo */
@@ -13983,6 +16863,23 @@ export interface components {
          */
         OpcionesErrorOut: {
             error: components["schemas"]["OpcionesError"];
+        };
+        /**
+         * OpcionesGuardadoOut
+         * @description Lo que el formulario de edición ofrece: canales y variables válidos.
+         */
+        OpcionesGuardadoOut: {
+            /**
+             * Canales
+             * @description `ConnectionType.id` que se pueden elegir (más `todos`, que equivale a la lista vacía).
+             */
+            canales: string[];
+            /** Max Texto */
+            max_texto: number;
+            /** Max Titulo */
+            max_titulo: number;
+            /** Variables */
+            variables: components["schemas"]["VariablePermitidaOut"][];
         };
         /** OpcionesHallazgoOut */
         OpcionesHallazgoOut: {
@@ -14303,6 +17200,13 @@ export interface components {
         OrderOut: {
             /** Created At */
             created_at: string | null;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
+            /** Customer Name */
+            customer_name?: string | null;
             /** Delivery Address */
             delivery_address: string | null;
             /** Delivery Full Name */
@@ -14320,10 +17224,6 @@ export interface components {
             payment_method: string;
             /** Payment Status */
             payment_status: string;
-            /** Plan Activation Error */
-            plan_activation_error?: string | null;
-            /** Plan Activation Status */
-            plan_activation_status?: string | null;
             /** Public Order Number */
             public_order_number: string;
             /** Status */
@@ -14387,12 +17287,57 @@ export interface components {
             /** Valor */
             valor: number;
         };
+        /**
+         * PackProfile
+         * @description Perfil que un pack tiene de un colaborador (ADR-0176), para mostrarlo en Equipo.
+         *
+         *     `resumen` es un objeto pequeño y plano que el cliente pinta sin interpretar; lo define el pack. El core
+         *     lo descarta (y `edit`) para quien no tiene acceso a ninguna sección del pack.
+         */
+        PackProfile: {
+            edit?: components["schemas"]["PackProfileEdit"] | null;
+            /** Etiqueta */
+            etiqueta: string;
+            /** Pack */
+            pack: string;
+            /** Ref Id */
+            ref_id: string;
+            /** Resumen */
+            resumen?: {
+                [key: string]: unknown;
+            } | null;
+            /** Role Id */
+            role_id: string;
+        };
+        /**
+         * PackProfileEdit
+         * @description Cómo se edita un perfil: `kind` es una cadena abierta que el cliente reconoce o ignora.
+         */
+        PackProfileEdit: {
+            /** Kind */
+            kind: string;
+            /** Ref Id */
+            ref_id: string;
+        };
         /** PackRole */
         PackRole: {
             /** Label */
             label: string;
             /** Value */
             value: string;
+        };
+        /** Page[AgentAction] */
+        Page_AgentAction_: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["AgentAction"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
         };
         /** Page[AgentConversation] */
         Page_AgentConversation_: {
@@ -14433,6 +17378,19 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** Page[AgentSkill] */
+        Page_AgentSkill_: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["AgentSkill"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
         /** Page[AgentTask] */
         Page_AgentTask_: {
             /** Has More */
@@ -14452,6 +17410,19 @@ export interface components {
             has_more: boolean;
             /** Items */
             items: components["schemas"]["AgentTemplate"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** Page[CanjeOut] */
+        Page_CanjeOut_: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["CanjeOut"][];
             /** Page */
             page: number;
             /** Page Size */
@@ -14491,6 +17462,19 @@ export interface components {
             has_more: boolean;
             /** Items */
             items: components["schemas"]["ConversationSummary"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** Page[CronRunOut] */
+        Page_CronRunOut_: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["CronRunOut"][];
             /** Page */
             page: number;
             /** Page Size */
@@ -14620,6 +17604,28 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /** PagoConfirmadoOut */
+        PagoConfirmadoOut: {
+            /**
+             * Cargo Id
+             * Format: uuid
+             */
+            cargo_id: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "confirmado" | "ya_confirmado";
+            /** Numero Publico */
+            numero_publico?: string | null;
+            /** Suscripcion Estado */
+            suscripcion_estado: string;
+            /**
+             * Suscripcion Id
+             * Format: uuid
+             */
+            suscripcion_id: string;
+        };
         /** PagoRegistradoOut */
         PagoRegistradoOut: {
             /**
@@ -14711,6 +17717,68 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** PaymentAccount */
+        PaymentAccount: {
+            /** Agent Ids */
+            agent_ids: string[];
+            /** Events Url */
+            events_url: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Link Expires Hours */
+            link_expires_hours: number;
+            /** Min Amount */
+            min_amount: number | null;
+            /** Name */
+            name: string;
+            /** Public Key */
+            public_key: string;
+            /** Sandbox */
+            sandbox: boolean;
+        };
+        /** PaymentAccountIn */
+        PaymentAccountIn: {
+            /** Events Secret */
+            events_secret: string;
+            /**
+             * Link Expires Hours
+             * @default 24
+             */
+            link_expires_hours: number;
+            /** Min Amount */
+            min_amount?: number | null;
+            /** Name */
+            name: string;
+            /** Private Key */
+            private_key: string;
+            /** Public Key */
+            public_key: string;
+            /**
+             * Sandbox
+             * @default true
+             */
+            sandbox: boolean;
+        };
+        /** PaymentAccountPatch */
+        PaymentAccountPatch: {
+            /** Events Secret */
+            events_secret?: string | null;
+            /** Link Expires Hours */
+            link_expires_hours?: number | null;
+            /** Min Amount */
+            min_amount?: number | null;
+            /** Name */
+            name?: string | null;
+            /** Private Key */
+            private_key?: string | null;
+            /** Public Key */
+            public_key?: string | null;
+            /** Sandbox */
+            sandbox?: boolean | null;
+        };
         /** PaymentIn */
         PaymentIn: {
             /** Cuota Id */
@@ -14746,6 +17814,8 @@ export interface components {
              * Format: date-time
              */
             desde: string;
+            /** Dias */
+            dias: number;
             /**
              * Hasta
              * Format: date-time
@@ -14817,6 +17887,62 @@ export interface components {
             /** Verified Name */
             verified_name: string | null;
         };
+        /** PlanBody */
+        PlanBody: {
+            /**
+             * Activo
+             * @default true
+             */
+            activo: boolean;
+            /**
+             * Codigo
+             * @description SKU del plan, único por negocio.
+             */
+            codigo: string;
+            /**
+             * Descripcion
+             * @default
+             */
+            descripcion: string;
+            /**
+             * Entitlements
+             * @description Lo que incluye el plan (objeto).
+             */
+            entitlements?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Moneda
+             * @default COP
+             */
+            moneda: string;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Orden
+             * @default 0
+             */
+            orden: number;
+            /**
+             * Periodicidad
+             * @default mensual
+             * @enum {string}
+             */
+            periodicidad: "mensual" | "trimestral" | "anual";
+            /**
+             * Plan Plataforma
+             * @description Plan de la plataforma que vende.
+             */
+            plan_plataforma?: string | null;
+            /** Precio */
+            precio: number;
+            /**
+             * Trial Dias
+             * @description Solo un plan de $0 tiene prueba (D-16).
+             * @default 0
+             */
+            trial_dias: number;
+        };
         /** PlanInfo */
         PlanInfo: {
             /** Current */
@@ -14839,6 +17965,71 @@ export interface components {
             name: string;
             /** Price Cop */
             price_cop: number;
+        };
+        /** PlanOut */
+        PlanOut: {
+            /**
+             * Activo
+             * @default true
+             */
+            activo: boolean;
+            /** Actualizado */
+            actualizado?: string | null;
+            /**
+             * Codigo
+             * @description SKU del plan, único por negocio.
+             */
+            codigo: string;
+            /** Creado */
+            creado?: string | null;
+            /**
+             * Descripcion
+             * @default
+             */
+            descripcion: string;
+            /**
+             * Entitlements
+             * @description Lo que incluye el plan (objeto).
+             */
+            entitlements?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Moneda
+             * @default COP
+             */
+            moneda: string;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Orden
+             * @default 0
+             */
+            orden: number;
+            /**
+             * Periodicidad
+             * @default mensual
+             * @enum {string}
+             */
+            periodicidad: "mensual" | "trimestral" | "anual";
+            /**
+             * Plan Plataforma
+             * @description Plan de la plataforma que vende.
+             */
+            plan_plataforma?: string | null;
+            /** Precio */
+            precio: number;
+            /**
+             * Trial Dias
+             * @description Solo un plan de $0 tiene prueba (D-16).
+             * @default 0
+             */
+            trial_dias: number;
         };
         /** PlanOverview */
         PlanOverview: {
@@ -14887,6 +18078,33 @@ export interface components {
             name: string;
             /** Variables */
             variables: string[];
+        };
+        /** PlantillaImportacionOut */
+        PlantillaImportacionOut: {
+            /** Ayuda */
+            ayuda: string;
+            /** Columna Clave */
+            columna_clave: string;
+            /** Columnas */
+            columnas: components["schemas"]["ColumnaOut"][];
+            /**
+             * En Produccion
+             * @description La plantilla también se importa fuera de test (ADR-0194).
+             */
+            en_produccion: boolean;
+            /** Id */
+            id: string;
+            /**
+             * Importa Fotos
+             * @description Se puede cargar desde fotos, una foto por fila (ADR-0194).
+             */
+            importa_fotos: boolean;
+            /** Titulo */
+            titulo: string;
+            /** Tope Bytes */
+            tope_bytes: number;
+            /** Tope Filas */
+            tope_filas: number;
         };
         /**
          * PlatformMetaApp
@@ -14946,6 +18164,98 @@ export interface components {
             slug: string;
             /** Status */
             status: string;
+        };
+        /** PlaygroundMensajeOut */
+        PlaygroundMensajeOut: {
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Direction
+             * @description `outbound` (lo que el sistema le dijo al cliente de prueba) o `inbound`.
+             */
+            direction: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Interactive
+             * @description Botones o lista del mensaje (payload de WhatsApp) con los ids firmados que `/tap` recibe.
+             */
+            interactive?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** PlaygroundOpcionesIn */
+        PlaygroundOpcionesIn: {
+            /**
+             * Clave
+             * @description Clave de la plantilla con opciones (versión vigente publicada).
+             */
+            clave: string;
+            /**
+             * Connection Id
+             * @description Conexión por cuya release se prueba, como en `/message`. Sin ella, la de siempre.
+             */
+            connection_id?: string | null;
+        };
+        /** PlaygroundOpcionesOut */
+        PlaygroundOpcionesOut: {
+            /** Degradado */
+            degradado: boolean;
+            /** Ejecucion Directa */
+            ejecucion_directa: boolean;
+            /** Enviado */
+            enviado: boolean;
+            /**
+             * Mensajes
+             * @description Los mensajes del envío, listos para pintar.
+             */
+            mensajes: components["schemas"]["PlaygroundMensajeOut"][];
+            /** Send Id */
+            send_id?: string | null;
+            /**
+             * Via
+             * @description `interactivo` (botones) o `texto`.
+             */
+            via?: ("interactivo" | "texto") | null;
+            /**
+             * Ya Enviado
+             * @default false
+             */
+            ya_enviado: boolean;
+        };
+        /** PlaygroundToqueIn */
+        PlaygroundToqueIn: {
+            /**
+             * Connection Id
+             * @description La misma conexión con la que se envió.
+             */
+            connection_id?: string | null;
+            /**
+             * Payload
+             * @description `id` de un botón del mensaje (`opt:…`, `optc:…` o `optn:…`), tal cual lo devolvió `/options` o `/tap`.
+             */
+            payload: string;
+        };
+        /** PlaygroundToqueOut */
+        PlaygroundToqueOut: {
+            /**
+             * Mensajes
+             * @description Lo que el toque produjo: respuesta fija o botones de confirmación.
+             */
+            mensajes: components["schemas"]["PlaygroundMensajeOut"][];
+            /**
+             * Outcome
+             * @description Resultado del resolver (`ok`, `tool_error`, `denied`, `confirm_requested`, `cancelled`, `expired`, `duplicate`, `bad_signature`, `unknown_send`, `foreign_conversation`, …). Un payload manipulado, de otro negocio o de otra conversación se descarta sin mensajes: `mensajes` vacío.
+             */
+            outcome: string;
         };
         /** PluginAction */
         PluginAction: {
@@ -15034,6 +18344,33 @@ export interface components {
             tenant_health_error: string | null;
             /** Version */
             version: string;
+        };
+        /** PoliticaDatosOut */
+        PoliticaDatosOut: {
+            /** Acciones */
+            acciones: components["schemas"]["AccionPoliticaOut"][];
+            /**
+             * Herramientas Del Agente
+             * @default false
+             */
+            herramientas_del_agente: boolean;
+            /** Niveles */
+            niveles: ("requerido" | "recomendado" | "no_pedir")[];
+        };
+        /**
+         * PoliticaDatosUpdate
+         * @description `{accion_id: {clave: nivel}}`. Lo que no viene para una acción vuelve al valor del módulo.
+         *     Sin `politica` (None) no se tocan los ajustes: sirve para cambiar solo la bandera.
+         */
+        PoliticaDatosUpdate: {
+            /** Herramientas Del Agente */
+            herramientas_del_agente?: boolean | null;
+            /** Politica */
+            politica?: {
+                [key: string]: {
+                    [key: string]: "requerido" | "recomendado" | "no_pedir";
+                };
+            } | null;
         };
         /** Portfolio */
         Portfolio: {
@@ -15179,6 +18516,16 @@ export interface components {
             /** Lng */
             lng: number;
         };
+        /** PrecargaIn */
+        PrecargaIn: {
+            /** Filas */
+            filas: components["schemas"]["FilaPrecarga"][];
+            /**
+             * Solo Validas
+             * @default false
+             */
+            solo_validas: boolean;
+        };
         /** PreferencesUpdate */
         PreferencesUpdate: {
             /** Push Off Categories */
@@ -15192,6 +18539,25 @@ export interface components {
             key: string;
             /** Ok */
             ok?: boolean | null;
+        };
+        /** Pregunta */
+        Pregunta: {
+            /**
+             * Ayuda
+             * @default
+             */
+            ayuda: string;
+            /** Id */
+            id: string;
+            /** Opciones */
+            opciones: components["schemas"]["RespuestaPosible"][];
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "una" | "varias";
+            /** Titulo */
+            titulo: string;
         };
         /** PrimerosPasosResponse */
         PrimerosPasosResponse: {
@@ -15295,8 +18661,6 @@ export interface components {
         ProductSave: {
             /** Ally Id */
             ally_id?: string | null;
-            /** Billing Period */
-            billing_period?: ("mensual" | "trimestral" | "anual" | "") | null;
             /** Category Id */
             category_id?: string | null;
             /**
@@ -15327,8 +18691,6 @@ export interface components {
              * @default 0
              */
             stock: number;
-            /** Trial Days */
-            trial_days?: number | null;
         };
         /** Promise */
         Promise: {
@@ -15362,6 +18724,120 @@ export interface components {
         PromiseStatusUpdate: {
             /** Estado */
             estado: string;
+        };
+        /** PromocionBody */
+        PromocionBody: {
+            /**
+             * Activa
+             * @default true
+             */
+            activa: boolean;
+            /**
+             * Codigo
+             * @description Código que escribe el cliente (3 a 40: letras, números, - o _). Se guarda en minúsculas.
+             */
+            codigo?: string | null;
+            /**
+             * Etiqueta
+             * @description Nombre que ve el dueño (p. ej. «Lanzamiento»).
+             */
+            etiqueta: string;
+            /**
+             * Max Canjes
+             * @description Tope de canjes; vacío = sin tope.
+             */
+            max_canjes?: number | null;
+            /**
+             * Periodos
+             * @description Cobros que descuenta. De 1 a 12 períodos; el monto fijo solo descuenta 1.
+             * @default 1
+             */
+            periodos: number;
+            /**
+             * Plan Id
+             * @description Plan al que aplica; vacío = cualquier plan de pago.
+             */
+            plan_id?: string | null;
+            /**
+             * Tipo Descuento
+             * @default porcentaje
+             * @enum {string}
+             */
+            tipo_descuento: "porcentaje" | "monto";
+            /**
+             * Valor
+             * @description 1 a 99 si es porcentaje.
+             */
+            valor: number;
+            /** Vigente Desde */
+            vigente_desde?: string | null;
+            /** Vigente Hasta */
+            vigente_hasta?: string | null;
+        };
+        /** PromocionOut */
+        PromocionOut: {
+            /**
+             * Activa
+             * @default true
+             */
+            activa: boolean;
+            /** Actualizada */
+            actualizada?: string | null;
+            /**
+             * Canjes Restantes
+             * @description Vacío si no tiene tope.
+             */
+            canjes_restantes?: number | null;
+            /** Canjes Usados */
+            canjes_usados: number;
+            /**
+             * Codigo
+             * @description Código que escribe el cliente (3 a 40: letras, números, - o _). Se guarda en minúsculas.
+             */
+            codigo?: string | null;
+            /** Creada */
+            creada?: string | null;
+            /**
+             * Etiqueta
+             * @description Nombre que ve el dueño (p. ej. «Lanzamiento»).
+             */
+            etiqueta: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Max Canjes
+             * @description Tope de canjes; vacío = sin tope.
+             */
+            max_canjes?: number | null;
+            /**
+             * Periodos
+             * @description Cobros que descuenta. De 1 a 12 períodos; el monto fijo solo descuenta 1.
+             * @default 1
+             */
+            periodos: number;
+            /**
+             * Plan Id
+             * @description Plan al que aplica; vacío = cualquier plan de pago.
+             */
+            plan_id?: string | null;
+            /**
+             * Tipo Descuento
+             * @default porcentaje
+             * @enum {string}
+             */
+            tipo_descuento: "porcentaje" | "monto";
+            /**
+             * Valor
+             * @description 1 a 99 si es porcentaje.
+             */
+            valor: number;
+            /** Vigente Desde */
+            vigente_desde?: string | null;
+            /** Vigente Hasta */
+            vigente_hasta?: string | null;
         };
         /** PromoteIn */
         PromoteIn: {
@@ -15528,6 +19004,23 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** Propuesta */
+        Propuesta: {
+            /** Cambios */
+            cambios?: components["schemas"]["Cambio"][];
+            /**
+             * Huella
+             * @default
+             */
+            huella: string;
+            /** Omitidos */
+            omitidos?: components["schemas"]["Omitido"][];
+            /**
+             * Seccion
+             * @enum {string}
+             */
+            seccion: "voz" | "atencion";
+        };
         /** ProveedorSuscripcion */
         ProveedorSuscripcion: {
             /** Id */
@@ -15590,6 +19083,23 @@ export interface components {
             label: string;
             /** Missing Skills */
             missing_skills: string[];
+        };
+        /** PuntoActividadOut */
+        PuntoActividadOut: {
+            /** Conversaciones */
+            conversaciones: number;
+            /**
+             * Costo
+             * @description Costo del día en USD; `null` sin la sección `costs`.
+             */
+            costo: number | null;
+            /**
+             * Fecha
+             * Format: date
+             */
+            fecha: string;
+            /** Turnos */
+            turnos: number;
         };
         /** PurgeRequest */
         PurgeRequest: {
@@ -16441,6 +19951,8 @@ export interface components {
         };
         /** RecentConversation */
         RecentConversation: {
+            /** Channel */
+            channel?: string | null;
             /** Customer Name */
             customer_name: string | null;
             /** External Id */
@@ -16450,6 +19962,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Started At */
+            started_at?: string | null;
             /** Status */
             status: string;
         };
@@ -16557,6 +20071,43 @@ export interface components {
              * @description Número del comprobante o texto que identifica la transferencia (para conciliar con el extracto).
              */
             referencia: string;
+        };
+        /** RegistroDePrueba */
+        RegistroDePrueba: {
+            /**
+             * Detalle
+             * @description Corto: precio y categoría, duración, cartera y deuda.
+             */
+            detalle?: string | null;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Origen
+             * @enum {string}
+             */
+            origen: "llm" | "plantilla" | "importacion";
+            /**
+             * Tipo
+             * @description `kind` del registro en su pack (`producto`, `tipo`, `cliente`…).
+             */
+            tipo: string;
+        };
+        /** RegistrosDePrueba */
+        RegistrosDePrueba: {
+            /** @description El último lote generado; `null` si no hay (puede haber importado). */
+            lote: components["schemas"]["LoteDePrueba"] | null;
+            /**
+             * Registros
+             * @description Lo generado y lo importado, por lote en el orden en que se cargó y dentro del lote por tipo y nombre. Hasta 200; el total está en `total`.
+             */
+            registros: components["schemas"]["RegistroDePrueba"][];
+            /**
+             * Sin Detalle
+             * @description Registros de una habilidad que no se describe: existen pero no salen en la lista.
+             */
+            sin_detalle: number;
+            /** Total */
+            total: number;
         };
         /** ReleaseChange */
         ReleaseChange: {
@@ -16855,6 +20406,25 @@ export interface components {
             /** Resolved Version */
             resolved_version: string | null;
         };
+        /**
+         * RespuestaPosible
+         * @description Una opción que el dueño puede elegir y lo que cambia en el registro.
+         */
+        RespuestaPosible: {
+            /**
+             * Ayuda
+             * @default
+             */
+            ayuda: string;
+            /** Cambios */
+            cambios: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: string;
+            /** Titulo */
+            titulo: string;
+        };
         /** ResultadoSeccion */
         ResultadoSeccion: {
             /** Items */
@@ -16870,8 +20440,173 @@ export interface components {
             agentes: components["schemas"]["AgenteResumen"][];
             general: components["schemas"]["BloqueGeneral"];
             periodo: components["schemas"]["PeriodoOut"];
-            /** Runtime */
-            runtime: string;
+        };
+        /** RetiredAffectedConnection */
+        RetiredAffectedConnection: {
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /**
+             * Release
+             * @description Número de la release activa afectada.
+             */
+            release: number;
+        };
+        /**
+         * RetiredAsideConnection
+         * @description Conexión borrada o que no produce conversaciones: se reporta aparte y no cuenta como falla.
+         */
+        RetiredAsideConnection: {
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "borrada" | "playground" | "integracion";
+            /** Release */
+            release: number | null;
+            /** Rows */
+            rows: components["schemas"]["RetiredReferenceRow"][];
+        };
+        /**
+         * RetiredNotice
+         * @description Una cosa que el agente nombra y ya no existe, con el texto para el dueño (sin códigos internos).
+         */
+        RetiredNotice: {
+            /**
+             * Field
+             * @description Dónde del contenido del agente está (p. ej. `tools[3].tool`), para señalar el control en el editor. Es un localizador técnico: no se muestra al dueño.
+             */
+            field: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "action" | "procedure";
+            /**
+             * Message
+             * @description Qué ya no existe y qué hacer, en palabras simples. Es el texto que se muestra.
+             */
+            message: string;
+            /**
+             * Name
+             * @description Cómo se llamaba lo retirado (p. ej. `informar_plan`).
+             */
+            name: string;
+            /**
+             * Scope
+             * @description `draft`: está en el borrador (publicar falla hasta corregirlo). `published`: está en la última versión publicada. `in_use`: lo que corre hoy en una conexión lo nombra, aunque el borrador y la última versión ya estén limpios.
+             * @enum {string}
+             */
+            scope: "draft" | "published" | "in_use";
+        };
+        /**
+         * RetiredReferenceRow
+         * @description Una referencia retirada, con el mismo contenido que una fila de `auditar-referencias`.
+         */
+        RetiredReferenceRow: {
+            /**
+             * Agent
+             * @description Key del agente.
+             */
+            agent: string;
+            /**
+             * Code
+             * @description `accion_inexistente` o `procedimiento_inexistente` (código interno: solo para el equipo).
+             */
+            code: string;
+            /**
+             * Destination
+             * @description Lo que haría `migrar-referencias`: «quitar» o «reemplazar por <id> <rango>».
+             */
+            destination: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "action" | "procedure";
+            /**
+             * Message
+             * @description El mismo aviso en palabras simples que ve el dueño.
+             */
+            message: string;
+            /** Name */
+            name: string;
+            /**
+             * Path
+             * @description Ruta en el contenido (p. ej. `tools[3].tool`).
+             */
+            path: string;
+            /**
+             * Scope
+             * @description `version`: la última versión publicada del agente. `draft`: el borrador, si difiere de esa versión (se avisa, no cuenta como falla). `release`: el manifiesto de una release activa.
+             * @enum {string}
+             */
+            scope: "version" | "draft" | "release";
+            /**
+             * Version
+             * @description Número de versión (null en el borrador).
+             */
+            version: number | null;
+            /**
+             * Where
+             * @description Releases activas que lo contienen («conexión <id> release #n»).
+             */
+            where: string[];
+        };
+        /** RetiredReferencesOut */
+        RetiredReferencesOut: {
+            /** Affected Agents */
+            affected_agents: number;
+            /**
+             * Agents
+             * @description Solo los agentes con al menos un aviso.
+             */
+            agents: components["schemas"]["AgentRetiredNotices"][];
+        };
+        /** RetiredReferencesReport */
+        RetiredReferencesReport: {
+            /**
+             * Affected
+             * @description Hay versiones o releases activas con referencias retiradas (lo que pone el exit code del CLI).
+             */
+            affected: boolean;
+            /** Affected Connections */
+            affected_connections: components["schemas"]["RetiredAffectedConnection"][];
+            /** Agents Affected */
+            agents_affected: number;
+            /** Aside */
+            aside: components["schemas"]["RetiredAsideConnection"][];
+            /**
+             * Drafts
+             * @description Borradores con referencias retiradas: se avisan, no cuentan.
+             */
+            drafts: components["schemas"]["RetiredReferenceRow"][];
+            /**
+             * Error
+             * @description Si la auditoría de este negocio falló, por qué; el resto del informe puede estar vacío.
+             */
+            error: string | null;
+            /** Releases Affected */
+            releases_affected: number;
+            /**
+             * Rows
+             * @description Versiones publicadas y releases activas: lo que cuenta.
+             */
+            rows: components["schemas"]["RetiredReferenceRow"][];
+            /** Slug */
+            slug: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
         };
         /** RevealCredentialsRequest */
         RevealCredentialsRequest: {
@@ -16887,6 +20622,25 @@ export interface components {
             secrets: {
                 [key: string]: string;
             };
+        };
+        /** RevocacionDatosOut */
+        RevocacionDatosOut: {
+            /** Aviso Activo */
+            aviso_activo: boolean;
+            /** Datos Retirados */
+            datos_retirados: string[];
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "sin_aviso" | "informado" | "otorgado" | "revocado";
+            /** Historial */
+            historial: components["schemas"]["ConsentimientoDatosItem"][];
+            /**
+             * Supresion En Modulos Pendiente
+             * @default true
+             */
+            supresion_en_modulos_pendiente: boolean;
         };
         /** RevokeRequest */
         RevokeRequest: {
@@ -16979,7 +20733,7 @@ export interface components {
             confidence: number | null;
             /**
              * Mode
-             * @description `off`, `shadow` o `active`: si hoy el router decide en esta conexión.
+             * @description `active`, o `shadow` si la release de la conexión pide sombra (`routing.shadowMode`).
              */
             mode: string;
             /**
@@ -17059,6 +20813,17 @@ export interface components {
         SearchResponse: {
             /** Resultados */
             resultados: components["schemas"]["ResultadoSeccion"][];
+        };
+        /**
+         * SeguimientoHechoIn
+         * @description Cierra el seguimiento y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21).
+         *     `siguiente_en` es ISO 8601: sin zona es hora del negocio.
+         */
+        SeguimientoHechoIn: {
+            /** Siguiente En */
+            siguiente_en?: string | null;
+            /** Siguiente Nota */
+            siguiente_nota?: string | null;
         };
         /** SetPermissionsRequest */
         SetPermissionsRequest: {
@@ -17354,14 +21119,14 @@ export interface components {
             periodicidad: string;
             /** Plan */
             plan: string;
+            /** Plan Id */
+            plan_id?: string | null;
             /** Proximo Cargo */
             proximo_cargo?: string | null;
             /** Trial Termina */
             trial_termina?: string | null;
             /** Valor Periodo */
             valor_periodo: number;
-            /** Variante Id */
-            variante_id?: string | null;
         };
         /** SuscripcionItem */
         SuscripcionItem: {
@@ -17400,23 +21165,54 @@ export interface components {
             periodicidad: string;
             /** Plan */
             plan: string;
+            /** Plan Id */
+            plan_id?: string | null;
             /** Proximo Cargo */
             proximo_cargo?: string | null;
             /** Trial Termina */
             trial_termina?: string | null;
             /** Valor Periodo */
             valor_periodo: number;
-            /** Variante Id */
-            variante_id?: string | null;
         };
         /** SuscripcionOut */
         SuscripcionOut: {
             /** Creada */
             creada: boolean;
+            /**
+             * Descuento
+             * @description Descuento de la promoción en el primer cobro.
+             */
+            descuento?: number | null;
             /** Estado */
             estado: string;
+            /**
+             * Inscripcion
+             * @description nueva | repetida | cambio_de_plan
+             */
+            inscripcion?: string | null;
+            /** Instrucciones Transferencia */
+            instrucciones_transferencia?: string | null;
+            /** Link Pago */
+            link_pago?: string | null;
+            /**
+             * Monto
+             * @description Valor del cobro de inscripción (neto), si lo hay.
+             */
+            monto?: number | null;
+            /**
+             * Monto Bruto
+             * @description Precio de lista, si hay una promoción aplicada.
+             */
+            monto_bruto?: number | null;
+            /** Numero Publico */
+            numero_publico?: string | null;
             /** Plan */
             plan: string;
+            /**
+             * Promocion
+             * @description Etiqueta de la promoción aplicada.
+             */
+            promocion?: string | null;
             /**
              * Suscripcion Id
              * Format: uuid
@@ -17658,6 +21454,7 @@ export interface components {
             admin_email: string;
             /**
              * Admin Password
+             * @deprecated
              * @default
              */
             admin_password: string;
@@ -17696,6 +21493,7 @@ export interface components {
         };
         /** TenantCreated */
         TenantCreated: {
+            invitation?: components["schemas"]["TenantOwnerInvitation"] | null;
             /** Slug */
             slug: string;
             /** Steps */
@@ -17731,6 +21529,24 @@ export interface components {
             name: string;
             /** Role */
             role: string;
+        };
+        /**
+         * TenantOwnerInvitation
+         * @description Qué pasó con el acceso del dueño (ADR-0175). Nunca lleva el enlace ni el token.
+         */
+        TenantOwnerInvitation: {
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "enviado" | "sin_smtp" | "fallido" | "ya_emitida" | "ya_es_miembro";
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "enlace" | "app";
         };
         /** TenantPlanUpdate */
         TenantPlanUpdate: {
@@ -18199,6 +22015,239 @@ export interface components {
              */
             verdict: string;
         };
+        /** TwilioAltaIn */
+        TwilioAltaIn: {
+            /**
+             * Account Sid
+             * @description Account SID de Twilio (`AC…`).
+             */
+            account_sid: string;
+            /**
+             * Auth Token
+             * @description Auth Token de la cuenta. No se devuelve nunca.
+             */
+            auth_token: string;
+            /**
+             * Confirm Overwrite Webhook
+             * @description Reemplazar los webhooks que el sender ya tenía hacia otra dirección (se guardan para restaurarlos al desconectar).
+             * @default false
+             */
+            confirm_overwrite_webhook: boolean;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+            /**
+             * Sender Sid
+             * @description SID del sender elegido (`XE…`).
+             */
+            sender_sid: string;
+        };
+        /** TwilioCostoMoneda */
+        TwilioCostoMoneda: {
+            /** Mensajes */
+            mensajes: number;
+            /** Moneda */
+            moneda: string;
+            /** Total */
+            total: string;
+        };
+        /** TwilioCostosOut */
+        TwilioCostosOut: {
+            /** Dias */
+            dias: number;
+            /**
+             * Nota
+             * @description Twilio no documenta si su precio incluye el cargo de Meta: puede ser solo la tarifa de Twilio.
+             */
+            nota: string;
+            /** Por Moneda */
+            por_moneda: components["schemas"]["TwilioCostoMoneda"][];
+        };
+        /** TwilioCredencialesIn */
+        TwilioCredencialesIn: {
+            /**
+             * Account Sid
+             * @description Account SID de Twilio (`AC…`).
+             */
+            account_sid: string;
+            /**
+             * Auth Token
+             * @description Auth Token de la cuenta. No se devuelve nunca.
+             */
+            auth_token: string;
+        };
+        /** TwilioCuentaOut */
+        TwilioCuentaOut: {
+            /** Friendly Name */
+            friendly_name: string;
+            /** Status */
+            status: string;
+            /** Type */
+            type: string;
+        };
+        /** TwilioDesconectarIn */
+        TwilioDesconectarIn: {
+            /**
+             * Continuar Si Falla
+             * @description Desconectar aunque no se puedan devolver los webhooks (si no, 502 `webhooks_no_restaurados` y no se borra nada).
+             * @default false
+             */
+            continuar_si_falla: boolean;
+            /**
+             * Password
+             * @description Contraseña del usuario (confirmación).
+             */
+            password?: string | null;
+            /**
+             * Restore Webhooks
+             * @description Devolverle al número de Twilio los webhooks que tenía antes de conectarlo.
+             * @default false
+             */
+            restore_webhooks: boolean;
+        };
+        /** TwilioDesconectarOut */
+        TwilioDesconectarOut: {
+            /** Webhooks Restaurados */
+            webhooks_restaurados: boolean;
+        };
+        /** TwilioDescubrirOut */
+        TwilioDescubrirOut: {
+            account: components["schemas"]["TwilioCuentaOut"];
+            /** Senders */
+            senders: components["schemas"]["TwilioSenderOut"][];
+        };
+        /** TwilioPlantillaIn */
+        TwilioPlantillaIn: {
+            /**
+             * Categoria
+             * @description `UTILITY`, `MARKETING` o `AUTHENTICATION`.
+             */
+            categoria: string;
+            /**
+             * Cuerpo
+             * @description Texto con variables `{{1}}`, `{{2}}`…
+             */
+            cuerpo: string;
+            /**
+             * Ejemplos
+             * @description Valor de ejemplo de cada variable: `{"1": "Ana"}`.
+             */
+            ejemplos?: {
+                [key: string]: string;
+            };
+            /**
+             * Idioma
+             * @description `es`, `es_CO`…
+             */
+            idioma: string;
+            /**
+             * Nombre
+             * @description Minúsculas, números y guion bajo.
+             */
+            nombre: string;
+        };
+        /** TwilioPlantillaOut */
+        TwilioPlantillaOut: {
+            /** Aprobada At */
+            aprobada_at: string | null;
+            /** Categoria */
+            categoria: string;
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /** Content Sid */
+            content_sid: string | null;
+            /** Cuerpo */
+            cuerpo: string;
+            /** Ejemplos */
+            ejemplos: {
+                [key: string]: string;
+            };
+            /** Enviada At */
+            enviada_at: string | null;
+            /**
+             * Estado
+             * @description `creating`, `unsubmitted`, `received`, `pending`, `approved`, `rejected`, `paused` o `disabled`.
+             */
+            estado: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Idioma */
+            idioma: string;
+            /** Motivo Rechazo */
+            motivo_rechazo: string;
+            /** Nombre */
+            nombre: string;
+        };
+        /** TwilioPruebaIn */
+        TwilioPruebaIn: {
+            /**
+             * To
+             * @description Número de WhatsApp de destino, en formato +E164.
+             */
+            to: string;
+        };
+        /** TwilioPruebaOut */
+        TwilioPruebaOut: {
+            /** Message Sid */
+            message_sid: string;
+        };
+        /** TwilioRotarIn */
+        TwilioRotarIn: {
+            /**
+             * Account Sid
+             * @description Account SID de Twilio (`AC…`).
+             */
+            account_sid: string;
+            /**
+             * Auth Token
+             * @description Auth Token de la cuenta. No se devuelve nunca.
+             */
+            auth_token: string;
+            /**
+             * Confirm Overwrite Webhook
+             * @description Si el número ya manda sus mensajes a otra dirección (cambiada en la consola de Twilio), reemplazarla. Sin esto, la rotación responde 422 `webhook_overwrite_not_confirmed`.
+             * @default false
+             */
+            confirm_overwrite_webhook: boolean;
+            /**
+             * Password
+             * @description Contraseña del usuario (confirmación).
+             */
+            password?: string | null;
+        };
+        /** TwilioSenderOut */
+        TwilioSenderOut: {
+            /** Display Name */
+            display_name: string;
+            /** E164 */
+            e164: string;
+            /**
+             * Motivo
+             * @description `""`, `no_online` o `ya_conectado_aqui`.
+             */
+            motivo: string;
+            /** Quality Rating */
+            quality_rating: string;
+            /** Seleccionable */
+            seleccionable: boolean;
+            /** Sender Sid */
+            sender_sid: string;
+            /** Status */
+            status: string;
+            /**
+             * Webhook Ajeno
+             * @description El sender ya envía sus mensajes a otra dirección.
+             */
+            webhook_ajeno: boolean;
+        };
         /** TypeOut */
         TypeOut: {
             /** Active */
@@ -18419,6 +22468,13 @@ export interface components {
              */
             valor: string;
         };
+        /** VariablePermitidaOut */
+        VariablePermitidaOut: {
+            /** Descripcion */
+            descripcion: string;
+            /** Ruta */
+            ruta: string;
+        };
         /** VariantOut */
         VariantOut: {
             /** Active */
@@ -18427,8 +22483,6 @@ export interface components {
             attributes: {
                 [key: string]: unknown;
             };
-            /** Billing Period */
-            billing_period?: string | null;
             /**
              * Id
              * Format: uuid
@@ -18440,8 +22494,6 @@ export interface components {
             sku: string;
             /** Stock */
             stock: number;
-            /** Trial Days */
-            trial_days?: number | null;
         };
         /** VendedorAltas */
         VendedorAltas: {
@@ -18503,6 +22555,66 @@ export interface components {
         VerifyCodeRequest: {
             /** Code */
             code: string;
+        };
+        /** VistaPreviaGuardadoIn */
+        VistaPreviaGuardadoIn: {
+            /**
+             * Ejemplos
+             * @description Valor de muestra por variable; si falta se usa uno genérico.
+             */
+            ejemplos?: {
+                [key: string]: string;
+            };
+            /** Texto */
+            texto: string;
+        };
+        /** VistaPreviaGuardadoOut */
+        VistaPreviaGuardadoOut: {
+            /**
+             * Ejemplos Usados
+             * @description El valor de muestra que se usó por variable.
+             */
+            ejemplos_usados: {
+                [key: string]: string;
+            };
+            /** Texto Renderizado */
+            texto_renderizado: string;
+            /** Variables */
+            variables: string[];
+        };
+        /** VistaPreviaImportacion */
+        VistaPreviaImportacion: {
+            /**
+             * Columnas Faltantes
+             * @description Columnas obligatorias que el archivo no trae.
+             */
+            columnas_faltantes: string[];
+            /**
+             * Columnas Ignoradas
+             * @description Cabeceras del archivo que no son de la plantilla.
+             */
+            columnas_ignoradas: string[];
+            /** Con Errores */
+            con_errores: number;
+            /**
+             * Errores
+             * @description Hasta 50; el total está en `errores_total`.
+             */
+            errores: components["schemas"]["ErrorDeFila"][];
+            /** Errores Total */
+            errores_total: number;
+            /**
+             * Existentes
+             * @description Filas cuya clave ya existe: se omiten.
+             */
+            existentes: number;
+            /**
+             * Nuevas
+             * @description Filas que se crearían.
+             */
+            nuevas: number;
+            /** Total Filas */
+            total_filas: number;
         };
         /** VistaPreviaIn */
         VistaPreviaIn: {
@@ -18634,10 +22746,22 @@ export interface components {
         };
         /** WawebState */
         WawebState: {
+            /** Business Name */
+            business_name?: string | null;
             /** Jid */
             jid?: string | null;
+            /** Last Connected At */
+            last_connected_at?: string | null;
             /** Last Error */
             last_error?: string | null;
+            /** Linked At */
+            linked_at?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Platform */
+            platform?: string | null;
+            /** Push Name */
+            push_name?: string | null;
             /** Qr Image */
             qr_image?: string | null;
             /** Risk Ok */
@@ -19000,6 +23124,368 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    device_session_api_v1_access_device_session_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceSessionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_devices_api_v1_access_devices_get: {
+        parameters: {
+            query?: {
+                admin_id?: string | null;
+                cursor?: string | null;
+                estado?: ("pendiente" | "activo" | "bloqueado") | null;
+                limit?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDevicePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_device_api_v1_access_devices_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessDeviceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDeviceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_device_api_v1_access_devices__device_row_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                device_row_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDeviceDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_device_api_v1_access_devices__device_row_id__aprobar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                device_row_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessDeviceTransition"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDeviceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    block_device_api_v1_access_devices__device_row_id__bloquear_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                device_row_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessDeviceBlock"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDeviceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_device_api_v1_access_devices__device_row_id__dar_de_baja_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                device_row_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessDeviceTransition"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_events_api_v1_access_events_get: {
+        parameters: {
+            query?: {
+                admin_id?: string | null;
+                cursor?: string | null;
+                desde?: string | null;
+                limit?: number;
+                severidad?: ("info" | "aviso" | "critico") | null;
+                tipo?: ("login_fallido" | "login_bloqueado" | "dispositivo_nuevo" | "dispositivo_pendiente" | "dispositivo_aprobado" | "dispositivo_bloqueado_usado" | "acceso_denegado_politica" | "dispositivo_sin_id" | "dispositivo_compartido" | "politica_cambiada" | "acceso_master" | "legado_pack") | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessEventPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_policy_api_v1_access_policy_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessPolicyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_policy_api_v1_access_policy_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessPolicyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessPolicyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_calls_api_v1_admin_a2a_calls_get: {
         parameters: {
             query: {
@@ -19008,6 +23494,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19039,6 +23526,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19070,6 +23558,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19107,6 +23596,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19138,6 +23628,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19176,6 +23667,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19212,6 +23704,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19246,6 +23739,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19277,6 +23771,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19299,6 +23794,13 @@ export interface operations {
                     "application/json": components["schemas"]["FromTemplateOut"];
                 };
             };
+            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -19314,6 +23816,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19345,6 +23848,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -19380,6 +23884,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19413,6 +23918,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19446,10 +23952,48 @@ export interface operations {
             };
         };
     };
+    list_agent_actions_api_v1_admin_agents__agent_id__actions_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AgentAction_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     estado_datos_de_prueba_api_v1_admin_agents__agent_id__datos_de_prueba_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19483,6 +24027,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19516,6 +24061,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19545,10 +24091,45 @@ export interface operations {
             };
         };
     };
+    registros_de_prueba_api_v1_admin_agents__agent_id__datos_de_prueba_registros_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrosDePrueba"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_draft_api_v1_admin_agents__agent_id__draft_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19582,6 +24163,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19621,10 +24203,384 @@ export interface operations {
             };
         };
     };
+    estado_importacion_api_v1_admin_agents__agent_id__importar_datos_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstadoImportacion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    importar_datos_api_v1_admin_agents__agent_id__importar_datos_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_importar_datos_api_v1_admin_agents__agent_id__importar_datos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionHecha"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_importacion_api_v1_admin_agents__agent_id__importar_datos_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatosRetirados"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    importar_precarga_api_v1_admin_agents__agent_id__importar_datos_filas_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrecargaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionHecha"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validar_precarga_api_v1_admin_agents__agent_id__importar_datos_filas_validar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrecargaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VistaPreviaImportacion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    importar_foto_api_v1_admin_agents__agent_id__importar_datos_fotos_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_importar_foto_api_v1_admin_agents__agent_id__importar_datos_fotos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FilaDeFoto"];
+                };
+            };
+            /** @description Tope del plan: `error.code = plan_limit_creditos`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cotizar_fotos_api_v1_admin_agents__agent_id__importar_datos_fotos_cotizacion_get: {
+        parameters: {
+            query?: {
+                fotos?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CotizacionFotos"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mapear_importacion_api_v1_admin_agents__agent_id__importar_datos_mapear_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_mapear_importacion_api_v1_admin_agents__agent_id__importar_datos_mapear_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapeoPropuesto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plantilla_importacion_api_v1_admin_agents__agent_id__importar_datos_plantilla_csv_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_validar_importacion_api_v1_admin_agents__agent_id__importar_datos_validar_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VistaPreviaImportacion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     publish_to_connections_api_v1_admin_agents__agent_id__publish_post: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19672,6 +24628,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19708,6 +24665,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19737,10 +24695,121 @@ export interface operations {
             };
         };
     };
+    get_retired_references_api_v1_admin_agents__agent_id__retired_references_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentRetiredNotices"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_agent_skills_api_v1_admin_agents__agent_id__skills_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AgentSkill_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_agent_skill_api_v1_admin_agents__agent_id__skills__pack_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                pack_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentSkillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentSkill"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_versions_api_v1_admin_agents__agent_id__versions_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19774,6 +24843,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19811,6 +24881,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19851,6 +24922,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19890,6 +24962,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19930,6 +25003,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -19970,6 +25044,7 @@ export interface operations {
                 state?: ("open" | "closed") | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20007,6 +25082,7 @@ export interface operations {
                 hasta?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20040,6 +25116,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20060,6 +25137,13 @@ export interface operations {
                     "application/json": components["schemas"]["FromScriptOut"];
                 };
             };
+            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -20075,6 +25159,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20102,12 +25187,45 @@ export interface operations {
             };
         };
     };
+    list_retired_references_api_v1_admin_agents_retired_references_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetiredReferencesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_collaborators_api_v1_admin_collaborators_get: {
         parameters: {
             query?: {
                 todos?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20139,6 +25257,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20181,6 +25300,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20214,6 +25334,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20249,6 +25370,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20284,6 +25406,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20321,6 +25444,7 @@ export interface operations {
                 tenant?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20354,6 +25478,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20389,6 +25514,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20424,6 +25550,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20462,6 +25589,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20499,6 +25627,7 @@ export interface operations {
                 email: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20530,6 +25659,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20563,6 +25693,7 @@ export interface operations {
                 username: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20594,6 +25725,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -20625,6 +25757,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20660,6 +25793,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20693,6 +25827,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20737,6 +25872,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20769,6 +25905,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20807,6 +25944,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20840,6 +25978,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20875,6 +26014,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20908,6 +26048,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20939,6 +26080,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -20972,6 +26114,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21012,6 +26155,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21045,6 +26189,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21082,6 +26227,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21116,6 +26262,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21154,6 +26301,7 @@ export interface operations {
                 against?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21188,6 +26336,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21231,6 +26380,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21265,6 +26415,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21303,6 +26454,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21337,6 +26489,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21374,6 +26527,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -21408,6 +26562,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -21439,6 +26594,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -21474,6 +26630,7 @@ export interface operations {
                 connection_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21503,6 +26660,791 @@ export interface operations {
             };
         };
     };
+    conectar_api_v1_admin_connections_twilio_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwilioAltaIn"];
+            };
+        };
+        responses: {
+            /** @description El número ya estaba conectado en este negocio: se actualizó. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTwilioOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sender_ya_conectado`, `cuenta_en_otro_negocio`, `twilio_account_suspended` o `conflicto`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_credentials_invalid`, `sender_not_found`, `sender_not_online` o `webhook_overwrite_not_confirmed` (con `details.previous_webhook`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_unavailable` o `twilio_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ver_api_v1_admin_connections_twilio__connection_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTwilioOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    costos_api_v1_admin_connections_twilio__connection_id__costs_get: {
+        parameters: {
+            query?: {
+                dias?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioCostosOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rotar_credenciales_api_v1_admin_connections_twilio__connection_id__credentials_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwilioRotarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTwilioOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sender_ya_conectado`, `cuenta_en_otro_negocio`, `twilio_account_suspended` o `conflicto`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_credentials_invalid`, `sender_not_found`, `sender_not_online` o `webhook_overwrite_not_confirmed` (con `details.previous_webhook`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_unavailable` o `twilio_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    desconectar_api_v1_admin_connections_twilio__connection_id__disconnect_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwilioDesconectarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioDesconectarOut"];
+                };
+            };
+            /** @description `password_required`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `password_incorrect`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refrescar_api_v1_admin_connections_twilio__connection_id__refresh_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTwilioOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_plantillas_api_v1_admin_connections_twilio__connection_id__templates_get: {
+        parameters: {
+            query?: {
+                solo_aprobadas?: boolean;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioPlantillaOut"][];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_plantilla_api_v1_admin_connections_twilio__connection_id__templates_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwilioPlantillaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioPlantillaOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `nombre_en_uso` o `plantilla_sin_crear`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `nombre_invalido`, `idioma_invalido`, `categoria_invalida`, `cuerpo_invalido` o `variables_invalidas`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sync_rate_limited` (sync manual, uno por minuto). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_unavailable` o `twilio_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    borrar_plantilla_api_v1_admin_connections_twilio__connection_id__templates__template_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refrescar_plantilla_api_v1_admin_connections_twilio__connection_id__templates__template_id__refresh_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioPlantillaOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `nombre_en_uso` o `plantilla_sin_crear`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `nombre_invalido`, `idioma_invalido`, `categoria_invalida`, `cuerpo_invalido` o `variables_invalidas`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sync_rate_limited` (sync manual, uno por minuto). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_unavailable` o `twilio_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    enviar_plantilla_a_aprobacion_api_v1_admin_connections_twilio__connection_id__templates__template_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioPlantillaOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `nombre_en_uso` o `plantilla_sin_crear`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `nombre_invalido`, `idioma_invalido`, `categoria_invalida`, `cuerpo_invalido` o `variables_invalidas`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sync_rate_limited` (sync manual, uno por minuto). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_unavailable` o `twilio_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sincronizar_plantillas_api_v1_admin_connections_twilio__connection_id__templates_sync_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioPlantillaOut"][];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `nombre_en_uso` o `plantilla_sin_crear`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `nombre_invalido`, `idioma_invalido`, `categoria_invalida`, `cuerpo_invalido` o `variables_invalidas`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sync_rate_limited` (sync manual, uno por minuto). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_unavailable` o `twilio_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    mensaje_de_prueba_api_v1_admin_connections_twilio__connection_id__test_message_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwilioPruebaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioPruebaOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `fuera_de_ventana` o `conexion_pausada`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `numero_invalido`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `too_many_tests` (1 cada 30 s) o `daily_limit` (10 al día). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reregistrar_api_v1_admin_connections_twilio__connection_id__webhooks_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTwilioOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    descubrir_api_v1_admin_connections_twilio_discover_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwilioCredencialesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioDescubrirOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sender_ya_conectado`, `cuenta_en_otro_negocio`, `twilio_account_suspended` o `conflicto`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_credentials_invalid`, `sender_not_found`, `sender_not_online` o `webhook_overwrite_not_confirmed` (con `details.previous_webhook`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_unavailable` o `twilio_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_conversations_api_v1_admin_conversations_get: {
         parameters: {
             query?: {
@@ -21516,6 +27458,7 @@ export interface operations {
                 status?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -21547,6 +27490,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21580,6 +27524,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21616,6 +27561,7 @@ export interface operations {
                 after?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21649,6 +27595,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21684,6 +27631,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21721,6 +27669,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21752,6 +27701,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21783,6 +27733,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21816,6 +27767,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21852,6 +27804,7 @@ export interface operations {
                 page_size?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21886,6 +27839,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21921,6 +27875,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21954,6 +27909,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -21987,6 +27943,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22018,6 +27975,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22049,6 +28007,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22080,6 +28039,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22113,6 +28073,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22144,6 +28105,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22173,8 +28135,12 @@ export interface operations {
     };
     dashboard_agents_api_v1_admin_dashboard_agents_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Ventana del Resumen en días: 7, 15 o 30. */
+                dias?: number;
+            };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22202,10 +28168,249 @@ export interface operations {
             };
         };
     };
+    get_aviso_api_v1_admin_datos_cliente_aviso_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvisoDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_aviso_api_v1_admin_datos_cliente_aviso_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvisoDatosUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvisoDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_politica_api_v1_admin_datos_cliente_politica_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PoliticaDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_politica_api_v1_admin_datos_cliente_politica_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PoliticaDatosUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PoliticaDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    estado_modulo_api_v1_admin_datos_de_prueba__modulo__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                modulo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstadoDatosDePruebaModulo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generar_modulo_api_v1_admin_datos_de_prueba__modulo__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                modulo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoteGenerado"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_modulo_api_v1_admin_datos_de_prueba__modulo__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                modulo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatosRetirados"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_dlq_api_v1_admin_dlq_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22237,6 +28442,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22268,6 +28474,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22299,6 +28506,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22329,12 +28537,15 @@ export interface operations {
     list_escalations_api_v1_admin_escalations_get: {
         parameters: {
             query?: {
+                /** @description Filtra por estado de la escalación */
+                estado?: ("pendiente" | "asignada" | "resuelta") | null;
                 page?: number;
                 page_size?: number;
                 /** @description Filtra por código de motivo */
                 reason_code?: ("solicitud_cliente" | "queja" | "fuera_de_alcance" | "intentos_fallidos" | "monto_alto" | "palabra_clave" | "accion_habilidad" | "regla_negocio" | "verificacion" | "frase_prohibida" | "falla_ia" | "rechazo_ia" | "envio_fallido" | "sin_resolver" | "limite_iteraciones" | "otro") | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22369,6 +28580,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22400,6 +28612,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22440,6 +28653,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22471,6 +28685,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22502,6 +28717,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22533,6 +28749,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22566,6 +28783,7 @@ export interface operations {
                 tenant?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22597,6 +28815,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22627,18 +28846,27 @@ export interface operations {
     list_leads_api_v1_admin_leads_get: {
         parameters: {
             query?: {
+                /** @description Solo los clientes con datos reales de este agente (clave de `agents`). `general` no filtra; una clave sin datos propios responde 400 `filtro_invalido`. */
+                agente?: string | null;
                 /** @description Solo los clientes de este canal. */
                 channel?: string | null;
                 /** @description Solo los clientes que escribieron por esta conexión. */
                 connection_id?: string | null;
+                /** @description Claves de `filters` de las que se quieren contadores por opción (se repite el parámetro). Una clave que no declara ningún pack, o que no sabe contar, responde 400 `filtro_invalido`. */
+                facetas?: string[] | null;
                 /** @description Filtro de un pack como `clave:valor` (ver `filters` de la respuesta). */
                 filtro?: string[] | null;
+                /** @description `alta` (por defecto, el más nuevo primero), `actividad` (último mensaje, el más reciente primero; los clientes sin mensajes van al final), `nombre`, `nombre_desc` o `seguimiento` (el seguimiento más atrasado primero; los clientes sin seguimiento van al final), `valor` (valor estimado del lead, de menor a mayor) o `valor_desc` (de mayor a menor); los clientes sin valor van siempre al final. */
+                orden?: "alta" | "actividad" | "nombre" | "nombre_desc" | "seguimiento" | "valor" | "valor_desc";
                 page?: number;
                 page_size?: number;
                 /** @description Busca por nombre, identificador o teléfono. */
                 q?: string | null;
+                /** @description Con `facetas`, suma además una cifra por opción en `sumas`: `valor` es el valor estimado de los leads (HU-CRM-24). Las sumas respetan los mismos filtros que los contadores. */
+                resumen?: "valor" | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -22670,6 +28898,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22703,6 +28932,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22736,10 +28966,81 @@ export interface operations {
             };
         };
     };
+    upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_lead_avatar_api_v1_admin_leads__lead_id__avatar_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_lead_avatar_api_v1_admin_leads__lead_id__avatar_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ver_consentimiento_api_v1_admin_leads__lead_id__consentimiento_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22773,6 +29074,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22806,10 +29108,79 @@ export interface operations {
             };
         };
     };
+    ver_consentimiento_datos_api_v1_admin_leads__lead_id__consentimiento_datos_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentimientoDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revocar_consentimiento_datos_api_v1_admin_leads__lead_id__consentimiento_datos_revocar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevocacionDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     geocodificar_lead_api_v1_admin_leads__lead_id__geocodificar_post: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22839,10 +29210,49 @@ export interface operations {
             };
         };
     };
+    geocodificar_lead_inverso_api_v1_admin_leads__lead_id__geocodificar_reverso_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeadUbicacionInversa"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadGeocodificacionInversa"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_lead_notes_api_v1_admin_leads__lead_id__notes_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22876,6 +29286,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22913,6 +29324,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22945,6 +29357,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -22983,6 +29396,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23024,6 +29438,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23057,6 +29472,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23090,6 +29506,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23124,6 +29541,7 @@ export interface operations {
             query?: never;
             header: {
                 "Idempotency-Key": string;
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23157,6 +29575,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23196,6 +29615,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23230,6 +29650,8 @@ export interface operations {
     export_leads_csv_api_v1_admin_leads_export_csv_get: {
         parameters: {
             query?: {
+                /** @description Solo los clientes con datos reales de este agente (clave de `agents`). `general` no filtra; una clave sin datos propios responde 400 `filtro_invalido`. */
+                agente?: string | null;
                 channel?: string | null;
                 connection_id?: string | null;
                 /** @description Filtro de un pack como `clave:valor` (ver `filters` de la respuesta). */
@@ -23237,6 +29659,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23266,6 +29689,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23297,6 +29721,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23332,6 +29757,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23363,6 +29789,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23398,6 +29825,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23427,6 +29855,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23460,6 +29889,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23495,6 +29925,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23530,6 +29961,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23561,6 +29993,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23592,6 +30025,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23623,6 +30057,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -23656,6 +30091,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23691,6 +30127,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23724,6 +30161,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23757,6 +30195,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23794,6 +30233,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23827,6 +30267,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23862,6 +30303,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23898,6 +30340,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23934,6 +30377,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -23970,6 +30414,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24003,6 +30448,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24036,6 +30482,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24069,6 +30516,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24102,6 +30550,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24139,6 +30588,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24172,6 +30622,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24205,6 +30656,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24242,6 +30694,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24274,6 +30727,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24305,6 +30759,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24338,6 +30793,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24375,6 +30831,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24406,6 +30863,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24437,6 +30895,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24472,6 +30931,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24503,6 +30963,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24534,6 +30995,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24565,6 +31027,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24598,6 +31061,7 @@ export interface operations {
                 since: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24631,6 +31095,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -24664,6 +31129,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24695,6 +31161,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24730,6 +31197,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24765,6 +31233,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24800,6 +31269,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24831,6 +31301,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24868,6 +31339,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24899,6 +31371,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24930,6 +31403,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -24965,6 +31439,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25000,6 +31475,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25031,6 +31507,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25060,6 +31537,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25089,6 +31567,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25120,6 +31599,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25153,6 +31633,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25184,6 +31665,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25219,6 +31701,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25254,6 +31737,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25289,6 +31773,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25324,6 +31809,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25359,6 +31845,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25396,6 +31883,7 @@ export interface operations {
                 environment?: "sandbox" | "production";
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25427,6 +31915,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25462,6 +31951,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25493,6 +31983,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25528,6 +32019,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25570,6 +32062,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25601,6 +32094,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25632,6 +32126,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25663,6 +32158,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25694,6 +32190,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25729,6 +32226,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -25763,6 +32261,7 @@ export interface operations {
                 limite?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25796,6 +32295,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25830,6 +32330,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25868,6 +32369,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25901,6 +32403,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25938,6 +32441,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -25971,10 +32475,329 @@ export interface operations {
             };
         };
     };
+    list_crons_api_v1_admin_platform_crons_get: {
+        parameters: {
+            query?: {
+                /** @description Filtra por estado. */
+                estado?: ("paused" | "running" | "failing" | "ok" | "never" | "untracked") | null;
+                /** @description Filtra por módulo. */
+                module?: string | null;
+                /** @description Busca por nombre o etiqueta. */
+                q?: string | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_cron_api_v1_admin_platform_crons__name__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pause_cron_api_v1_admin_platform_crons__name__pause_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_cron_api_v1_admin_platform_crons__name__resume_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_cron_now_api_v1_admin_platform_crons__name__run_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronRunQueued"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_cron_runs_api_v1_admin_platform_crons__name__runs_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: ("running" | "success" | "failed" | "skipped") | null;
+                trigger?: ("scheduled" | "manual") | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CronRunOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reschedule_cron_api_v1_admin_platform_crons__name__schedule_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CronScheduleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_cron_schedule_api_v1_admin_platform_crons__name__schedule_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crons_summary_api_v1_admin_platform_crons_summary_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_platform_meta_app_api_v1_admin_platform_meta_app_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26006,6 +32829,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26037,6 +32861,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26070,6 +32895,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26106,6 +32932,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26137,6 +32964,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26172,6 +33000,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26199,10 +33028,11 @@ export interface operations {
             };
         };
     };
-    get_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_get: {
+    get_avisos_por_canal_api_v1_admin_platform_tenants__tenant_id__avisos_por_canal_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26218,7 +33048,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentOSEstado"];
+                    "application/json": components["schemas"]["AvisosPorCanalBandera"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
                 };
             };
             /** @description Validation Error */
@@ -26232,10 +33080,11 @@ export interface operations {
             };
         };
     };
-    put_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_put: {
+    put_avisos_por_canal_api_v1_admin_platform_tenants__tenant_id__avisos_por_canal_put: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26245,7 +33094,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AgentOSObjetivo"];
+                "application/json": components["schemas"]["AvisosPorCanalBanderaIn"];
             };
         };
         responses: {
@@ -26255,7 +33104,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentOSResultado"];
+                    "application/json": components["schemas"]["AvisosPorCanalBandera"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
                 };
             };
             /** @description Validation Error */
@@ -26269,20 +33136,75 @@ export interface operations {
             };
         };
     };
-    simular_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_simular_post: {
+    get_canal_bandera_api_v1_admin_platform_tenants__tenant_id__canales__canal__get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
+                canal: string;
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CanalBandera"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_canal_bandera_api_v1_admin_platform_tenants__tenant_id__canales__canal__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                canal: string;
                 tenant_id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AgentOSObjetivo"];
+                "application/json": components["schemas"]["CanalBanderaIn"];
             };
         };
         responses: {
@@ -26292,7 +33214,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentOSResultado"];
+                    "application/json": components["schemas"]["CanalBandera"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
                 };
             };
             /** @description Validation Error */
@@ -26310,6 +33250,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26343,6 +33284,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26380,6 +33322,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26411,6 +33354,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26444,6 +33388,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26481,6 +33426,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26532,6 +33478,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26583,10 +33530,44 @@ export interface operations {
             };
         };
     };
+    resend_owner_invitation_api_v1_admin_platform_tenants__tenant_id__owner_invitation_resend_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenantOwnerInvitation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_tenant_plan_api_v1_admin_platform_tenants__tenant_id__plan_post: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26622,6 +33603,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26653,6 +33635,58 @@ export interface operations {
             };
         };
     };
+    get_retired_references_api_v1_admin_platform_tenants__tenant_id__retired_references_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetiredReferencesReport"];
+                };
+            };
+            /** @description No es el admin master (tampoco el tester ni un colaborador). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description El negocio no existe o está borrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     playground_history_api_v1_admin_playground_get: {
         parameters: {
             query?: {
@@ -26660,6 +33694,7 @@ export interface operations {
                 connection_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26691,6 +33726,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26722,6 +33758,60 @@ export interface operations {
             };
         };
     };
+    playground_options_api_v1_admin_playground_options_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaygroundOpcionesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaygroundOpcionesOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
     playground_reset_api_v1_admin_playground_reset_post: {
         parameters: {
             query?: {
@@ -26729,6 +33819,7 @@ export interface operations {
                 connection_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26754,10 +33845,65 @@ export interface operations {
             };
         };
     };
+    playground_tap_api_v1_admin_playground_tap_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaygroundToqueIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaygroundToqueOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
     list_plugins_api_v1_admin_plugins_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26789,6 +33935,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26831,6 +33978,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26864,6 +34012,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26908,6 +34057,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -26948,6 +34098,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -26979,6 +34130,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27012,6 +34164,7 @@ export interface operations {
                 seccion?: ("pruebas" | "test" | "prod" | "datos") | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27043,6 +34196,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27078,6 +34232,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27115,6 +34270,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27146,6 +34302,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27181,6 +34338,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27212,6 +34370,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27252,6 +34411,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27283,6 +34443,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27328,6 +34489,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27382,6 +34544,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27415,6 +34578,7 @@ export interface operations {
                 cycle_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27450,6 +34614,7 @@ export interface operations {
                 cycle_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27481,6 +34646,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27514,6 +34680,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27547,6 +34714,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27578,6 +34746,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27613,6 +34782,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27650,6 +34820,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27688,6 +34859,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27719,6 +34891,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27754,6 +34927,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27785,6 +34959,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27820,6 +34995,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27859,6 +35035,7 @@ export interface operations {
                 release_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27898,6 +35075,7 @@ export interface operations {
                 release_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27929,6 +35107,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -27966,6 +35145,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -27997,6 +35177,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28028,6 +35209,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28063,6 +35245,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28098,6 +35281,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28129,6 +35313,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28164,6 +35349,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -28193,10 +35379,87 @@ export interface operations {
             };
         };
     };
+    asistente_aplicar_api_v1_admin_settings_asistente__seccion__aplicar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                seccion: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AsistenteAplicar"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Propuesta"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    asistente_vista_previa_api_v1_admin_settings_asistente__seccion__vista_previa_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                seccion: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AsistenteRespuestas"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Propuesta"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_bajas_api_v1_admin_settings_bajas_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28228,6 +35491,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28263,6 +35527,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28298,6 +35563,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28333,6 +35599,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28364,6 +35631,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28395,6 +35663,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28439,6 +35708,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28474,6 +35744,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28505,6 +35776,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28540,6 +35812,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28575,6 +35848,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28610,6 +35884,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28645,6 +35920,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28680,6 +35956,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28711,6 +35988,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28746,6 +36024,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28777,6 +36056,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28812,6 +36092,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28843,6 +36124,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28878,6 +36160,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28909,6 +36192,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28944,6 +36228,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -28975,6 +36260,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29012,6 +36298,7 @@ export interface operations {
                 connection_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29043,6 +36330,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29087,6 +36375,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29123,6 +36412,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29154,6 +36444,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29194,6 +36485,7 @@ export interface operations {
                 release_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29225,6 +36517,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29478,6 +36771,7 @@ export interface operations {
                 unread?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29509,6 +36803,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29540,6 +36835,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29575,6 +36871,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29606,6 +36903,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29641,6 +36939,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29676,6 +36975,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29707,6 +37007,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29740,6 +37041,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29769,6 +37071,353 @@ export interface operations {
             };
         };
     };
+    catalogo_api_v1_mensajes_catalogo_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogoDeMensajesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_api_v1_mensajes_guardados_get: {
+        parameters: {
+            query?: {
+                /** @description Filtra por estado; sin él, todos los vivos. */
+                estado?: ("borrador" | "activo" | "archivado") | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MensajesGuardadosOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+        };
+    };
+    crear_api_v1_mensajes_guardados_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MensajeGuardadoCrearIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MensajeGuardadoOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+        };
+    };
+    obtener_api_v1_mensajes_guardados__clave__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MensajeGuardadoOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    eliminar_api_v1_mensajes_guardados__clave__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    editar_api_v1_mensajes_guardados__clave__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                clave: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MensajeGuardadoEditarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MensajeGuardadoOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+        };
+    };
+    catalogo_opciones_api_v1_mensajes_guardados_catalogo_opciones_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpcionesGuardadoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vista_previa_api_v1_mensajes_guardados_vista_previa_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VistaPreviaGuardadoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VistaPreviaGuardadoOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardadoErrorOut"];
+                };
+            };
+        };
+    };
     list_appointments_api_v1_pack_calendar_appointments_get: {
         parameters: {
             query?: {
@@ -29776,6 +37425,7 @@ export interface operations {
                 include_past?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29807,6 +37457,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -29842,6 +37493,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29879,6 +37531,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29912,6 +37565,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29949,6 +37603,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -29989,6 +37644,7 @@ export interface operations {
                 include_past?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30020,6 +37676,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30055,6 +37712,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30086,6 +37744,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30123,6 +37782,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30154,6 +37814,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30189,6 +37850,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30226,6 +37888,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30266,6 +37929,7 @@ export interface operations {
                 start?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30303,6 +37967,7 @@ export interface operations {
                 state?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30337,6 +38002,7 @@ export interface operations {
                 next?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30368,6 +38034,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30399,6 +38066,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30430,6 +38098,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30463,6 +38132,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30498,6 +38168,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30531,6 +38202,7 @@ export interface operations {
                 start?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30562,6 +38234,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30598,6 +38271,7 @@ export interface operations {
                 operacion?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30632,6 +38306,7 @@ export interface operations {
                 estado?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30663,6 +38338,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30703,6 +38379,7 @@ export interface operations {
                 q?: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30734,6 +38411,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30769,6 +38447,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30802,6 +38481,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30839,6 +38519,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30870,6 +38551,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -30907,6 +38589,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30938,6 +38621,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -30982,6 +38666,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31019,6 +38704,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31050,6 +38736,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31083,6 +38770,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31120,6 +38808,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31151,6 +38840,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31182,6 +38872,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31217,6 +38908,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31252,6 +38944,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31287,6 +38980,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31324,6 +39018,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31355,6 +39050,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31390,6 +39086,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31427,6 +39124,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31458,6 +39156,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31493,6 +39192,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31528,6 +39228,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31559,6 +39260,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31590,6 +39292,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31621,6 +39324,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31652,6 +39356,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -31687,6 +39392,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31720,6 +39426,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31757,6 +39464,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31788,6 +39496,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31821,6 +39530,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31856,6 +39566,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31887,6 +39598,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31918,6 +39630,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31951,6 +39664,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -31988,6 +39702,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32025,6 +39740,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32062,6 +39778,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32095,6 +39812,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32132,6 +39850,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32167,6 +39886,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32200,6 +39920,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32233,6 +39954,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32264,6 +39986,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32299,6 +40022,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32330,6 +40054,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32361,6 +40086,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32396,6 +40122,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32427,6 +40154,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32458,6 +40186,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32493,6 +40222,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32524,6 +40254,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32561,6 +40292,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32592,6 +40324,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32625,6 +40358,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32656,6 +40390,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32683,10 +40418,47 @@ export interface operations {
             };
         };
     };
+    seguimiento_hecho_api_v1_pack_commerce_leads__customer_id__seguimiento_hecho_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeguimientoHechoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     commerce_modulos_api_v1_pack_commerce_modulos_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32716,8 +40488,20 @@ export interface operations {
     };
     list_orders_api_v1_pack_commerce_orders_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Solo los pedidos de este cliente. */
+                customer_id?: string | null;
+                /** @description Estado del pedido. */
+                estado?: string | null;
+                limit?: number;
+                offset?: number;
+                /** @description Estado del pago: pendiente, pagado o rechazado. */
+                pago?: string | null;
+                /** @description Número de pedido o nombre del cliente. */
+                q?: string | null;
+            };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32728,6 +40512,8 @@ export interface operations {
             /** @description Successful Response */
             200: {
                 headers: {
+                    /** @description Total de pedidos que coinciden con los filtros (sin paginar). */
+                    "X-Total-Count"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -32749,6 +40535,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32784,6 +40571,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32815,6 +40603,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32848,6 +40637,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -32888,6 +40678,7 @@ export interface operations {
                 ally_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32919,6 +40710,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32952,6 +40744,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -32989,6 +40782,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33024,6 +40818,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33055,6 +40850,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33088,6 +40884,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33275,11 +41072,12 @@ export interface operations {
                 page_size?: number;
                 q?: string | null;
                 suscripcion_id?: string | null;
-                tipo?: ("periodo" | "cambio_plan") | null;
+                tipo?: ("periodo" | "cambio_plan" | "inscripcion") | null;
                 /** @description Solo pendientes con vencimiento cumplido. */
                 vencidos?: boolean;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33311,6 +41109,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33344,6 +41143,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33377,6 +41177,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33421,6 +41222,7 @@ export interface operations {
                 q?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33452,6 +41254,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33479,6 +41282,322 @@ export interface operations {
             };
         };
     };
+    listar_planes_api_v1_pack_pack_subscriptions_planes_get: {
+        parameters: {
+            query?: {
+                /** @description Incluye los planes apagados. */
+                incluir_inactivos?: boolean;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_plan_api_v1_pack_pack_subscriptions_planes_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    editar_plan_api_v1_pack_pack_subscriptions_planes__plan_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_plan_api_v1_pack_pack_subscriptions_planes__plan_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_promociones_api_v1_pack_pack_subscriptions_promociones_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromocionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_promocion_api_v1_pack_pack_subscriptions_promociones_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromocionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromocionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    editar_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                promocion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromocionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromocionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                promocion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    canjes_de_promocion_api_v1_pack_pack_subscriptions_promociones__promocion_id__canjes_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                promocion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CanjeOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     listar_suscripciones_api_v1_pack_pack_subscriptions_suscripciones_get: {
         parameters: {
             query?: {
@@ -33486,16 +41605,17 @@ export interface operations {
                 cliente_id?: string | null;
                 /** @description Solo con algún cargo vencido sin pagar. */
                 con_mora?: boolean;
-                estado?: ("trialing" | "activa" | "pausada" | "vencida" | "cancelada") | null;
+                estado?: ("pendiente_pago" | "trialing" | "activa" | "pausada" | "vencida" | "cancelada") | null;
                 page?: number;
                 page_size?: number;
                 periodicidad?: ("mensual" | "trimestral" | "anual") | null;
+                /** @description Plan del catálogo. */
+                plan_id?: string | null;
                 /** @description Nombre o teléfono del cliente, o plan. */
                 q?: string | null;
-                /** @description Plan (variante de commerce). */
-                variante_id?: string | null;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33527,6 +41647,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33562,6 +41683,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33595,6 +41717,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33628,10 +41751,49 @@ export interface operations {
             };
         };
     };
+    confirmar_pago_de_inscripcion_api_v1_pack_pack_subscriptions_suscripciones__subscription_id__confirmar_pago_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmarPagoBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagoConfirmadoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     pausar_suscripcion_api_v1_pack_pack_subscriptions_suscripciones__subscription_id__pausar_post: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33669,6 +41831,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33698,10 +41861,149 @@ export interface operations {
             };
         };
     };
+    list_accounts_api_v1_pack_payments_accounts_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentAccount"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_account_api_v1_pack_payments_accounts_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentAccountIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentAccount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_account_api_v1_pack_payments_accounts__account_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_account_api_v1_pack_payments_accounts__account_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentAccountPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentAccount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     listar_api_v1_plantillas_opciones_get: {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33733,6 +42035,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -33777,6 +42080,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33810,6 +42114,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33841,6 +42146,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33887,6 +42193,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33933,6 +42240,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33979,6 +42287,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -34012,6 +42321,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -34057,8 +42367,11 @@ export interface operations {
     };
     catalogo_acciones_api_v1_plantillas_opciones_catalogo_acciones_get: {
         parameters: {
-            query?: never;
+            query?: {
+                agent_id?: string | null;
+            };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34090,6 +42403,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34121,6 +42435,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34156,6 +42471,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34298,6 +42614,7 @@ export interface operations {
                 q: string;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path?: never;
@@ -34332,6 +42649,7 @@ export interface operations {
                 limit?: number;
             };
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {

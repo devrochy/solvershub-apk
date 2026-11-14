@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { ClienteAdmin } from "@core/api/admin";
+import { cargarCategoriasDisponibles } from "./agentes";
 import {
   archivarNotificacion,
   contarNoLeidas,
@@ -11,7 +12,7 @@ import {
   marcarTodasLeidas,
   silenciarPush,
 } from "./feed-api";
-import type { NotificacionItem, NotificacionPreferencias } from "./tipos";
+import { CATEGORIAS, type Categoria, type NotificacionItem, type NotificacionPreferencias } from "./tipos";
 
 /** Contador y lista abierta: cada 20 s con la app en primer plano (ADR-0167). */
 export const INTERVALO_NOTIFICACIONES_MS = 20_000;
@@ -36,6 +37,7 @@ export function useCentro(api: ClienteAdmin, abierto: boolean) {
   const [fallo, setFallo] = useState(false);
   const [pestana, setPestana] = useState<Pestana>("todas");
   const [categoria, setCategoria] = useState<string | null>(null);
+  const [categorias, setCategorias] = useState<readonly Categoria[]>(CATEGORIAS);
   const [conocidas, setConocidas] = useState<ReadonlySet<string>>(new Set());
   const [preferencias, setPreferencias] = useState<NotificacionPreferencias | null>(null);
   const [ahora, setAhora] = useState(() => new Date());
@@ -94,6 +96,25 @@ export function useCentro(api: ClienteAdmin, abierto: boolean) {
       sub.remove();
     };
   }, [refrescarContador]);
+
+  // Categorías disponibles según los agentes creados: se refresca cada vez que se abre la hoja.
+  useEffect(() => {
+    if (!abierto) return;
+    let vigente = true;
+    void cargarCategoriasDisponibles(api)
+      .then((disponibles) => {
+        if (!vigente) return;
+        setCategorias(disponibles);
+        // Si el filtro elegido dejó de estar disponible, se vuelve a «Todas».
+        setCategoria((actual) => (actual && !disponibles.includes(actual as Categoria) ? null : actual));
+      })
+      .catch(() => {
+        if (vigente) setCategorias(CATEGORIAS);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [abierto, api]);
 
   // Abierta: carga al abrir y al cambiar de filtro; refresca sin perder lo cargado.
   useEffect(() => {
@@ -215,6 +236,7 @@ export function useCentro(api: ClienteAdmin, abierto: boolean) {
     setPestana,
     categoria,
     setCategoria,
+    categorias,
     preferencias,
     cargarPreferencias,
     cargarMas,

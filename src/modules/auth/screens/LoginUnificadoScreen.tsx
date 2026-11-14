@@ -18,6 +18,7 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { ApiAuthError, apiGestorToken } from "@core/api/auth-admin";
 import { biometriaDisponible, biometriaHabilitada, deshabilitarBiometria, habilitarBiometria } from "../biometria";
 import { fuenteLogo } from "../marca";
+import { esCodigoDeEquipo } from "@shared/acceso-evento";
 
 export interface LoginUnificadoProps {
   /** Sesión de campo lista (exchange OK): el compositor la aplica. */
@@ -81,11 +82,15 @@ export function LoginUnificadoScreen({
           const campo = await apiGestorToken(sesion.token, me.tenant.id);
           await onAutenticado(campo);
         } catch (err) {
-          // 403 del exchange = negocio sin acceso de campo (ADR-0094):
-          // el usuario opera el panel con su sesión admin.
           if (err instanceof ApiAuthError && err.status === 403) {
-            onEntrarPanel();
-            return;
+            // Equipo pendiente o bloqueado (ADR-0174): la raíz de la app ya muestra su pantalla
+            // de espera; aquí no es un error de acceso ni un negocio sin campo.
+            if (esCodigoDeEquipo(err.code)) return;
+            // Negocio sin acceso de campo (ADR-0094): el usuario opera el panel con su sesión admin.
+            if (err.code === "sin_acceso_campo") {
+              onEntrarPanel();
+              return;
+            }
           }
           throw err;
         }

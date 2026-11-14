@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { CentroSheet } from "./CentroSheet";
-import type { NotificacionItem } from "./tipos";
+import { CATEGORIAS, type NotificacionItem } from "./tipos";
 import type { EstadoCentro } from "./use-centro";
 
 const item = (over: Partial<NotificacionItem>): NotificacionItem =>
@@ -30,6 +30,7 @@ function estado(over: Partial<EstadoCentro> = {}): EstadoCentro {
     setPestana: jest.fn(),
     categoria: null,
     setCategoria: jest.fn(),
+    categorias: CATEGORIAS,
     preferencias: null,
     cargarPreferencias: jest.fn(),
     cargarMas: jest.fn(),
@@ -58,6 +59,22 @@ describe("CentroSheet (ADR-0167)", () => {
       <CentroSheet visible onClose={jest.fn()} n={estado({ items: [], noLeidas: 0 })} onAbrirNotificacion={jest.fn()} />,
     );
     expect(screen.getByText("Aún no hay notificaciones")).toBeTruthy();
+  });
+
+  it("solo muestra los filtros de las categorías con agente", async () => {
+    await render(
+      <CentroSheet
+        visible
+        onClose={jest.fn()}
+        n={estado({ categorias: ["conversaciones", "sistema"] })}
+        onAbrirNotificacion={jest.fn()}
+      />,
+    );
+    expect(screen.getByText("Conversaciones")).toBeTruthy();
+    expect(screen.getByText("Sistema")).toBeTruthy();
+    expect(screen.queryByText("Ventas")).toBeNull();
+    expect(screen.queryByText("Cobros")).toBeNull();
+    expect(screen.queryByText("Agenda")).toBeNull();
   });
 
   it("marcar todas y archivar llaman al estado", async () => {

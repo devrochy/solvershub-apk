@@ -1,14 +1,111 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
+const SESION_MASTER = {
+  sesion: { token: "t", role: "master", tenantRole: "owner", permissions: { leads: "write" } },
+  loading: false,
+};
+const mockSesion = jest.fn();
+jest.mock("@core/session/admin-session-context", () => ({
+  useAdminSession: () => mockSesion(),
+}));
+jest.mock("@shared/ui", () => {
+  // Estable entre renders, como el del `ToastProvider` real.
+  const toast = { show: jest.fn(), success: jest.fn(), error: (m: string) => mockToastError(m), dismiss: jest.fn() };
+  return { ...jest.requireActual("@shared/ui"), useToast: () => toast };
+});
+jest.mock("expo-image-picker", () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn(),
+  launchImageLibraryAsync: jest.fn(),
+}));
+jest.mock("@shared/media/preparar-avatar", () => ({
+  prepararAvatar: jest.fn(),
+}));
+jest.mock("../api", () => {
+  const actual = jest.requireActual("../api");
+  return {
+    ...actual,
+    subirAvatarDelCliente: jest.fn(),
+    quitarAvatarDelCliente: jest.fn(),
+  };
+});
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import * as ImagePicker from "expo-image-picker";
+import { prepararAvatar } from "@shared/media/preparar-avatar";
+import { AdminApiError } from "@core/api/admin";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { quitarAvatarDelCliente, subirAvatarDelCliente, type FichaDelCliente } from "../api";
 import { ClienteDetalleScreen } from "./ClienteDetalleScreen";
 
 const mockGet = jest.fn();
 const mockPost = jest.fn();
 const mockPatch = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
+const mockToastError = jest.fn();
+const picker = ImagePicker as jest.Mocked<typeof ImagePicker>;
+const preparar = prepararAvatar as jest.MockedFunction<typeof prepararAvatar>;
+const subirAvatar = subirAvatarDelCliente as jest.MockedFunction<typeof subirAvatarDelCliente>;
+const quitarAvatar = quitarAvatarDelCliente as jest.MockedFunction<typeof quitarAvatarDelCliente>;
+
+const PERFIL = {
+  nombre_visible: "Juana Pérez",
+  name: "Juana",
+  apellido: "Pérez",
+  alias: "Juanita",
+  phone_e164: "+573001112233",
+  phone_indicativo: "+57",
+  phone_local: "300 111 2233",
+  email: "juana@example.com",
+  tipo_documento: "cc",
+  id_document: "123",
+  address: "Calle 12",
+  direccion_normalizada: "Calle 12 # 3-4",
+  municipio: "Bogotá",
+  departamento: "Cundinamarca",
+  pais: "Colombia",
+  latitud: 4.6,
+  longitud: -74.1,
+  mapa_url: "https://maps.example.com/1",
+  avatar_url: null,
+  clasificacion: "cliente",
+  clasificacion_label: "Cliente",
+  geocodificacion_precision: "exacta",
+  geocodificado_en: "2026-10-21T00:00:00Z",
+};
+
+const CAMPOS = [
+  { group: "identidad", key: "name", label: "Nombre", tipo: "texto", max_length: 120, options: [], required: true },
+  { group: "identidad", key: "apellido", label: "Apellido", tipo: "texto", max_length: 120, options: [], required: false },
+  { group: "contacto", key: "phone", label: "Teléfono", tipo: "telefono", max_length: 30, options: [], required: false },
+  { group: "contacto", key: "email", label: "Correo", tipo: "email", max_length: 120, options: [], required: false },
+  { group: "ubicacion", key: "address", label: "Dirección", tipo: "texto", max_length: 200, options: [], required: false },
+  { group: "ubicacion", key: "municipio", label: "Municipio", tipo: "texto", max_length: 80, options: [], required: false },
+  { group: "ubicacion", key: "departamento", label: "Departamento", tipo: "texto", max_length: 80, options: [], required: false },
+  {
+    group: "clasificacion",
+    key: "clasificacion",
+    label: "Clasificación",
+    tipo: "opciones",
+    max_length: 30,
+    options: [{ value: "cliente", label: "Cliente" }, { value: "vip", label: "VIP" }],
+    required: false,
+  },
+];
+
+const EDITABLES = [
+  {
+    plugin_id: "pack_commerce",
+    key: "estado_lead",
+    label: "Estado del lead",
+    tipo: "opciones",
+    max_length: 200,
+    value: "calificado",
+    options: [{ value: "calificado", label: "Calificado" }, { value: "perdido", label: "Perdido" }],
+  },
+  { plugin_id: "pack_commerce", key: "interes", label: "Interés", tipo: "texto", max_length: 500, value: "plan basic" },
+];
 
 const FICHA = {
   id: "c-1",
@@ -21,12 +118,24 @@ const FICHA = {
   alta: "2026-10-21T00:00:00Z",
   conexiones: [{ id: "x", label: "WhatsApp Tienda", channel: "whatsapp" }],
   ultima_conversacion_id: "cv-9",
+  perfil: PERFIL,
+  campos_perfil: CAMPOS,
+  agentes: [
+    { key: "general", name: "General", columns: [], editables: [] },
+    {
+      key: "ventas",
+      name: "Ventas",
+      columns: [{ key: "estado_lead", label: "Estado del lead", value: "Calificado" }],
+      editables: EDITABLES,
+    },
+  ],
   datos: [
     { namespace: "perfil", key: "direccion", value: "Calle 12", source: "tool", data_class: "pii", valid_from: "2026-10-21T10:00:00Z" },
     { namespace: "ventas", key: "talla", value: "M", source: "tool", data_class: "internal", valid_from: "2026-10-21T10:00:00Z" },
   ],
-  extras: { clasificacion: "Fiel" },
+  extras: { clasificacion: "cliente", estado_lead: "Calificado", interes: "plan basic" },
   columns: [{ key: "clasificacion", label: "Clasificación" }],
+  editables: EDITABLES,
 };
 
 const NOTAS = [
@@ -44,50 +153,97 @@ const HISTORIA = {
 async function pantalla() {
   const props = {
     route: { key: "k", name: "ClienteDetalle", params: { id: "c-1", titulo: "Juana" } },
-    navigation: { navigate: mockNavigate },
+    navigation: { navigate: mockNavigate, goBack: mockGoBack, setOptions: mockSetOptions },
   } as unknown as Parameters<typeof ClienteDetalleScreen>[0];
   return await render(<ClienteDetalleScreen {...props} />);
 }
 
-describe("ClienteDetalleScreen (HU-CRM-02)", () => {
+describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useAdminApi as jest.Mock).mockReturnValue({ get: mockGet, post: mockPost, patch: mockPatch, put: jest.fn(), del: jest.fn() });
+    mockSesion.mockReturnValue(SESION_MASTER);
+    mockGet.mockReset();
+    mockPost.mockReset();
+    mockPatch.mockReset();
+    picker.requestMediaLibraryPermissionsAsync.mockReset();
+    picker.launchImageLibraryAsync.mockReset();
+    preparar.mockReset();
+    subirAvatar.mockReset();
+    quitarAvatar.mockReset();
+    (useAdminApi as jest.Mock).mockReturnValue({
+      get: mockGet,
+      post: mockPost,
+      patch: mockPatch,
+      put: jest.fn(),
+      del: jest.fn(),
+    });
     mockGet.mockImplementation((path: string) => {
       if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
       if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+      if (path.endsWith("/consentimiento")) return Promise.resolve({ estado: "sin_registro", historial: [] });
       return Promise.resolve(FICHA);
     });
   });
 
-  it("muestra la ficha con la clasificación y lo que sabemos (solo el perfil)", async () => {
-    const { findByText, queryByTestId, getByText } = await pantalla();
-    expect(await findByText("Calle 12")).toBeTruthy();
-    expect(getByText("Fiel")).toBeTruthy();
-    expect(getByText("Asistente")).toBeTruthy();
-    expect(queryByTestId("cliente-dato-talla")).toBeNull();
+  it("muestra la ficha con perfil, clasificación y lo que sabe cada agente", async () => {
+    const { findByText, getByTestId, getByText } = await pantalla();
+    expect(await findByText("Juana Pérez")).toBeTruthy();
+    expect(getByTestId("cliente-clasificacion")).toBeTruthy();
+    expect(getByText("Calle 12")).toBeTruthy();
+    expect(getByText("WhatsApp Tienda")).toBeTruthy();
+    expect(getByText("Otros datos que guardó el agente")).toBeTruthy();
+    expect(getByText("M")).toBeTruthy();
     expect(mockGet).toHaveBeenCalledWith("/admin/leads/c-1");
+  });
+
+  it("pone el nombre del cliente como título al cargar la ficha (HU-CRM-20)", async () => {
+    await pantalla();
+    await waitFor(() => expect(mockSetOptions).toHaveBeenCalledWith({ title: "Juana Pérez" }));
+  });
+
+  it("si el cliente ya no existe avisa y vuelve a la lista (HU-CRM-20)", async () => {
+    mockGet.mockRejectedValue(new AdminApiError(404, "not_found", "Cliente no encontrado."));
+    await pantalla();
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("Ese cliente ya no está"));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("otro error de carga no vuelve atrás: ofrece reintentar", async () => {
+    mockGet.mockRejectedValue(new AdminApiError(500, "server_error", "Falló."));
+    const { findByText } = await pantalla();
+    expect(await findByText("No pudimos abrir el cliente")).toBeTruthy();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it("pausa el agente para el cliente", async () => {
     mockPost.mockResolvedValue({ bot_paused: true });
     const { findByTestId, getByText } = await pantalla();
-    await fireEvent(await findByTestId("cliente-agente"), "valueChange", false);
-    await waitFor(() => expect(getByText("Pausado para este cliente")).toBeTruthy());
+    await fireEvent.press(await findByTestId("cliente-agente"));
+    await waitFor(() => expect(getByText("Pausado solo para este cliente")).toBeTruthy());
     expect(mockPost).toHaveBeenCalledWith("/admin/leads/c-1/toggle-bot");
   });
 
-  it("corrige solo los datos cambiados", async () => {
-    mockPatch.mockResolvedValue({
-      ...FICHA,
-      datos: [{ ...FICHA.datos[0], value: "Carrera 7", source: "human" }],
-    });
+  it("corrige el perfil con el endpoint de perfil", async () => {
+    mockPatch.mockResolvedValue({ ...FICHA, perfil: { ...PERFIL, address: "Carrera 7" } });
     const { findByTestId, getByTestId, findByText } = await pantalla();
     await fireEvent.press(await findByTestId("cliente-editar"));
-    await fireEvent.changeText(getByTestId("cliente-campo-direccion"), "Carrera 7");
-    await fireEvent.press(getByTestId("cliente-guardar"));
+    await fireEvent.changeText(getByTestId("perfil-address"), "Carrera 7");
+    await fireEvent.press(getByTestId("perfil-guardar"));
+    await waitFor(() =>
+      expect(mockPatch).toHaveBeenCalledWith("/admin/leads/c-1/perfil", {
+        valores: { address: "Carrera 7" },
+        otros: {},
+      }),
+    );
     expect(await findByText("Carrera 7")).toBeTruthy();
-    expect(mockPatch).toHaveBeenCalledWith("/admin/leads/c-1", { datos: { direccion: "Carrera 7" } });
+  });
+
+  it("geocodifica la dirección", async () => {
+    mockPost.mockResolvedValue({ perfil: { ...PERFIL, latitud: 1, longitud: 2 }, latitud: 1, longitud: 2, proveedor: "test" });
+    const { findByTestId, findByText } = await pantalla();
+    await fireEvent.press(await findByTestId("cliente-geocodificar"));
+    expect(await findByText("Dirección ubicada en el mapa.")).toBeTruthy();
+    expect(mockPost).toHaveBeenCalledWith("/admin/leads/c-1/geocodificar");
   });
 
   it("abre la última conversación", async () => {
@@ -108,55 +264,173 @@ describe("ClienteDetalleScreen (HU-CRM-02)", () => {
     );
   });
 
-  it("cambia el estado y el interés del lead de venta (ADR-0149)", async () => {
-    const editables = [
-      {
-        plugin_id: "pack_commerce", key: "estado_lead", label: "Estado del lead", tipo: "opciones", max_length: 200,
-        value: "calificado",
-        options: [{ value: "calificado", label: "Calificado" }, { value: "perdido", label: "Perdido" }],
-      },
-      { plugin_id: "pack_commerce", key: "interes", label: "Interés", tipo: "texto", max_length: 500, value: "plan basic" },
-    ];
-    const ficha = {
-      ...FICHA,
-      extras: { clasificacion: "Fiel", estado_lead: "Calificado", interes: "plan basic" },
-      columns: [...FICHA.columns, { key: "estado_lead", label: "Estado del lead" }, { key: "interes", label: "Interés" }],
-      editables,
-    };
-    mockGet.mockImplementation((path: string) => {
-      if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
-      if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
-      return Promise.resolve(ficha);
-    });
-    mockPatch.mockResolvedValue({ ...ficha, editables: [{ ...editables[0], value: "perdido" }, editables[1]] });
-    const { findByTestId, getByTestId, queryAllByText } = await pantalla();
-    await findByTestId("pack-pack_commerce");
-    // Las columnas editables no se repiten como solo lectura.
-    expect(queryAllByText("Calificado")).toHaveLength(1);
+  it("cambia el estado del lead de venta en la pestaña del agente", async () => {
+    mockPatch.mockResolvedValue({ ...FICHA, agentes: FICHA.agentes.map((a) => (a.key === "ventas" ? { ...a, editables: [{ ...EDITABLES[0], value: "perdido" }, EDITABLES[1]] } : a)) });
+    const { findByTestId, getByTestId } = await pantalla();
+    await fireEvent.press(await findByTestId("cliente-tab-ventas"));
     await fireEvent.press(getByTestId("pack-estado_lead-perdido"));
     await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
     await waitFor(() =>
-      expect(mockPatch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", { valores: { estado_lead: "perdido" } }),
+      expect(mockPatch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", {
+        valores: { estado_lead: "perdido" },
+      }),
     );
   });
 
-  it("no repite el teléfono del canal en lo que sabemos", async () => {
-    const ficha = {
+  describe("próxima acción (HU-CRM-21)", () => {
+    const SEGUIMIENTO = [
+      { plugin_id: "pack_commerce", key: "seguimiento_nota", label: "Próxima acción", tipo: "texto", max_length: 200, value: "Llamar para cerrar" },
+      { plugin_id: "pack_commerce", key: "seguimiento_en", label: "Fecha de seguimiento", tipo: "fecha", max_length: 32, value: "2026-11-03T09:00" },
+    ];
+    const FICHA_CON_SEGUIMIENTO = {
       ...FICHA,
-      datos: [
-        ...FICHA.datos,
-        { namespace: "perfil", key: "phone", value: "300 111 2233", source: "tool", data_class: "pii", valid_from: "2026-10-21T10:00:00Z" },
-      ],
-      telefono: "+573001112233",
+      extras: { ...FICHA.extras, seguimiento_en: "2026-11-03T14:00:00+00:00", seguimiento_estado: "vencidos" },
+      agentes: FICHA.agentes.map((a) => (a.key === "ventas" ? { ...a, editables: [...EDITABLES, ...SEGUIMIENTO] } : a)),
     };
+
+    beforeEach(() => {
+      mockGet.mockImplementation((path: string) => {
+        if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
+        if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+        if (path.endsWith("/consentimiento")) return Promise.resolve({ estado: "sin_registro", historial: [] });
+        return Promise.resolve(FICHA_CON_SEGUIMIENTO);
+      });
+    });
+
+    it("tiene su propia tarjeta y no aparece en el formulario genérico del pack", async () => {
+      const { findByTestId, getByTestId, queryByTestId, getByText } = await pantalla();
+      await fireEvent.press(await findByTestId("cliente-tab-ventas"));
+      expect(getByTestId("seguimiento-lead")).toBeTruthy();
+      expect(getByText("Vencido")).toBeTruthy();
+      expect(getByTestId("seguimiento-nota").props.children).toBe("Llamar para cerrar");
+      expect(queryByTestId("pack-seguimiento_en")).toBeNull();
+      expect(queryByTestId("pack-seguimiento_nota")).toBeNull();
+      expect(getByTestId("pack-estado_lead-perdido")).toBeTruthy();
+    });
+
+    it("se ve, sin acciones, para quien no puede escribir", async () => {
+      mockSesion.mockReturnValue({ sesion: { token: "t", role: "colaborador", permissions: { leads: "read" } }, loading: false });
+      const { findByTestId, getByTestId, queryByTestId } = await pantalla();
+      await fireEvent.press(await findByTestId("cliente-tab-ventas"));
+      expect(getByTestId("seguimiento-nota")).toBeTruthy();
+      expect(queryByTestId("seguimiento-editar")).toBeNull();
+      expect(queryByTestId("seguimiento-hecho")).toBeNull();
+    });
+  });
+
+  it("marca el consentimiento de promociones", async () => {
+    mockPost.mockResolvedValue({ estado: "otorgado", historial: [] });
+    const { findByTestId, getByTestId, findByText } = await pantalla();
+    await fireEvent.press(await findByTestId("consentimiento-marcar"));
+    await fireEvent.changeText(getByTestId("consentimiento-evidencia"), "Firmó la planilla");
+    await fireEvent.press(getByTestId("consentimiento-guardar"));
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/admin/leads/c-1/consentimiento", {
+        estado: "otorgado",
+        como: "en_el_local",
+        evidencia: "Firmó la planilla",
+      }),
+    );
+    expect(await findByText("Acepta promociones")).toBeTruthy();
+  });
+
+  it("muestra el mapa cuando el cliente tiene coordenadas", async () => {
+    const { findByTestId } = await pantalla();
+    expect(await findByTestId("mapa-cliente")).toBeTruthy();
+  });
+
+  it("propone la dirección al mover el pin y la aplica al formulario", async () => {
+    mockPost.mockImplementation((path: string) => {
+      if (path.endsWith("/geocodificar/reverso")) {
+        return Promise.resolve({
+          latitud: 4.61,
+          longitud: -74.11,
+          direccion: "Calle 13 # 5-6",
+          municipio: "Bogotá",
+          departamento: "Cundinamarca",
+          pais: "Colombia",
+          precision: "exacta",
+          proveedor: "locationiq",
+        });
+      }
+      return Promise.resolve({});
+    });
+    const { findByTestId, getByTestId, findByText, getByText } = await pantalla();
+    await fireEvent.press(await findByTestId("cliente-editar"));
+    await fireEvent(getByTestId("cliente-mapa-pin-webview"), "message", {
+      nativeEvent: { data: JSON.stringify({ latitud: 4.61, longitud: -74.11 }) },
+    });
+    expect(await findByText("Dirección propuesta")).toBeTruthy();
+    await fireEvent.press(getByText("Usar estos datos"));
+    expect(getByTestId("perfil-address").props.value).toBe("Calle 13 # 5-6");
+    expect(getByTestId("perfil-municipio").props.value).toBe("Bogotá");
+    expect(mockPost).toHaveBeenCalledWith("/admin/leads/c-1/geocodificar/reverso", {
+      latitud: 4.61,
+      longitud: -74.11,
+    });
+  });
+
+  it("muestra placeholders de ejemplo y valida el nombre en vivo", async () => {
+    const { findByTestId, getByTestId, findByText } = await pantalla();
+    await fireEvent.press(await findByTestId("cliente-editar"));
+    expect(getByTestId("perfil-email").props.placeholder).toBe("ana@correo.com");
+    expect(getByTestId("perfil-address").props.placeholder).toBe("Ej. Calle 45 # 12-30, Apto 201");
+    await fireEvent.changeText(getByTestId("perfil-name"), "");
+    await fireEvent(getByTestId("perfil-name"), "blur");
+    expect(await findByText("El nombre no puede quedar vacío.")).toBeTruthy();
+    await fireEvent.press(getByTestId("perfil-guardar"));
+    expect(mockPatch).not.toHaveBeenCalled();
+  });
+
+  it("cambia y quita la foto desde el avatar central", async () => {
+    const conAvatar = {
+      ...FICHA,
+      perfil: { ...PERFIL, avatar_url: "https://api.test/avatar-viejo.jpg" },
+    } as unknown as FichaDelCliente;
     mockGet.mockImplementation((path: string) => {
       if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
       if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
-      return Promise.resolve(ficha);
+      if (path.endsWith("/consentimiento")) return Promise.resolve({ estado: "sin_registro", historial: [] });
+      return Promise.resolve(conAvatar);
     });
-    const { findByText, queryByTestId } = await pantalla();
-    expect(await findByText("Calle 12")).toBeTruthy();
-    expect(queryByTestId("cliente-dato-phone")).toBeNull();
+    picker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true } as never);
+    picker.launchImageLibraryAsync.mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: "file:///nueva.jpg", width: 800, height: 800, mimeType: "image/jpeg", fileName: "nueva.jpg" }],
+    } as never);
+    preparar.mockResolvedValue({ uri: "file:///avatar.jpg", name: "avatar.jpg", type: "image/jpeg" });
+    subirAvatar.mockResolvedValue({
+      ...conAvatar,
+      perfil: { ...PERFIL, avatar_url: "https://api.test/avatar-nuevo.jpg" },
+    });
+    quitarAvatar.mockResolvedValue(undefined);
+
+    const { findByTestId, getByTestId } = await pantalla();
+    await fireEvent.press(await findByTestId("cliente-avatar-cambiar"));
+    await waitFor(() => expect(subirAvatar).toHaveBeenCalled());
+    expect(subirAvatar.mock.calls[0][2]).toEqual({
+      uri: "file:///avatar.jpg",
+      name: "avatar.jpg",
+      type: "image/jpeg",
+    });
+    await waitFor(() => expect(getByTestId("cliente-avatar-quitar")).toBeTruthy());
+    await fireEvent.press(getByTestId("cliente-avatar-quitar"));
+    await waitFor(() => expect(quitarAvatar).toHaveBeenCalled());
+  });
+
+  it("muestra la clasificación Nuevo", async () => {
+    const fichaNueva = {
+      ...FICHA,
+      perfil: { ...PERFIL, clasificacion: "nuevo", clasificacion_label: "Nuevo" },
+    } as unknown as FichaDelCliente;
+    mockGet.mockImplementation((path: string) => {
+      if (path.endsWith("/notes")) return Promise.resolve(NOTAS);
+      if (path.endsWith("/timeline")) return Promise.resolve(HISTORIA);
+      if (path.endsWith("/consentimiento")) return Promise.resolve({ estado: "sin_registro", historial: [] });
+      return Promise.resolve(fichaNueva);
+    });
+    const { findAllByText } = await pantalla();
+    expect(await findAllByText("Nuevo")).toHaveLength(2);
   });
 
   it("un evento de conversación abre el chat", async () => {

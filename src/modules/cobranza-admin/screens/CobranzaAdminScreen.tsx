@@ -4,6 +4,7 @@ import {
   Alert,
   FlatList,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,32 +14,27 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { usePestanaInicial, type EntradaPestanas, type SolicitudPestana } from "@shared/pestana-inicial";
-import { gruposDeMenu, pestanasDeEntrada } from "../../../navigation/menu-panel";
+import { gruposDeMenu, pestanasDeEntrada } from "@shared/menu-panel";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { puedeVerSeccion } from "@core/permisos";
+import { Button, EmptyState, TextField, useToast } from "@shared/ui";
 import {
-  cargarAlertas,
   cargarAuditoria,
   cargarCarteras,
-  cargarClientes,
-  cargarDispositivos,
+  cargarClientes as cargarClientesApi,
+  eliminarCliente as eliminarClienteApi,
   cargarMonitoreo,
   cargarPagos,
   cargarPromesas,
   cargarReglas,
   cargarReportes,
   cargarResumen,
-  cambiarEstadoDispositivo,
   cambiarEstadoPromesa,
   guardarReglas,
-  type AccessAttempt,
-  type Alertas,
   type AuditoriaCobranza,
   type ClientRow,
-  type DeviceRow,
-  type Dispositivos,
   type Kpi,
   type Monitoring,
   type PagoAdmin,
@@ -48,14 +44,17 @@ import {
   type Reportes,
 } from "../api";
 import type { CobranzaAdminStackParamList } from "../navigation";
+import { ClienteCobranzaCard } from "../components/ClienteCard";
+import { ClienteFormSheet } from "../components/ClienteFormSheet";
+import { TarjetaDatosDePrueba } from "../../datos-prueba";
 import { GestoresTab } from "./GestoresTab";
 
 type Nav = NativeStackNavigationProp<CobranzaAdminStackParamList>;
-type Pestana = "resumen" | "carteras" | "clientes" | "pagos" | "promesas" | "dispositivos" | "reportes" | "monitoreo" | "reglas" | "alertas" | "auditoria" | "gestores";
+type Pestana = "resumen" | "carteras" | "clientes" | "pagos" | "promesas" | "reportes" | "monitoreo" | "reglas" | "auditoria" | "gestores";
 
 const CLAVES: readonly Pestana[] = [
-  "resumen", "carteras", "clientes", "pagos", "promesas", "dispositivos",
-  "reportes", "monitoreo", "reglas", "alertas", "auditoria", "gestores",
+  "resumen", "carteras", "clientes", "pagos", "promesas",
+  "reportes", "monitoreo", "reglas", "auditoria", "gestores",
 ];
 
 interface Seccion {
@@ -84,10 +83,12 @@ export function CobranzaAdminScreen({
 }: { pestanaInicial?: SolicitudPestana; entrada?: EntradaPestanas } = {}) {
   const { colores } = useTheme();
   const api = useAdminApi();
+  const toast = useToast();
   const navigation = useNavigation<Nav>();
   const { sesion } = useAdminSession();
   const esMaster = sesion?.role === "master";
   const permisos = sesion?.permissions ?? {};
+  const puedeEscribirClientes = esMaster || permisos["pack_cobranza:clientes"] === "write";
 
   const permisosSesion = sesion?.permissions;
   const secciones = useMemo(() => {
@@ -117,14 +118,17 @@ export function CobranzaAdminScreen({
   const [clientes, setClientes] = useState<ClientRow[]>([]);
   const [pagos, setPagos] = useState<PagoAdmin[]>([]);
   const [promesas, setPromesas] = useState<PromesaAdmin[]>([]);
-  const [dispositivos, setDispositivos] = useState<Dispositivos | null>(null);
   const [reportes, setReportes] = useState<Reportes | null>(null);
   const [monitoreo, setMonitoreo] = useState<Monitoring | null>(null);
   const [reglas, setReglas] = useState<Reglas | null>(null);
-  const [alertas, setAlertas] = useState<Alertas | null>(null);
   const [auditoria, setAuditoria] = useState<AuditoriaCobranza | null>(null);
   const [busqueda, setBusqueda] = useState("");
+  const [carteraFiltro, setCarteraFiltro] = useState<string | undefined>(undefined);
   const [cargando, setCargando] = useState(true);
+  const [cargandoClientes, setCargandoClientes] = useState(false);
+  const [refrescandoClientes, setRefrescandoClientes] = useState(false);
+  const [formAbierto, setFormAbierto] = useState(false);
+  const [clienteEditando, setClienteEditando] = useState<ClientRow | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const conSeccion = (seccion: string) => esMaster || puedeVerSeccion(permisos, seccion, false);
@@ -136,19 +140,13 @@ export function CobranzaAdminScreen({
         pendientes.push(cargarResumen(api).then((r) => setKpis(r.kpis)));
       }
       if (conSeccion("pack_cobranza:carteras")) {
-        pendientes.push(cargarCarteras(api).then(setCarteras));
-      }
-      if (conSeccion("pack_cobranza:clientes")) {
-        pendientes.push(cargarClientes(api, busqueda || undefined).then(setClientes));
+        pendientes.push(cargarCarteras(api).then((lista) => setCarteras(Array.isArray(lista) ? lista : [])));
       }
       if (conSeccion("pack_cobranza:cobros")) {
         pendientes.push(cargarPagos(api).then(setPagos));
       }
       if (conSeccion("pack_cobranza:promesas")) {
         pendientes.push(cargarPromesas(api).then(setPromesas));
-      }
-      if (conSeccion("pack_cobranza:dispositivos")) {
-        pendientes.push(cargarDispositivos(api).then(setDispositivos));
       }
       if (conSeccion("pack_cobranza:reportes")) {
         pendientes.push(cargarReportes(api).then(setReportes));
@@ -159,9 +157,6 @@ export function CobranzaAdminScreen({
       if (conSeccion("pack_cobranza:reglas")) {
         pendientes.push(cargarReglas(api).then(setReglas));
       }
-      if (conSeccion("pack_cobranza:alertas")) {
-        pendientes.push(cargarAlertas(api).then(setAlertas));
-      }
       if (conSeccion("pack_cobranza:auditoria")) {
         pendientes.push(cargarAuditoria(api).then(setAuditoria));
       }
@@ -171,7 +166,35 @@ export function CobranzaAdminScreen({
       setError("No pudimos cargar la cobranza. Revisa tu conexión.");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- conSeccion deriva de la sesión y permisos
-  }, [api, busqueda, esMaster, permisos]);
+  }, [api, esMaster, permisos]);
+
+  const cargarListaDeClientes = useCallback(
+    async (texto: string, carteraId: string | undefined, refresco = false) => {
+      if (!conSeccion("pack_cobranza:clientes")) return;
+      if (refresco) setRefrescandoClientes(true);
+      else setCargandoClientes(true);
+      try {
+        setClientes(await cargarClientesApi(api, texto || undefined, carteraId));
+        setError(null);
+      } catch {
+        setError("No pudimos cargar los clientes. Revisa tu conexión.");
+      } finally {
+        setCargandoClientes(false);
+        setRefrescandoClientes(false);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- conSeccion deriva de sesión y permisos
+    [api, esMaster, permisos],
+  );
+
+  useEffect(() => {
+    if (pestana !== "clientes") return;
+    const temporizador = setTimeout(
+      () => void cargarListaDeClientes(busqueda, carteraFiltro),
+      busqueda ? 350 : 0,
+    );
+    return () => clearTimeout(temporizador);
+  }, [pestana, busqueda, carteraFiltro, cargarListaDeClientes]);
 
   useEffect(() => {
     const temporizador = setTimeout(
@@ -195,20 +218,6 @@ export function CobranzaAdminScreen({
     ]);
   };
 
-  const cambiarDispositivo = (d: DeviceRow) => {
-    const aprobar = d.estado !== "activo";
-    Alert.alert(`${aprobar ? "Aprobar" : "Bloquear"} dispositivo`, `${d.gestor ?? d.codigo ?? "Dispositivo"} ${aprobar ? "podrá operar en campo." : "dejará de operar."}`, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: aprobar ? "Aprobar" : "Bloquear",
-        style: aprobar ? "default" : "destructive",
-        onPress: () => {
-          void cambiarEstadoDispositivo(api, d.id, aprobar ? "activo" : "bloqueado").then(cargar).catch(() => setError("No se pudo cambiar el dispositivo."));
-        },
-      },
-    ]);
-  };
-
   const abrirCliente = (c: ClientRow) =>
     navigation.navigate("ClienteDetalle", {
       id: c.id,
@@ -219,6 +228,45 @@ export function CobranzaAdminScreen({
 
   const abrirCartera = (c: PortfolioRow) =>
     navigation.navigate("CarteraDetalle", { id: c.id, titulo: c.nombre });
+
+  const abrirNuevoCliente = () => {
+    if (carteras.length === 0) {
+      setPestana("carteras");
+      toast.error("Crea una cartera antes de registrar clientes.");
+      return;
+    }
+    setClienteEditando(null);
+    setFormAbierto(true);
+  };
+
+  const abrirEditarCliente = (c: ClientRow) => {
+    setClienteEditando(c);
+    setFormAbierto(true);
+  };
+
+  const confirmarEliminarCliente = (c: ClientRow) => {
+    const nombre = `${c.nombre} ${c.apellido ?? ""}`.trim() || "este cliente";
+    Alert.alert("Eliminar cliente", `¿Eliminar a ${nombre}? Esta acción no se puede deshacer.`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Eliminar",
+        style: "destructive",
+        onPress: () => {
+          void eliminarClienteApi(api, c.id)
+            .then(() => {
+              toast.success(`${nombre} quedó eliminado.`);
+              return cargarListaDeClientes(busqueda, carteraFiltro);
+            })
+            .catch(() => setError("No se pudo eliminar el cliente."));
+        },
+      },
+    ]);
+  };
+
+  const alGuardarCliente = () => {
+    toast.success(clienteEditando ? "Cliente actualizado." : "Cliente creado.");
+    void cargarListaDeClientes(busqueda, carteraFiltro);
+  };
 
   const guardarReglasAhora = () => {
     if (!reglas) {
@@ -296,13 +344,16 @@ export function CobranzaAdminScreen({
       {cargando ? (
         <ActivityIndicator size="large" style={{ marginTop: 30 }} />
       ) : pestana === "resumen" ? (
-        <View style={styles.grid}>
-          {kpis.map((k) => (
-            <View key={k.label} style={[styles.kpi, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
-              <Text style={[styles.kpiValor, { color: colores.texto }]}>{k.value}</Text>
-              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{k.label}</Text>
-            </View>
-          ))}
+        <View style={{ gap: 12 }}>
+          <TarjetaDatosDePrueba api={api} modulo="cobranza" testID="datos-prueba-cobranza" />
+          <View style={styles.grid}>
+            {kpis.map((k) => (
+              <View key={k.label} style={[styles.kpi, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
+                <Text style={[styles.kpiValor, { color: colores.texto }]}>{k.value}</Text>
+                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{k.label}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       ) : pestana === "carteras" ? (
         <FlatList
@@ -319,7 +370,7 @@ export function CobranzaAdminScreen({
               >
                 <Text style={{ color: colores.textoSuave, fontSize: 14 }}>Buscar cliente</Text>
               </Pressable>
-            ) : null
+            ) : undefined
           }
           ListEmptyComponent={<Text style={styles.vacio}>Sin carteras.</Text>}
           renderItem={({ item }) => (
@@ -336,20 +387,132 @@ export function CobranzaAdminScreen({
         />
       ) : pestana === "clientes" ? (
         <>
-          <TextInput testID="cobranza-busqueda" value={busqueda} onChangeText={setBusqueda} placeholder="Buscar por nombre o documento"
-            placeholderTextColor={colores.textoSuave} style={[styles.campo, { borderColor: colores.borde, color: colores.texto }]} />
-          <FlatList testID="cobranza-lista-clientes" data={clientes} keyExtractor={(c) => c.id}
-            ListEmptyComponent={<Text style={styles.vacio}>Sin clientes.</Text>}
-            renderItem={({ item }) => (
-              <Pressable onPress={() => abrirCliente(item)} style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: colores.texto, fontWeight: "600" }}>{item.nombre} {item.apellido ?? ""}</Text>
-                  <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{item.numero_documento ?? item.telefono ?? "—"} · {item.cartera ?? "sin cartera"}</Text>
-                </View>
-                <Text style={{ color: colores.acento, fontSize: 11 }}>{item.color_riesgo} ›</Text>
+          <View style={styles.busquedaFila}>
+            <TextField
+              testID="cobranza-busqueda"
+              accessibilityLabel="Buscar clientes por nombre o documento"
+              placeholder="Buscar por nombre o documento"
+              value={busqueda}
+              onChangeText={setBusqueda}
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={styles.busqueda}
+            />
+            {puedeEscribirClientes ? (
+              <Button testID="cobranza-nuevo-cliente" size="sm" iconLeft="add" onPress={abrirNuevoCliente}>
+                Nuevo
+              </Button>
+            ) : null}
+          </View>
+
+          {carteras.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filtrosCartera}
+            >
+              <Pressable
+                testID="cobranza-filtro-cartera-todas"
+                accessibilityRole="radio"
+                accessibilityLabel="Todas las carteras"
+                accessibilityState={{ selected: !carteraFiltro }}
+                onPress={() => setCarteraFiltro(undefined)}
+                style={[
+                  styles.chipFiltro,
+                  {
+                    borderColor: !carteraFiltro ? colores.acento : colores.borde,
+                    backgroundColor: !carteraFiltro ? colores.tarjeta : "transparent",
+                  },
+                ]}
+              >
+                <Text style={{ color: !carteraFiltro ? colores.texto : colores.textoSuave, fontSize: 12 }}>
+                  Todas
+                </Text>
               </Pressable>
-            )}
-          />
+              {carteras.map((cartera) => {
+                const activa = carteraFiltro === cartera.id;
+                return (
+                  <Pressable
+                    key={cartera.id}
+                    testID={`cobranza-filtro-cartera-${cartera.id}`}
+                    accessibilityRole="radio"
+                    accessibilityLabel={cartera.nombre}
+                    accessibilityState={{ selected: activa }}
+                    onPress={() => setCarteraFiltro(cartera.id)}
+                    style={[
+                      styles.chipFiltro,
+                      {
+                        borderColor: activa ? colores.acento : colores.borde,
+                        backgroundColor: activa ? colores.tarjeta : "transparent",
+                      },
+                    ]}
+                  >
+                    <Text style={{ color: activa ? colores.texto : colores.textoSuave, fontSize: 12 }}>
+                      {cartera.nombre}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          ) : null}
+
+          {cargandoClientes && clientes.length === 0 ? (
+            <ActivityIndicator size="large" style={{ marginTop: 30 }} />
+          ) : (
+            <FlatList
+              testID="cobranza-lista-clientes"
+              data={clientes}
+              keyExtractor={(c) => c.id}
+              contentContainerStyle={styles.listaClientes}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refrescandoClientes}
+                  onRefresh={() => void cargarListaDeClientes(busqueda, carteraFiltro, true)}
+                  colors={[colores.acento]}
+                  tintColor={colores.acento}
+                />
+              }
+              ListHeaderComponent={
+                <Text style={{ color: colores.textoSuave, fontSize: 12, marginBottom: 6 }}>
+                  {clientes.length} {clientes.length === 1 ? "cliente" : "clientes"}
+                </Text>
+              }
+              ListEmptyComponent={
+                <EmptyState
+                  testID="cobranza-clientes-vacio"
+                  icon="people-outline"
+                  title="Sin clientes"
+                  description={
+                    busqueda || carteraFiltro
+                      ? "Ningún cliente coincide con la búsqueda o la cartera."
+                      : "Registra el primer cliente de esta cartera."
+                  }
+                  action={{
+                    label: busqueda || carteraFiltro ? "Limpiar filtros" : puedeEscribirClientes ? "Nuevo cliente" : "Actualizar",
+                    onPress: () => {
+                      if (busqueda || carteraFiltro) {
+                        setBusqueda("");
+                        setCarteraFiltro(undefined);
+                      } else if (puedeEscribirClientes) {
+                        abrirNuevoCliente();
+                      } else {
+                        void cargarListaDeClientes(busqueda, carteraFiltro);
+                      }
+                    },
+                  }}
+                />
+              }
+              renderItem={({ item }) => (
+                <ClienteCobranzaCard
+                  item={item}
+                  puedeEscribir={puedeEscribirClientes}
+                  onAbrir={() => abrirCliente(item)}
+                  onEditar={() => abrirEditarCliente(item)}
+                  onEliminar={() => confirmarEliminarCliente(item)}
+                />
+              )}
+            />
+          )}
         </>
       ) : pestana === "pagos" ? (
         <FlatList testID="cobranza-lista-pagos" data={pagos} keyExtractor={(p) => p.id}
@@ -374,20 +537,6 @@ export function CobranzaAdminScreen({
                 <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{item.fecha_prometida ?? "—"} · ${item.valor_prometido}</Text>
               </View>
               <Text style={{ color: colores.acento, fontSize: 11 }}>{item.estado} ›</Text>
-            </Pressable>
-          )}
-        />
-      ) : pestana === "dispositivos" ? (
-        <FlatList testID="cobranza-lista-dispositivos" data={dispositivos?.dispositivos ?? []} keyExtractor={(d) => d.id}
-          ListHeaderComponent={(dispositivos?.pendientes ?? 0) > 0 ? <Text style={{ color: colores.peligro, fontSize: 13, marginBottom: 8 }}>{dispositivos?.pendientes} pendiente(s) de aprobación</Text> : null}
-          ListEmptyComponent={<Text style={styles.vacio}>Sin dispositivos.</Text>}
-          renderItem={({ item }) => (
-            <Pressable onPress={() => cambiarDispositivo(item)} style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colores.texto, fontWeight: "600" }}>{item.gestor ?? item.codigo ?? "Dispositivo"}</Text>
-                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{item.imei ?? "sin IMEI"} · {item.whatsapp ?? "—"}</Text>
-              </View>
-              <Text style={{ color: item.estado === "activo" ? colores.acento : colores.peligro, fontSize: 11 }}>{item.estado}</Text>
             </Pressable>
           )}
         />
@@ -439,24 +588,6 @@ export function CobranzaAdminScreen({
             <Text style={{ color: "#ffffff", fontWeight: "700" }}>Guardar reglas</Text>
           </Pressable>
         </ScrollView>
-      ) : pestana === "alertas" ? (
-        <FlatList testID="cobranza-lista-alertas" data={alertas?.items ?? []} keyExtractor={(a: AccessAttempt, i) => `${a.fecha}-${a.imei}-${i}`}
-          ListHeaderComponent={
-            <Text style={{ color: (alertas?.denegados ?? 0) > 0 ? colores.peligro : colores.textoSuave, fontSize: 13, marginBottom: 8 }}>
-              {alertas?.total ?? 0} intentos · {alertas?.denegados ?? 0} denegados
-            </Text>
-          }
-          ListEmptyComponent={<Text style={styles.vacio}>Sin intentos registrados.</Text>}
-          renderItem={({ item }) => (
-            <View style={[styles.fila, { borderColor: item.critico ? colores.peligro : colores.borde, backgroundColor: colores.tarjeta }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colores.texto, fontWeight: "600" }}>{item.gestor}</Text>
-                <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{item.fecha} · {item.motivo}</Text>
-              </View>
-              <Text style={{ color: item.resultado === "ok" ? colores.acento : colores.peligro, fontSize: 11 }}>{item.resultado}</Text>
-            </View>
-          )}
-        />
       ) : pestana === "gestores" ? (
         <GestoresTab api={api} />
       ) : (
@@ -472,6 +603,15 @@ export function CobranzaAdminScreen({
           )}
         />
       )}
+
+      <ClienteFormSheet
+        visible={formAbierto}
+        onClose={() => setFormAbierto(false)}
+        carteras={carteras}
+        cliente={clienteEditando}
+        carteraInicial={carteraFiltro}
+        onGuardado={alGuardarCliente}
+      />
     </View>
   );
 }
@@ -517,4 +657,15 @@ const styles = StyleSheet.create({
   buscarCliente: { justifyContent: "center", minHeight: 44 },
   enlace: { paddingVertical: 12, minHeight: 44, justifyContent: "center" },
   botonGuardar: { borderRadius: 10, paddingVertical: 12, alignItems: "center", marginTop: 8 },
+  busquedaFila: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  busqueda: { flex: 1 },
+  filtrosCartera: { flexDirection: "row", gap: 8, paddingBottom: 8 },
+  chipFiltro: {
+    minHeight: 40,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+  },
+  listaClientes: { gap: 10, paddingBottom: 24 },
 });

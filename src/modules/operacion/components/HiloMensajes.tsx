@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { shSpace, shType } from "@core/theme/tokens";
-import { useKit } from "@shared/ui";
+import { Button, Icono, useKit } from "@shared/ui";
 import type { MessageItem } from "../api";
 import { formatearDia } from "../presentacion";
 import { BurbujaMensaje } from "./BurbujaMensaje";
@@ -10,21 +10,36 @@ type Fila =
   | { tipo: "dia"; clave: string; texto: string }
   | { tipo: "mensaje"; clave: string; mensaje: MessageItem };
 
+/** Mensajes que se pintan de entrada; los anteriores se suman al llegar arriba. */
+export const VENTANA_MENSAJES = 60;
+
+/** Ventana final del hilo: los últimos `ventana` mensajes (pura, para pruebas). */
+export function ventanaDeMensajes<T>(mensajes: T[], ventana: number): T[] {
+  if (ventana <= 0 || mensajes.length <= ventana) return mensajes;
+  return mensajes.slice(mensajes.length - ventana);
+}
+
 function claveDeDia(mensaje: MessageItem): string {
   const fecha = new Date(mensaje.created_at);
   return Number.isNaN(fecha.getTime()) ? mensaje.created_at.slice(0, 10) : fecha.toDateString();
 }
 
-/** Hilo desplazable con separadores de día y auto-scroll cuando la persona está al final. */
+/** Hilo desplazable con separadores de día, auto-scroll al final y carga de anteriores al llegar arriba. */
 export function HiloMensajes({ mensajes }: { mensajes: MessageItem[] }) {
   const { c } = useKit();
   const listaRef = useRef<FlatList<Fila>>(null);
   const alFondo = useRef(true);
+  const cargandoAnteriores = useRef(false);
+  const [ventana, setVentana] = useState(VENTANA_MENSAJES);
+
+  const visibles = useMemo(() => ventanaDeMensajes(mensajes, ventana), [mensajes, ventana]);
+  const hayAnteriores = visibles.length < mensajes.length;
+  const ultimoId = mensajes.length ? mensajes[mensajes.length - 1].id : null;
 
   const filas = useMemo(() => {
     const resultado: Fila[] = [];
     let diaAnterior: string | null = null;
-    for (const mensaje of mensajes) {
+    for (const mensaje of visibles) {
       const dia = claveDeDia(mensaje);
       if (dia !== diaAnterior) {
         resultado.push({
@@ -37,17 +52,27 @@ export function HiloMensajes({ mensajes }: { mensajes: MessageItem[] }) {
       resultado.push({ tipo: "mensaje", clave: mensaje.id, mensaje });
     }
     return resultado;
-  }, [mensajes]);
+  }, [visibles]);
 
   useEffect(() => {
     if (!alFondo.current || filas.length === 0) return;
     const id = requestAnimationFrame(() => listaRef.current?.scrollToEnd({ animated: true }));
     return () => cancelAnimationFrame(id);
-  }, [filas.length]);
+  }, [ultimoId, filas.length]);
+
+  function cargarAnteriores() {
+    if (!hayAnteriores || cargandoAnteriores.current) return;
+    cargandoAnteriores.current = true;
+    setVentana((actual) => actual + VENTANA_MENSAJES);
+    requestAnimationFrame(() => {
+      cargandoAnteriores.current = false;
+    });
+  }
 
   function alDesplazar(evento: NativeSyntheticEvent<NativeScrollEvent>) {
     const { contentOffset, contentSize, layoutMeasurement } = evento.nativeEvent;
     alFondo.current = contentSize.height - contentOffset.y - layoutMeasurement.height < 96;
+    if (contentOffset.y < 80 && hayAnteriores) cargarAnteriores();
   }
 
   return (
@@ -60,8 +85,31 @@ export function HiloMensajes({ mensajes }: { mensajes: MessageItem[] }) {
       keyboardShouldPersistTaps="handled"
       onScroll={alDesplazar}
       scrollEventThrottle={16}
+      maintainVisibleContentPosition={{ minIndexForVisible: 0, autoscrollToTopThreshold: 10 }}
       accessibilityLiveRegion="polite"
-      ListEmptyComponent={<Text style={[shType.dense, { color: c.textSoft }]}>Sin mensajes.</Text>}
+      ListHeaderComponent={
+        hayAnteriores ? (
+          <View style={styles.mas}>
+            <Button
+              variant="link"
+              size="sm"
+              iconLeft="expand-less"
+              onPress={cargarAnteriores}
+              testID="hilo-mensajes-anteriores"
+            >
+              Ver mensajes anteriores
+            </Button>
+          </View>
+        ) : undefined
+      }
+      ListEmptyComponent={
+        <View style={styles.vacio}>
+          <Icono name="forum" size={28} color={c.textSoft} />
+          <Text style={[shType.dense, { color: c.textSoft }]}>
+            Aún no hay mensajes en esta conversación.
+          </Text>
+        </View>
+      }
       ItemSeparatorComponent={() => <View style={{ height: shSpace[2] }} />}
       renderItem={({ item }) =>
         item.tipo === "dia" ? (
@@ -80,7 +128,15 @@ export function HiloMensajes({ mensajes }: { mensajes: MessageItem[] }) {
 
 const styles = StyleSheet.create({
   hilo: { paddingHorizontal: shSpace[4], paddingVertical: shSpace[4], flexGrow: 1 },
+  mas: { alignItems: "center", paddingBottom: shSpace[2] },
   dia: { flexDirection: "row", alignItems: "center", gap: shSpace[2], marginVertical: shSpace[1] },
   linea: { flex: 1, height: 1 },
   diaTexto: { textTransform: "capitalize" },
+  vacio: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: shSpace[2],
+    paddingVertical: shSpace[6],
+  },
 });

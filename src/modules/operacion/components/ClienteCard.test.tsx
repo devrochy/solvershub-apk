@@ -1,0 +1,180 @@
+import { fireEvent, render } from "@testing-library/react-native";
+import { ClienteCard } from "./ClienteCard";
+import type { LeadRow } from "../api";
+
+const ITEM: LeadRow = {
+  id: "l-1",
+  cliente: "Juana Pérez",
+  canal: "whatsapp",
+  telefono: "+57 300 111 2233",
+  bot_paused: false,
+  alta: "2026-10-01",
+  extras: {},
+  agentes: ["general", "ventas"],
+  perfil: {
+    nombre_visible: "Juana Pérez",
+    alias: "Juanita",
+    phone_indicativo: "+57",
+    phone_local: "300 111 2233",
+    municipio: "Bogotá",
+    departamento: "Cundinamarca",
+    clasificacion: "vip",
+    clasificacion_label: "VIP",
+    mapa_url: "https://maps.example.com/1",
+  },
+} as LeadRow;
+
+const AGENTES = [
+  { key: "general", name: "General", columns: [] },
+  { key: "ventas", name: "Ventas", columns: [] },
+  { key: "agenda", name: "Agenda", columns: [] },
+];
+
+function tarjeta(extra: Partial<React.ComponentProps<typeof ClienteCard>> = {}) {
+  return render(
+    <ClienteCard
+      item={ITEM}
+      agentes={AGENTES}
+      puedeEscribir
+      puedeEnviarPlantilla
+      onAbrir={jest.fn()}
+      onEditar={jest.fn()}
+      onAlternarBot={jest.fn()}
+      onEnviarPlantilla={jest.fn()}
+      {...extra}
+    />,
+  );
+}
+
+describe("ClienteCard (CRM)", () => {
+  it("muestra nombre, alias, clasificación, teléfono y agentes", async () => {
+    const { getByText, getByTestId } = await tarjeta();
+    expect(getByText("Juana Pérez")).toBeTruthy();
+    expect(getByText("Alias: Juanita")).toBeTruthy();
+    expect(getByText("VIP")).toBeTruthy();
+    expect(getByText("+57 300 111 2233")).toBeTruthy();
+    expect(getByText("Bogotá, Cundinamarca")).toBeTruthy();
+    expect(getByTestId("lead-l-1").props.accessibilityLabel).toContain("Agentes: General, Ventas");
+  });
+
+  it("muestra la clasificación Nuevo", async () => {
+    const { getByText } = await tarjeta({
+      item: {
+        ...ITEM,
+        perfil: { ...ITEM.perfil!, clasificacion: "nuevo", clasificacion_label: "Nuevo" },
+      },
+    });
+    expect(getByText("Nuevo")).toBeTruthy();
+  });
+
+  it("abre la ficha al tocar la tarjeta", async () => {
+    const onAbrir = jest.fn();
+    const { getByTestId } = await tarjeta({ onAbrir });
+    await fireEvent.press(getByTestId("lead-l-1"));
+    expect(onAbrir).toHaveBeenCalledTimes(1);
+  });
+
+  it("pausa el bot desde la tarjeta sin abrir la ficha", async () => {
+    const onAbrir = jest.fn();
+    const onAlternarBot = jest.fn();
+    const { getByTestId } = await tarjeta({ onAbrir, onAlternarBot });
+    await fireEvent.press(getByTestId("lead-bot-l-1"));
+    expect(onAlternarBot).toHaveBeenCalledTimes(1);
+    expect(onAbrir).not.toHaveBeenCalled();
+  });
+
+  it("edita y envía plantilla solo si hay permiso", async () => {
+    const onEditar = jest.fn();
+    const onEnviarPlantilla = jest.fn();
+    const { getByTestId } = await tarjeta({ onEditar, onEnviarPlantilla });
+    await fireEvent.press(getByTestId("lead-editar-l-1"));
+    await fireEvent.press(getByTestId("lead-plantilla-l-1"));
+    expect(onEditar).toHaveBeenCalled();
+    expect(onEnviarPlantilla).toHaveBeenCalled();
+
+    const { queryByTestId: sinPermiso } = await tarjeta({ puedeEscribir: false, puedeEnviarPlantilla: false });
+    expect(sinPermiso("lead-editar-l-1")).toBeNull();
+    expect(sinPermiso("lead-plantilla-l-1")).toBeNull();
+  });
+  describe("etapa del lead (HU-CRM-19)", () => {
+    const CON_ETAPA = { ...ITEM, extras: { estado_lead: "Calificado" } } as LeadRow;
+
+    it("muestra la etapa con texto, junto a la clasificación", async () => {
+      const { getByText, getByTestId } = await tarjeta({ item: CON_ETAPA });
+      expect(getByText("Calificado")).toBeTruthy();
+      expect(getByText("VIP")).toBeTruthy();
+      expect(getByTestId("lead-l-1").props.accessibilityLabel).toContain("Etapa Calificado");
+    });
+
+    it("dice «Sin lead de venta» a quien es de Ventas y no tiene lead", async () => {
+      const { getByText, queryByRole } = await tarjeta();
+      expect(getByText("Sin lead de venta")).toBeTruthy();
+      expect(queryByRole("button", { name: /Cambiar la etapa/ })).toBeNull();
+    });
+
+    it("dice «Sin lead de venta» a todo cliente sin lead, aunque no sea de Ventas (apk#222)", async () => {
+      const { getByText, getByTestId, queryByRole } = await tarjeta({ item: { ...ITEM, agentes: ["general"] } as LeadRow });
+      expect(getByText("Sin lead de venta")).toBeTruthy();
+      expect(getByTestId("lead-l-1").props.accessibilityLabel).toContain("Etapa Sin lead de venta");
+      expect(queryByRole("button", { name: /Cambiar la etapa/ })).toBeNull();
+    });
+
+    it("dice «Sin lead de venta» aunque el cliente no tenga ningún agente (apk#222)", async () => {
+      const { getByText } = await tarjeta({ item: { ...ITEM, agentes: [] } as LeadRow });
+      expect(getByText("Sin lead de venta")).toBeTruthy();
+    });
+
+    it("al tocar la etapa pide cambiarla sin abrir la ficha", async () => {
+      const onAbrir = jest.fn();
+      const onCambiarEtapa = jest.fn();
+      const { getByTestId } = await tarjeta({ item: CON_ETAPA, onAbrir, onCambiarEtapa });
+      await fireEvent.press(getByTestId("lead-etapa-l-1"));
+      expect(onCambiarEtapa).toHaveBeenCalledTimes(1);
+      expect(onAbrir).not.toHaveBeenCalled();
+    });
+
+    it("sin permiso de escritura ve la etapa pero no puede cambiarla", async () => {
+      const onCambiarEtapa = jest.fn();
+      const { getByText, queryByRole } = await tarjeta({
+        item: CON_ETAPA,
+        puedeEscribir: false,
+        onCambiarEtapa,
+      });
+      expect(getByText("Calificado")).toBeTruthy();
+      expect(queryByRole("button", { name: /Cambiar la etapa/ })).toBeNull();
+    });
+
+    it("entiende el código de la etapa además del nombre", async () => {
+      const { getByText } = await tarjeta({
+        item: { ...ITEM, extras: { estado_lead: "perdido" } } as LeadRow,
+        opcionesEtapa: [{ value: "perdido", label: "Perdido", tone: "danger", icon: "cancel" }],
+      });
+      expect(getByText("Perdido")).toBeTruthy();
+    });
+  });
+
+  describe("seguimiento (HU-CRM-21)", () => {
+    const CON_SEGUIMIENTO = (estado: string) =>
+      ({
+        ...ITEM,
+        extras: {
+          seguimiento_en: "2026-11-03T14:00:00+00:00",
+          seguimiento_nota: "Llamar para confirmar",
+          seguimiento_estado: estado,
+        },
+      }) as LeadRow;
+
+    it("muestra la fecha en la zona del negocio, la nota y la insignia «Vencido»", async () => {
+      const { getByTestId, getByText } = await tarjeta({ item: CON_SEGUIMIENTO("vencidos"), zona: "America/Bogota" });
+      expect(getByTestId("lead-seguimiento-l-1")).toBeTruthy();
+      expect(getByText("Vencido")).toBeTruthy();
+      expect(getByText(/9:00.*Llamar para confirmar/)).toBeTruthy();
+      expect(getByTestId("lead-l-1").props.accessibilityLabel).toContain("Seguimiento vencido");
+    });
+
+    it("sin seguimiento no pinta la línea", async () => {
+      const { queryByTestId } = await tarjeta();
+      expect(queryByTestId("lead-seguimiento-l-1")).toBeNull();
+    });
+  });
+});

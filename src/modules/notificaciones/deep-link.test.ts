@@ -29,6 +29,49 @@ describe("destinoDeNotificacion / destinoDePush (ADR-0167)", () => {
     expect(destinoDeNotificacion(t("conexion"))).toEqual({ tab: "configuracion", pestana: "conexiones" });
   });
 
+  it("un aviso de cliente abre su ficha (HU-CRM-20)", () => {
+    expect(destinoDeNotificacion({ entity: "cliente", id: "cli-1", section: "leads" })).toEqual({
+      tab: "conversaciones",
+      pestana: "leads",
+      cliente: "cli-1",
+    });
+  });
+
+  it("un aviso de cliente sin id, o uno de lead (su id es el del lead), abre la lista", () => {
+    expect(destinoDeNotificacion({ entity: "cliente", id: "", section: "leads" })).toEqual({
+      tab: "conversaciones",
+      pestana: "leads",
+    });
+    expect(destinoDeNotificacion({ entity: "lead", id: "lead-9", section: "leads" })).toEqual({
+      tab: "conversaciones",
+      pestana: "leads",
+    });
+  });
+
+  it("el push de cliente lleva a la ficha, también el que abre la app cerrada", () => {
+    expect(destinoDePush({ target: { entity: "cliente", id: "cli-1", section: "leads" } })).toEqual({
+      tab: "conversaciones",
+      pestana: "leads",
+      cliente: "cli-1",
+    });
+  });
+
+  it("el resumen de Ventas abre Clientes ya filtrada, también el push (HU-CRM-22)", () => {
+    const resumen = { entity: "lead", id: null, section: "leads", filtro: "seguimiento:vencidos" };
+    const esperado = { tab: "conversaciones", pestana: "leads", filtro: "seguimiento:vencidos" };
+    expect(destinoDeNotificacion(resumen)).toEqual(esperado);
+    expect(destinoDePush({ target: resumen })).toEqual(esperado);
+  });
+
+  it("un filtro que no es `clave:valor` simple se ignora y abre la lista sin filtrar", () => {
+    for (const filtro of ["x&y=1", "seguimiento", "A:b", ""]) {
+      expect(destinoDeNotificacion({ entity: "lead", id: null, section: "leads", filtro })).toEqual({
+        tab: "conversaciones",
+        pestana: "leads",
+      });
+    }
+  });
+
   it("una entidad sin pantalla en la app no navega", () => {
     expect(destinoDeNotificacion(t("desconocida"))).toBeNull();
     expect(destinoDeNotificacion(null)).toBeNull();

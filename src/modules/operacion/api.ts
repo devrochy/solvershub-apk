@@ -1,5 +1,11 @@
 import type { ClienteAdmin } from "@core/api/admin";
+import { parseError } from "@core/api/auth-admin";
+import { construirMultipart } from "@core/api/multipart";
+import type { ArchivoAvatar } from "@core/api/perfil-admin";
 import type { components } from "@core/api/schema";
+import { apiV1 } from "@core/config";
+import type { AdminSesion } from "@core/session/types";
+import { fetchApi } from "@core/api/http";
 
 export type ConversationSummary = components["schemas"]["ConversationSummary"];
 export type ConversationDetail = components["schemas"]["ConversationDetail"];
@@ -10,47 +16,55 @@ export type ConversationNote = components["schemas"]["ConversationNote"];
 export type ApprovedTemplate = components["schemas"]["ApprovedTemplate"];
 export type ActiveEscalation = components["schemas"]["ActiveEscalation"];
 export type EscalationItem = components["schemas"]["EscalationItem"];
-/** Fila de Clientes. `telefono` y `bot_paused` llegan desde HU-UX-16 (agent-core #503). */
-export type LeadRow = components["schemas"]["LeadRow"] & { telefono?: string | null; bot_paused?: boolean };
 
-/** Ficha del cliente (`GET /admin/leads/{id}`, HU-UX-16 / HU-CRM-02). */
-export interface DatoDelCliente {
-  namespace: string;
-  key: string;
-  value: unknown;
-  source: string; // tool | agent | human | import
-  data_class: string;
-  valid_from: string;
-}
+export type LeadPerfil = components["schemas"]["LeadPerfilOut"];
+export type LeadAgentOut = components["schemas"]["LeadAgentOut"];
+export type LeadAgentData = components["schemas"]["LeadAgentData"];
+export type LeadCampoPerfil = components["schemas"]["LeadCampoPerfil"];
+export type LeadFilter = components["schemas"]["LeadFilter"];
+export type LeadFaceta = components["schemas"]["LeadFacetaOut"];
+export type LeadFact = components["schemas"]["LeadFact"];
+export type LeadGeocodificacion = components["schemas"]["LeadGeocodificacion"];
+export type LeadGeocodificacionInversa = components["schemas"]["LeadGeocodificacionInversa"];
+export type Consentimiento = components["schemas"]["ConsentimientoOut"];
+export type ConsentimientoIn = components["schemas"]["ConsentimientoIn"];
+export type ConexionDeEnvio = components["schemas"]["ConexionDeEnvioOut"];
+export type PlantillaDeEnvio = components["schemas"]["PlantillaDeEnvio"];
+export type VistaPreviaEnvio = components["schemas"]["VistaPreviaOut"];
+export type EnvioSegmento = components["schemas"]["EnvioOut"];
+export type VariableDeEnvio = components["schemas"]["VariableIn"];
+export type TextoDescargado = { texto: string; nombreArchivo?: string };
 
-export interface FichaDelCliente {
-  id: string;
-  cliente: string;
-  nombre: string | null;
-  canal: string;
-  identificador: string;
-  telefono: string | null;
-  bot_paused: boolean;
-  alta: string | null;
-  conexiones: { id: string; label: string; channel: string }[];
-  ultima_conversacion_id: string | null;
-  datos: DatoDelCliente[];
-  extras: Record<string, unknown>;
-  columns: { key: string; label: string }[];
-  /** Campos que un pack deja cambiar desde la ficha (ADR-0149); el backend viejo no los manda. */
+/**
+ * Fila de Clientes. `perfil`, `agentes` y `bot_paused` llegan desde HU-UX-16 y la tanda 1A;
+ * los dejamos opcionales para que la app siga funcionando contra un backend anterior.
+ */
+export type LeadRow = Omit<
+  components["schemas"]["LeadRow"],
+  "perfil" | "agentes" | "bot_paused"
+> & {
+  perfil?: LeadPerfil | null;
+  agentes?: string[];
+  bot_paused?: boolean;
+  telefono?: string | null;
+};
+
+/** Campo de un pack editable desde la ficha (ADR-0149). */
+export type CampoEditable = components["schemas"]["LeadEditable"];
+
+/** Ficha del cliente (`GET /admin/leads/{id}`). */
+export type FichaDelCliente = Omit<
+  components["schemas"]["LeadDetail"],
+  "perfil" | "agentes" | "campos_perfil" | "editables"
+> & {
+  perfil?: LeadPerfil | null;
+  agentes?: LeadAgentData[];
+  campos_perfil?: LeadCampoPerfil[];
   editables?: CampoEditable[];
-}
+};
 
-/** Campo de un pack editable desde la ficha, p. ej. el estado del lead de venta (ADR-0149). */
-export interface CampoEditable {
-  plugin_id: string;
-  key: string;
-  label: string;
-  tipo: "opciones" | "texto";
-  options?: { value: string; label: string }[];
-  max_length: number;
-  value?: string | null;
-}
+/** Compatibilidad con el nombre anterior de los datos de la ficha. */
+export type DatoDelCliente = LeadFact;
 
 export interface PaginaConversaciones {
   items: ConversationSummary[];
@@ -71,6 +85,12 @@ export interface PaginaLeads {
   page: number;
   total: number;
   has_more: boolean;
+  page_size?: number;
+  agents?: LeadAgentOut[];
+  filters?: LeadFilter[];
+  columns?: { key: string; label: string }[];
+  /** Contadores (y sumas, con `resumen`) por opción de los filtros pedidos en `facetas` (HU-CRM-17, HU-CRM-24). */
+  facetas?: LeadFaceta[];
 }
 
 export interface FiltroConversaciones {
@@ -181,8 +201,182 @@ export async function listarEscalaciones(
   });
 }
 
-export async function listarLeads(api: ClienteAdmin, q?: string, page = 1): Promise<PaginaLeads> {
-  return api.get<PaginaLeads>("/admin/leads", { q, page, page_size: 20 });
+export interface FiltroLeads {
+  q?: string;
+  channel?: string;
+  connection_id?: string;
+  /** Filtros de los packs en formato `clave:valor` (se envían como `filtro` repetido). */
+  filtros?: string[];
+  /** Orden de la lista; `seguimiento` pone los más atrasados primero (HU-CRM-21). */
+  orden?: string;
+  /** Filtros del pack de los que se piden los contadores por opción (`estado_lead`). */
+  facetas?: string[];
+  /** Con `facetas`, pide además la suma del valor estimado por opción (`valor`, HU-CRM-24). */
+  resumen?: "valor";
+  page?: number;
+  pageSize?: number;
+}
+
+export async function listarLeads(
+  api: ClienteAdmin,
+  filtro: FiltroLeads = {},
+): Promise<PaginaLeads> {
+  return api.get<PaginaLeads>("/admin/leads", {
+    q: filtro.q,
+    channel: filtro.channel,
+    connection_id: filtro.connection_id,
+    filtro: filtro.filtros,
+    orden: filtro.orden,
+    facetas: filtro.facetas,
+    resumen: filtro.resumen,
+    page: filtro.page,
+    page_size: filtro.pageSize ?? 20,
+  });
+}
+
+/** Conexiones del negocio para filtrar Clientes y enviar plantillas. */
+export async function listarConexionesDeConversaciones(
+  api: ClienteAdmin,
+): Promise<ConversationConnection[]> {
+  return listarConexiones(api);
+}
+
+/** La lista filtrada en CSV (hasta 5000 filas, las más recientes). */
+export async function exportarLeadsCsv(
+  api: ClienteAdmin,
+  filtro: FiltroLeads = {},
+): Promise<TextoDescargado> {
+  if (!api.getTexto) {
+    throw new Error("La descarga de CSV no está disponible en esta versión.");
+  }
+  return api.getTexto("/admin/leads/export.csv", {
+    q: filtro.q,
+    channel: filtro.channel,
+    connection_id: filtro.connection_id,
+    filtro: filtro.filtros,
+  });
+}
+
+/** Corrige el perfil canónico (identidad, contacto, ubicación y clasificación). */
+export async function corregirPerfilDelCliente(
+  api: ClienteAdmin,
+  id: string,
+  valores: Record<string, string>,
+  otros: Record<string, string> = {},
+): Promise<FichaDelCliente> {
+  return api.patch<FichaDelCliente>(`/admin/leads/${id}/perfil`, { valores, otros });
+}
+
+/** Ubica la dirección del cliente en el mapa (HU-CRM-08). */
+export async function geocodificarCliente(
+  api: ClienteAdmin,
+  id: string,
+): Promise<LeadGeocodificacion> {
+  return api.post<LeadGeocodificacion>(`/admin/leads/${id}/geocodificar`);
+}
+
+/** Propone una dirección a partir de un punto del mapa; no la guarda. */
+export async function geocodificarInverso(
+  api: ClienteAdmin,
+  id: string,
+  latitud: number,
+  longitud: number,
+): Promise<LeadGeocodificacionInversa> {
+  return api.post<LeadGeocodificacionInversa>(`/admin/leads/${id}/geocodificar/reverso`, {
+    latitud,
+    longitud,
+  });
+}
+
+function cabecerasDeAdmin(sesion: AdminSesion): Record<string, string> {
+  const headers: Record<string, string> = { Authorization: `Bearer ${sesion.token}` };
+  if (sesion.tenantId) {
+    headers["X-Tenant-Id"] = sesion.tenantId;
+  }
+  return headers;
+}
+
+/** Sube la foto del cliente al almacenamiento del negocio y devuelve la ficha actualizada. */
+export async function subirAvatarDelCliente(
+  sesion: AdminSesion,
+  id: string,
+  archivo: ArchivoAvatar,
+): Promise<FichaDelCliente> {
+  const { body, boundary } = await construirMultipart({}, [{ campo: "file", ...archivo }]);
+  const res = await fetchApi(apiV1(`/admin/leads/${id}/avatar`), {
+    method: "POST",
+    headers: {
+      ...cabecerasDeAdmin(sesion),
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+    },
+    body: body as unknown as BodyInit,
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return (await res.json()) as FichaDelCliente;
+}
+
+/** Quita la foto del cliente. */
+export async function quitarAvatarDelCliente(sesion: AdminSesion, id: string): Promise<void> {
+  const res = await fetchApi(apiV1(`/admin/leads/${id}/avatar`), {
+    method: "DELETE",
+    headers: cabecerasDeAdmin(sesion),
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+}
+
+export async function consentimientoDelCliente(
+  api: ClienteAdmin,
+  id: string,
+): Promise<Consentimiento> {
+  return api.get<Consentimiento>(`/admin/leads/${id}/consentimiento`);
+}
+
+export async function registrarConsentimiento(
+  api: ClienteAdmin,
+  id: string,
+  datos: ConsentimientoIn,
+): Promise<Consentimiento> {
+  return api.post<Consentimiento>(`/admin/leads/${id}/consentimiento`, datos);
+}
+
+/** Conexiones de WhatsApp con sus plantillas de marketing aprobadas. */
+export async function conexionesParaEnvio(api: ClienteAdmin): Promise<ConexionDeEnvio[]> {
+  return api.get<ConexionDeEnvio[]>("/admin/leads/acciones/plantilla/conexiones");
+}
+
+export async function vistaPreviaDeEnvio(
+  api: ClienteAdmin,
+  cuerpo: {
+    connection_id: string;
+    template_id: string;
+    variables?: Record<string, VariableDeEnvio>;
+  },
+  leadId?: string,
+): Promise<VistaPreviaEnvio> {
+  return api.post<VistaPreviaEnvio>(
+    `/admin/leads/acciones/plantilla/vista-previa${leadId ? `?lead_id=${encodeURIComponent(leadId)}` : ""}`,
+    cuerpo,
+  );
+}
+
+export async function confirmarEnvio(
+  api: ClienteAdmin,
+  envioId: string,
+  clave: string,
+): Promise<EnvioSegmento> {
+  return api.post<EnvioSegmento>(
+    `/admin/leads/acciones/plantilla/${encodeURIComponent(envioId)}/confirmar`,
+    undefined,
+    { "Idempotency-Key": clave },
+  );
+}
+
+export async function estadoDeEnvio(api: ClienteAdmin, envioId: string): Promise<EnvioSegmento> {
+  return api.get<EnvioSegmento>(`/admin/leads/acciones/plantilla/${encodeURIComponent(envioId)}`);
 }
 
 export async function fichaDelCliente(api: ClienteAdmin, id: string): Promise<FichaDelCliente> {
@@ -206,6 +400,24 @@ export async function editarCamposDelPack(
   valores: Record<string, string>,
 ): Promise<FichaDelCliente> {
   return api.patch<FichaDelCliente>(`/admin/leads/${id}/pack/${encodeURIComponent(pluginId)}`, { valores });
+}
+
+/** Marca como hecho el seguimiento del lead y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21). */
+export async function marcarSeguimientoHecho(
+  api: ClienteAdmin,
+  id: string,
+  siguiente?: { en: string; nota: string },
+): Promise<void> {
+  await api.post<void>(
+    `/pack/commerce/leads/${id}/seguimiento/hecho`,
+    siguiente ? { siguiente_en: siguiente.en, siguiente_nota: siguiente.nota } : {},
+  );
+}
+
+/** Zona horaria del negocio: las fechas de seguimiento de la lista se muestran en su hora. */
+export async function zonaDelNegocio(api: ClienteAdmin): Promise<string | null> {
+  const ajustes = await api.get<{ identity?: { timezone?: string | null } }>("/admin/settings");
+  return ajustes.identity?.timezone || null;
 }
 
 /**
@@ -281,6 +493,7 @@ export const TIPO_DE_EVENTO: Record<string, string> = {
   cotizacion: "Cotización",
   pedido: "Pedido",
   cita: "Cita",
+  seguimiento: "Seguimiento",
 };
 
 const ORIGEN: Record<string, string> = { tool: "Asistente", agent: "Asistente", human: "Persona", import: "Importado" };
@@ -314,6 +527,80 @@ export function textoDelDato(valor: unknown): string {
   if (typeof valor === "boolean") return valor ? "Sí" : "No";
   if (typeof valor === "object") return JSON.stringify(valor);
   return String(valor);
+}
+
+/** Claves que ya se muestran en la pestaña General; no se repiten en «otros datos». */
+const CLAVES_DEL_PERFIL = new Set([
+  "name", "nombre", "full_name", "apellido", "alias", "avatar_url", "foto",
+  "phone", "telefono", "contact_phone", "pais_telefono",
+  "email", "correo", "tipo_documento", "id_document", "documento", "cedula",
+  "address", "direccion", "municipio", "municipality", "ciudad", "city",
+  "departamento", "department", "estado", "pais", "country",
+  "latitud", "lat", "latitude", "longitud", "lng", "lon", "longitude",
+  "clasificacion", "clasificación", "direccion_completa", "direccion_normalizada",
+  "geocodificado_en", "geocodificacion_precision", "geocodificacion_proveedor", "mapa_url",
+]);
+
+export function esClaveDelPerfil(clave: string): boolean {
+  return CLAVES_DEL_PERFIL.has(clave);
+}
+
+/** Datos que el agente guardó en otros namespaces: se muestran aparte del perfil canónico. */
+export function datosFueraDelPerfil(datos: DatoDelCliente[]): DatoDelCliente[] {
+  return datos.filter((d) => d.namespace !== "perfil" || !esClaveDelPerfil(d.key));
+}
+
+export interface GrupoDeCampos {
+  grupo: string;
+  campos: LeadCampoPerfil[];
+}
+
+/** Campos editables del perfil agrupados por `group` (identidad, contacto, ubicación…). */
+export function agruparCamposDelPerfil(campos: LeadCampoPerfil[] | undefined): GrupoDeCampos[] {
+  const grupos = new Map<string, LeadCampoPerfil[]>();
+  for (const campo of campos ?? []) {
+    grupos.set(campo.group, [...(grupos.get(campo.group) ?? []), campo]);
+  }
+  return [...grupos.entries()].map(([grupo, camposDelGrupo]) => ({ grupo, campos: camposDelGrupo }));
+}
+
+/** Valores iniciales del formulario de perfil a partir del perfil canónico. */
+export function valoresInicialesDelPerfil(perfil: LeadPerfil | null | undefined): Record<string, string> {
+  if (!perfil) return {};
+  return {
+    name: perfil.name ?? "",
+    apellido: perfil.apellido ?? "",
+    alias: perfil.alias ?? "",
+    phone: perfil.phone_e164 ?? perfil.phone ?? "",
+    pais_telefono: perfil.pais_telefono ?? "",
+    email: perfil.email ?? "",
+    tipo_documento: perfil.tipo_documento ?? "",
+    id_document: perfil.id_document ?? "",
+    address: perfil.address ?? "",
+    municipio: perfil.municipio ?? "",
+    departamento: perfil.departamento ?? "",
+    pais: perfil.pais ?? "",
+    latitud: perfil.latitud === null || perfil.latitud === undefined ? "" : String(perfil.latitud),
+    longitud: perfil.longitud === null || perfil.longitud === undefined ? "" : String(perfil.longitud),
+    clasificacion: perfil.clasificacion ?? "",
+  };
+}
+
+export function documentoVisible(perfil: LeadPerfil | null | undefined): string {
+  if (!perfil) return "—";
+  const tipo = perfil.tipo_documento ? perfil.tipo_documento.toUpperCase() : "";
+  if (!perfil.id_document) return tipo || "—";
+  return tipo ? `${tipo} ${perfil.id_document}` : perfil.id_document;
+}
+
+/** Editables de un pack agrupados por `plugin_id` (pestañas por agente). */
+export function agruparEditablesPorPack(editables: CampoEditable[] | undefined): [string, CampoEditable[]][] {
+  const grupos = new Map<string, CampoEditable[]>();
+  for (const campo of editables ?? []) {
+    if (campo.key === "seguimiento_en" || campo.key === "seguimiento_nota") continue; // tarjeta propia (HU-CRM-21)
+    grupos.set(campo.plugin_id, [...(grupos.get(campo.plugin_id) ?? []), campo]);
+  }
+  return [...grupos.entries()];
 }
 
 // ---------------- HU-APP-21 · playground del asistente ----------------

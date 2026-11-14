@@ -172,6 +172,40 @@ describe("LoginUnificadoScreen (HU-APP-02/03)", () => {
     expect(onAutenticado).not.toHaveBeenCalled();
   });
 
+  it.each(["dispositivo_pendiente", "dispositivo_bloqueado", "dispositivo_no_autorizado", "dispositivo_requerido"])(
+    "un 403 %s no es «sin acceso de campo»: no entra al panel (la raíz muestra la espera del equipo)",
+    async (code) => {
+      const { ApiAuthError } = jest.requireMock("@core/api/auth-admin");
+      (apiGestorToken as jest.Mock).mockRejectedValue(new ApiAuthError(403, code, "Equipo no autorizado."));
+      const onEntrarPanel = jest.fn();
+      const onAutenticado = jest.fn();
+
+      const { getByTestId, queryByTestId } = await renderLogin({ onEntrarPanel, onAutenticado });
+      await fireEvent.changeText(getByTestId("login-usuario"), "gestor@x.com");
+      await fireEvent.changeText(getByTestId("login-password"), "clave");
+      await fireEvent.press(getByTestId("login-entrar"));
+
+      await waitFor(() => expect(apiGestorToken).toHaveBeenCalled());
+      expect(onEntrarPanel).not.toHaveBeenCalled();
+      expect(onAutenticado).not.toHaveBeenCalled();
+      expect(queryByTestId("login-error")).toBeNull();
+    },
+  );
+
+  it("un 403 de otra cosa no lleva al panel: muestra el error", async () => {
+    const { ApiAuthError } = jest.requireMock("@core/api/auth-admin");
+    (apiGestorToken as jest.Mock).mockRejectedValue(new ApiAuthError(403, "otra_cosa", "No."));
+    const onEntrarPanel = jest.fn();
+
+    const { getByTestId } = await renderLogin({ onEntrarPanel });
+    await fireEvent.changeText(getByTestId("login-usuario"), "x@x.com");
+    await fireEvent.changeText(getByTestId("login-password"), "clave");
+    await fireEvent.press(getByTestId("login-entrar"));
+
+    await waitFor(() => expect(getByTestId("login-error")).toBeTruthy());
+    expect(onEntrarPanel).not.toHaveBeenCalled();
+  });
+
   it("con credenciales inválidas muestra el error sin delegar", async () => {
     const { ApiAuthError } = jest.requireMock("@core/api/auth-admin");
     (apiGestorToken as jest.Mock).mockRejectedValue(

@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type ViewInstance,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -20,13 +21,11 @@ import * as Location from "expo-location";
 import { apiErrorStatus, esErrorDeRed } from "@core/api/client";
 import { Avatar } from "../components/Avatar";
 import { HeaderApp } from "../components/HeaderApp";
-import { CampoTelefono } from "@shared/ui";
+import { CampoTelefono, MapaCliente, MapaPin } from "@shared/ui";
 import { CargaError } from "../components/CargaError";
 import { BannerMensaje } from "../components/BannerMensaje";
 import { ColorBadge, colorDeEstado } from "../components/ColorBadge";
 import { urlArchivo } from "@core/config";
-import { MapaCliente } from "../components/MapaCliente";
-import { MapaPin } from "../components/MapaPin";
 import { CampoModal } from "../components/CampoModal";
 import { EvidenciasModal } from "../components/EvidenciasModal";
 import {
@@ -246,7 +245,7 @@ export function ClienteScreen(props: Props | ClienteScreenDirectProps) {
 
   // WhatsApp con screenshot.
   const [compartiendo, setCompartiendo] = useState(false);
-  const refCanvas = useRef<View | null>(null);
+  const refCanvas = useRef<ViewInstance | null>(null);
 
   const cargar = useCallback(async () => {
     setError(null);

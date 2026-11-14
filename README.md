@@ -73,7 +73,7 @@ npm test             # unit and component tests
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Third-party attributions (Expo project template) are in [NOTICE](NOTICE).
 
 ## Contact
 
