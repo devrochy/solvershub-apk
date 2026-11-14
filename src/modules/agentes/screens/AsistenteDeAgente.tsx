@@ -27,9 +27,9 @@ import {
   type EstadoDelAsistente,
 } from "../asistente";
 import { copiaDelRequisito } from "../requisitos";
-import type { RegistroDePrueba } from "../carga";
-import { PasoDatos, type Cargado } from "./PasoDatos";
-import { PasoLoCargado } from "./PasoLoCargado";
+import type { RegistroDePrueba } from "@shared/carga-de-datos/carga";
+import { PasoDatos, type Cargado } from "@shared/carga-de-datos/PasoDatos";
+import { PasoLoCargado } from "@shared/carga-de-datos/PasoLoCargado";
 
 /**
  * Asistente de creación de agentes en la app (HU-AOS-56, SPEC-39): el mismo guion que el panel,

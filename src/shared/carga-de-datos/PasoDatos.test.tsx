@@ -9,15 +9,15 @@ jest.mock("expo-image-picker", () => ({
 jest.mock("@shared/media/preparar-foto-producto", () => ({
   prepararFotoDeProducto: jest.fn(async (a: { uri: string }, i: number) => ({ uri: a.uri, name: `producto-${i + 1}.jpg`, type: "image/jpeg" })),
 }));
-jest.mock("../carga", () => {
-  const real = jest.requireActual("../carga");
+jest.mock("./carga", () => {
+  const real = jest.requireActual("./carga");
   return { ...real, subirFoto: jest.fn() };
 });
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import * as ImagePicker from "expo-image-picker";
 import type { ClienteAdmin } from "@core/api/admin";
-import { ErrorDeFoto, conteoLegible, registrosDesdeFilas, subirFoto, sugerenciasDePrueba, textoDeCotizacion } from "../carga";
+import { ErrorDeFoto, conteoLegible, registrosDesdeFilas, subirFoto, sugerenciasDePrueba, textoDeCotizacion } from "./carga";
 import { PasoDatos } from "./PasoDatos";
 import { PasoLoCargado } from "./PasoLoCargado";
 

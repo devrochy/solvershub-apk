@@ -67,6 +67,10 @@ import {
   type SubPaso,
 } from "../logica";
 import { PasoNegocio, PasoReglas, PasoVoz } from "./Pasos";
+import type { RegistroDePrueba } from "@shared/carga-de-datos/carga";
+import { sugerenciasDePrueba } from "@shared/carga-de-datos/carga";
+import { PasoDatos, type Cargado } from "@shared/carga-de-datos/PasoDatos";
+import { PasoLoCargado } from "@shared/carga-de-datos/PasoLoCargado";
 
 const MENSAJE_DE_RED =
   "Se cortó la conexión. Lo que elegiste sigue aquí: vuelve a intentarlo.";
@@ -103,6 +107,8 @@ export function RecorridoScreen() {
     "inactivo" | "creando" | "dejando-listo" | "error" | "listo"
   >("inactivo");
   const [revision, setRevision] = useState(false);
+  // SPEC-45: lo cargado en «Carga sus datos», para sugerir frases al probar.
+  const [cargados, setCargados] = useState<RegistroDePrueba[]>([]);
   const scroll = useRef<ScrollViewInstance>(null);
 
   const guardarBorrador = useCallback(
@@ -449,9 +455,6 @@ export function RecorridoScreen() {
             error={error ?? undefined}
           />
         )}
-        {pasoActual.id === "conocimiento" && (
-          <PasoConocimiento estado={estado} alIr={cerrar} />
-        )}
         {pasoActual.id === "crear" && (
           <PasoCrear
             estado={estado}
@@ -460,11 +463,24 @@ export function RecorridoScreen() {
             revision={revision}
           />
         )}
+        {pasoActual.id === "datos" &&
+          (agenteId ? (
+            <PasoDatosDeBienvenida
+              agenteId={agenteId}
+              estado={estado}
+              alIr={cerrar}
+              onRegistros={setCargados}
+            />
+          ) : (
+            <Text style={[shType.body, { color: c.textMuted }]} testID="onb-datos-sin-agente">
+              Primero crea tu agente en el paso anterior: los datos se le cargan a él.
+            </Text>
+          ))}
         {pasoActual.id === "probar" && puedeProbar && conexionId && (
           <PasoProbar
             conexionId={conexionId}
             nombre={estado.nombreDelAgente.trim() || "tu agente"}
-            sugerencias={FRASES_DE_PRUEBA[estado.tipo ?? "ventas"]}
+            sugerencias={sugerenciasConLoCargado(cargados, FRASES_DE_PRUEBA[estado.tipo ?? "ventas"])}
             alRecibir={(turnos) => {
               if (turnos.length > 0)
                 setRecorrido((r) =>
@@ -534,7 +550,7 @@ export function RecorridoScreen() {
                 fullWidth
                 style={styles.principal}
               >
-                Probar mi agente
+                Siguiente
               </Button>
             ) : (
               <Button
@@ -567,7 +583,7 @@ export function RecorridoScreen() {
               fullWidth
               style={styles.principal}
             >
-              Siguiente
+              {pasoActual.id === "datos" ? "Probar mi agente" : "Siguiente"}
             </Button>
           )}
         </View>
@@ -592,13 +608,72 @@ export function RecorridoScreen() {
   );
 }
 
-/** Paso 4: lo que el agente sabe. No duplica formularios: enlaza al módulo que lo resuelve. */
+/**
+ * Paso 5 (SPEC-45): con el agente ya creado, cargarle datos para probarlo en el paso siguiente: generar datos de
+ * prueba (solo en test) o el catálogo desde fotos, y ver lo que quedó cargado. Debajo, el enlace al módulo que lo
+ * resuelve. Todo es opcional.
+ */
+function PasoDatosDeBienvenida({
+  agenteId,
+  estado,
+  alIr,
+  onRegistros,
+}: {
+  agenteId: string;
+  estado: EstadoDelAsistente;
+  alIr: () => void;
+  onRegistros: (registros: RegistroDePrueba[]) => void;
+}) {
+  const api = useAdminApi();
+  const [cargado, setCargado] = useState<Cargado | null>(null);
+  return (
+    <View style={styles.bloque}>
+      {cargado ? (
+        <>
+          <PasoLoCargado
+            api={api}
+            agenteId={agenteId}
+            locales={cargado.registros}
+            resumen={cargado.resumen || null}
+            onRegistros={onRegistros}
+          />
+          <Button variant="secondary" onPress={() => setCargado(null)} testID="onb-datos-otros">
+            Cargar otros datos
+          </Button>
+        </>
+      ) : (
+        <PasoDatos
+          api={api}
+          agenteId={agenteId}
+          onCargado={(nuevo) => {
+            setCargado(nuevo);
+            onRegistros(nuevo.registros);
+          }}
+        />
+      )}
+      <PasoConocimiento estado={estado} alIr={alIr} conPrueba={false} />
+    </View>
+  );
+}
+
+/** Frases con lo cargado primero y después las del tipo de negocio, sin repetir. */
+function sugerenciasConLoCargado(cargados: RegistroDePrueba[], delTipo: readonly string[]): string[] {
+  const propias = sugerenciasDePrueba(cargados);
+  return [...new Set([...propias, ...delTipo])].slice(0, 6);
+}
+
+/**
+ * Lo que el agente sabe: enlaza al módulo que lo resuelve. Va debajo de la carga de datos (SPEC-45); ahí no ofrece
+ * generar datos de prueba por módulo (`conPrueba` falso), porque ya lo hace el paso con el agente creado.
+ */
 function PasoConocimiento({
   estado,
   alIr,
+  conPrueba = true,
 }: {
   estado: EstadoDelAsistente;
   alIr: () => void;
+  conPrueba?: boolean;
 }) {
   const { c } = useKit();
   const api = useAdminApi();
@@ -639,7 +714,7 @@ function PasoConocimiento({
 
   useEffect(() => {
     let vivo = true;
-    if (!moduloPrueba) {
+    if (!moduloPrueba || !conPrueba) {
       return;
     }
     cargarDatosDePrueba(api, moduloPrueba)
@@ -652,7 +727,7 @@ function PasoConocimiento({
     return () => {
       vivo = false;
     };
-  }, [api, moduloPrueba]);
+  }, [api, moduloPrueba, conPrueba]);
 
   async function generarPrueba() {
     if (!moduloPrueba || !prueba) return;

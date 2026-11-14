@@ -107,8 +107,8 @@ describe("RecorridoScreen (HU-APP-22)", () => {
     alerta.mockRestore();
   });
 
-  it("retoma en el paso 5 con el agente ya creado y lo deja listo sin crear otro", async () => {
-    const retomado: Recorrido = { ...nuevo, estado: "en_curso", paso: 5, abrir: false, agente_id: "a1" };
+  it("retoma en el paso 4 con el agente ya creado y lo deja listo sin crear otro", async () => {
+    const retomado: Recorrido = { ...nuevo, estado: "en_curso", paso: 4, abrir: false, agente_id: "a1" };
     responder(retomado);
     mockPost.mockImplementation((path: string, body?: { paso?: number }) => {
       if (path === "/admin/onboarding/dejar-listo")
@@ -123,19 +123,21 @@ describe("RecorridoScreen (HU-APP-22)", () => {
           ],
           recorrido: { ...retomado, conexion_id: "c1" },
         });
-      return Promise.resolve({ ...retomado, paso: body?.paso ?? 5 });
+      return Promise.resolve({ ...retomado, paso: body?.paso ?? 4 });
     });
     const api = await render(<RecorridoScreen />);
     await waitFor(() => api.getByText("Crea tu agente"));
     await fireEvent.press(api.getByTestId("onb-crear"));
-    await waitFor(() => api.getByText("Probar mi agente"));
+    // SPEC-45: después de crear sigue «Carga sus datos», no la prueba.
+    await waitFor(() => api.getByTestId("onb-siguiente"));
+    expect(api.getByText("Siguiente")).toBeTruthy();
     expect(mockPost).toHaveBeenCalledWith("/admin/onboarding/dejar-listo", { agent_id: "a1" });
     expect(mockPost).not.toHaveBeenCalledWith("/admin/agents/from-script", expect.anything());
     expect(api.getByText("Todo listo. Sigue para probar a tu agente.")).toBeTruthy();
   });
 
   it("si ya hay un chat web en vivo lo dice y permite reintentar", async () => {
-    const retomado: Recorrido = { ...nuevo, estado: "en_curso", paso: 5, abrir: false, agente_id: "a1" };
+    const retomado: Recorrido = { ...nuevo, estado: "en_curso", paso: 4, abrir: false, agente_id: "a1" };
     responder(retomado);
     mockPost.mockImplementation((path: string) =>
       path === "/admin/onboarding/dejar-listo"
@@ -147,6 +149,23 @@ describe("RecorridoScreen (HU-APP-22)", () => {
     await fireEvent.press(api.getByTestId("onb-crear"));
     await waitFor(() => api.getByText(/Ya tienes un chat web en vivo/));
     expect(api.getByText("Reintentar")).toBeTruthy();
+  });
+
+  it("con el agente creado, el paso 5 carga sus datos y lleva a probarlo (SPEC-45)", async () => {
+    const enDatos: Recorrido = { ...nuevo, estado: "en_curso", paso: 5, abrir: false, agente_id: "a1", conexion_id: "c1" };
+    responder(enDatos);
+    mockGet.mockImplementation((path: string) => {
+      if (path === "/admin/onboarding") return Promise.resolve({ recorrido: enDatos });
+      if (path === "/admin/settings") return Promise.resolve({ identity: identidad });
+      if (path === "/admin/agents/a1/datos-de-prueba") return Promise.resolve({ disponible: true, falta_descripcion: false, lote: null });
+      return Promise.reject(new Error(path));
+    });
+    const api = await render(<RecorridoScreen />);
+    await waitFor(() => api.getByTestId("paso-datos"));
+    expect(api.getByText("Carga sus datos")).toBeTruthy();
+    expect(api.getByText("Generar datos de prueba")).toBeTruthy();
+    expect(api.getByText("Probar mi agente")).toBeTruthy();
+    expect(api.queryByTestId("onb-conocimiento-prueba")).toBeNull();
   });
 
   it("en el chat de prueba lo escrito va junto a su respuesta aunque ya hubiera historial", async () => {

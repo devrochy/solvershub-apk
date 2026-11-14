@@ -17,12 +17,9 @@ export const PASOS = [
   { id: "negocio", titulo: "Cuéntanos de tu negocio", corto: "Tu negocio" },
   { id: "voz", titulo: "¿Cómo quieres que hable?", corto: "Cómo habla" },
   { id: "reglas", titulo: "Horario y reglas", corto: "Horario y reglas" },
-  {
-    id: "conocimiento",
-    titulo: "Lo que ya sabe de tu negocio",
-    corto: "Qué sabe",
-  },
+  // SPEC-45: primero se crea el agente y después se le cargan datos, para probarlo con ellos (igual que el panel).
   { id: "crear", titulo: "Crea tu agente", corto: "Crear" },
+  { id: "datos", titulo: "Carga sus datos", corto: "Datos" },
   { id: "probar", titulo: "Pruébalo", corto: "Probar" },
 ] as const;
 

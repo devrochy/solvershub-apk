@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import type { ClienteAdmin } from "@core/api/admin";
 import { shSpace, shType } from "@core/theme/tokens";
 import { useKit } from "@shared/ui";
-import { cargarRegistros, sugerenciasDePrueba, type RegistroDePrueba } from "../carga";
+import { cargarRegistros, sugerenciasDePrueba, type RegistroDePrueba } from "./carga";
 
 const TIPO: Record<string, string> = {
   producto: "Producto",
@@ -25,11 +25,14 @@ export function PasoLoCargado({
   agenteId,
   locales,
   resumen,
+  onRegistros,
 }: {
   api: ClienteAdmin;
   agenteId: string;
   locales: RegistroDePrueba[];
   resumen: string | null;
+  /** Avisa qué se muestra (la bienvenida lo usa para sugerir frases al probar). */
+  onRegistros?: (registros: RegistroDePrueba[]) => void;
 }) {
   const { c } = useKit();
   const [registros, setRegistros] = useState<RegistroDePrueba[] | null>(null);
@@ -37,11 +40,16 @@ export function PasoLoCargado({
   useEffect(() => {
     let vivo = true;
     cargarRegistros(api, agenteId).then((r) => {
-      if (vivo) setRegistros(r && r.registros.length > 0 ? r.registros : locales);
+      if (!vivo) return;
+      const lista = r && r.registros.length > 0 ? r.registros : locales;
+      setRegistros(lista);
+      onRegistros?.(lista);
     });
     return () => {
       vivo = false;
     };
+    // `onRegistros` es un aviso: no vuelve a pedir la lista si cambia la función.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, agenteId, locales]);
 
   if (registros === null) return <ActivityIndicator testID="cargado-cargando" />;
