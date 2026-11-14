@@ -33,7 +33,7 @@ export function ayudaDeLaPlantilla(plantilla: PlantillaAgente): string {
     : plantilla.description;
 }
 
-/** Máximo de pasos, contando elegir el tipo, el nombre, lo cargado, revisar y publicar (ADR-0171). */
+/** Máximo de pasos, contando elegir el tipo, el nombre, revisar, datos, lo cargado y publicar (ADR-0171, D-49). */
 export const MAX_PASOS = 10;
 export const NOMBRE_MAX = 120;
 
@@ -41,8 +41,9 @@ export type PasoAsistente =
   | { id: "tipo"; titulo: string }
   | { id: string; titulo: string; pregunta: PreguntaDeAgente }
   | { id: "nombre"; titulo: string }
-  | { id: "contenido"; titulo: string }
   | { id: "revisar"; titulo: string }
+  | { id: "datos"; titulo: string }
+  | { id: "cargado"; titulo: string }
   | { id: "publicar"; titulo: string };
 
 export interface EstadoDelAsistente {
@@ -57,13 +58,17 @@ export const ESTADO_INICIAL: EstadoDelAsistente = { plantilla: null, respuestas:
 const PASO_TIPO: PasoAsistente = { id: "tipo", titulo: "¿Qué quieres que haga?" };
 const PASOS_FINALES: PasoAsistente[] = [
   { id: "nombre", titulo: "¿Cómo se llama?" },
-  { id: "contenido", titulo: "Lo que ya tienes cargado" },
   { id: "revisar", titulo: "Revisar y crear" },
+  { id: "datos", titulo: "Carga sus datos" },
+  { id: "cargado", titulo: "Lo que quedó cargado" },
   { id: "publicar", titulo: "Dónde atiende" },
 ];
-const RESERVADOS = new Set(["tipo", "nombre", "contenido", "revisar", "publicar"]);
+const RESERVADOS = new Set(["tipo", "nombre", "contenido", "revisar", "datos", "cargado", "publicar"]);
 
-/** tipo → una por pregunta del guion → nombre → contenido → revisar → publicar; nunca más de `MAX_PASOS`. */
+/**
+ * tipo → una por pregunta del guion → nombre → revisar y crear → datos → lo cargado (SPEC-45) → publicar; nunca
+ * más de `MAX_PASOS`.
+ */
 export function pasosDelAsistente(plantilla: PlantillaAgente | null | undefined): PasoAsistente[] {
   if (!plantilla) return [PASO_TIPO];
   const preguntas = plantilla.questions
