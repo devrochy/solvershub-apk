@@ -1,5 +1,6 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
+jest.mock("@core/session/admin-session-context", () => ({ useAdminSession: () => ({ sesion: { token: "t", tenantId: "n-1" } }) }));
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AdminApiError } from "@core/api/admin";
@@ -56,7 +57,6 @@ describe("AsistenteDeAgente (HU-AOS-56)", () => {
     await fireEvent.press(api.getByText("Siguiente"));
     await fireEvent.press(api.getByText("Siguiente")); // pregunta (valor por defecto)
     await fireEvent.press(api.getByText("Siguiente")); // nombre
-    await fireEvent.press(api.getByText("Siguiente")); // contenido
   }
 
   it("cada tipo dice qué activará al crearlo y el que el servicio no trae sale deshabilitado", async () => {
@@ -74,7 +74,7 @@ describe("AsistenteDeAgente (HU-AOS-56)", () => {
     expect(api.getByText("Elige qué quieres que haga tu agente.")).toBeTruthy();
   });
 
-  it("recorre el guion, crea el borrador y publica en la conexión elegida", async () => {
+  it("recorre el guion, crea el borrador, pasa por «Datos» y publica en la conexión elegida", async () => {
     mockPost.mockImplementation((path: string) =>
       path === "/admin/agents/from-script"
         ? Promise.resolve({ agent: { id: "ag-1" }, draft: {}, warnings: [], requirements: ventas.requirements })
@@ -85,6 +85,12 @@ describe("AsistenteDeAgente (HU-AOS-56)", () => {
     await hastaRevisar(api);
     expect(api.getByTestId("asistente-resumen")).toBeTruthy();
     await fireEvent.press(api.getByText("Crear mi agente"));
+    // SPEC-45: sin opciones de carga en este entorno, se sigue sin cargar y «Lo cargado» queda vacío.
+    await waitFor(() => api.getByText("Este agente no tiene datos para cargar desde la app."));
+    expect(api.queryByText("Atrás")).toBeNull();
+    await fireEvent.press(api.getByTestId("datos-omitir"));
+    await waitFor(() => api.getByText(/No cargaste datos todavía/));
+    await fireEvent.press(api.getByText("Siguiente"));
     await waitFor(() => api.getByTestId("asistente-conexion-c1"));
     expect(mockPost).toHaveBeenCalledWith("/admin/agents/from-script", {
       template_key: "ventas",
