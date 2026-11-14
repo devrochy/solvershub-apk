@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useAdminSession } from "@core/session/admin-session-context";
-import { esPantallaDePlan, usePantallaActiva } from "@shared/pantalla-activa";
 import { shSpace, shType } from "@core/theme/tokens";
 import { emitirNavegacion } from "@shared/navegacion-evento";
 import { Button, IconButton, Icono, useKit } from "@shared/ui";
@@ -10,16 +9,14 @@ import { avisoDePlanFree, puedeMejorarPlan, type AvisoDePlan } from "./plan-free
 /**
  * Banner fijo de plan Free (HU-BILL-15) bajo el header del panel: aparece en todos los
  * módulos mientras el negocio no tenga un plan pago. El cierre dura la vista actual; al
- * cambiar de módulo o reiniciar la app vuelve. En Consumo y plan no se muestra. El CTA
- * abre esa pantalla, que explica el checkout web.
+ * cambiar de módulo o reiniciar la app vuelve, también en Consumo y plan. El CTA abre esa
+ * pantalla, que explica el checkout web.
  */
 export function AvisoDePlanFree() {
   const { sesion, avisoPlanCerrado, cerrarAvisoPlan } = useAdminSession();
-  const pantalla = usePantallaActiva();
   const aviso = avisoDePlanFree(sesion?.plan);
   if (!sesion || !aviso || avisoPlanCerrado) return null;
   if (!puedeMejorarPlan(sesion.permissions, sesion.role === "master")) return null;
-  if (esPantallaDePlan(pantalla)) return null;
 
   return (
     <BannerPlanFree

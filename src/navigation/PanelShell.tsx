@@ -12,7 +12,6 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { EmptyState } from "@shared/ui";
 import { suscribirNavegacion } from "@shared/navegacion-evento";
-import { registrarPantallaActiva } from "@shared/pantalla-activa";
 import {
   suscribirAperturaColaborador,
   type ColaboradorEquipo,
@@ -265,10 +264,7 @@ function PanelShellInterno() {
   );
 
   // El recordatorio de plan Free se cierra solo para la vista actual: al cambiar de módulo
-  // vuelve a estar disponible (HU-BILL-15). La pantalla activa la leen el header y la campana.
-  useEffect(() => {
-    registrarPantallaActiva(activo);
-  }, [activo]);
+  // vuelve a estar disponible (HU-BILL-15).
   useEffect(() => {
     reiniciarAvisoPlan();
   }, [activo?.modulo, activo?.entrada, reiniciarAvisoPlan]);
