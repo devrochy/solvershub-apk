@@ -43,7 +43,6 @@ export type PasoAsistente =
   | { id: "nombre"; titulo: string }
   | { id: "revisar"; titulo: string }
   | { id: "datos"; titulo: string }
-  | { id: "cargado"; titulo: string }
   | { id: "publicar"; titulo: string };
 
 export interface EstadoDelAsistente {
@@ -58,16 +57,16 @@ export const ESTADO_INICIAL: EstadoDelAsistente = { plantilla: null, respuestas:
 const PASO_TIPO: PasoAsistente = { id: "tipo", titulo: "¿Qué quieres que haga?" };
 const PASOS_FINALES: PasoAsistente[] = [
   { id: "nombre", titulo: "¿Cómo se llama?" },
-  { id: "revisar", titulo: "Revisar y crear" },
+  // Mismos pasos y nombres que la bienvenida (SPEC-45), sin voz ni horario: son del negocio.
+  { id: "revisar", titulo: "Crea tu agente" },
   { id: "datos", titulo: "Carga sus datos" },
-  { id: "cargado", titulo: "Lo que quedó cargado" },
   { id: "publicar", titulo: "Dónde atiende" },
 ];
 const RESERVADOS = new Set(["tipo", "nombre", "contenido", "revisar", "datos", "cargado", "publicar"]);
 
 /**
- * tipo → una por pregunta del guion → nombre → revisar y crear → datos → lo cargado (SPEC-45) → publicar; nunca
- * más de `MAX_PASOS`.
+ * tipo → una por pregunta del guion → nombre → crea tu agente → carga sus datos (con lo cargado, SPEC-45) →
+ * publicar; nunca más de `MAX_PASOS`.
  */
 export function pasosDelAsistente(plantilla: PlantillaAgente | null | undefined): PasoAsistente[] {
   if (!plantilla) return [PASO_TIPO];

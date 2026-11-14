@@ -31,7 +31,7 @@ import {
   type FilaEditable,
   type RegistroDePrueba,
   type VistaPrevia,
-} from "../carga";
+} from "./carga";
 
 /** Lo que el paso le entrega a «Lo cargado»: la lista local, por si la API de registros no existe (producción). */
 export interface Cargado {

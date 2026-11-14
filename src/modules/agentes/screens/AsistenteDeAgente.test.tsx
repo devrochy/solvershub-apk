@@ -89,8 +89,6 @@ describe("AsistenteDeAgente (HU-AOS-56)", () => {
     await waitFor(() => api.getByText("Este agente no tiene datos para cargar desde la app."));
     expect(api.queryByText("Atrás")).toBeNull();
     await fireEvent.press(api.getByTestId("datos-omitir"));
-    await waitFor(() => api.getByText(/No cargaste datos todavía/));
-    await fireEvent.press(api.getByText("Siguiente"));
     await waitFor(() => api.getByTestId("asistente-conexion-c1"));
     expect(mockPost).toHaveBeenCalledWith("/admin/agents/from-script", {
       template_key: "ventas",

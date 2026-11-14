@@ -27,9 +27,8 @@ import {
   type EstadoDelAsistente,
 } from "../asistente";
 import { copiaDelRequisito } from "../requisitos";
-import type { RegistroDePrueba } from "../carga";
-import { PasoDatos, type Cargado } from "./PasoDatos";
-import { PasoLoCargado } from "./PasoLoCargado";
+import { PasoDatos, type Cargado } from "@shared/carga-de-datos/PasoDatos";
+import { PasoLoCargado } from "@shared/carga-de-datos/PasoLoCargado";
 
 /**
  * Asistente de creación de agentes en la app (HU-AOS-56, SPEC-39): el mismo guion que el panel,
@@ -53,7 +52,8 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
   const [destinos, setDestinos] = useState<DestinoDePublicacion[]>([]);
   const [elegidas, setElegidas] = useState<string[]>([]);
   const [publicado, setPublicado] = useState(false);
-  const [cargado, setCargado] = useState<Cargado>({ registros: [] as RegistroDePrueba[], resumen: "" });
+  // Lo cargado en «Carga sus datos» (null = todavía nada en esta visita): se muestra en el mismo paso.
+  const [cargado, setCargado] = useState<Cargado | null>(null);
   const reintento = useRef(0);
 
   useEffect(() => {
@@ -235,19 +235,16 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
         </Field>
       )}
 
-      {paso.id === "datos" && creado && (
-        <PasoDatos
-          api={api}
-          agenteId={creado.agent.id}
-          onCargado={(nuevo) => {
-            setCargado(nuevo);
-            setIndice(indice + 1);
-          }}
-        />
+      {paso.id === "datos" && creado && !cargado && (
+        <PasoDatos api={api} agenteId={creado.agent.id} onCargado={setCargado} />
       )}
-
-      {paso.id === "cargado" && creado && (
-        <PasoLoCargado api={api} agenteId={creado.agent.id} locales={cargado.registros} resumen={cargado.resumen || null} />
+      {paso.id === "datos" && creado && cargado && (
+        <View style={styles.bloque}>
+          <PasoLoCargado api={api} agenteId={creado.agent.id} locales={cargado.registros} resumen={cargado.resumen || null} />
+          <Button variant="secondary" onPress={() => setCargado(null)} testID="datos-otros">
+            Cargar otros datos
+          </Button>
+        </View>
       )}
 
       {ultimoDeRevision && (
@@ -320,8 +317,8 @@ export function AsistenteDeAgente({ onTerminar }: { onTerminar: (agenteId?: stri
             Publicar agente
           </Button>
         ) : paso.id === "datos" ? (
-          <Button variant="secondary" onPress={() => setIndice(indice + 1)} fullWidth testID="datos-omitir">
-            Seguir sin cargar datos
+          <Button variant="primary" onPress={() => setIndice(indice + 1)} fullWidth testID="datos-omitir">
+            {cargado ? "Siguiente" : "Seguir sin cargar datos"}
           </Button>
         ) : ultimoDeRevision ? (
           <Button variant="primary" onPress={crear} loading={enCurso} disabled={enCurso || !plantilla} fullWidth>
