@@ -44,7 +44,7 @@ describe("asistente de creación de agentes (HU-AOS-56)", () => {
   it("sin tipo solo hay un paso; con tipo suma preguntas y cierres", () => {
     expect(pasosDelAsistente(null).map((p) => p.id)).toEqual(["tipo"]);
     const ids = pasosDelAsistente(plantilla(2)).map((p) => p.id);
-    expect(ids).toEqual(["tipo", "q0", "q1", "nombre", "contenido", "revisar", "publicar"]);
+    expect(ids).toEqual(["tipo", "q0", "q1", "nombre", "revisar", "datos", "cargado", "publicar"]);
   });
 
   it("nunca pasa de diez pasos aunque el guion traiga más preguntas", () => {
