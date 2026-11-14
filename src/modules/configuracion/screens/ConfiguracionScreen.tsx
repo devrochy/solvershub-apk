@@ -17,6 +17,7 @@ import {
   type EntradaPestanas,
   type SolicitudPestana,
 } from "@shared/pestana-inicial";
+import { detalleDeConexion } from "@shared/domain/conexiones";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
@@ -396,26 +397,30 @@ export function ConfiguracionScreen({
                   Sin otros canales.
                 </Text>
               }
-              renderItem={({ item }) => (
-                <Pressable
-                  testID={`conexion-${item.id}`}
-                  onPress={() => abrirPlantillas(item)}
-                  style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: colores.texto, fontWeight: "600" }}>
-                      {item.label}
-                      {item.is_primary ? " · principal" : ""}
+              renderItem={({ item }) => {
+                const detalle = detalleDeConexion(item);
+                return (
+                  <Pressable
+                    testID={`conexion-${item.id}`}
+                    onPress={() => abrirPlantillas(item)}
+                    style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: colores.texto, fontWeight: "600" }}>
+                        {item.label}
+                        {item.is_primary ? " · principal" : ""}
+                      </Text>
+                      <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                        {item.channel}
+                        {detalle ? ` · ${detalle}` : ""}
+                      </Text>
+                    </View>
+                    <Text style={{ color: item.active ? colores.acento : colores.peligro, fontSize: 12 }}>
+                      {item.active ? "activa" : "inactiva"}
                     </Text>
-                    <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
-                      {item.channel} · {item.external_id}
-                    </Text>
-                  </View>
-                  <Text style={{ color: item.active ? colores.acento : colores.peligro, fontSize: 12 }}>
-                    {item.active ? "activa" : "inactiva"}
-                  </Text>
-                </Pressable>
-              )}
+                  </Pressable>
+                );
+              }}
             />
           )}
         </View>

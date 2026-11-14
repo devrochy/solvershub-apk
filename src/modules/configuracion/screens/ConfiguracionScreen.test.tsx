@@ -94,6 +94,21 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
               created_at: "2026-10-01T00:00:00Z",
               coexistence: false,
             },
+            {
+              id: "waweb-1",
+              kind: "channel_connection",
+              type_id: "whatsapp_waweb",
+              origin: "Manual",
+              channel: "whatsapp",
+              label: "WhatsApp (vínculo por QR)",
+              external_id: "waweb:tenant",
+              active: true,
+              is_primary: false,
+              created_at: "2026-10-01T00:00:00Z",
+              coexistence: false,
+              display_name: "Ana",
+              display_phone_number: "573005550103",
+            },
           ],
           webhook_url: "https://x/webhooks",
         });
@@ -218,6 +233,14 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
 
     await fireEvent.press(getByTestId("config-conexiones"));
     expect(getByText("Principal · principal")).toBeTruthy();
+  });
+
+  it("muestra el nombre y el número del WhatsApp Web vinculado", async () => {
+    const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
+    await waitFor(() => expect(getByTestId("config-conexiones")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("config-conexiones"));
+    expect(getByText("whatsapp · Ana · +573005550103")).toBeTruthy();
   });
 
   it("invita a un colaborador desde el modal (HU-APP-20)", async () => {

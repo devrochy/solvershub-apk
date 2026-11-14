@@ -9930,6 +9930,16 @@ export interface components {
             origin: string;
             /** Type Id */
             type_id?: string | null;
+            /**
+             * Display Name
+             * @description Nombre visible de la conexión (p. ej. perfil de WhatsApp Web); null si no se conoce.
+             */
+            display_name?: string | null;
+            /**
+             * Display Phone Number
+             * @description Número visible de la conexión (WhatsApp Web); null si no se conoce.
+             */
+            display_phone_number?: string | null;
         };
         /** ConnectionProduction */
         ConnectionProduction: {
