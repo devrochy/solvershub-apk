@@ -172,7 +172,7 @@ export function PasoVoz({ estado, cambiar }: PropsDePaso) {
             <Chip
               key={n}
               testID={`onb-calidez-${n}`}
-              titulo={CALIDEZ_ETIQUETAS[n - 1]}
+              titulo={CALIDEZ_ETIQUETAS[n]}
               rol="radio"
               elegido={estado.calidez === n}
               onPress={() => cambiar({ calidez: n })}

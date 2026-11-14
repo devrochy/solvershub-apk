@@ -83,6 +83,18 @@ describe("lógica del asistente de primer uso (HU-APP-22)", () => {
     expect(muestraDeVoz({ ...base, largo: "cortas" }, "Sofía", "")).not.toContain("Soy Sofía");
   });
 
+  it("distingue cada nivel de calidez, incluidos Cálido y Muy cálido", () => {
+    const base = { tono: "cercano", calidez: 4, emojis: "none", largo: "normal" } as const;
+    const seco = muestraDeVoz({ ...base, calidez: 0 }, "Sofía", "");
+    const calido = muestraDeVoz(base, "Sofía", "");
+    const muyCalido = muestraDeVoz({ ...base, calidez: 5 }, "Sofía", "");
+
+    expect(seco).toContain("Vamos al punto");
+    expect(calido).toContain("Con gusto te ayudo");
+    expect(muyCalido).toContain("Me encanta poder ayudarte");
+    expect(calido).not.toBe(muyCalido);
+  });
+
   it("arma las respuestas de creación y los cambios de identidad", () => {
     expect(respuestasDeCreacion({ ...listo, largo: "cortas" })).toEqual({ largo_respuesta: "cortas" });
     expect(respuestasDeCreacion({ ...listo, tipo: "agenda" })).toEqual({ largo_respuesta: "normal" });
