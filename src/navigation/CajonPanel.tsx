@@ -1,12 +1,13 @@
 import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
-import { Image, ScrollView, StyleSheet, View } from "react-native";
+import { Image, ScrollView, StyleSheet, View, type ScrollViewInstance } from "react-native";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { shSpace } from "@core/theme/tokens";
+import { URL_DOCUMENTACION } from "@shared/panel-urls";
 import { Drawer, Icono, ListItem, NavGroup, useKit } from "@shared/ui";
 import { SessionContext } from "../modules/cobranza/session/session-context";
 import { CuentaPanel } from "./CuentaPanel";
-import { LOGO_PANEL } from "./marca-panel";
+import { ALTO_WORDMARK, ANCHO_WORDMARK, LOGO_PANEL } from "./marca-panel";
 import { entradaContiene, gruposDeMenu, type EntradaVisible } from "./menu-panel";
 import { useMenuPanel, type DestinoPanel } from "./menu-panel-context";
 
@@ -39,7 +40,7 @@ export function CajonPanel({ onAbrirPerfil }: { onAbrirPerfil?: () => void }) {
     [grupos, activo],
   );
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const offsets = useRef<Record<string, number>>({});
 
   const desplazar = useCallback(() => {
@@ -170,6 +171,7 @@ export function CajonPanel({ onAbrirPerfil }: { onAbrirPerfil?: () => void }) {
             email={email}
             avatarUrl={perfil?.avatarUrl}
             tema={tema}
+            documentacionUrl={URL_DOCUMENTACION}
             onAlternarTema={alternarTema}
             onPerfil={abrirPerfil}
             onCerrarSesion={cerrarSesion}
@@ -182,8 +184,8 @@ export function CajonPanel({ onAbrirPerfil }: { onAbrirPerfil?: () => void }) {
 
 const styles = StyleSheet.create({
   contenido: { flex: 1 },
-  marcaFila: { marginBottom: shSpace[4] },
-  marcaLogo: { height: 24, width: 131 },
+  marcaFila: { alignItems: "center", marginBottom: shSpace[4] },
+  marcaLogo: { height: ALTO_WORDMARK, width: ANCHO_WORDMARK },
   scroll: { flex: 1 },
   scrollContenido: { paddingBottom: shSpace[4], gap: 2 },
   pie: {

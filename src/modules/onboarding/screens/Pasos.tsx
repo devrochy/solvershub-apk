@@ -15,7 +15,6 @@ import {
   LARGOS,
   MOTIVOS_DE_ESCALAR,
   NOMBRE_AGENTE_MAX,
-  OPCIONES_QUE_VENDE,
   PRESETS_DE_DIAS,
   TIPOS_DE_NEGOCIO,
   TONOS,
@@ -88,26 +87,6 @@ export function PasoNegocio({ estado, cambiar, error }: PropsDePaso) {
           </Text>
         ) : null}
       </View>
-
-      {estado.tipo === "ventas" ? (
-        <View
-          style={styles.grupo}
-          accessibilityRole="radiogroup"
-          accessibilityLabel="¿Qué vendes?"
-        >
-          <Text style={[shType.label, { color: c.text }]}>¿Qué vendes?</Text>
-          {OPCIONES_QUE_VENDE.map((o) => (
-            <Elegible
-              key={o.id}
-              testID={`onb-vende-${o.id}`}
-              titulo={o.titulo}
-              ayuda={o.ayuda}
-              elegido={estado.queVende === o.id}
-              onPress={() => cambiar({ queVende: o.id })}
-            />
-          ))}
-        </View>
-      ) : null}
 
       <Field label="Nombre de tu negocio" hint="Así se presenta tu agente.">
         <TextField

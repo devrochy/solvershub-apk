@@ -42,4 +42,29 @@ describe("NavGroup", () => {
     await fireEvent.press(getByTestId("grupo"));
     expect(onToggle).not.toHaveBeenCalled();
   });
+
+  it("plegado enseña su resumen y lo suma al nombre accesible; abierto lo oculta", async () => {
+    const onToggle = jest.fn();
+    const { getByText, queryByText, getByTestId, rerender } = await render(
+      <NavGroup
+        testID="grupo"
+        label="Ventas"
+        abierto={false}
+        onToggle={onToggle}
+        resumen={<Text>Pedidos 14</Text>}
+        resumenHablado="Pedidos 14"
+      >
+        <Text>Detalle</Text>
+      </NavGroup>,
+    );
+    expect(getByText("Pedidos 14")).toBeTruthy();
+    expect(getByTestId("grupo")).toHaveProp("accessibilityLabel", "Ventas. Pedidos 14");
+    await rerender(
+      <NavGroup testID="grupo" label="Ventas" abierto onToggle={onToggle} resumen={<Text>Pedidos 14</Text>} resumenHablado="Pedidos 14">
+        <Text>Detalle</Text>
+      </NavGroup>,
+    );
+    expect(queryByText("Pedidos 14")).toBeNull();
+    expect(getByTestId("grupo")).toHaveProp("accessibilityLabel", "Ventas");
+  });
 });

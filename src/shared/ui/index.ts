@@ -5,8 +5,10 @@
 export { Avatar, iniciales, type AvatarProps, type AvatarSize, type AvatarStatus } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeSize } from "./Badge";
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from "./Button";
+export { Card, type CardProps } from "./Card";
 export { CampanaDelPanel, CampanaNotificaciones, textoContador, type CampanaNotificacionesProps } from "./CampanaNotificaciones";
 export { CampoTelefono } from "./CampoTelefono";
+export { CanalIcono, marcaDelCanal, type CanalIconoProps } from "./CanalIcono";
 export { Checkbox, type CheckboxProps } from "./Checkbox";
 export { Drawer, type DrawerProps } from "./Drawer";
 export { EmptyState, type EmptyStateAction, type EmptyStateProps } from "./EmptyState";
@@ -15,11 +17,15 @@ export { IconButton, type IconButtonProps, type IconButtonSize, type IconButtonT
 export { Icono, type IconName } from "./icono";
 export { formatearDelta, KpiTile, type KpiPolarity, type KpiTileProps } from "./KpiTile";
 export { ListItem, RecordRow, type ListItemProps, type RecordRowProps } from "./ListItem";
+export { MapaCliente, type MapaClienteProps } from "./MapaCliente";
+export { MapaPin, type MapaPinProps } from "./MapaPin";
 export { NavGroup, type NavGroupProps } from "./NavGroup";
+export { Sparkline, type SparklineProps } from "./Sparkline";
 export { curva, duracion, useReduceMotion, type CurvaMotion, type DuracionMotion } from "./motion";
 export { PageHeader, type PageHeaderProps } from "./PageHeader";
 export { PasswordField, type PasswordFieldProps } from "./PasswordField";
 export { RadioGroup, type RadioGroupProps, type RadioOption } from "./RadioGroup";
+export { SelectorFechaHora } from "./SelectorFechaHora";
 export { Sheet, type SheetProps } from "./Sheet";
 export { Skeleton, type SkeletonProps, type SkeletonShape } from "./Skeleton";
 export { Stepper, pasoActual, textoPaso, type StepItem, type StepperProps, type StepState } from "./Stepper";

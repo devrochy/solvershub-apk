@@ -3,6 +3,7 @@ import { apiInvitaciones, apiLogin, apiResolverInvitacion } from "./auth";
 jest.mock("@shared/dispositivo", () => ({
   imeiDelEquipo: jest.fn().mockResolvedValue("ANDROID-TEST"),
   leerWhatsappVinculacion: jest.fn().mockResolvedValue("3000000000"),
+  cabeceraDeEquipo: jest.fn().mockResolvedValue({}),
 }));
 
 describe("apiLogin", () => {

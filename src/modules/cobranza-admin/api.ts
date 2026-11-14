@@ -1,4 +1,5 @@
 import type { ClienteAdmin } from "@core/api/admin";
+import type { components } from "@core/api/schema";
 
 /**
  * API admin del pack de cobranza (HU-APP-18 · réplica total).
@@ -9,13 +10,24 @@ export interface Kpi { label: string; value: string }
 export interface ClientRow {
   id: string; nombre: string; apellido: string | null; telefono: string | null;
   tipo_documento: string | null; numero_documento: string | null; negocio: string | null;
-  cartera: string | null; cartera_id: string | null; tope_maximo_deuda: string | null;
+  cartera: string | null; cartera_id: string | null; tope_maximo_deuda: string | number | null;
   color_riesgo: string;
 }
-export interface CuotaOut { id: string; monto: string; fecha_vencimiento: string | null; estado: string; saldo: string; numero: number }
+export interface CuotaOut {
+  id: string;
+  numero: number;
+  valor: string | number;
+  vence: string;
+  estatus: string;
+  // Campos del contrato anterior que aún pueden venir en cachés viejas.
+  monto?: string;
+  fecha_vencimiento?: string | null;
+  estado?: string;
+  saldo?: string;
+}
 export interface Loan {
-  id: string; valor: string; saldo: string; num_cuotas: number; tipo_interes: string;
-  fecha_otorgado: string | null; estatus: string; cuotas: CuotaOut[];
+  id: string; valor: string | number; saldo: string | number; num_cuotas: number;
+  tipo_interes: string | number; fecha_otorgado: string | null; estatus: string; cuotas: CuotaOut[];
 }
 export interface ClientMovement { id: string; tipo: string; fecha: string; valor: string; metodo: string | null }
 export interface ClientChange {
@@ -23,6 +35,13 @@ export interface ClientChange {
   solicitado_por: string | null; fecha: string; motivo_rechazo: string | null;
 }
 export interface ClientDetail { cliente: ClientRow; prestamos: Loan[]; movimientos: ClientMovement[]; cambios: ClientChange[] }
+
+export type ClientIn = components["schemas"]["ClientIn"];
+export type LoanIn = components["schemas"]["LoanIn"];
+export type PaymentIn = components["schemas"]["PaymentIn"];
+export type CreditIn = components["schemas"]["CreditIn"];
+export type InstallmentIn = components["schemas"]["InstallmentIn"];
+export type InstallmentOut = components["schemas"]["Installment"];
 export interface PagoAdmin {
   id: string; cliente: string; valor: string; metodo_pago: string | null;
   registrado_por: string | null; fecha_hora: string;
@@ -31,11 +50,6 @@ export interface PromesaAdmin {
   id: string; cliente: string; fecha_prometida: string | null; valor_prometido: string;
   estado: string; tipo: string | null; creado_por: string | null;
 }
-export interface DeviceRow {
-  id: string; codigo: string | null; gestor: string | null; imei: string | null;
-  whatsapp: string | null; estado: string; vinculado: boolean;
-}
-export interface Dispositivos { pendientes: number; dispositivos: DeviceRow[]; intentos: unknown[]; eventos: unknown[] }
 export interface FilaAuditoria {
   fecha: string; entidad: string; entidad_id: string | null; operacion: string;
   antes: unknown; despues: unknown; actor: string | null; motivo: string | null;
@@ -54,6 +68,62 @@ export async function cargarDetalleCliente(api: ClienteAdmin, id: string): Promi
   return api.get(`/pack/cobranza/clients/${id}`);
 }
 
+export async function crearCliente(api: ClienteAdmin, datos: ClientIn): Promise<ClientRow> {
+  return api.post<ClientRow>("/pack/cobranza/clients", datos);
+}
+
+export async function actualizarCliente(
+  api: ClienteAdmin,
+  id: string,
+  datos: ClientIn,
+): Promise<ClientRow> {
+  return api.put<ClientRow>(`/pack/cobranza/clients/${id}`, datos);
+}
+
+export async function eliminarCliente(api: ClienteAdmin, id: string): Promise<void> {
+  await api.del(`/pack/cobranza/clients/${id}`);
+}
+
+export async function crearPrestamo(
+  api: ClienteAdmin,
+  clienteId: string,
+  datos: LoanIn,
+): Promise<Loan> {
+  return api.post<Loan>(`/pack/cobranza/clients/${clienteId}/loans`, datos);
+}
+
+export async function registrarPago(
+  api: ClienteAdmin,
+  prestamoId: string,
+  datos: PaymentIn,
+): Promise<void> {
+  await api.post(`/pack/cobranza/loans/${prestamoId}/payments`, datos);
+}
+
+export async function registrarAbono(
+  api: ClienteAdmin,
+  prestamoId: string,
+  datos: CreditIn,
+): Promise<void> {
+  await api.post(`/pack/cobranza/loans/${prestamoId}/credits`, datos);
+}
+
+export async function actualizarCuota(
+  api: ClienteAdmin,
+  cuotaId: string,
+  datos: InstallmentIn,
+): Promise<InstallmentOut> {
+  return api.put<InstallmentOut>(`/pack/cobranza/installments/${cuotaId}`, datos);
+}
+
+export async function eliminarCuota(api: ClienteAdmin, cuotaId: string): Promise<void> {
+  await api.del(`/pack/cobranza/installments/${cuotaId}`);
+}
+
+export async function eliminarAbono(api: ClienteAdmin, abonoId: string): Promise<void> {
+  await api.del(`/pack/cobranza/credits/${abonoId}`);
+}
+
 export async function cargarPagos(api: ClienteAdmin): Promise<PagoAdmin[]> {
   return api.get("/pack/cobranza/payments");
 }
@@ -68,18 +138,6 @@ export async function cambiarEstadoPromesa(
   estado: string,
 ): Promise<void> {
   await api.post(`/pack/cobranza/promises/${id}/status`, { estado });
-}
-
-export async function cargarDispositivos(api: ClienteAdmin): Promise<Dispositivos> {
-  return api.get("/pack/cobranza/devices");
-}
-
-export async function cambiarEstadoDispositivo(
-  api: ClienteAdmin,
-  id: string,
-  estado: string,
-): Promise<void> {
-  await api.post(`/pack/cobranza/devices/${id}/status`, { estado });
 }
 
 export async function cargarAuditoria(api: ClienteAdmin): Promise<AuditoriaCobranza> {
@@ -113,10 +171,6 @@ export interface Reglas {
   max_dias_prorroga: number; min_abono_pct: number; max_reprogramaciones: number;
   umbral_saldo_autonomo: number;
 }
-export interface AccessAttempt {
-  fecha: string; gestor: string; resultado: string; motivo: string; imei: string; critico: boolean;
-}
-export interface Alertas { total: number; denegados: number; items: AccessAttempt[] }
 export interface RouteClient {
   id: string; cliente: string; telefono: string; saldo: number; mora: number;
   riesgo: string; lat: number | null; lng: number | null;
@@ -179,10 +233,6 @@ export async function cargarReglas(api: ClienteAdmin): Promise<Reglas> {
 
 export async function guardarReglas(api: ClienteAdmin, reglas: Reglas): Promise<void> {
   await api.put("/pack/cobranza/rules", reglas);
-}
-
-export async function cargarAlertas(api: ClienteAdmin): Promise<Alertas> {
-  return api.get("/pack/cobranza/alerts");
 }
 
 // ---------------- Cierre de réplica: Gestores ----------------

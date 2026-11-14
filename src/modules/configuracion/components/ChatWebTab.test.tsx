@@ -73,7 +73,7 @@ describe("ChatWebTab (HU-APP-12 · Chat web)", () => {
   });
 
   it("comparte el fragmento", async () => {
-    const compartir = jest.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction" });
+    const compartir = jest.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction", activityType: undefined });
     const { getByTestId } = await render(<ChatWebTab />);
     await waitFor(() => expect(getByTestId("chatweb-compartir")).toBeTruthy());
 

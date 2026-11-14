@@ -125,7 +125,10 @@ function ConversacionDetalleContenido({
 
   const nombre = nombreDelChat(detalle);
   const atiendePersona = detalle.escalation?.status === "asignada";
-  const puedeResponder = atiendePersona || detalle.bot_paused;
+  const puedeResponder =
+    detalle.status !== "closed" && (atiendePersona || (detalle.bot_paused && detalle.escalation == null));
+  const hayMasAcciones =
+    puedeResponder || Boolean(detalle.customer_id) || detalle.status === "escalated";
 
   function limpiarMensajes() {
     setError(null);
@@ -271,16 +274,21 @@ function ConversacionDetalleContenido({
       style={[styles.raiz, { backgroundColor: c.bg }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ChatHeader detalle={detalle} onAbrirMas={() => setAccionesAbiertas(true)} />
+      <ChatHeader
+        detalle={detalle}
+        onTomar={() => void tomar()}
+        onDevolver={devolver}
+        onAlternarAgente={() => void alternar()}
+        onAbrirNotas={abrirNotas}
+        onAbrirMas={() => setAccionesAbiertas(true)}
+        hayMasAcciones={hayMasAcciones}
+        notas={detalle.notes?.length ?? 0}
+        ocupado={accionEnCurso}
+      />
 
       {detalle.escalation ? (
         <View style={styles.ticket}>
-          <TicketEscalacion
-            detalle={detalle}
-            onTomar={() => void tomar()}
-            onDevolver={devolver}
-            ocupado={accionEnCurso}
-          />
+          <TicketEscalacion detalle={detalle} />
         </View>
       ) : null}
 
@@ -316,21 +324,12 @@ function ConversacionDetalleContenido({
         {!puedeResponder ? (
           <View style={styles.sinComposer}>
             <Text style={[shType.caption, styles.textoSinComposer, { color: c.textSoft }]}>
-              {detalle.escalation
-                ? "Toma la conversación para responder como persona."
-                : "El agente está atendiendo esta conversación."}
+              {detalle.status === "closed"
+                ? "Esta conversación está cerrada."
+                : detalle.escalation?.status === "pendiente"
+                  ? "Toma la conversación para responder como persona."
+                  : "El agente está atendiendo. Pausa el agente en la cabecera para escribir."}
             </Text>
-            {!detalle.escalation ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                onPress={() => void alternar()}
-                disabled={accionEnCurso}
-                testID="detalle-pausar-agente"
-              >
-                Pausar agente
-              </Button>
-            ) : null}
           </View>
         ) : null}
 
@@ -360,9 +359,7 @@ function ConversacionDetalleContenido({
         onClose={() => setAccionesAbiertas(false)}
         detalle={detalle}
         accionEnCurso={accionEnCurso}
-        onAlternar={() => void alternar()}
         onResolver={resolver}
-        onNotas={abrirNotas}
         onPlantilla={abrirPlantillas}
         onVerFicha={verFicha}
       />
@@ -394,9 +391,7 @@ function SheetAcciones({
   onClose,
   detalle,
   accionEnCurso,
-  onAlternar,
   onResolver,
-  onNotas,
   onPlantilla,
   onVerFicha,
 }: {
@@ -404,56 +399,41 @@ function SheetAcciones({
   onClose: () => void;
   detalle: ConversationDetail;
   accionEnCurso: boolean;
-  onAlternar: () => void;
   onResolver: () => void;
-  onNotas: () => void;
   onPlantilla: () => void;
   onVerFicha: () => void;
 }) {
   const { c } = useKit();
-  const notas = detalle.notes?.length ?? 0;
-  const etiquetaNotas = notas ? `Notas internas (${notas})` : "Notas internas";
+  const puedeResponder =
+    detalle.status !== "closed" &&
+    (detalle.escalation?.status === "asignada" ||
+      (detalle.bot_paused && detalle.escalation == null));
 
   return (
     <Sheet visible={visible} onClose={onClose} title="Acciones de la conversación" testID="sheet-acciones">
-      <Button
-        variant="secondary"
-        fullWidth
-        iconLeft={detalle.bot_paused ? "play-arrow" : "pause"}
-        onPress={onAlternar}
-        disabled={accionEnCurso}
-        testID="detalle-toggle-bot"
-      >
-        {detalle.bot_paused ? "Reanudar agente" : "Pausar agente"}
-      </Button>
-      <Button
-        variant="secondary"
-        fullWidth
-        iconLeft="check-circle-outline"
-        onPress={onResolver}
-        disabled={detalle.status === "closed" || accionEnCurso}
-        testID="detalle-resolver"
-      >
-        Resolver conversación
-      </Button>
-      <Button
-        variant="secondary"
-        fullWidth
-        iconLeft="note"
-        onPress={onNotas}
-        testID="detalle-notas"
-      >
-        {etiquetaNotas}
-      </Button>
-      <Button
-        variant="secondary"
-        fullWidth
-        iconLeft="description"
-        onPress={onPlantilla}
-        testID="detalle-plantilla"
-      >
-        Responder con plantilla
-      </Button>
+      {detalle.status === "escalated" ? (
+        <Button
+          variant="secondary"
+          fullWidth
+          iconLeft="check-circle-outline"
+          onPress={onResolver}
+          disabled={accionEnCurso}
+          testID="detalle-resolver"
+        >
+          Resolver conversación
+        </Button>
+      ) : null}
+      {puedeResponder ? (
+        <Button
+          variant="secondary"
+          fullWidth
+          iconLeft="description"
+          onPress={onPlantilla}
+          testID="detalle-plantilla"
+        >
+          Responder con plantilla
+        </Button>
+      ) : null}
       {detalle.customer_id ? (
         <Button
           variant="secondary"

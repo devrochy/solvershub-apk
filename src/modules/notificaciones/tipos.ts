@@ -34,6 +34,50 @@ export function categoriaDe(valor: string): Categoria {
   return (CATEGORIAS as readonly string[]).includes(valor) ? (valor as Categoria) : "sistema";
 }
 
+/** La clave de la plantilla del agente apunta al pack que cubre su módulo (ADR-0139). */
+const PACK_DEL_AGENTE: Readonly<Record<string, string>> = {
+  ventas: "pack_commerce",
+  agenda: "pack_calendar",
+  cobranza: "pack_cobranza",
+  suscripciones: "pack_subscriptions",
+};
+
+/** Packs que cubren cada categoría. Sin packs = la categoría no depende de un módulo. */
+const PACKS_DE_CATEGORIA: Record<Categoria, readonly string[]> = {
+  conversaciones: [],
+  ventas: ["pack_commerce"],
+  cobros: ["pack_cobranza", "pack_subscriptions"],
+  agenda: ["pack_calendar"],
+  sistema: [],
+};
+
+type AgenteDeModulo = { key: string; kind: string; published: boolean; virtual: boolean };
+
+/**
+ * Categorías que el negocio puede producir: las de módulo solo con un especialista publicado
+ * (mismo criterio que el panel). Si no hay datos de agentes (sin permiso o fallo) se muestran
+ * todas; si hay datos, Conversaciones y Sistema van siempre. Los pagos en línea también cuentan
+ * como Cobros: son una habilidad instalada en un agente.
+ */
+export function categoriasDisponibles(
+  agentes: { items: AgenteDeModulo[] } | null,
+  packs: Record<string, boolean> | null = null,
+): readonly Categoria[] {
+  if (agentes === null) return CATEGORIAS;
+  const conAgente = new Set<string>();
+  for (const agente of agentes.items) {
+    if (agente.kind === "core" || !agente.published || agente.virtual || agente.key === "general") continue;
+    const pack = PACK_DEL_AGENTE[agente.key];
+    if (pack && (packs === null || packs[pack] !== false)) conAgente.add(pack);
+  }
+  return CATEGORIAS.filter((categoria) => {
+    const requeridos = PACKS_DE_CATEGORIA[categoria];
+    if (requeridos.length === 0) return true;
+    if (requeridos.some((pack) => conAgente.has(pack))) return true;
+    return categoria === "cobros" && packs?.pack_payments === true;
+  });
+}
+
 export function severidadDe(valor: string): Severidad {
   return (SEVERIDADES as readonly string[]).includes(valor) ? (valor as Severidad) : "info";
 }

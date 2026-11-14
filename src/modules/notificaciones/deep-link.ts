@@ -18,6 +18,9 @@ export function tabDelPanelParaPush(datos: PushDatos | undefined): string | null
   }
 }
 
+/** Solo `clave:valor` simple: el filtro llega en un aviso y se manda tal cual a la lista. */
+const FILTRO_DE_DESTINO = /^[a-z_]+:[a-z0-9_]+$/;
+
 /**
  * Módulo y pestaña del panel de la app para el destino neutro `{entity, id, section}` del
  * backend (ADR-0167). `null` = la app no tiene pantalla para esa entidad (solo se marca leída).
@@ -30,9 +33,15 @@ export function destinoDeNotificacion(destino: NotificacionDestino | null | unde
       return { tab: "conversaciones", pestana: destino.section === "escalations" ? "escalaciones" : "conversaciones" };
     case "escalacion":
       return { tab: "conversaciones", pestana: "escalaciones" };
-    case "lead":
     case "cliente":
-      return { tab: "conversaciones", pestana: "leads" };
+      // HU-CRM-20: la ficha se abre por id de cliente. Sin id, la lista de Clientes.
+      return destino.id
+        ? { tab: "conversaciones", pestana: "leads", cliente: destino.id }
+        : listaDeClientes(destino.filtro);
+    case "lead":
+      // El `id` de un aviso `lead` es el del lead, no el del cliente: no abre ninguna ficha.
+      // El resumen diario de Ventas (HU-CRM-22) trae `filtro` y abre la lista ya filtrada.
+      return listaDeClientes(destino.filtro);
     case "pedido":
     case "pago":
       return { tab: "comercio", pestana: "pedidos" };
@@ -47,6 +56,12 @@ export function destinoDeNotificacion(destino: NotificacionDestino | null | unde
     default:
       return null;
   }
+}
+
+function listaDeClientes(filtro: string | null | undefined): DestinoNavegacion {
+  return filtro && FILTRO_DE_DESTINO.test(filtro)
+    ? { tab: "conversaciones", pestana: "leads", filtro }
+    : { tab: "conversaciones", pestana: "leads" };
 }
 
 function esDestino(valor: unknown): valor is NotificacionDestino {

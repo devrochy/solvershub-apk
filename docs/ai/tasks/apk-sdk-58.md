@@ -1,0 +1,94 @@
+---
+estado: completada
+tags: [tarea]
+---
+
+# Tarea: migrar la app a Expo SDK 58 y compilar APK preview
+
+- **Origen:** petición del usuario 2026-10-28 ("compilar mi apk para la versión SDK Expo Go 58.0").
+- **Estado:** completada (smoke de mapa/cámara/push E2E pendiente)
+- **Fecha inicio:** 2026-10-28
+- **Rama:** `feature/sdk-58` (desde `origin/develop` en `cef1084`).
+
+## Objetivo
+
+Subir la app de Expo SDK 57 a SDK 58 (React Native 0.88, React 19.3) y publicar un APK
+`preview` instalable contra `test.solvershub.site`, conservando SQLCipher, pinning, push y
+EAS Update.
+
+## Decisiones
+
+- Build en la nube con EAS (`--profile preview`); no se toca iOS ni Play.
+- R8 queda con el default de SDK 58. Se intentó apagarlo solo en `preview` con
+  `SOLVERSHUB_DISABLE_R8`, pero un config condicionado por entorno cambia el fingerprint y el
+  `runtimeVersion` del APK deja de coincidir con el que calcula el OTA; se descartó.
+  Si una librería con reflexión falla, se usa `android.extraProguardRules`.
+- Se migra al Strict TypeScript API (sin el opt-out de `customConditions`).
+
+## Bloques (checklist)
+
+- [x] Bloque 1: worktree limpio desde develop y `npm ci`.
+- [x] Bloque 2: `npx expo install expo@^58.0.0 --fix` + alineación manual.
+- [x] Bloque 3: migración Strict TS (refs y `List*Component` sin `null`).
+- [x] Bloque 4: `expo-asset` y `expo-status-bar` como plugins; R8 con el default del SDK.
+- [x] Bloque 5: verificación local (lint, typecheck, 1208 tests, expo-doctor 20/20).
+- [x] Bloque 6: APK `preview` con `eas build --local` (EAS nube sin cupo hasta 2026-11-01);
+      instalado en el CPH2603 y arranca sin FATAL.
+- [ ] Bloque 7: smoke completo (bloqueado: el dispositivo quedó `unauthorized` y hay que
+      aceptar "Permitir depuración USB" en el teléfono) + PR.
+
+## Resultado final
+
+- Versiones: `expo 58.0.21`, `react-native 0.88.0`, `react 19.3.0`, `jest-expo ~58.0.13`,
+  `react-native-gesture-handler ~3.3.0`, `react-native-webview 14.0.1`,
+  `react-native-view-shot 6.1.1`.
+- `runtimeVersion` (fingerprint android): `51f01ec4b96508870b32f0edd5c0d0344e167150`.
+  `fingerprint.config.js` suma `**/eas-environment-secrets/**` para que `eas build --local`
+  (que copia el proyecto a un temporal) calcule el mismo hash que el build y el OTA.
+- `npm test`: 188 suites, 1208 tests en verde.
+- APK: `solvershub-sdk58-preview.apk` (113 MB), `com.solvershub.apk`, `versionCode 1`,
+  `versionName 1.0.0`, `compileSdk 37`, `targetSdk 36`, `minSdk 24`, firmado con el keystore de
+  EAS (SHA-1 `a335319afd60959fa3bbee4d172bda0e05c71c12`). `assets/fingerprint` =
+  `51f01ec4…`; update embebido `e8f583a4-16db-4a46-ba1d-4b332ef3b90a`.
+- Arranque en dispositivo (Android 16, CPH2603): `Running "main"`, sin `FATAL EXCEPTION`.
+- Smoke manual: login con `gestor@demo.test` contra la API de test → dashboard del panel
+  ("Cobranza Demo", KPIs del agente general) renderizado y con datos de la API.
+- `e2e/smoke-cobranza.yaml` se detiene en "Elige tu negocio": el login del gestor demo entra
+  directo al panel (no es un cambio de SDK 58; el flujo quedó desfasado). Además, el teclado
+  seguro de OPPO tapa la pantalla y Maestro no envía el formulario; con `adb input tap` sí.
+- **Bug encontrado y corregido**: al reiniciar sin red, SQLCipher registró `hmac check failed
+  for pgno=1`. Dos aperturas concurrentes de la base generaban claves distintas
+  (`claveMaestra`) y podían dejar el archivo cifrado con una clave y el almacén con otra.
+  Ahora `claveMaestra` e `inicializarBase` son single-flight; tests nuevos en
+  `src/data/db/__tests__/conexion.test.ts` y `bootstrap.test.ts` (190 suites, 1214 tests).
+- Reinstalado el APK con el fix (uninstall + install) y validado: login, dashboard,
+  force-stop + arranque en modo avión y búsqueda global con caché ("Resultados guardados en tu
+  teléfono · clientes"): **0 `hmac check failed`** en todo el recorrido.
+- expo-updates inicializa y consulta al servidor sin errores (`EndStartup`, "No update
+  available"); push en línea sin errores (`exp.host` solo fallaba sin red).
+- `scripts/check.sh` se detiene en fronteras de módulos por 5 imports preexistentes de
+  `modules/datos-prueba` en `develop` (HU-QA-10); no los introduce esta tarea. CI no ejecuta
+  ese script (corre lint, typecheck y tests, los tres en verde).
+
+## Merge con develop (2026-10-31)
+
+- Se integró `origin/develop` para resolver el conflicto del PR. Develop sumó dos dependencias
+  nativas (`expo-video ~58.0.13` y `react-native-svg 15.16.0`) y movió `MapaPin` a
+  `src/shared/ui/`, con soporte de `soloLectura`. Se conservó esa lógica y solo se aplicó el
+  cambio de Strict TS (`useRef<InstanceType<typeof WebView> | null>`).
+- La pestaña "Dispositivos" de `CobranzaAdminScreen` se retiró: develop la reemplazó por la
+  pantalla de Seguridad (HU-ACC-04).
+- `expo install --fix` alineó parches (`expo 58.0.22`, `react-native 0.88.1`,
+  `expo-updates 58.0.20`, `expo-sqlite 58.0.15`, `expo-build-properties 58.0.12`,
+  `@expo/metro-runtime 58.0.16`); `expo-doctor` 20/20.
+- Verificación tras el merge: typecheck y lint en verde, 205 suites / 1370 tests.
+- **El fingerprint cambia** por las dependencias nativas nuevas:
+  `23088ec47598fa1f02e0b02e1c998c790be093a3` (android). El APK `preview` anterior ya no
+  coincide; hay que recompilarlo antes de publicar el OTA.
+
+## Pendientes
+
+- Smoke de mapa WebView, evidencias con cámara y push/OTA de punta a punta: necesitan un
+  cliente de campo con coordenadas/evidencias (el cliente demo del panel no tiene ubicación).
+- Decidir si `datos-prueba` pasa a `shared/ui` o se documenta como módulo transversal
+  (ADR-APP-01) en una tarea aparte.

@@ -1,6 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { BackHandler, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ThemeProvider } from "@core/theme/theme-context";
 import { Drawer } from "./Drawer";
 import { kitDeTema } from "./tema";
 
@@ -51,6 +52,19 @@ describe("Drawer", () => {
       paddingBottom: 24,
       boxShadow: "1px 0 0 red",
     });
+  });
+
+  it("en tema oscuro pinta el fondo con el navy de superficie de la web (#11224D)", async () => {
+    const oscuro = kitDeTema("oscuro");
+    const { getByTestId } = await render(
+      <ThemeProvider>
+        <Drawer abierto onCerrar={jest.fn()} testID="cajon-oscuro">
+          <Text>contenido</Text>
+        </Drawer>
+      </ThemeProvider>,
+    );
+    expect(oscuro.c.surface).toBe("#11224D");
+    expect(getByTestId("cajon-oscuro")).toHaveStyle({ backgroundColor: oscuro.c.surface });
   });
 
   it("el botón atrás cierra el cajón solo si se pide y mientras está abierto", async () => {

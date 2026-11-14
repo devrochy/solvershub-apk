@@ -2,6 +2,7 @@ import { apiV1 } from "@core/config";
 import type { LoginResult } from "@shared/types/auth";
 import type { MeAdmin, TenantAdmin } from "../session/types";
 import { imeiDelEquipo, leerWhatsappVinculacion } from "@shared/dispositivo";
+import { fetchApi } from "./http";
 
 /**
  * Cliente de la identidad admin (ADR-0094, HU-APP-02).
@@ -33,11 +34,16 @@ export async function parseError(res: Response): Promise<ApiAuthError> {
   let code = "error";
   let message = "Ocurrió un error. Intenta de nuevo.";
   try {
+    // Dos formatos (ADR-0174): `{error: {code, message}}` del core y `{error: "texto", code}` del pack.
     const body = (await res.json()) as {
-      error?: { code?: string; message?: string };
+      error?: string | { code?: string; message?: string };
+      code?: string;
+      message?: string;
     };
-    code = body.error?.code ?? String(res.status);
-    message = body.error?.message ?? message;
+    const anidado = typeof body.error === "object" ? body.error : undefined;
+    code = anidado?.code ?? body.code ?? String(res.status);
+    message =
+      anidado?.message ?? (typeof body.error === "string" ? body.error : undefined) ?? body.message ?? message;
   } catch {
     // sin cuerpo JSON: se usa el mensaje genérico
   }
@@ -48,7 +54,7 @@ export async function apiLoginAdmin(
   identifier: string,
   password: string,
 ): Promise<LoginAdminResult> {
-  const res = await fetch(apiV1("/auth/login"), {
+  const res = await fetchApi(apiV1("/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identifier, password }),
@@ -56,7 +62,16 @@ export async function apiLoginAdmin(
   if (!res.ok) {
     throw await parseError(res);
   }
-  return (await res.json()) as LoginAdminResult;
+  // El backend responde en snake_case (`LoginResponse`: token, admin_id, expires_in); se acepta
+  // también camelCase. Sin esto `adminId` llegaba `undefined` a la sesión (apk#220).
+  const cuerpo = (await res.json()) as Partial<
+    LoginAdminResult & { admin_id: string; expires_in: number }
+  >;
+  return {
+    token: cuerpo.token as string,
+    adminId: (cuerpo.admin_id ?? cuerpo.adminId) as string,
+    expiresIn: (cuerpo.expires_in ?? cuerpo.expiresIn) as number,
+  };
 }
 
 export async function apiMeAdmin(token: string, tenantId?: string): Promise<MeAdmin> {
@@ -64,7 +79,7 @@ export async function apiMeAdmin(token: string, tenantId?: string): Promise<MeAd
   if (tenantId) {
     headers["X-Tenant-Id"] = tenantId;
   }
-  const res = await fetch(apiV1("/admin/me"), { headers });
+  const res = await fetchApi(apiV1("/admin/me"), { headers });
   if (!res.ok) {
     throw await parseError(res);
   }
@@ -73,7 +88,7 @@ export async function apiMeAdmin(token: string, tenantId?: string): Promise<MeAd
 
 /** Negocios del admin para el selector multi-negocio (ADR-0077). */
 export async function apiTenantsAdmin(token: string): Promise<TenantAdmin[]> {
-  const res = await fetch(apiV1("/admin/tenants"), {
+  const res = await fetchApi(apiV1("/admin/tenants"), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
@@ -84,7 +99,7 @@ export async function apiTenantsAdmin(token: string): Promise<TenantAdmin[]> {
 }
 
 export async function apiOlvidarContrasena(identifier: string): Promise<void> {
-  const res = await fetch(apiV1("/auth/forgot-password"), {
+  const res = await fetchApi(apiV1("/auth/forgot-password"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identifier }),
@@ -100,7 +115,7 @@ export async function apiRestablecerContrasena(
   token: string,
   newPassword: string,
 ): Promise<void> {
-  const res = await fetch(apiV1("/auth/reset-password"), {
+  const res = await fetchApi(apiV1("/auth/reset-password"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     // La API /api/v1 usa snake_case (ADR-0076); el campo es `new_password`.
@@ -125,7 +140,7 @@ export async function apiGestorToken(
     imeiDelEquipo(),
     leerWhatsappVinculacion(),
   ]);
-  const res = await fetch(apiV1("/pack/cobranza/gestor-token"), {
+  const res = await fetchApi(apiV1("/pack/cobranza/gestor-token"), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${adminToken}`,

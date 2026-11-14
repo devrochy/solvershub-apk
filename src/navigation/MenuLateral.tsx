@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -11,6 +11,7 @@ import { useTheme } from "@core/theme/theme-context";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Drawer, useKit } from "@shared/ui";
 import type { RootStackParamList } from "../modules/cobranza/navigation/types";
+import { ALTO_WORDMARK, ANCHO_WORDMARK, LOGO_PANEL } from "./marca-panel";
 
 type Icono = keyof typeof MaterialIcons.glyphMap;
 
@@ -147,10 +148,15 @@ export function MenuLateral() {
       style={styles.panel}
     >
         <View style={styles.marcaFila}>
-          <View style={[styles.marcaLogo, { backgroundColor: banda.fondo }]}>
-            <MaterialIcons name="route" size={18} color={banda.texto} />
-          </View>
-          <Text style={[styles.marca, { color: c.text }]}>Solver</Text>
+          <Image
+            testID="menu-marca"
+            source={LOGO_PANEL[tema]}
+            style={styles.marcaLogo}
+            resizeMode="contain"
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel="SolversHub"
+          />
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -288,19 +294,8 @@ const styles = StyleSheet.create({
     boxShadow: "8px 0 24px rgba(15, 23, 42, 0.22)",
   },
   scroll: { paddingBottom: shSpace[6], flexGrow: 1, justifyContent: "space-between" },
-  marcaFila: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: shSpace[4] },
-  marcaLogo: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    borderCurve: "continuous",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  marca: {
-    ...shType.h1,
-    fontFamily: shType.hero.fontFamily,
-  },
+  marcaFila: { alignItems: "center", marginBottom: shSpace[4] },
+  marcaLogo: { height: ALTO_WORDMARK, width: ANCHO_WORDMARK },
   items: { gap: 2 },
   item: {
     flexDirection: "row",

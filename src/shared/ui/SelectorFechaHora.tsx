@@ -2,7 +2,10 @@ import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { shDensity, shRadius, shSpace, shType } from "@core/theme/tokens";
-import { Button, Field, Icono, useKit } from "@shared/ui";
+import { Button } from "./Button";
+import { Field } from "./Field";
+import { Icono } from "./icono";
+import { useKit } from "./tema";
 
 function formatear(valor: Date): string {
   return new Intl.DateTimeFormat("es-CO", {

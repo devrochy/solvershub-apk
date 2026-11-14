@@ -6,6 +6,9 @@ export type TenantAdmin = components["schemas"]["TenantOption"];
 /** Respuesta real de `/admin/me` (snake_case del contrato OpenAPI). */
 export type MeAdmin = components["schemas"]["MeResponse"];
 
+/** Plan del negocio activo (HU-BILL-15): lo expone `/admin/me`. */
+export type PlanAdmin = components["schemas"]["MePlanSummary"];
+
 /** Sesión admin persistida (token opaco de `AdminSession`, ADR-0077/0094). */
 export interface AdminSesion {
   token: string;
@@ -20,7 +23,11 @@ export interface AdminSesion {
   role: string;
   tenantId: string | null;
   tenantName: string | null;
+  /** Rol dentro del negocio activo (`owner`, `admin`, `colaborador`). */
+  tenantRole?: string | null;
   permissions: Record<string, string | null>;
+  /** Plan del negocio activo; las sesiones antiguas pueden no traerlo. */
+  plan?: PlanAdmin | null;
 }
 
 /** Perfil ya normalizado para la UI (camelCase y sin campos internos). */

@@ -12,6 +12,11 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { EmptyState } from "@shared/ui";
 import { suscribirNavegacion } from "@shared/navegacion-evento";
+import { registrarPantallaActiva } from "@shared/pantalla-activa";
+import {
+  suscribirAperturaColaborador,
+  type ColaboradorEquipo,
+} from "@shared/equipo-evento";
 import type { EntradaPestanas, SolicitudPestana } from "@shared/pestana-inicial";
 import { CatalogoScreen } from "@shared/ui/catalogo/CatalogoScreen";
 import { DashboardScreen } from "../modules/dashboard";
@@ -19,9 +24,11 @@ import { OperacionNavigator } from "../modules/operacion";
 import { CobranzaAdminNavigator } from "../modules/cobranza-admin";
 import { ComercioScreen } from "../modules/comercio";
 import { CalendarioScreen } from "../modules/calendario";
+import { SuscripcionesScreen } from "../modules/suscripciones";
 import { AgentesScreen } from "../modules/agentes";
+import { SeguridadScreen } from "../modules/seguridad";
 import { NegocioScreen } from "../modules/negocio";
-import { ConfiguracionScreen } from "../modules/configuracion";
+import { ColaboradorDetalleScreen, ConfiguracionScreen } from "../modules/configuracion";
 import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
 import { OnboardingProvider, RecorridoScreen, useOnboarding } from "../modules/onboarding";
@@ -63,6 +70,7 @@ const PanelStack = createStackNavigator<PanelStackParamList>();
 export interface PanelStackParamList extends Record<string, object | undefined> {
   Panel: { screen?: ModuloPanel; params?: object } | undefined;
   Perfil: undefined;
+  ColaboradorDetalle: { colaborador: ColaboradorEquipo };
 }
 
 type ParamsModulo =
@@ -125,6 +133,12 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
           />
         </ConHeader>
       );
+    case "suscripciones":
+      return (
+        <ConHeader modulo={modulo}>
+          <SuscripcionesScreen pestanaInicial={pestanaInicial} />
+        </ConHeader>
+      );
     case "agentes":
       return (
         <ConHeader modulo={modulo}>
@@ -135,6 +149,12 @@ function ContenidoDeModulo({ modulo, params }: { modulo: ModuloPanel; params: Pa
       return (
         <ConHeader modulo={modulo}>
           <NegocioScreen pestanaInicial={pestanaInicial} />
+        </ConHeader>
+      );
+    case "seguridad":
+      return (
+        <ConHeader modulo={modulo}>
+          <SeguridadScreen pestanaInicial={pestanaInicial} />
         </ConHeader>
       );
     case "configuracion":
@@ -223,7 +243,7 @@ export function PanelShell() {
 function PanelShellInterno() {
   const { abierto } = useOnboarding();
   const { colores, tema } = useTheme();
-  const { sesion } = useAdminSession();
+  const { sesion, reiniciarAvisoPlan } = useAdminSession();
   const esMaster = sesion?.role === "master";
   const permisos = useMemo(() => sesion?.permissions ?? {}, [sesion?.permissions]);
   const modulos = useMemo(() => modulosVisibles(permisos, esMaster), [permisos, esMaster]);
@@ -243,8 +263,18 @@ function PanelShellInterno() {
   const [activo, setActivo] = useState<DestinoPanel | null>(() =>
     modulos[0] ? { modulo: modulos[0], entrada: paramsIniciales[modulos[0]]?.entrada.id } : null,
   );
+
+  // El recordatorio de plan Free se cierra solo para la vista actual: al cambiar de módulo
+  // vuelve a estar disponible (HU-BILL-15). La pantalla activa la leen el header y la campana.
+  useEffect(() => {
+    registrarPantallaActiva(activo);
+  }, [activo]);
+  useEffect(() => {
+    reiniciarAvisoPlan();
+  }, [activo?.modulo, activo?.entrada, reiniciarAvisoPlan]);
   const destinoPendiente = useRef<DestinoPanel | null>(null);
   const perfilPendiente = useRef(false);
+  const colaboradorPendiente = useRef<ColaboradorEquipo | null>(null);
 
   const navegar = useCallback(
     (destino: DestinoPanel) => {
@@ -259,6 +289,10 @@ function PanelShellInterno() {
       const params = {
         ...(destino.pestana ? { pestanaInicial: { pestana: destino.pestana, n } } : {}),
         ...(destino.ajustes ? { ajustesInicial: destino.ajustes } : {}),
+        // HU-CRM-20: `n` distingue dos avisos seguidos al mismo cliente.
+        ...(destino.cliente ? { clienteInicial: { id: destino.cliente, n } } : {}),
+        // HU-CRM-22: el resumen de Ventas abre Clientes ya filtrada.
+        ...(destino.filtro ? { filtroInicial: { valor: destino.filtro, n } } : {}),
         entrada,
       };
       const raiz = MODULOS_PANEL[destino.modulo].raizStack;
@@ -285,9 +319,21 @@ function PanelShellInterno() {
         modulo: destino.tab as ModuloPanel,
         pestana: destino.pestana,
         ajustes: destino.ajustes,
+        cliente: destino.cliente,
+        filtro: destino.filtro,
       }),
     );
   }, [navegar]);
+
+  useEffect(() => {
+    return suscribirAperturaColaborador((colaborador) => {
+      if (!navRef.current?.isReady()) {
+        colaboradorPendiente.current = colaborador;
+        return;
+      }
+      navRef.current.navigate("ColaboradorDetalle", { colaborador });
+    });
+  }, []);
 
   const barra = <StatusBar style={tema === "oscuro" ? "light" : "dark"} />;
 
@@ -301,6 +347,11 @@ function PanelShellInterno() {
             perfilPendiente.current = false;
             navRef.current?.navigate("Perfil");
           }
+          if (colaboradorPendiente.current) {
+            const colaborador = colaboradorPendiente.current;
+            colaboradorPendiente.current = null;
+            navRef.current?.navigate("ColaboradorDetalle", { colaborador });
+          }
           if (destinoPendiente.current) {
             const destino = destinoPendiente.current;
             destinoPendiente.current = null;
@@ -310,7 +361,7 @@ function PanelShellInterno() {
         onStateChange={() => {
           const estado = navRef.current?.getRootState();
           const ruta = estado?.routes[estado.index];
-          if (ruta?.name === "Perfil") {
+          if (ruta?.name === "Perfil" || ruta?.name === "ColaboradorDetalle") {
             setActivo(null);
             return;
           }
@@ -339,6 +390,14 @@ function PanelShellInterno() {
           </PanelStack.Screen>
           <PanelStack.Screen name="Perfil" options={OPCIONES_PERFIL}>
             {() => <PerfilAdminScreen onBack={() => navRef.current?.goBack()} />}
+          </PanelStack.Screen>
+          <PanelStack.Screen name="ColaboradorDetalle" options={OPCIONES_PERFIL}>
+            {({ route }) => (
+              <ColaboradorDetalleScreen
+                colaborador={route.params.colaborador}
+                onBack={() => navRef.current?.goBack()}
+              />
+            )}
           </PanelStack.Screen>
         </PanelStack.Navigator>
       </NavigationContainer>

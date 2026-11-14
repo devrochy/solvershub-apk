@@ -33,6 +33,7 @@ export function Composer({
         testID="detalle-enviar"
         accessibilityRole="button"
         accessibilityLabel="Enviar mensaje"
+        accessibilityHint="Envía el mensaje al cliente"
         accessibilityState={{ disabled: inactivo, busy: enviando }}
         disabled={inactivo}
         onPress={onEnviar}
@@ -47,7 +48,7 @@ export function Composer({
         {enviando ? (
           <ActivityIndicator color={relleno.sobrePrimario} size="small" />
         ) : (
-          <Icono name="send" size={22} color={inactivo ? c.textSoft : relleno.sobrePrimario} />
+          <Icono name="send" size={24} color={inactivo ? c.textSoft : relleno.sobrePrimario} />
         )}
       </Pressable>
     </View>

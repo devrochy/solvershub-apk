@@ -1,6 +1,7 @@
+import { Linking } from "react-native";
 import { emitirNavegacion } from "@shared/navegacion-evento";
 import type { KpiResumen } from "./api";
-import { destinoDeResumen } from "./destinos";
+import { destinoDeResumen, urlDeResumen } from "./destinos";
 import { propsDeKpi, valorDeKpi } from "./kpi";
 
 jest.mock("@shared/navegacion-evento", () => ({ emitirNavegacion: jest.fn() }));
@@ -51,12 +52,21 @@ describe("propsDeKpi", () => {
     expect(p.period).toBeUndefined();
   });
 
-  it("con destino conocido el toque navega; sin pantalla queda sin enlace", () => {
+  it("con pantalla en la app navega; sin ella abre el panel; sin destino no inventa enlace", () => {
+    const abrir = jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
     const p = propsDeKpi(kpi({ destino: { ruta: "comercio.pedidos", params: {} } }));
     p.onPress?.();
     expect(emitirNavegacion).toHaveBeenCalledWith({ tab: "comercio", pestana: "pedidos" });
-    expect(propsDeKpi(kpi({ destino: { ruta: "agente", params: { ref: "x" } } })).onPress).toBeUndefined();
+
+    const agente = propsDeKpi(
+      kpi({ destino: { ruta: "agente", params: { ref: "x", pestana: "consumo" } } }),
+      { tenantId: "t-1" },
+    );
+    agente.onPress?.();
+    expect(abrir).toHaveBeenCalledWith(expect.stringContaining("/agentes/x?tab=consumo"));
+
     expect(propsDeKpi(kpi({})).onPress).toBeUndefined();
+    abrir.mockRestore();
   });
 });
 
@@ -78,5 +88,10 @@ describe("destinoDeResumen", () => {
     expect(destinoDeResumen({ ruta: "agente", params: { ref: "a" } })).toBeUndefined();
     expect(destinoDeResumen({ ruta: "suscripciones", params: {} })).toBeUndefined();
     expect(destinoDeResumen(null)).toBeUndefined();
+    // Pero sí tienen URL del panel: la cifra nunca queda muerta.
+    expect(urlDeResumen({ ruta: "agente", params: { ref: "a" } }, "t-1")).toContain("/agentes/a");
+    expect(urlDeResumen({ ruta: "suscripciones.lista", params: { estado: "activa" } }, "t-1")).toContain(
+      "/suscripciones/lista?estado=activa",
+    );
   });
 });

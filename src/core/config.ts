@@ -24,6 +24,12 @@ export function apiRoot(): string {
   return indice > -1 ? API_URL.slice(0, indice) : API_URL;
 }
 
+/**
+ * Raíz del panel web para los enlaces que la app no tiene (fichas de agente, suscripciones).
+ * En producción suele ser el mismo host que la API; en local se separa con EXPO_PUBLIC_PANEL_URL.
+ */
+export const PANEL_URL = (process.env.EXPO_PUBLIC_PANEL_URL ?? apiRoot()).replace(/\/$/, "");
+
 export function apiV1(path: string): string {
   return `${apiRoot()}/api/v1${path}`;
 }

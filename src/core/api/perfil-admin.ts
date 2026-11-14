@@ -2,6 +2,7 @@ import { apiV1 } from "@core/config";
 import type { AdminSesion, MeAdmin } from "@core/session/types";
 import { parseError } from "./auth-admin";
 import { construirMultipart } from "./multipart";
+import { fetchApi } from "./http";
 
 /** Cambios editables del perfil propio (`PATCH /admin/me`). */
 export interface PerfilUpdate {
@@ -40,7 +41,7 @@ async function leerMe(res: Response): Promise<MeAdmin> {
 
 /** Perfil propio actualizado (`GET /admin/me`). */
 export async function apiLeerPerfilAdmin(sesion: AdminSesion): Promise<MeAdmin> {
-  const res = await fetch(apiV1("/admin/me"), { headers: cabeceras(sesion) });
+  const res = await fetchApi(apiV1("/admin/me"), { headers: cabeceras(sesion) });
   return leerMe(res);
 }
 
@@ -49,7 +50,7 @@ export async function apiGuardarPerfilAdmin(
   sesion: AdminSesion,
   cambios: PerfilUpdate,
 ): Promise<MeAdmin> {
-  const res = await fetch(apiV1("/admin/me"), {
+  const res = await fetchApi(apiV1("/admin/me"), {
     method: "PATCH",
     headers: { ...cabeceras(sesion), "Content-Type": "application/json" },
     body: JSON.stringify(cambios),
@@ -62,7 +63,7 @@ export async function apiCambiarPasswordAdmin(
   sesion: AdminSesion,
   cambio: PasswordUpdate,
 ): Promise<void> {
-  const res = await fetch(apiV1("/admin/me/password"), {
+  const res = await fetchApi(apiV1("/admin/me/password"), {
     method: "POST",
     headers: { ...cabeceras(sesion), "Content-Type": "application/json" },
     body: JSON.stringify(cambio),
@@ -78,7 +79,7 @@ export async function apiSubirAvatarAdmin(
   archivo: ArchivoAvatar,
 ): Promise<MeAdmin> {
   const { body, boundary } = await construirMultipart({}, [{ campo: "file", ...archivo }]);
-  const res = await fetch(apiV1("/admin/me/avatar"), {
+  const res = await fetchApi(apiV1("/admin/me/avatar"), {
     method: "POST",
     headers: {
       ...cabeceras(sesion),
@@ -91,7 +92,7 @@ export async function apiSubirAvatarAdmin(
 
 /** Quita la foto de perfil (`DELETE /admin/me/avatar`). */
 export async function apiQuitarAvatarAdmin(sesion: AdminSesion): Promise<void> {
-  const res = await fetch(apiV1("/admin/me/avatar"), {
+  const res = await fetchApi(apiV1("/admin/me/avatar"), {
     method: "DELETE",
     headers: cabeceras(sesion),
   });

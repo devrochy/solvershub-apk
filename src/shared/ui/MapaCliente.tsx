@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { shRadius } from "@core/theme/tokens";
-import { useKit } from "@shared/ui";
+import { useKit } from "./tema";
 import { WebView } from "react-native-webview";
 
 export interface MapaClienteProps {

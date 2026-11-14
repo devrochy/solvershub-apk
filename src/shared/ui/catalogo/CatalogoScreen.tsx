@@ -7,6 +7,8 @@ import {
   Avatar,
   Badge,
   Button,
+  CanalIcono,
+  Card,
   Checkbox,
   Drawer,
   EmptyState,
@@ -187,6 +189,17 @@ function Catalogo() {
         />
       </Seccion>
 
+      <Seccion titulo="Canales">
+        <Fila>
+          <CanalIcono canal="whatsapp" />
+          <CanalIcono canal="instagram" />
+          <CanalIcono canal="messenger" />
+          <CanalIcono canal="webchat" />
+          <CanalIcono canal="whatsapp_waweb" size={18} />
+          <CanalIcono canal="instagram" muted />
+        </Fila>
+      </Seccion>
+
       <Seccion titulo="Avatar">
         <Fila>
           <Avatar name="Laura Martínez" size="xs" />
@@ -245,6 +258,17 @@ function Catalogo() {
           />
           <ListItem title="Solo lectura" subtitle="Sin acción" />
         </View>
+      </Seccion>
+
+      <Seccion titulo="Card">
+        <Card accentColor={c.statusSuccessFg} accessibilityLabel="Cliente Laura" onPress={noop}>
+          <Text style={[shType.block, { color: c.text }]}>Laura Martínez</Text>
+          <Text style={[shType.dense, { color: c.textMuted }]}>WhatsApp · $ 120.000</Text>
+          <Badge tone="success" icon="check-circle" label="Al día" />
+        </Card>
+        <Card>
+          <Text style={[shType.body, { color: c.text }]}>Tarjeta sin acción</Text>
+        </Card>
       </Seccion>
 
       <Seccion titulo="SyncStatus">

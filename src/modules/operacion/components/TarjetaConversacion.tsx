@@ -1,16 +1,17 @@
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
-import { Avatar, Icono, useKit, type AvatarStatus } from "@shared/ui";
+import { Avatar, CanalIcono, useKit, type AvatarStatus } from "@shared/ui";
 import type { ConversationSummary } from "../api";
 import { BadgeEstado } from "./BadgeEstado";
 import {
   actividadDe,
   conexionDelChat,
+  contadorPendientes,
   estadoDeConversacion,
   formatearHoraChat,
-  iconoDelCanal,
   nombreDelChat,
   PREFIJO_REMITENTE,
+  textoPendientes,
   tipoDelChat,
 } from "../presentacion";
 
@@ -26,21 +27,29 @@ function vistaPrevia(chat: ConversationSummary): string {
   return `${prefijo}${chat.last_message || "(sin texto)"}`;
 }
 
-/** Tarjeta de la bandeja: quién escribe, qué dijo, por dónde y en qué estado. */
+/**
+ * Tarjeta de la bandeja: quién escribe, qué dijo, por dónde y en qué estado. Con `visto`,
+ * la píldora de pendientes y el acento de no leído desaparecen (se abrió en este dispositivo).
+ */
 export function TarjetaConversacion({
   chat,
   onPress,
+  visto = false,
 }: {
   chat: ConversationSummary;
   onPress: () => void;
+  visto?: boolean;
 }) {
-  const { c, ripple } = useKit();
+  const { c, ripple, relleno } = useKit();
   const nombre = nombreDelChat(chat);
   const estado = estadoDeConversacion(chat.status);
   const tipo = tipoDelChat(chat);
   const sinMensajes = chat.last_message == null;
+  const pendientes = visto ? 0 : (chat.pending_count ?? 0);
+  const esperando = pendientes > 0;
   const etiqueta = [
     nombre,
+    esperando ? textoPendientes(pendientes) : null,
     estado.label,
     chat.bot_paused ? "agente pausado" : null,
     vistaPrevia(chat),
@@ -58,26 +67,54 @@ export function TarjetaConversacion({
       android_ripple={{ color: ripple.superficie }}
       style={({ pressed }) => [
         styles.tarjeta,
-        { backgroundColor: pressed ? c.hover : c.surface, borderColor: c.borderSoft },
+        {
+          backgroundColor: pressed ? c.hover : c.surface,
+          borderColor: c.borderSoft,
+          borderLeftColor: esperando ? c.link : c.borderSoft,
+        },
         pressed && Platform.OS === "ios" && styles.presionado,
       ]}
     >
       <Avatar name={nombre} size="md" status={estadoDelAvatar(chat)} />
       <View style={styles.cuerpo}>
         <View style={styles.filaSuperior}>
-          <Text style={[shType.label, styles.nombre, { color: c.text }]} numberOfLines={1}>
+          <Text
+            style={[shType.label, styles.nombre, { color: c.text }, esperando && styles.nombreEsperando]}
+            numberOfLines={1}
+          >
             {nombre}
           </Text>
-          <Text
-            style={[shType.caption, styles.hora, { color: c.textSoft }]}
-            maxFontSizeMultiplier={1.6}
-          >
-            {formatearHoraChat(actividadDe(chat))}
-          </Text>
+          <View style={styles.derecha}>
+            <Text
+              style={[shType.caption, styles.hora, { color: esperando ? c.text : c.textSoft }]}
+              maxFontSizeMultiplier={1.6}
+            >
+              {formatearHoraChat(actividadDe(chat))}
+            </Text>
+            {esperando && (
+              <View
+                testID={`pendientes-${chat.id}`}
+                pointerEvents="none"
+                accessible={false}
+                style={[styles.pendientes, { backgroundColor: relleno.primario }]}
+              >
+                <Text
+                  style={[styles.pendientesTexto, { color: relleno.sobrePrimario }]}
+                  maxFontSizeMultiplier={1.6}
+                >
+                  {contadorPendientes(pendientes)}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <Text
-          style={[shType.dense, { color: sinMensajes ? c.textSoft : c.textMuted }, sinMensajes && styles.sinMensajes]}
+          style={[
+            shType.dense,
+            { color: sinMensajes ? c.textSoft : esperando ? c.text : c.textMuted },
+            sinMensajes && styles.sinMensajes,
+          ]}
           numberOfLines={2}
         >
           {vistaPrevia(chat)}
@@ -85,7 +122,7 @@ export function TarjetaConversacion({
 
         <View style={styles.meta}>
           <View style={styles.canal}>
-            <Icono name={iconoDelCanal(tipo)} size={14} color={c.textSoft} />
+            <CanalIcono canal={tipo} size={18} />
             <Text style={[shType.caption, styles.conexion, { color: c.textSoft }]} numberOfLines={1}>
               {conexionDelChat(chat)}
             </Text>
@@ -107,14 +144,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: shSpace[3],
     borderWidth: 1,
+    borderLeftWidth: 3,
     borderRadius: shRadius.md,
     padding: shSpace[3],
   },
   presionado: { opacity: 0.86 },
   cuerpo: { flex: 1, gap: 2 },
-  filaSuperior: { flexDirection: "row", alignItems: "baseline", gap: shSpace[2] },
+  filaSuperior: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
   nombre: { flex: 1, fontFamily: shType.block.fontFamily, fontSize: shType.label.fontSize },
+  nombreEsperando: { fontFamily: "Montserrat_700Bold" },
+  derecha: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
   hora: { fontVariant: ["tabular-nums"] },
+  pendientes: {
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 5,
+    borderRadius: shRadius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pendientesTexto: { fontSize: 11, lineHeight: 14, fontWeight: "700", fontVariant: ["tabular-nums"] },
   sinMensajes: { fontStyle: "italic" },
   meta: { flexDirection: "row", alignItems: "center", gap: shSpace[2], marginTop: 2, flexWrap: "wrap" },
   canal: { flexDirection: "row", alignItems: "center", gap: shSpace[1], flexShrink: 1, minWidth: 96 },

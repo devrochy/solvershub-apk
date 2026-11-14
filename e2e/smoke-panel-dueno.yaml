@@ -190,7 +190,36 @@ appId: com.solvershub.apk
     visible:
       id: "checklist-checks"
     timeout: 30000
-# 7. Tema: vive en la tarjeta de la cuenta del cajón.
+# 7. Operación → Clientes (CRM): tarjetas y filtros, sin escrituras.
+- tapOn:
+    id: "panel-menu"
+- scrollUntilVisible:
+    element:
+      id: "cajon-grupo-operacion"
+    direction: DOWN
+- tapOn:
+    id: "cajon-grupo-operacion"
+- scrollUntilVisible:
+    element:
+      id: "cajon-item-clientes"
+    direction: DOWN
+- tapOn:
+    id: "cajon-item-clientes"
+- extendedWaitUntil:
+    visible:
+      id: "clientes-busqueda"
+    timeout: 20000
+- tapOn:
+    id: "clientes-filtros"
+- tapOn:
+    id: "filtro-canal-whatsapp"
+- tapOn:
+    id: "filtros-aplicar"
+- extendedWaitUntil:
+    visible:
+      id: "lista-leads"
+    timeout: 20000
+# 8. Tema: vive en la tarjeta de la cuenta del cajón.
 - tapOn:
     id: "panel-menu"
 - tapOn:

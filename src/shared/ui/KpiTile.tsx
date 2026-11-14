@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Icono } from "./icono";
@@ -14,11 +15,17 @@ export interface KpiTileProps {
   delta?: number;
   /** Con qué se compara: "frente a los 7 días anteriores". */
   period?: string;
+  /** Aclaración corta bajo la cifra ("Últimos 7 días"). */
+  hint?: string;
   /** Si subir es bueno (recaudo) o malo (mora). Por defecto `up-good`. */
   polarity?: KpiPolarity;
   loading?: boolean;
   /** Qué pasó al cargar la cifra. */
   error?: string;
+  /** Tendencia bajo la cifra (una `Sparkline`); decorativa, la cifra ya dice todo. */
+  tendencia?: ReactNode;
+  /** Cifra principal de una sección: más aire (una por pantalla). */
+  destacado?: boolean;
   onPress?: () => void;
   testID?: string;
 }
@@ -49,9 +56,12 @@ export function KpiTile({
   value,
   delta,
   period,
+  hint,
   polarity = "up-good",
   loading = false,
   error,
+  tendencia,
+  destacado = false,
   onPress,
   testID,
 }: KpiTileProps) {
@@ -65,7 +75,9 @@ export function KpiTile({
     ? `${label}: cargando`
     : error
       ? `${label}: ${error}`
-      : [`${label}: ${value}`, hayDelta ? deltaHablado(delta, period) : null].filter(Boolean).join(". ");
+      : [`${label}: ${value}`, hayDelta ? deltaHablado(delta, period) : null, hint ?? null]
+          .filter(Boolean)
+          .join(". ");
 
   const contenido = (
     <>
@@ -84,6 +96,11 @@ export function KpiTile({
           {value}
         </Text>
       )}
+      {hint && !loading && !error ? (
+        <Text maxFontSizeMultiplier={1.6} style={[shType.caption, { color: c.textMuted }]}>
+          {hint}
+        </Text>
+      ) : null}
       {hayDelta && flecha ? (
         <View style={styles.fila}>
           <Icono name={flecha} size={16} color={colorDelta} />
@@ -92,10 +109,15 @@ export function KpiTile({
           </Text>
         </View>
       ) : null}
+      {tendencia && !loading && !error ? <View style={styles.tendencia}>{tendencia}</View> : null}
     </>
   );
 
-  const caja = [styles.caja, { backgroundColor: c.surface, borderColor: c.borderSoft }];
+  const caja = [
+    styles.caja,
+    destacado && styles.destacada,
+    { backgroundColor: c.surface, borderColor: c.borderSoft },
+  ];
   const a11y = {
     testID,
     accessible: true,
@@ -131,6 +153,8 @@ const styles = StyleSheet.create({
     gap: shSpace[1],
     overflow: "hidden",
   },
+  destacada: { padding: shSpace[6] },
+  tendencia: { marginTop: shSpace[3] },
   esqueleto: { paddingVertical: shSpace[1] },
   cifra: { fontVariant: ["tabular-nums"] },
   fila: { flexDirection: "row", alignItems: "center", gap: shSpace[1] },
