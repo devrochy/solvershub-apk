@@ -23,6 +23,7 @@ import {
   avanzar,
   cargarPrueba,
   cargarRecorrido,
+  cerrarPrueba,
   crearDesdeGuion,
   dejarListo,
   enviarPrueba,
@@ -911,6 +912,7 @@ function PasoProbar({
       .catch(() => undefined);
     return () => {
       vivo = false;
+      void cerrarPrueba(api, conexionId).catch(() => undefined);
     };
   }, [api, conexionId]);
 

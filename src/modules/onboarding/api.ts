@@ -14,6 +14,7 @@ export type CreacionDeAgente = components["schemas"]["FromScriptOut"];
 export type TurnoDePrueba = {
   text: string;
   escalated?: boolean;
+  simulado?: boolean;
   image_url?: string | null;
 };
 
@@ -130,6 +131,15 @@ export async function reiniciarPrueba(
 ): Promise<void> {
   await api.post(
     `/admin/playground/reset?connection_id=${encodeURIComponent(conexionId)}`,
+  );
+}
+
+export async function cerrarPrueba(
+  api: ClienteAdmin,
+  conexionId: string,
+): Promise<void> {
+  await api.post(
+    `/admin/playground/close?connection_id=${encodeURIComponent(conexionId)}`,
   );
 }
 
