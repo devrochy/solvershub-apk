@@ -12,6 +12,7 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useTheme } from "@core/theme/theme-context";
 import { EmptyState } from "@shared/ui";
 import { suscribirNavegacion } from "@shared/navegacion-evento";
+import { registrarPantallaActiva } from "@shared/pantalla-activa";
 import {
   suscribirAperturaColaborador,
   type ColaboradorEquipo,
@@ -242,7 +243,7 @@ export function PanelShell() {
 function PanelShellInterno() {
   const { abierto } = useOnboarding();
   const { colores, tema } = useTheme();
-  const { sesion } = useAdminSession();
+  const { sesion, reiniciarAvisoPlan } = useAdminSession();
   const esMaster = sesion?.role === "master";
   const permisos = useMemo(() => sesion?.permissions ?? {}, [sesion?.permissions]);
   const modulos = useMemo(() => modulosVisibles(permisos, esMaster), [permisos, esMaster]);
@@ -262,6 +263,15 @@ function PanelShellInterno() {
   const [activo, setActivo] = useState<DestinoPanel | null>(() =>
     modulos[0] ? { modulo: modulos[0], entrada: paramsIniciales[modulos[0]]?.entrada.id } : null,
   );
+
+  // El recordatorio de plan Free se cierra solo para la vista actual: al cambiar de módulo
+  // vuelve a estar disponible (HU-BILL-15). La pantalla activa la leen el header y la campana.
+  useEffect(() => {
+    registrarPantallaActiva(activo);
+  }, [activo]);
+  useEffect(() => {
+    reiniciarAvisoPlan();
+  }, [activo?.modulo, activo?.entrada, reiniciarAvisoPlan]);
   const destinoPendiente = useRef<DestinoPanel | null>(null);
   const perfilPendiente = useRef(false);
   const colaboradorPendiente = useRef<ColaboradorEquipo | null>(null);
