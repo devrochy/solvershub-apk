@@ -5,6 +5,7 @@ import {
   SEVERIDAD,
   agruparPorDia,
   categoriaDe,
+  categoriasDisponibles,
   etiquetaDeDia,
   minutosHastaManana,
   severidadDe,
@@ -14,6 +15,14 @@ import {
 
 const AHORA = new Date(2026, 9, 25, 15, 0, 0);
 const hace = (min: number) => new Date(AHORA.getTime() - min * 60_000).toISOString();
+
+const agente = (key: string, extra: Record<string, unknown> = {}) => ({
+  key,
+  kind: "specialist",
+  published: true,
+  virtual: false,
+  ...extra,
+});
 
 describe("clasificación de notificaciones (ADR-0167)", () => {
   it("cada categoría y severidad tiene ícono y etiqueta", () => {
@@ -55,5 +64,36 @@ describe("clasificación de notificaciones (ADR-0167)", () => {
 
   it("«hasta mañana» llega a las 8:00 del día siguiente", () => {
     expect(minutosHastaManana(AHORA)).toBe(17 * 60);
+  });
+});
+
+describe("categorías según los agentes creados", () => {
+  it("sin datos de agentes muestra todas (sin permiso o fallo)", () => {
+    expect(categoriasDisponibles(null)).toEqual(CATEGORIAS);
+  });
+
+  it("sin especialistas solo quedan Conversaciones y Sistema", () => {
+    expect(categoriasDisponibles({ items: [] })).toEqual(["conversaciones", "sistema"]);
+  });
+
+  it("un especialista publicado habilita su categoría", () => {
+    expect(categoriasDisponibles({ items: [agente("ventas")] })).toContain("ventas");
+    expect(categoriasDisponibles({ items: [agente("cobranza")] })).toContain("cobros");
+    expect(categoriasDisponibles({ items: [agente("suscripciones")] })).toContain("cobros");
+    expect(categoriasDisponibles({ items: [agente("agenda")] })).toContain("agenda");
+  });
+
+  it("borrador, archivado/virtual, Coordinador o General no cuentan", () => {
+    expect(categoriasDisponibles({ items: [agente("ventas", { published: false })] })).not.toContain("ventas");
+    expect(categoriasDisponibles({ items: [agente("ventas", { virtual: true })] })).not.toContain("ventas");
+    expect(categoriasDisponibles({ items: [agente("ventas", { kind: "core" })] })).not.toContain("ventas");
+    expect(categoriasDisponibles({ items: [agente("general")] })).not.toContain("ventas");
+  });
+
+  it("respeta el pack apagado y Pagos en línea mantiene Cobros", () => {
+    expect(categoriasDisponibles({ items: [agente("ventas")] }, { pack_commerce: false })).not.toContain("ventas");
+    expect(
+      categoriasDisponibles({ items: [agente("agenda")] }, { pack_calendar: true, pack_payments: true }),
+    ).toContain("cobros");
   });
 });
