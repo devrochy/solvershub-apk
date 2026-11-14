@@ -23,6 +23,7 @@ import { Button, Card, EmptyState, Skeleton, useToast } from "@shared/ui";
 import {
   alternarAgenteDelCliente,
   cargarPlayground,
+  cerrarPlayground,
   editarCamposDelPack,
   enviarMensajePlayground,
   exportarLeadsCsv,
@@ -210,6 +211,9 @@ export function OperacionScreen({
     navigation.navigate("ConversacionDetalle", { id, titulo });
 
   const cambiarPestana = (destino: Pestana) => {
+    if (pestana === "playground" && destino !== "playground") {
+      void cerrarPlayground(api).catch(() => undefined);
+    }
     setCargando(true);
     setError(null);
     setPestana(destino);
@@ -321,6 +325,12 @@ export function OperacionScreen({
     } catch {
       setError("No pudimos cargar el playground.");
     }
+  }, [api]);
+
+  useEffect(() => {
+    return () => {
+      void cerrarPlayground(api).catch(() => undefined);
+    };
   }, [api]);
 
   useEffect(() => {

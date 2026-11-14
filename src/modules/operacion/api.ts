@@ -609,6 +609,7 @@ export interface TurnoPlayground {
   text: string;
   image_url?: string | null;
   escalated?: boolean;
+  simulado?: boolean;
 }
 
 export async function cargarPlayground(api: ClienteAdmin): Promise<TurnoPlayground[]> {
@@ -622,4 +623,8 @@ export async function enviarMensajePlayground(api: ClienteAdmin, text: string): 
 
 export async function reiniciarPlayground(api: ClienteAdmin): Promise<void> {
   await api.post("/admin/playground/reset");
+}
+
+export async function cerrarPlayground(api: ClienteAdmin): Promise<void> {
+  await api.post("/admin/playground/close");
 }
