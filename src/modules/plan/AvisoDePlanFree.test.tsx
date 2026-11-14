@@ -8,7 +8,6 @@ jest.mock("@core/session/admin-session-context", () => ({
 import type { ReactElement } from "react";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { ThemeProvider } from "@core/theme/theme-context";
-import { registrarPantallaActiva } from "@shared/pantalla-activa";
 import { AvisoDePlanFree, BannerPlanFree } from "./AvisoDePlanFree";
 import { TarjetaPlanFree, TarjetaPlanFreePresentacional } from "./TarjetaPlanFree";
 
@@ -34,7 +33,6 @@ function montar(ui: ReactElement) {
 
 afterEach(() => {
   mockAdminSession = {};
-  registrarPantallaActiva(null);
 });
 
 describe("banner de plan Free (HU-BILL-15)", () => {
@@ -105,20 +103,6 @@ describe("contenedores de plan Free (HU-BILL-15)", () => {
     };
     await montar(<AvisoDePlanFree />);
     expect(screen.queryByTestId("aviso-plan-free")).toBeNull();
-  });
-
-  it("no aparece en Consumo y plan", async () => {
-    registrarPantallaActiva({ modulo: "negocio" });
-    mockAdminSession = {
-      sesion: { tenantId: "t1", role: "owner", permissions: { plan: "write" }, plan: PLAN_FREE },
-      avisoPlanCerrado: false,
-      cerrarAvisoPlan: jest.fn(),
-    };
-    await montar(<AvisoDePlanFree />);
-    expect(screen.queryByTestId("aviso-plan-free")).toBeNull();
-
-    await montar(<TarjetaPlanFree onCerrar={jest.fn()} />);
-    expect(screen.queryByTestId("tarjeta-plan-free")).toBeNull();
   });
 
   it("la tarjeta de la campana se oculta al cerrar el aviso en la sesión", async () => {

@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAdminSession } from "@core/session/admin-session-context";
-import { esPantallaDePlan, usePantallaActiva } from "@shared/pantalla-activa";
 import { shSpace, shType } from "@core/theme/tokens";
 import { CampanaDelPanel, IconButton, useKit } from "@shared/ui";
 import { AvisoDeOnboarding } from "../modules/onboarding";
@@ -22,11 +21,9 @@ export function HeaderPanel({ titulo, conBusqueda = true }: { titulo: string; co
   const { sesion, avisoPlanCerrado } = useAdminSession();
   const { abrir, irA } = useMenuPanel();
   const insets = useSafeAreaInsets();
-  const enConsumoYPlan = esPantallaDePlan(usePantallaActiva());
   const avisoPlan =
     !!avisoDePlanFree(sesion?.plan) &&
     !avisoPlanCerrado &&
-    !enConsumoYPlan &&
     puedeMejorarPlan(sesion?.permissions, sesion?.role === "master");
 
   return (

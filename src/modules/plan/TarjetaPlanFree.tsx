@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useAdminSessionOpcional } from "@core/session/admin-session-context";
-import { esPantallaDePlan, usePantallaActiva } from "@shared/pantalla-activa";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { emitirNavegacion } from "@shared/navegacion-evento";
 import { Button, IconButton, Icono, useKit } from "@shared/ui";
@@ -10,16 +9,14 @@ import { avisoDePlanFree, puedeMejorarPlan, type AvisoDePlan } from "./plan-free
 /**
  * Tarjeta fija de plan Free dentro de la campana (HU-BILL-15). No es una notificación
  * persistida: se deriva del plan para que siga apareciendo aunque se marque todo como leído.
- * Comparte el cierre temporal del banner y tampoco se muestra en Consumo y plan.
+ * Comparte el cierre temporal del banner y también se muestra en Consumo y plan.
  */
 export function TarjetaPlanFree({ onCerrar }: { onCerrar: () => void }) {
   const ctx = useAdminSessionOpcional();
-  const pantalla = usePantallaActiva();
   const sesion = ctx?.sesion;
   const aviso = avisoDePlanFree(sesion?.plan);
   if (!ctx || !sesion || !aviso || ctx.avisoPlanCerrado) return null;
   if (!puedeMejorarPlan(sesion.permissions, sesion.role === "master")) return null;
-  if (esPantallaDePlan(pantalla)) return null;
 
   return (
     <TarjetaPlanFreePresentacional
