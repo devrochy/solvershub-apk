@@ -33,6 +33,9 @@ jest.mock("@core/session/admin-session-context", () => ({
     loading: false,
     refrescarPerfil: mockRefrescarPerfil,
     aplicarPerfil: mockAplicarPerfil,
+    avisoPlanCerrado: false,
+    cerrarAvisoPlan: jest.fn(),
+    reiniciarAvisoPlan: jest.fn(),
     logout: jest.fn(),
   }),
 }));
