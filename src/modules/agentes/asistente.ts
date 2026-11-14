@@ -125,17 +125,27 @@ export function textoDeRespuesta(pregunta: PreguntaDeAgente, estado: EstadoDelAs
   return pregunta.options.find((o) => o.id === estado.respuestas[pregunta.id])?.text ?? "—";
 }
 
-export type TipoDeAgente = "coordinator" | "specialist" | "core" | "general" | string;
+export type TipoDeAgente = "coordinator" | "specialist" | "core" | string;
 
-/** «Coordinador», «General» o «Especialista» para la lista (por la key y el tipo del agente). */
+/** «Coordinador» o «Especialista» para la lista (por la key y el tipo del agente; ya no hay General, ADR-0192). */
 export function etiquetaDeAgente(a: { key: string; kind: string }): string {
   if (a.key === "coordinador" || a.kind === "core") return "Coordinador";
-  if (a.key === "general") return "General";
   return "Especialista";
 }
 
-/** Con permiso de escritura en Ajustes y negocio v3 (o master): quien puede crear agentes. */
-export function puedeCrearAgentes(sesion: { role?: string | null; permissions?: Record<string, string | null> | null }, runtime: string): boolean {
-  if (sesion.role === "master") return true;
-  return runtime === "v3" && sesion.permissions?.settings === "write";
+/** Con permiso de escritura en Ajustes (o master): quien puede crear agentes. Todo negocio corre en el Agent OS (ADR-0191). */
+export function puedeCrearAgentes(sesion: { role?: string | null; permissions?: Record<string, string | null> | null }): boolean {
+  return sesion.role === "master" || sesion.permissions?.settings === "write";
+}
+
+type CuotaDeAgentes = { used: number; limit: number | null; allowed: boolean } | null | undefined;
+
+/**
+ * Aviso para no abrir el asistente cuando el plan ya tiene todos sus agentes publicados.
+ * `null` si hay cupo, si el plan no limita o si el billing no respondió.
+ */
+export function avisoDeTopeDeAgentes(cuota: CuotaDeAgentes): string | null {
+  if (!cuota || cuota.allowed || cuota.limit === null) return null;
+  const permitidos = cuota.limit === 1 ? "1 agente publicado" : `${cuota.limit} agentes publicados`;
+  return `Tu plan permite ${permitidos} y ya tienes ${cuota.used}. Mejora tu plan para crear otro agente.`;
 }

@@ -113,7 +113,7 @@ function Lista({
 
       <View style={styles.chips} accessibilityRole="radiogroup">
         <Chip activo={n.categoria === null} onPress={() => n.setCategoria(null)} label="Todas" />
-        {CATEGORIAS.map((cat) => (
+        {n.categorias.map((cat) => (
           <Chip
             key={cat}
             activo={n.categoria === cat}

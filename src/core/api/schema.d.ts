@@ -1231,7 +1231,7 @@ export interface paths {
         /**
          * Start Canary
          * @description Prueba la versión con una parte de las conversaciones nuevas (HU-AOS-32). Mismas reglas que
-         *     publicar: dueño o master, gate aprobado si está cerrado, `aos_runtime = v3` (409 `requiere_v3`).
+         *     publicar: dueño o master y gate aprobado si está cerrado.
          *     Si la plataforma la apagó (`CANARY_DISPONIBLE`), responde 409 `canary_no_disponible`.
          */
         post: operations["start_canary_api_v1_admin_connections__connection_id__releases__release_id__canary_post"];
@@ -4625,55 +4625,6 @@ export interface paths {
         put?: never;
         /** Activate Tenant Endpoint */
         post: operations["activate_tenant_endpoint_api_v1_admin_platform_tenants__tenant_id__activate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/platform/tenants/{tenant_id}/agent-os": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Agent Os
-         * @description Banderas del Agent OS del negocio, la global del entorno y el último cambio (quién y cuándo).
-         */
-        get: operations["get_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_get"];
-        /**
-         * Put Agent Os
-         * @description Lleva el negocio al estado pedido (HU-AOS-15, orden de ADR-0112): al pasar a v3 corre los
-         *     backfills del negocio y `migrar-a-v3` (con `construir` si se pide); al volver a legacy apaga
-         *     todo. Escribe con `aos_fijar_banderas` (auditada). 422 `agent_os_orden` (combinación fuera de
-         *     orden), 409 `agent_os_bloqueado` (precondiciones; `details` trae bloqueos y avisos) o
-         *     `agent_os_en_curso` (otro cambio en curso).
-         */
-        put: operations["put_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/platform/tenants/{tenant_id}/agent-os/simular": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Simular Agent Os
-         * @description Dry-run del cambio: bloqueos, avisos y los pasos que aplicaría. No escribe nada (ni
-         *     backfills, ni releases, ni banderas). 422 `agent_os_orden` si el objetivo viola el orden.
-         */
-        post: operations["simular_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_simular_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9575,6 +9526,15 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** AgentCreationQuota */
+        AgentCreationQuota: {
+            /** Allowed */
+            allowed: boolean;
+            /** Limit */
+            limit: number | null;
+            /** Used */
+            used: number;
+        };
         /** AgentCustomer */
         AgentCustomer: {
             /** Channel */
@@ -9659,7 +9619,7 @@ export interface components {
             name: string;
             /**
              * Ref
-             * @description Id del agente o el literal `general`, como en `/admin/agents/{ref}`.
+             * @description Id del agente, como en `/admin/agents/{ref}`.
              */
             ref: string;
             /**
@@ -9672,87 +9632,6 @@ export interface components {
              * @description Último turno del agente dentro del período.
              */
             ultima_actividad?: string | null;
-        };
-        /**
-         * AgentOSBanderas
-         * @description Estado de las banderas del Agent OS de un negocio (ADR-0112, ADR-0138).
-         */
-        AgentOSBanderas: {
-            /** Procedures */
-            procedures: boolean;
-            /**
-             * Routing
-             * @enum {string}
-             */
-            routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
-        };
-        /** AgentOSCambio */
-        AgentOSCambio: {
-            /** Actor */
-            actor: string;
-            /**
-             * Fecha
-             * Format: date-time
-             */
-            fecha: string;
-        };
-        /** AgentOSEstado */
-        AgentOSEstado: {
-            /** Aos Connection Routing */
-            aos_connection_routing: boolean;
-            /** Procedures */
-            procedures: boolean;
-            /**
-             * Routing
-             * @enum {string}
-             */
-            routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
-            ultimo_cambio?: components["schemas"]["AgentOSCambio"] | null;
-        };
-        /** AgentOSObjetivo */
-        AgentOSObjetivo: {
-            /**
-             * Construir
-             * @default false
-             */
-            construir: boolean;
-            /** Procedures */
-            procedures: boolean;
-            /**
-             * Routing
-             * @enum {string}
-             */
-            routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
-        };
-        /** AgentOSResultado */
-        AgentOSResultado: {
-            /** Accion */
-            accion: string;
-            antes: components["schemas"]["AgentOSBanderas"];
-            /** Aos Connection Routing */
-            aos_connection_routing: boolean;
-            /** Avisos */
-            avisos: string[];
-            /** Bloqueos */
-            bloqueos: string[];
-            despues: components["schemas"]["AgentOSBanderas"];
-            /** Pasos */
-            pasos: string[];
         };
         /** AgentOverviewItem */
         AgentOverviewItem: {
@@ -9898,10 +9777,18 @@ export interface components {
         };
         /** AgentsOverview */
         AgentsOverview: {
+            /** Cuota Agentes */
+            cuota_agentes?: components["schemas"]["AgentCreationQuota"] | null;
             /** Items */
             items: components["schemas"]["AgentOverviewItem"][];
-            /** Runtime */
-            runtime: string;
+            /**
+             * Runtime
+             * @deprecated
+             * @description Deprecado: siempre `v3` (ADR-0191). Solo para la APK instalada; no lo leas.
+             * @default v3
+             * @constant
+             */
+            runtime: "v3";
             sin_atribuir: components["schemas"]["Activity"];
         };
         /** AgentSummary */
@@ -10545,6 +10432,11 @@ export interface components {
         BloqueGeneral: {
             /** Kpis */
             kpis: components["schemas"]["KpiOut"][];
+            /**
+             * Modulos Sin Agente
+             * @description Módulos activos del negocio que ningún agente cubre (ADR-0192: ya no cuelgan del General).
+             */
+            modulos_sin_agente?: components["schemas"]["ModuloOut"][];
             /**
              * Serie
              * @description Serie diaria cero-rellena de todo el negocio (todos los agentes, el Coordinador y lo no atribuido); vacía sin la sección `agents`.
@@ -11225,11 +11117,6 @@ export interface components {
         };
         /** Catalogo */
         Catalogo: {
-            /**
-             * Aos Runtime
-             * @default legacy
-             */
-            aos_runtime: string;
             /**
              * Asistente
              * @default []
@@ -12055,17 +11942,6 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
-            /**
-             * Routing
-             * @description `tenants.aos_routing`, solo lectura.
-             * @enum {string}
-             */
-            routing: "off" | "shadow" | "active";
-            /**
-             * Runtime
-             * @enum {string}
-             */
-            runtime: "legacy" | "v3";
             /** Total */
             total: number;
             /**
@@ -13212,8 +13088,6 @@ export interface components {
             connections: components["schemas"]["PublishedConnection"][];
             /** Created */
             created: boolean;
-            /** General Updated */
-            general_updated?: number | null;
             version: components["schemas"]["AgentVersionSummary"];
             /** Warnings */
             warnings: string[];
@@ -20239,8 +20113,6 @@ export interface components {
             agentes: components["schemas"]["AgenteResumen"][];
             general: components["schemas"]["BloqueGeneral"];
             periodo: components["schemas"]["PeriodoOut"];
-            /** Runtime */
-            runtime: string;
         };
         /** RetiredAffectedConnection */
         RetiredAffectedConnection: {
@@ -20534,7 +20406,7 @@ export interface components {
             confidence: number | null;
             /**
              * Mode
-             * @description `off`, `shadow` o `active`: si hoy el router decide en esta conexión.
+             * @description `active`, o `shadow` si la release de la conexión pide sombra (`routing.shadowMode`).
              */
             mode: string;
             /**
@@ -23583,6 +23455,13 @@ export interface operations {
                     "application/json": components["schemas"]["FromTemplateOut"];
                 };
             };
+            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -24689,6 +24568,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FromScriptOut"];
                 };
+            };
+            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -32562,116 +32448,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Device-Id"?: string | null;
-                "X-Tenant-Id"?: string | null;
-            };
-            path: {
-                tenant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AgentOSEstado"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    put_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_put: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Device-Id"?: string | null;
-                "X-Tenant-Id"?: string | null;
-            };
-            path: {
-                tenant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AgentOSObjetivo"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AgentOSResultado"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    simular_agent_os_api_v1_admin_platform_tenants__tenant_id__agent_os_simular_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Device-Id"?: string | null;
-                "X-Tenant-Id"?: string | null;
-            };
-            path: {
-                tenant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AgentOSObjetivo"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AgentOSResultado"];
-                };
             };
             /** @description Validation Error */
             422: {

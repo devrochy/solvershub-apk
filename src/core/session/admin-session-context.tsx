@@ -32,9 +32,11 @@ export interface AdminSessionValue {
   refrescarPerfil(): Promise<PerfilAdmin | null>;
   /** Aplica la respuesta de `/admin/me` tras guardar el perfil o la foto. */
   aplicarPerfil(me: MeAdmin): Promise<PerfilAdmin>;
-  /** El aviso de plan Free se cerró en esta sesión del panel (no se persiste). */
+  /** El aviso de plan Free se cerró en la vista actual (no se persiste). */
   avisoPlanCerrado: boolean;
   cerrarAvisoPlan(): void;
+  /** Vuelve a mostrar el aviso al cambiar de módulo. */
+  reiniciarAvisoPlan(): void;
   logout(): Promise<void>;
 }
 
@@ -118,6 +120,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
       if (!actual) {
         return;
       }
+      setAvisoPlanCerradoPara(null);
       const me = await apiMeAdmin(actual.token, tenantId);
       const actualizada: AdminSesion = {
         ...actual,
@@ -189,6 +192,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
     const tenantId = sesionRef.current?.tenantId;
     if (tenantId) setAvisoPlanCerradoPara(tenantId);
   }, []);
+  const reiniciarAvisoPlan = useCallback(() => setAvisoPlanCerradoPara(null), []);
 
   const value = useMemo(
     () => ({
@@ -201,6 +205,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
       aplicarPerfil,
       avisoPlanCerrado,
       cerrarAvisoPlan,
+      reiniciarAvisoPlan,
       logout,
     }),
     [
@@ -213,6 +218,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
       aplicarPerfil,
       avisoPlanCerrado,
       cerrarAvisoPlan,
+      reiniciarAvisoPlan,
       logout,
     ],
   );
