@@ -49,6 +49,7 @@ describe("formato-clientes", () => {
 
   it("traduce canal, clasificación y riesgo", () => {
     expect(etiquetaCanal("whatsapp")).toBe("WhatsApp");
+    expect(etiquetaCanal("telegram")).toBe("Telegram");
     expect(etiquetaClasificacion("nuevo")).toBe("Nuevo");
     expect(etiquetaClasificacion("vip")).toBe("VIP");
     expect(etiquetaClasificacion(undefined)).toBe("Sin clasificar");

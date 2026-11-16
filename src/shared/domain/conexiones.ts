@@ -7,9 +7,10 @@ export type ConexionConIdentidad = {
 
 /**
  * Detalle legible de una conexión para la lista de Configuración: nombre y
- * número cuando el canal los conoce (WhatsApp Web vinculado); si no, el
- * identificador técnico. En WhatsApp Web sin vincular no se muestra
- * `waweb:<uuid>`, que no le dice nada al dueño.
+ * número cuando el canal los conoce (WhatsApp Web vinculado, el @usuario de
+ * un bot de Telegram); si no, el identificador técnico. En WhatsApp Web sin
+ * vincular no se muestra `waweb:<uuid>`, y en Telegram tampoco el id del bot:
+ * no le dicen nada al dueño.
  */
 export function detalleDeConexion(c: ConexionConIdentidad): string | null {
   const telefono = c.display_phone_number?.trim();
@@ -19,6 +20,6 @@ export function detalleDeConexion(c: ConexionConIdentidad): string | null {
     .map((valor) => valor?.trim())
     .filter((valor): valor is string => Boolean(valor));
   if (partes.length) return partes.join(" · ");
-  if (c.type_id === "whatsapp_waweb") return null;
+  if (c.type_id === "whatsapp_waweb" || c.type_id === "telegram") return null;
   return c.external_id.trim() || null;
 }

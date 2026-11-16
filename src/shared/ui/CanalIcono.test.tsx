@@ -10,6 +10,7 @@ describe("marcaDelCanal", () => {
     expect(marcaDelCanal("whatsapp_waweb")).toEqual({ logo: "whatsapp" });
     expect(marcaDelCanal("instagram")).toEqual({ logo: "instagram" });
     expect(marcaDelCanal("facebook")).toEqual({ logo: "messenger" });
+    expect(marcaDelCanal("telegram")).toEqual({ logo: "telegram" });
     expect(marcaDelCanal("webchat")).toEqual({ icono: "language" });
     expect(marcaDelCanal(null)).toEqual({ icono: "chat-bubble-outline" });
   });

@@ -77,6 +77,7 @@ export const CANAL_LABEL: Record<string, string> = {
   instagram: "Instagram",
   messenger: "Messenger",
   facebook: "Facebook",
+  telegram: "Telegram",
   email: "Correo",
   sms: "SMS",
   webchat: "Chat web",
