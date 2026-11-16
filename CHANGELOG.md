@@ -7,6 +7,7 @@
 
 ### Nuevo
 
+- Telegram (HU-CONN-28, ADR-0199): las conversaciones y conexiones de Telegram se ven con su logo y la etiqueta «Telegram», y la conexión muestra el @usuario del bot (nunca su id).
 - «Documentación» en la tarjeta de cuenta del cajón (entre Perfil y Tema oscuro): abre la wiki del panel (`/ayuda`, exige sesión del panel) en el navegador del sistema. `LICENSE` con el titular del proyecto y aviso de Expo en `NOTICE`.
 - Seguridad del negocio (SPEC-42, ADR-0174): la app registra el teléfono (`X-Device-Id` en toda
   petición, también el refresh, y `device-session` al elegir negocio y al reanudar) y, si el

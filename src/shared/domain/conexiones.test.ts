@@ -18,6 +18,13 @@ describe("detalleDeConexion", () => {
     ).toBeNull();
   });
 
+  it("muestra el @usuario del bot de Telegram y nunca su id", () => {
+    expect(
+      detalleDeConexion({ type_id: "telegram", external_id: "1234567890", display_name: "@mitienda_bot" }),
+    ).toBe("@mitienda_bot");
+    expect(detalleDeConexion({ type_id: "telegram", external_id: "1234567890" })).toBeNull();
+  });
+
   it("conserva el identificador de los demás canales", () => {
     expect(detalleDeConexion({ external_id: "ana@demo.test" })).toBe("ana@demo.test");
     expect(
