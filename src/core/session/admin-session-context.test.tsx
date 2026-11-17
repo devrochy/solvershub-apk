@@ -39,6 +39,8 @@ const ME = {
   permissions: { dashboard: "read" },
   invitaciones_pendientes: 0,
   qa_testers_habilitados: false,
+  currency: "COP",
+  timezone: "America/Bogota",
 };
 
 function Consumidor() {

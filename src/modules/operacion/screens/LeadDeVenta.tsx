@@ -15,7 +15,8 @@ import {
 } from "../etapas";
 
 /** Título de la sección de cada pack; uno sin título propio usa el genérico. */
-const TITULO_DEL_PACK: Record<string, string> = { pack_commerce: "Lead de venta" };
+// El lead es del core desde ADR-0193 (`leads`); `pack_commerce` queda para un backend sin desplegar.
+const TITULO_DEL_PACK: Record<string, string> = { leads: "Lead de venta", pack_commerce: "Lead de venta" };
 
 /**
  * Campos que un pack deja cambiar desde la ficha (ADR-0149), p. ej. el estado y el interés del lead

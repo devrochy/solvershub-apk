@@ -43,6 +43,9 @@ const COLABORADOR: CollaboratorItem = {
   permissions: [{ section: "leads", access: "read", scope: "*" }],
   links: [{ slug: "tienda", name: "Tienda Norte", role: "colaborador" }],
   pack_profiles: [],
+  deleted: false,
+  can_delete: false,
+  can_reactivate: false,
 };
 
 const PERMISOS = [

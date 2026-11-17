@@ -96,7 +96,7 @@ const CAMPOS = [
 
 const EDITABLES = [
   {
-    plugin_id: "pack_commerce",
+    plugin_id: "leads",
     key: "estado_lead",
     label: "Estado del lead",
     tipo: "opciones",
@@ -104,7 +104,7 @@ const EDITABLES = [
     value: "calificado",
     options: [{ value: "calificado", label: "Calificado" }, { value: "perdido", label: "Perdido" }],
   },
-  { plugin_id: "pack_commerce", key: "interes", label: "Interés", tipo: "texto", max_length: 500, value: "plan basic" },
+  { plugin_id: "leads", key: "interes", label: "Interés", tipo: "texto", max_length: 500, value: "plan basic" },
 ];
 
 const FICHA = {
@@ -269,9 +269,9 @@ describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
     const { findByTestId, getByTestId } = await pantalla();
     await fireEvent.press(await findByTestId("cliente-tab-ventas"));
     await fireEvent.press(getByTestId("pack-estado_lead-perdido"));
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
     await waitFor(() =>
-      expect(mockPatch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", {
+      expect(mockPatch).toHaveBeenCalledWith("/admin/leads/c-1/pack/leads", {
         valores: { estado_lead: "perdido" },
       }),
     );
@@ -279,8 +279,8 @@ describe("ClienteDetalleScreen (HU-CRM-02 + tanda 1A)", () => {
 
   describe("próxima acción (HU-CRM-21)", () => {
     const SEGUIMIENTO = [
-      { plugin_id: "pack_commerce", key: "seguimiento_nota", label: "Próxima acción", tipo: "texto", max_length: 200, value: "Llamar para cerrar" },
-      { plugin_id: "pack_commerce", key: "seguimiento_en", label: "Fecha de seguimiento", tipo: "fecha", max_length: 32, value: "2026-11-03T09:00" },
+      { plugin_id: "leads", key: "seguimiento_nota", label: "Próxima acción", tipo: "texto", max_length: 200, value: "Llamar para cerrar" },
+      { plugin_id: "leads", key: "seguimiento_en", label: "Fecha de seguimiento", tipo: "fecha", max_length: 32, value: "2026-11-03T09:00" },
     ];
     const FICHA_CON_SEGUIMIENTO = {
       ...FICHA,

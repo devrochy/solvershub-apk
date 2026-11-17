@@ -126,6 +126,8 @@ const GRUPOS: Record<string, string> = {
 
 const ENLACE_DEL_AGENTE: Record<string, { tab: string; pestana: string; label: string }> = {
   ventas: { tab: "comercio", pestana: "pedidos", label: "Pedidos" },
+  // El lead (ADR-0193) se trabaja en Operación › Clientes, con su etapa y su seguimiento.
+  leads: { tab: "conversaciones", pestana: "leads", label: "Clientes" },
   cobranza: { tab: "cobranza", pestana: "clientes", label: "Clientes" },
   agenda: { tab: "calendario", pestana: "agenda", label: "Agenda" },
 };

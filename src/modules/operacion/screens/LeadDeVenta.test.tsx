@@ -15,7 +15,7 @@ const MOTIVOS = [
 ];
 
 function campos({ etapa = "calificado", motivo = "", nota = "", valor = "" } = {}): CampoEditable[] {
-  const base = { plugin_id: "pack_commerce" };
+  const base = { plugin_id: "leads" };
   return [
     { ...base, key: "estado_lead", label: "Estado del lead", tipo: "opciones", options: ETAPAS, max_length: 32, value: etapa },
     { ...base, key: "motivo_perdida", label: "Motivo de pérdida", tipo: "opciones", options: MOTIVOS, max_length: 32, value: motivo },
@@ -28,7 +28,7 @@ const patch = jest.fn();
 const onGuardado = jest.fn();
 
 async function montar(props: Parameters<typeof campos>[0] = {}) {
-  return render(<LeadDeVenta clienteId="c-1" pluginId="pack_commerce" campos={campos(props)} onGuardado={onGuardado} />);
+  return render(<LeadDeVenta clienteId="c-1" pluginId="leads" campos={campos(props)} onGuardado={onGuardado} />);
 }
 
 describe("LeadDeVenta · motivo de pérdida y valor estimado", () => {
@@ -50,7 +50,7 @@ describe("LeadDeVenta · motivo de pérdida y valor estimado", () => {
     expect(getByTestId("pack-motivo_perdida-precio")).toBeTruthy();
     expect(getByTestId("pack-nota_perdida")).toBeTruthy();
 
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
     expect(getByText("Elige el motivo de la pérdida para marcar el lead como perdido.")).toBeTruthy();
     expect(patch).not.toHaveBeenCalled();
   });
@@ -61,10 +61,10 @@ describe("LeadDeVenta · motivo de pérdida y valor estimado", () => {
     await fireEvent.press(getByTestId("pack-estado_lead-perdido"));
     await fireEvent.press(getByTestId("pack-motivo_perdida-precio"));
     await fireEvent.changeText(getByTestId("pack-nota_perdida"), "Muy caro");
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
 
     await waitFor(() =>
-      expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", {
+      expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/leads", {
         valores: { estado_lead: "perdido", motivo_perdida: "precio", nota_perdida: "Muy caro" },
       }),
     );
@@ -77,19 +77,19 @@ describe("LeadDeVenta · motivo de pérdida y valor estimado", () => {
     await fireEvent.press(getByTestId("pack-estado_lead-perdido"));
     await fireEvent.press(getByTestId("pack-motivo_perdida-precio"));
     await fireEvent.press(getByTestId("pack-estado_lead-nuevo"));
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
 
     await waitFor(() => expect(patch).toHaveBeenCalled());
-    expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", { valores: { estado_lead: "nuevo" } });
+    expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/leads", { valores: { estado_lead: "nuevo" } });
   });
 
   it("un perdido de antes sin motivo deja anotarlo sin exigirlo", async () => {
     patch.mockResolvedValue({ id: "c-1" });
     const { getByTestId } = await montar({ etapa: "perdido" });
     await fireEvent.press(getByTestId("pack-motivo_perdida-otro"));
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
     await waitFor(() =>
-      expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", { valores: { motivo_perdida: "otro" } }),
+      expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/leads", { valores: { motivo_perdida: "otro" } }),
     );
   });
 
@@ -98,16 +98,16 @@ describe("LeadDeVenta · motivo de pérdida y valor estimado", () => {
     const { getByTestId } = await montar();
     expect(getByTestId("pack-valor_estimado").props.keyboardType).toBe("decimal-pad");
     await fireEvent.changeText(getByTestId("pack-valor_estimado"), "250000");
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
     await waitFor(() =>
-      expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", { valores: { valor_estimado: "250000" } }),
+      expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/leads", { valores: { valor_estimado: "250000" } }),
     );
   });
 
   it("rechaza un valor con puntos de miles o símbolos antes de ir al servidor", async () => {
     const { getByTestId } = await montar();
     await fireEvent.changeText(getByTestId("pack-valor_estimado"), "$150.000");
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
     expect(getByTestId("pack-valor_estimado-error")).toBeTruthy();
     expect(patch).not.toHaveBeenCalled();
   });
@@ -116,11 +116,11 @@ describe("LeadDeVenta · motivo de pérdida y valor estimado", () => {
     patch.mockRejectedValueOnce(new AdminApiError(400, "datos_invalidos", "El valor estimado admite hasta 9.999.999.999."));
     const { getByTestId, getByText } = await montar();
     await fireEvent.changeText(getByTestId("pack-valor_estimado"), "99999999999");
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
     await waitFor(() => expect(getByText("El valor estimado admite hasta 9.999.999.999.")).toBeTruthy());
 
     patch.mockRejectedValueOnce(new TypeError("Network request failed"));
-    await fireEvent.press(getByTestId("pack-pack_commerce-guardar"));
+    await fireEvent.press(getByTestId("pack-leads-guardar"));
     await waitFor(() => expect(getByText("No se pudieron guardar los cambios.")).toBeTruthy());
   });
 });

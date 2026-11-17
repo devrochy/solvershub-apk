@@ -29,6 +29,9 @@ function cuenta(cambios: Partial<CollaboratorItem> = {}): CollaboratorItem {
     permissions: [],
     links: [],
     pack_profiles: [],
+    deleted: false,
+    can_delete: false,
+    can_reactivate: false,
     ...cambios,
   };
 }
