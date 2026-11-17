@@ -3321,6 +3321,27 @@ export interface paths {
         patch: operations["update_lead_perfil_api_v1_admin_leads__lead_id__perfil_patch"];
         trace?: never;
     };
+    "/api/v1/admin/leads/{lead_id}/seguimiento/hecho": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seguimiento Hecho
+         * @description Marca como hecho el seguimiento del lead del cliente; queda en su línea de tiempo con la nota (ADR-0193: antes
+         *     `POST /api/v1/pack/commerce/leads/{customer_id}/seguimiento/hecho`, que sigue como alias).
+         */
+        post: operations["seguimiento_hecho_api_v1_admin_leads__lead_id__seguimiento_hecho_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/leads/{lead_id}/timeline": {
         parameters: {
             query?: never;
@@ -8652,7 +8673,8 @@ export interface paths {
         put?: never;
         /**
          * Seguimiento Hecho
-         * @description Marca como hecho el seguimiento del lead del cliente. Queda en su línea de tiempo con la nota.
+         * @description Alias de `POST /api/v1/admin/leads/{customer_id}/seguimiento/hecho` (el lead es del core desde ADR-0193): lo
+         *     siguen usando el panel y la APK instalados.
          */
         post: operations["seguimiento_hecho_api_v1_pack_commerce_leads__customer_id__seguimiento_hecho_post"];
         delete?: never;
@@ -22365,8 +22387,8 @@ export interface components {
         };
         /**
          * SeguimientoHechoIn
-         * @description Cierra el seguimiento y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21).
-         *     `siguiente_en` es ISO 8601: sin zona es hora del negocio.
+         * @description Cierra el seguimiento y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21). `siguiente_en` es
+         *     ISO 8601: sin zona es hora del negocio.
          */
         SeguimientoHechoIn: {
             /** Siguiente En */
@@ -32334,6 +32356,42 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LeadDetail"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    seguimiento_hecho_api_v1_admin_leads__lead_id__seguimiento_hecho_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeguimientoHechoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
