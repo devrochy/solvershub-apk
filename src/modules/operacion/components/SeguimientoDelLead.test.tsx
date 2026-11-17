@@ -8,8 +8,8 @@ import { SeguimientoDelLead } from "./SeguimientoDelLead";
 
 function editables(nota = "", fecha = ""): CampoEditable[] {
   return [
-    { plugin_id: "pack_commerce", key: "seguimiento_nota", label: "Próxima acción", tipo: "texto", max_length: 200, value: nota },
-    { plugin_id: "pack_commerce", key: "seguimiento_en", label: "Fecha de seguimiento", tipo: "fecha", max_length: 32, value: fecha },
+    { plugin_id: "leads", key: "seguimiento_nota", label: "Próxima acción", tipo: "texto", max_length: 200, value: nota },
+    { plugin_id: "leads", key: "seguimiento_en", label: "Fecha de seguimiento", tipo: "fecha", max_length: 32, value: fecha },
   ];
 }
 
@@ -49,7 +49,7 @@ describe("SeguimientoDelLead (HU-CRM-21)", () => {
     await fireEvent.press(getByTestId("seguimiento-guardar"));
     await waitFor(() => expect(patch).toHaveBeenCalledTimes(1));
     const [ruta, cuerpo] = patch.mock.calls[0];
-    expect(ruta).toBe("/admin/leads/c-1/pack/pack_commerce");
+    expect(ruta).toBe("/admin/leads/c-1/pack/leads");
     expect(cuerpo.valores.seguimiento_nota).toBe("Llamar para cerrar");
     expect(cuerpo.valores.seguimiento_en).toMatch(/^\d{4}-\d{2}-\d{2}T09:00$/);
     await waitFor(() => expect(onGuardado).toHaveBeenCalledWith({ id: "c-1" }));
@@ -70,7 +70,7 @@ describe("SeguimientoDelLead (HU-CRM-21)", () => {
     const { getByTestId } = await montar({ editables: editables("Llamar", "2026-11-03T09:00") });
     await fireEvent.press(getByTestId("seguimiento-quitar"));
     await waitFor(() =>
-      expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/pack_commerce", { valores: { seguimiento_en: "" } }),
+      expect(patch).toHaveBeenCalledWith("/admin/leads/c-1/pack/leads", { valores: { seguimiento_en: "" } }),
     );
   });
 

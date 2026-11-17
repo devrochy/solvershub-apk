@@ -534,7 +534,7 @@ describe("OperacionScreen (HU-APP-08)", () => {
       await waitFor(() => expect(getByTestId("lead-etapa-badge-l-1")).toBeTruthy());
       expect(etapaDeLaTarjeta(getByTestId).getByText("Contactado")).toBeTruthy();
       expect(etapaDeLaTarjeta(getByTestId).queryByText("Calificado")).toBeNull();
-      expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+      expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/leads", {
         valores: { estado_lead: "contactado" },
       });
       await act(async () => terminar({}));
@@ -616,7 +616,7 @@ describe("OperacionScreen (HU-APP-08)", () => {
         await fireEvent.press(getByTestId("motivo-confirmar"));
 
         await waitFor(() =>
-          expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+          expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/leads", {
             valores: { estado_lead: "perdido", motivo_perdida: "precio", nota_perdida: "Dijo que estaba caro" },
           }),
         );
@@ -637,7 +637,7 @@ describe("OperacionScreen (HU-APP-08)", () => {
         cliente.patch.mockResolvedValueOnce({});
         await fireEvent.press(getByTestId("etapa-reintentar"));
         await waitFor(() => expect(cliente.patch).toHaveBeenCalledTimes(2));
-        expect(cliente.patch).toHaveBeenLastCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+        expect(cliente.patch).toHaveBeenLastCalledWith("/admin/leads/l-1/pack/leads", {
           valores: { estado_lead: "perdido", motivo_perdida: "otro" },
         });
       });
@@ -657,7 +657,7 @@ describe("OperacionScreen (HU-APP-08)", () => {
         const { getByTestId, queryByText } = await abrirHoja();
         await fireEvent.press(getByTestId("etapa-perdido"));
         await waitFor(() =>
-          expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+          expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/leads", {
             valores: { estado_lead: "perdido" },
           }),
         );

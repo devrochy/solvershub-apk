@@ -162,7 +162,7 @@ describe("Clientes › Embudo (HU-CRM-24)", () => {
     await fireEvent.press(await waitFor(() => getByTestId("etapa-contactado")));
 
     await waitFor(() =>
-      expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/pack_commerce", {
+      expect(cliente.patch).toHaveBeenCalledWith("/admin/leads/l-1/pack/leads", {
         valores: { estado_lead: "contactado" },
       }),
     );

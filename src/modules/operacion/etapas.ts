@@ -3,8 +3,9 @@ import type { FiltroLeads, LeadFaceta, LeadFilter, LeadRow } from "./api";
 
 type Tono = "neutral" | "accent" | "success" | "warning" | "danger";
 
-/** Pack dueño de la etapa y clave del campo editable (ADR-0149, HU-CRM-18). */
-export const PACK_DE_ETAPA = "pack_commerce";
+/** Provider dueño de la etapa (el lead es del core desde ADR-0193; antes `pack_commerce`, que el backend sigue aceptando
+ * como alias) y clave del campo editable (ADR-0149, HU-CRM-18). */
+export const PACK_DE_ETAPA = "leads";
 export const CLAVE_DE_ETAPA = "estado_lead";
 
 export interface OpcionDeEtapa {
