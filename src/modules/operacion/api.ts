@@ -402,14 +402,17 @@ export async function editarCamposDelPack(
   return api.patch<FichaDelCliente>(`/admin/leads/${id}/pack/${encodeURIComponent(pluginId)}`, { valores });
 }
 
-/** Marca como hecho el seguimiento del lead y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21). */
+/**
+ * Marca como hecho el seguimiento del lead y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21). El lead
+ * es del core desde ADR-0193: la ruta de commerce queda como alias en el backend.
+ */
 export async function marcarSeguimientoHecho(
   api: ClienteAdmin,
   id: string,
   siguiente?: { en: string; nota: string },
 ): Promise<void> {
   await api.post<void>(
-    `/pack/commerce/leads/${id}/seguimiento/hecho`,
+    `/admin/leads/${id}/seguimiento/hecho`,
     siguiente ? { siguiente_en: siguiente.en, siguiente_nota: siguiente.nota } : {},
   );
 }

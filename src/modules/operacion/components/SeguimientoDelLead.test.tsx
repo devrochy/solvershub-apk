@@ -99,7 +99,7 @@ describe("SeguimientoDelLead (HU-CRM-21)", () => {
     const { getByTestId } = await montar({ editables: editables("Llamar", "2026-11-03T09:00") });
     await fireEvent.press(getByTestId("seguimiento-hecho"));
     await fireEvent.press(getByTestId("seguimiento-confirmar-hecho"));
-    await waitFor(() => expect(post).toHaveBeenCalledWith("/pack/commerce/leads/c-1/seguimiento/hecho", {}));
+    await waitFor(() => expect(post).toHaveBeenCalledWith("/admin/leads/c-1/seguimiento/hecho", {}));
     await waitFor(() => expect(onRecargar).toHaveBeenCalled());
   });
 
@@ -112,7 +112,7 @@ describe("SeguimientoDelLead (HU-CRM-21)", () => {
     await fireEvent.press(getByTestId("seguimiento-confirmar-hecho"));
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     const [ruta, cuerpo] = post.mock.calls[0];
-    expect(ruta).toBe("/pack/commerce/leads/c-1/seguimiento/hecho");
+    expect(ruta).toBe("/admin/leads/c-1/seguimiento/hecho");
     expect(cuerpo.siguiente_nota).toBe("Enviar contrato");
     expect(cuerpo.siguiente_en).toMatch(/^\d{4}-\d{2}-\d{2}T09:00$/);
   });
