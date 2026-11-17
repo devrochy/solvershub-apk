@@ -78,6 +78,8 @@ const ME = {
   permissions: {},
   invitaciones_pendientes: 0,
   qa_testers_habilitados: false,
+  currency: "COP",
+  timezone: "America/Bogota",
 };
 
 async function renderPerfil(onBack = jest.fn()) {

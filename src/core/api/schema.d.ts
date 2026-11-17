@@ -343,6 +343,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/datos-cliente": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Datos Cliente */
+        get: operations["get_datos_cliente_api_v1_admin_agents__agent_id__datos_cliente_get"];
+        /**
+         * Save Datos Cliente
+         * @description Reemplaza los ajustes de las operaciones del agente. Rechaza acciones o datos que ese agente
+         *     no tiene y los pisos técnicos; guarda solo lo que difiere del valor del módulo.
+         */
+        put: operations["save_datos_cliente_api_v1_admin_agents__agent_id__datos_cliente_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/datos-de-prueba": {
         parameters: {
             query?: never;
@@ -403,6 +425,50 @@ export interface paths {
         get: operations["get_draft_api_v1_admin_agents__agent_id__draft_get"];
         /** Save Draft */
         put: operations["save_draft_api_v1_admin_agents__agent_id__draft_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/flow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Agent Flow
+         * @description Flujo del borrador del agente. Sin flujo propio devuelve la semilla de sus packs.
+         */
+        get: operations["get_agent_flow_api_v1_admin_agents__agent_id__flow_get"];
+        /**
+         * Save Agent Flow
+         * @description Guarda el flujo con el mismo `lock_version` del borrador. 422 por sección/acción.
+         */
+        put: operations["save_agent_flow_api_v1_admin_agents__agent_id__flow_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/flow/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Agent Flow Options
+         * @description Acciones que el agente puede poner en su flujo y la semilla de sus packs.
+         */
+        get: operations["get_agent_flow_options_api_v1_admin_agents__agent_id__flow_options_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -584,6 +650,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pause Agent
+         * @description Pausa un especialista (HU-ARCH-38): deja de atender en segundos, sin publicar; atiende el agente por
+         *     defecto y A2A no le pasa conversaciones.
+         */
+        post: operations["pause_agent_api_v1_admin_agents__agent_id__pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/publish": {
         parameters: {
             query?: never;
@@ -639,6 +726,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resume Agent
+         * @description Reanuda un especialista pausado (HU-ARCH-38): vuelve a atender sus conversaciones.
+         */
+        post: operations["resume_agent_api_v1_admin_agents__agent_id__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/retired-references": {
         parameters: {
             query?: never;
@@ -653,6 +760,30 @@ export interface paths {
          */
         get: operations["get_retired_references_api_v1_admin_agents__agent_id__retired_references_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Agent Schedule
+         * @description Horario del borrador del agente y el del negocio que hereda si no tiene uno propio.
+         */
+        get: operations["get_agent_schedule_api_v1_admin_agents__agent_id__schedule_get"];
+        /**
+         * Save Agent Schedule
+         * @description Guarda el horario propio (o `null` para heredar) con el `lock_version` del borrador. Vale al publicar.
+         */
+        put: operations["save_agent_schedule_api_v1_admin_agents__agent_id__schedule_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -882,6 +1013,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/automatizaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Automatizaciones */
+        get: operations["listar_automatizaciones_api_v1_admin_automatizaciones_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/automatizaciones/{cron_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalle Automatizacion */
+        get: operations["detalle_automatizacion_api_v1_admin_automatizaciones__cron_name__get"];
+        /**
+         * Actualizar Automatizacion
+         * @description Enciende/apaga o cambia hora/ventana. Solo lo que el catálogo admite.
+         */
+        put: operations["actualizar_automatizacion_api_v1_admin_automatizaciones__cron_name__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/automatizaciones/{cron_name}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Ejecuciones
+         * @description Ejecuciones con efecto, fallos y manuales del negocio (ADR-0201).
+         */
+        get: operations["listar_ejecuciones_api_v1_admin_automatizaciones__cron_name__runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/collaborators": {
         parameters: {
             query?: never;
@@ -893,6 +1082,9 @@ export interface paths {
          * List Collaborators
          * @description Cuentas del **negocio activo**. El master puede pedir `?todos=1` para ver todas las
          *     cuentas de la plataforma (gestión de cuentas); un owner siempre ve solo su negocio.
+         *
+         *     Con `?eliminadas=1` trae las cuentas dadas de baja (ADR-0198): el master todas; un
+         *     dueño/tester solo las que dio de baja en su negocio activo.
          */
         get: operations["list_collaborators_api_v1_admin_collaborators_get"];
         put?: never;
@@ -923,6 +1115,30 @@ export interface paths {
         get: operations["get_collaborator_avatar_api_v1_admin_collaborators__admin_id__avatar_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/collaborators/{admin_id}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Collaborator Endpoint
+         * @description Baja lógica de una cuenta de equipo (ADR-0198).
+         *
+         *     No borra la identidad ni el historial: la cuenta deja de entrar, sale de Equipo y se
+         *     revocan sus vínculos, permisos y sesiones. El perfil de Gestor de Cobranza se da de baja
+         *     sin tocar sus registros ni sus carteras. Solo se reactiva con la acción explícita.
+         */
+        post: operations["delete_collaborator_endpoint_api_v1_admin_collaborators__admin_id__delete_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1007,6 +1223,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/collaborators/{admin_id}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reactivate Collaborator Endpoint
+         * @description Reactiva la MISMA cuenta eliminada (mismo correo, mismo historial y mismo Gestor).
+         *
+         *     El master reactiva cualquiera; un dueño/tester solo las que dio de baja en su negocio
+         *     activo. Reactivar vuelve a ocupar cupo de colaboradores del plan.
+         */
+        post: operations["reactivate_collaborator_endpoint_api_v1_admin_collaborators__admin_id__reactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/collaborators/{admin_id}/revoke": {
         parameters: {
             query?: never;
@@ -1072,6 +1311,9 @@ export interface paths {
         /**
          * Email Existe
          * @description ¿Ya existe una cuenta con este correo? Lo usa el alta en dos pasos (D-SPEC-34).
+         *
+         *     Si la cuenta fue dada de baja (ADR-0198), `existe` es False (el correo no se reasigna solo)
+         *     pero `eliminada` es True: el alta avisa que hay que reactivarla, no crear otra.
          */
         get: operations["email_existe_api_v1_admin_collaborators_existe_get"];
         put?: never;
@@ -1565,6 +1807,152 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/connections/telegram": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar
+         * @description Los bots de Telegram conectados en el negocio.
+         */
+        get: operations["listar_api_v1_admin_connections_telegram_get"];
+        put?: never;
+        /**
+         * Conectar
+         * @description Conecta el bot: valida el token con `getMe`, guarda la conexión, registra el webhook con un secreto propio y
+         *     lo confirma con `getWebhookInfo`. 201 si se creó; 200 si el bot ya estaba conectado en este negocio.
+         */
+        post: operations["conectar_api_v1_admin_connections_telegram_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/telegram/{connection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ver
+         * @description Resumen de un bot conectado: usuario, estado, webhook y lo último que dijo Telegram.
+         */
+        get: operations["ver_api_v1_admin_connections_telegram__connection_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/telegram/{connection_id}/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rotar Credenciales
+         * @description Cambia el token del mismo bot (tras revocarlo en @BotFather). Pide la contraseña; se valida contra Telegram
+         *     antes de guardar. Conserva el `public_id` y rota el secreto del webhook.
+         */
+        put: operations["rotar_credenciales_api_v1_admin_connections_telegram__connection_id__credentials_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/telegram/{connection_id}/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Desconectar
+         * @description Quita el webhook del bot y borra lógicamente la conexión (libera el bot para otro negocio).
+         */
+        post: operations["desconectar_api_v1_admin_connections_telegram__connection_id__disconnect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/telegram/{connection_id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refrescar
+         * @description Revisa ahora el token y el webhook contra Telegram (lo mismo que el chequeo de cada 15 min).
+         */
+        post: operations["refrescar_api_v1_admin_connections_telegram__connection_id__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/telegram/{connection_id}/test-message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mensaje De Prueba
+         * @description Manda un texto de prueba a un chat que ya le escribió al bot.
+         */
+        post: operations["mensaje_de_prueba_api_v1_admin_connections_telegram__connection_id__test_message_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/telegram/{connection_id}/webhooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reparar
+         * @description Vuelve a apuntar el webhook del bot a solvershub (si otro sistema lo cambió).
+         */
+        post: operations["reparar_api_v1_admin_connections_telegram__connection_id__webhooks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/connections/twilio": {
         parameters: {
             query?: never;
@@ -1686,6 +2074,26 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/{connection_id}/sandbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Fijar Join Code
+         * @description Cambia el código de unión del sandbox que se muestra para `join <código>`.
+         */
+        patch: operations["fijar_join_code_api_v1_admin_connections_twilio__connection_id__sandbox_patch"];
         trace?: never;
     };
     "/api/v1/admin/connections/twilio/{connection_id}/templates": {
@@ -1812,6 +2220,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/connections/twilio/{connection_id}/test-message/{message_sid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resultado De Prueba
+         * @description Resultado de la última prueba: Twilio acepta el envío y el rechazo (63015 del Sandbox, 63016 fuera de la
+         *     ventana…) llega después por el status callback. El panel lo consulta unos segundos tras enviar.
+         */
+        get: operations["resultado_de_prueba_api_v1_admin_connections_twilio__connection_id__test_message__message_sid__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/connections/twilio/{connection_id}/webhooks": {
         parameters: {
             query?: never;
@@ -1832,6 +2261,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/connections/twilio/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Capacidades
+         * @description Qué modos de alta ofrece este ambiente. Sin la bandera del negocio, 404.
+         */
+        get: operations["capacidades_api_v1_admin_connections_twilio_capabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/connections/twilio/discover": {
         parameters: {
             query?: never;
@@ -1846,6 +2295,28 @@ export interface paths {
          * @description Valida las credenciales contra Twilio y lista los números de WhatsApp de la cuenta. No guarda nada.
          */
         post: operations["descubrir_api_v1_admin_connections_twilio_discover_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/connections/twilio/sandbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Conectar Sandbox
+         * @description Conecta el Sandbox de WhatsApp de la cuenta de Twilio (solo en test). Queda `pending` y con
+         *     `requiere_accion_manual` hasta que se peguen las dos URL en la consola de Twilio y llegue el primer mensaje.
+         *     201 si se creó; 200 si ya existía.
+         */
+        post: operations["conectar_sandbox_api_v1_admin_connections_twilio_sandbox_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2281,14 +2752,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Politica */
-        get: operations["get_politica_api_v1_admin_datos_cliente_politica_get"];
         /**
-         * Save Politica
-         * @description Reemplaza los ajustes de las acciones habilitadas. Rechaza acciones o datos que el negocio
-         *     no tiene y los pisos técnicos; guarda solo lo que difiere del valor del módulo.
+         * Get Politica Deprecada
+         * @deprecated
+         * @description Deprecado: la política es de cada agente. Devuelve la del especialista por defecto.
          */
-        put: operations["save_politica_api_v1_admin_datos_cliente_politica_put"];
+        get: operations["get_politica_deprecada_api_v1_admin_datos_cliente_politica_get"];
+        /**
+         * Save Politica Deprecado
+         * @deprecated
+         * @description Deprecado: aplica el cuerpo al especialista por defecto, ignorando lo que ese agente no tenga.
+         */
+        put: operations["save_politica_deprecado_api_v1_admin_datos_cliente_politica_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -4523,6 +4998,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/crons/{name}/negocios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Crons Por Negocio
+         * @description Vista por negocio de un cron de ámbito `negocio`: quién lo tiene apagado o fallando.
+         */
+        get: operations["crons_por_negocio_api_v1_admin_platform_crons__name__negocios_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/crons/{name}/pause": {
         parameters: {
             query?: never;
@@ -4628,6 +5123,24 @@ export interface paths {
         /** Crons Summary */
         get: operations["crons_summary_api_v1_admin_platform_crons_summary_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform/kill-switch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtener */
+        get: operations["obtener_api_v1_admin_platform_kill_switch_get"];
+        /** Fijar */
+        put: operations["fijar_api_v1_admin_platform_kill_switch_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -5006,6 +5519,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/playground/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Playground Close
+         * @description Cierra la prueba y purga su data (conversación `test`, cliente sintético, mensajes,
+         *     tareas, memoria, ledger y decisiones). Sin `connection_id` ni `agent_id`, cierra todas las del
+         *     negocio; con `agent_id`, solo la del borrador de ese agente (un agente ajeno no cierra nada).
+         */
+        post: operations["playground_close_api_v1_admin_playground_close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/playground/message": {
         parameters: {
             query?: never;
@@ -5060,7 +5595,7 @@ export interface paths {
         put?: never;
         /**
          * Playground Reset
-         * @description Cierra la prueba actual y arranca una nueva desde cero.
+         * @description Purga la prueba actual y arranca una nueva desde cero.
          */
         post: operations["playground_reset_api_v1_admin_playground_reset_post"];
         delete?: never;
@@ -6333,6 +6868,68 @@ export interface paths {
         get: operations["usage_api_v1_admin_usage_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/whatsapp-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Matriz
+         * @description Cada plantilla del negocio una vez (nombre e idioma) con su estado en cada conexión de WhatsApp, y los avisos
+         *     por evento cuya plantilla falta o no está aprobada en una conexión activa.
+         */
+        get: operations["matriz_api_v1_admin_whatsapp_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/whatsapp-templates/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copiar
+         * @description Copia una plantilla aprobada a otras conexiones (crea y envía a aprobación). Resultado por destino; repetirla
+         *     no duplica.
+         */
+        post: operations["copiar_api_v1_admin_whatsapp_templates_copy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/whatsapp-templates/copy-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copiar Todas
+         * @description Copia a otra conexión las plantillas aprobadas del origen que le falten. Si quedan `restantes`, repetir.
+         */
+        post: operations["copiar_todas_api_v1_admin_whatsapp_templates_copy_all_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7924,6 +8521,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pack/commerce/agents/{agent_id}/payment-forms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Formas De Pago Del Agente
+         * @description Formas de pago del agente con su estado, sus cuentas de transferencia y el proveedor en línea.
+         */
+        get: operations["formas_de_pago_del_agente_api_v1_pack_commerce_agents__agent_id__payment_forms_get"];
+        /**
+         * Guardar Formas De Pago
+         * @description Guarda las formas y las cuentas del agente. Transferencia encendida sin cuenta se guarda y queda
+         *     «Falta configurar» (el agente no la ofrece); tiene que quedar al menos una forma encendida.
+         */
+        put: operations["guardar_formas_de_pago_api_v1_pack_commerce_agents__agent_id__payment_forms_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pack/commerce/allies": {
         parameters: {
             query?: never;
@@ -8073,6 +8695,48 @@ export interface paths {
         get: operations["list_orders_api_v1_pack_commerce_orders_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/commerce/orders/{order_id}/payment-proofs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Comprobantes Del Pedido
+         * @description Comprobantes del pedido (los 20 más recientes) con su imagen firmada y el resultado.
+         */
+        get: operations["comprobantes_del_pedido_api_v1_pack_commerce_orders__order_id__payment_proofs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pack/commerce/orders/{order_id}/payment-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cambiar Estado De Pago
+         * @description Revisión manual del pago. Queda quién, cuándo y la nota. Un pedido pagado no se vuelve a
+         *     rechazar desde aquí (un reembolso no es un rechazo); rechazar un comprobante deja el pedido
+         *     `rechazado` y el agente deja de presentarlo como pagado.
+         */
+        post: operations["cambiar_estado_de_pago_api_v1_pack_commerce_orders__order_id__payment_status_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9652,7 +10316,10 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** AgentCreationQuota */
+        /**
+         * AgentCreationQuota
+         * @description Cupo de agentes del plan para saber si se puede abrir el asistente de creación.
+         */
         AgentCreationQuota: {
             /** Allowed */
             allowed: boolean;
@@ -9710,6 +10377,15 @@ export interface components {
             latest_version: number | null;
             /** Name */
             name: string;
+            /**
+             * Paused
+             * @default false
+             */
+            paused: boolean;
+            /** Paused At */
+            paused_at?: string | null;
+            /** Paused Reason */
+            paused_reason?: string | null;
             /** Status */
             status: string;
             /** Versions */
@@ -9723,6 +10399,10 @@ export interface components {
             content: {
                 [key: string]: unknown;
             };
+            /** Flow */
+            flow?: {
+                [key: string]: unknown;
+            } | null;
             /** Lock Version */
             lock_version: number;
             /**
@@ -9730,6 +10410,44 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** AgenteDatosOut */
+        AgenteDatosOut: {
+            /** Acciones */
+            acciones: components["schemas"]["AccionPoliticaOut"][];
+            /** Agente Id */
+            agente_id: string;
+            /**
+             * Herramientas Del Agente
+             * @default false
+             */
+            herramientas_del_agente: boolean;
+            /** Metodos Entrega */
+            metodos_entrega?: ("domicilio" | "recoger_en_tienda")[];
+            /** Niveles */
+            niveles: ("requerido" | "recomendado" | "no_pedir")[];
+            /**
+             * Procedimientos
+             * @default []
+             */
+            procedimientos: components["schemas"]["ProcedimientoDatosOut"][];
+        };
+        /**
+         * AgenteDatosUpdate
+         * @description `{accion_id: {clave: nivel}}`. Lo que no viene para una acción vuelve al valor del módulo.
+         *     Sin `politica` (None) no se tocan los ajustes: sirve para cambiar solo la bandera.
+         */
+        AgenteDatosUpdate: {
+            /** Herramientas Del Agente */
+            herramientas_del_agente?: boolean | null;
+            /** Metodos Entrega */
+            metodos_entrega?: ("domicilio" | "recoger_en_tienda")[] | null;
+            /** Politica */
+            politica?: {
+                [key: string]: {
+                    [key: string]: "requerido" | "recomendado" | "no_pedir";
+                };
+            } | null;
         };
         /** AgenteResumen */
         AgenteResumen: {
@@ -9759,6 +10477,49 @@ export interface components {
              */
             ultima_actividad?: string | null;
         };
+        /** AgentFlowIn */
+        AgentFlowIn: {
+            /** Flow */
+            flow: {
+                [key: string]: unknown;
+            };
+            /** Lock Version */
+            lock_version: number;
+        };
+        /** AgentFlowOptionsOut */
+        AgentFlowOptionsOut: {
+            /** Actions */
+            actions: components["schemas"]["AgentAction"][];
+            /** Seed */
+            seed: {
+                [key: string]: unknown;
+            };
+        };
+        /** AgentFlowOut */
+        AgentFlowOut: {
+            /** Flow */
+            flow: {
+                [key: string]: unknown;
+            };
+            /** Lock Version */
+            lock_version: number;
+            /**
+             * Seeded
+             * @default false
+             */
+            seeded: boolean;
+            /**
+             * Source
+             * @default agente
+             * @enum {string}
+             */
+            source: "agente" | "semilla";
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** AgentOverviewItem */
         AgentOverviewItem: {
             /** Connections */
@@ -9783,6 +10544,8 @@ export interface components {
             published: boolean;
             /** Ref */
             ref: string;
+            /** Source Template */
+            source_template?: string | null;
             /** Status */
             status: string;
             /** Turns */
@@ -9798,6 +10561,11 @@ export interface components {
             name?: string | null;
             /** Status */
             status?: ("active" | "archived") | null;
+        };
+        /** AgentPauseIn */
+        AgentPauseIn: {
+            /** Reason */
+            reason?: string | null;
         };
         /** AgentRecordItem */
         AgentRecordItem: {
@@ -9879,6 +10647,42 @@ export interface components {
              */
             published_version: number | null;
         };
+        /** AgentScheduleIn */
+        AgentScheduleIn: {
+            /** Lock Version */
+            lock_version: number;
+            /**
+             * Schedule
+             * @description `null` vuelve a heredar el horario del negocio.
+             */
+            schedule: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** AgentScheduleOut */
+        AgentScheduleOut: {
+            /**
+             * Business Hours
+             * @description El horario del negocio (lo que hereda).
+             */
+            business_hours: {
+                [key: string]: unknown;
+            } | null;
+            /** Lock Version */
+            lock_version: number;
+            /**
+             * Schedule
+             * @description Horario propio del agente (`{tz, ranges}`); `null` = hereda el del negocio.
+             */
+            schedule: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "agente" | "negocio";
+        };
         /** AgentSkill */
         AgentSkill: {
             /** Config */
@@ -9903,7 +10707,6 @@ export interface components {
         };
         /** AgentsOverview */
         AgentsOverview: {
-            /** Cuota Agentes */
             cuota_agentes?: components["schemas"]["AgentCreationQuota"] | null;
             /** Items */
             items: components["schemas"]["AgentOverviewItem"][];
@@ -9944,6 +10747,15 @@ export interface components {
             latest_version: number | null;
             /** Name */
             name: string;
+            /**
+             * Paused
+             * @default false
+             */
+            paused: boolean;
+            /** Paused At */
+            paused_at?: string | null;
+            /** Paused Reason */
+            paused_reason?: string | null;
             /** Status */
             status: string;
         };
@@ -10039,6 +10851,12 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Flow */
+            flow?: {
+                [key: string]: unknown;
+            } | null;
+            /** Flow Hash */
+            flow_hash?: string | null;
             /**
              * Id
              * Format: uuid
@@ -10069,6 +10887,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Flow Hash */
+            flow_hash?: string | null;
             /**
              * Id
              * Format: uuid
@@ -10405,6 +11225,23 @@ export interface components {
             /** Operacion */
             operacion: string;
         };
+        /** AutomatizacionesOut */
+        AutomatizacionesOut: {
+            /** Items */
+            items: components["schemas"]["CronNegocioOut"][];
+            resumen: components["schemas"]["AutomatizacionesResumen"];
+        };
+        /** AutomatizacionesResumen */
+        AutomatizacionesResumen: {
+            /** Apagadas */
+            apagadas: number;
+            /** Con Fallo */
+            con_fallo: number;
+            /** Habilitadas */
+            habilitadas: number;
+            /** Total */
+            total: number;
+        };
         /** AvanzarIn */
         AvanzarIn: {
             /**
@@ -10412,6 +11249,11 @@ export interface components {
              * @description Paso al que llega la persona.
              */
             paso: number;
+            /**
+             * Pasos
+             * @description Total de pasos con que el cliente numera `paso` (4 desde HU-AOS-81; 9 un panel anterior). Sin él, el paso es del asistente de 6 (la APK) y se guarda traducido a su equivalente de 4.
+             */
+            pasos?: number | null;
         };
         /** AvisoDatosOut */
         AvisoDatosOut: {
@@ -11675,6 +12517,21 @@ export interface components {
             active: boolean;
             /** Avatar Url */
             avatar_url: string | null;
+            /**
+             * Can Delete
+             * @default false
+             */
+            can_delete: boolean;
+            /**
+             * Can Reactivate
+             * @default false
+             */
+            can_reactivate: boolean;
+            /**
+             * Deleted
+             * @default false
+             */
+            deleted: boolean;
             /** Email */
             email: string;
             /**
@@ -11790,6 +12647,65 @@ export interface components {
             /** Promotions */
             promotions: number;
         };
+        /** ComprobanteOut */
+        ComprobanteOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Extracted
+             * @description Lo que leyó la visión: monto, fecha, estado, banco, cuenta (últimos 4)…
+             */
+            extracted: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Image Url
+             * @description URL firmada de vida corta; `null` si la imagen no está.
+             */
+            image_url: string | null;
+            /**
+             * Match
+             * @description Resultado de la comparación con el pedido y sus motivos.
+             */
+            match: {
+                [key: string]: unknown;
+            };
+            /** Review Note */
+            review_note: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pagado" | "en_revision" | "rechazado";
+        };
+        /** ComprobantesOut */
+        ComprobantesOut: {
+            /** Items */
+            items: components["schemas"]["ComprobanteOut"][];
+            /**
+             * Order Id
+             * Format: uuid
+             */
+            order_id: string;
+            /** Payment Method */
+            payment_method: string;
+            /** Payment Status */
+            payment_status: string;
+            /** Payment Status Changed At */
+            payment_status_changed_at: string | null;
+            /** Payment Status Reason */
+            payment_status_reason: string | null;
+        };
         /** ConexionDeEnvioOut */
         ConexionDeEnvioOut: {
             /**
@@ -11803,6 +12719,55 @@ export interface components {
             motivo_pausa?: string | null;
             /** Plantillas */
             plantillas: components["schemas"]["PlantillaDeEnvio"][];
+        };
+        /** ConexionTelegramOut */
+        ConexionTelegramOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Bot Id
+             * @description Id del bot en Telegram (de `getMe`).
+             */
+            bot_id: string;
+            /** Bot Name */
+            bot_name: string;
+            /**
+             * Bot Username
+             * @description `@usuario` del bot, sin la arroba.
+             */
+            bot_username: string;
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /** Label */
+            label: string;
+            /** Last Checked At */
+            last_checked_at: string | null;
+            /** Last Error At */
+            last_error_at: string | null;
+            /** Last Error Message */
+            last_error_message: string | null;
+            /** Last Update At */
+            last_update_at: string | null;
+            /**
+             * Pending Update Count
+             * @description Updates que Telegram tiene esperando entrega.
+             */
+            pending_update_count: number;
+            /**
+             * Status
+             * @description `pending`, `connected`, `degraded`, `revoked` o `error`.
+             */
+            status: string;
+            /** Webhook Confirmado At */
+            webhook_confirmado_at: string | null;
+            /**
+             * Webhook Url
+             * @description URL registrada en el bot (`""` para quien no administra la conexión).
+             */
+            webhook_url: string;
         };
         /** ConexionTwilioOut */
         ConexionTwilioOut: {
@@ -11821,6 +12786,23 @@ export interface components {
             label: string;
             /** Last Error Code */
             last_error_code: number | null;
+            /**
+             * Modo
+             * @description `sender` (número propio) o `sandbox` (Sandbox de Twilio, solo en test).
+             * @default sender
+             */
+            modo: string;
+            /**
+             * Requiere Accion Manual
+             * @description Sandbox sin confirmar: hay que pegar `webhook_inbound_url` y `webhook_status_url` en la consola de Twilio (Sandbox settings).
+             * @default false
+             */
+            requiere_accion_manual: boolean;
+            /**
+             * Sandbox Join Code
+             * @description Sandbox: lo que sigue a `join` para unirse. No es secreto.
+             */
+            sandbox_join_code?: string | null;
             /** Sender E164 */
             sender_e164: string;
             /** Sender Sid */
@@ -11834,6 +12816,11 @@ export interface components {
             status: string;
             /** Tenia Webhook Previo */
             tenia_webhook_previo: boolean;
+            /**
+             * Webhook Confirmado At
+             * @description Primer entrante o estado con firma válida.
+             */
+            webhook_confirmado_at?: string | null;
             /** Webhook Inbound Url */
             webhook_inbound_url: string;
             /** Webhook Status Url */
@@ -12493,8 +13480,9 @@ export interface components {
             /**
              * Pending Count
              * @description Mensajes entrantes después de la última respuesta entregada.
+             * @default 0
              */
-            pending_count?: number;
+            pending_count: number;
             /**
              * Started At
              * Format: date-time
@@ -12561,8 +13549,9 @@ export interface components {
             /**
              * Pending Count
              * @description Mensajes entrantes después de la última respuesta entregada.
+             * @default 0
              */
-            pending_count?: number;
+            pending_count: number;
             /**
              * Started At
              * Format: date-time
@@ -12804,6 +13793,142 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** CronNegocioOut */
+        CronNegocioOut: {
+            /**
+             * Acciones
+             * @description Acciones válidas para esta automatización.
+             */
+            acciones: ("enable" | "disable" | "hora" | "ventana")[];
+            /** Admite Hora Local */
+            admite_hora_local: boolean;
+            /** Admite Ventana */
+            admite_ventana: boolean;
+            /** Configurable */
+            configurable: boolean;
+            /** Description */
+            description: string;
+            /** Habilitada */
+            habilitada: boolean;
+            /**
+             * Hora Local
+             * @description Hora local efectiva (la elegida o la del catálogo).
+             */
+            hora_local: number | null;
+            /**
+             * Hora Local Personalizada
+             * @description True si el negocio eligió una hora propia.
+             */
+            hora_local_personalizada: boolean;
+            /**
+             * Hora Local Por Defecto
+             * @description Hora local que se usa si el negocio no elige.
+             */
+            hora_local_por_defecto: number | null;
+            /** Label */
+            label: string;
+            /** Last Acciones */
+            last_acciones: number | null;
+            /** Last Resumen */
+            last_resumen: string | null;
+            /** Last Run At */
+            last_run_at: string | null;
+            /** Last Status */
+            last_status: ("success" | "failed" | "skipped") | null;
+            /** Module */
+            module: string;
+            /** Name */
+            name: string;
+            /** Next Run At */
+            next_run_at: string | null;
+            /**
+             * Pack
+             * @description Pack del que cuelga; enlaza a su configuración.
+             */
+            pack: string | null;
+            /**
+             * Parametros
+             * @description Campos del pack que la pantalla enlaza.
+             */
+            parametros: string[];
+            /** Sensitive */
+            sensitive: boolean;
+            ventana: components["schemas"]["Ventana"] | null;
+        };
+        /**
+         * CronNegocioResumenOut
+         * @description Un negocio con fila de configuración para este cron (ADR-0201). Solo metadatos operativos.
+         */
+        CronNegocioResumenOut: {
+            /** Fallos 24H */
+            fallos_24h: number;
+            /** Habilitada */
+            habilitada: boolean;
+            /** Hora Local */
+            hora_local: number | null;
+            /** Last Acciones */
+            last_acciones: number | null;
+            /** Last Resumen */
+            last_resumen: string | null;
+            /** Last Run At */
+            last_run_at: string | null;
+            /** Last Status */
+            last_status: ("running" | "success" | "failed" | "skipped") | null;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Tenant Name */
+            tenant_name: string;
+            /** Ventana */
+            ventana: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** CronNegocioRunOut */
+        CronNegocioRunOut: {
+            /** Acciones */
+            acciones: number;
+            /** Detail */
+            detail: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Error Class */
+            error_class: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Resumen */
+            resumen: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "success" | "failed" | "skipped";
+            /**
+             * Trigger
+             * @enum {string}
+             */
+            trigger: "scheduled" | "manual";
+        };
+        /** CronNegocioUpdate */
+        CronNegocioUpdate: {
+            /** Habilitada */
+            habilitada?: boolean | null;
+            /** Hora Local */
+            hora_local?: number | null;
+            ventana?: components["schemas"]["Ventana"] | null;
+        };
         /** CronOut */
         CronOut: {
             /**
@@ -12811,6 +13936,12 @@ export interface components {
              * @description Acciones válidas para su estado actual.
              */
             acciones: ("run" | "pause" | "resume" | "schedule" | "reset_schedule")[];
+            /**
+             * Ambito
+             * @description `negocio`: también se configura en Configuración / Automatizaciones (ADR-0201).
+             * @enum {string}
+             */
+            ambito: "plataforma" | "negocio";
             /** Critical */
             critical: boolean;
             /**
@@ -12930,6 +14061,31 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** CuentaDeTransferencia */
+        CuentaDeTransferencia: {
+            /** Accountnumber */
+            accountNumber: string;
+            /**
+             * Accounttype
+             * @default
+             */
+            accountType: string;
+            /**
+             * Entity
+             * @description Entidad (Bancolombia, Nequi…).
+             */
+            entity: string;
+            /**
+             * Holderdocument
+             * @default
+             */
+            holderDocument: string;
+            /**
+             * Holdername
+             * @default
+             */
+            holderName: string;
+        };
         /** DashboardResponse */
         DashboardResponse: {
             billing: components["schemas"]["BillingSummary"] | null;
@@ -13007,6 +14163,14 @@ export interface components {
             recorrido: components["schemas"]["RecorridoOut"];
             /** Release Id */
             release_id?: string | null;
+        };
+        /** DeleteRequest */
+        DeleteRequest: {
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
         };
         /**
          * Dependencia
@@ -13497,6 +14661,25 @@ export interface components {
             /** Titulo */
             titulo: string;
         };
+        /** EstadoDePagoIn */
+        EstadoDePagoIn: {
+            /**
+             * Accion
+             * @description `confirmar`: el comprobante en revisión es válido. `rechazar`: no lo es. `marcar_pagado`: el pago se verificó por fuera (sin comprobante).
+             * @enum {string}
+             */
+            accion: "confirmar" | "rechazar" | "marcar_pagado";
+            /**
+             * Nota
+             * @default
+             */
+            nota: string;
+            /**
+             * Proof Id
+             * @description Comprobante que se confirma o rechaza.
+             */
+            proof_id?: string | null;
+        };
         /** EstadoImportacion */
         EstadoImportacion: {
             /** Disponible */
@@ -13634,6 +14817,11 @@ export interface components {
         };
         /** ExisteResponse */
         ExisteResponse: {
+            /**
+             * Eliminada
+             * @default false
+             */
+            eliminada: boolean;
             /** Existe */
             existe: boolean;
         };
@@ -13778,6 +14966,94 @@ export interface components {
             modo: string;
             /** Titulo */
             titulo: string;
+        };
+        /** FormaDePagoIn */
+        FormaDePagoIn: {
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Instructions
+             * @default
+             */
+            instructions: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "efectivo_contraentrega" | "transferencia" | "pago_en_linea";
+        };
+        /** FormaDePagoOut */
+        FormaDePagoOut: {
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Estado
+             * @description `falta_configurar`: encendida pero sin lo que necesita (cuenta o proveedor); el agente no la ofrece.
+             * @enum {string}
+             */
+            estado: "activa" | "falta_configurar" | "apagada";
+            /**
+             * Falta
+             * @description Qué falta, en palabras del dueño; vacío si nada.
+             */
+            falta: string;
+            /** Instructions */
+            instructions: string;
+            /** Label */
+            label: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "efectivo_contraentrega" | "transferencia" | "pago_en_linea";
+            /**
+             * Superpoder
+             * @description Superpoder del dominio «Formas de pago» que la acompaña; contra entrega no tiene.
+             */
+            superpoder: string | null;
+        };
+        /** FormasDePagoIn */
+        FormasDePagoIn: {
+            /** Forms */
+            forms: components["schemas"]["FormaDePagoIn"][];
+            /** Transfer Accounts */
+            transfer_accounts?: components["schemas"]["CuentaDeTransferencia"][];
+            /**
+             * Transfer Ocr Enabled
+             * @default true
+             */
+            transfer_ocr_enabled: boolean;
+            /**
+             * Transfer Proof Required
+             * @default true
+             */
+            transfer_proof_required: boolean;
+        };
+        /** FormasDePagoOut */
+        FormasDePagoOut: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /**
+             * Configurada
+             * @description `false`: el agente aún no guardó sus formas y se deducen como antes.
+             */
+            configurada: boolean;
+            /** Forms */
+            forms: components["schemas"]["FormaDePagoOut"][];
+            /**
+             * Pago En Linea Disponible
+             * @description El negocio tiene una cuenta de pagos en línea conectada.
+             */
+            pago_en_linea_disponible: boolean;
+            /** Transfer Accounts */
+            transfer_accounts: components["schemas"]["CuentaDeTransferencia"][];
+            /** Transfer Ocr Enabled */
+            transfer_ocr_enabled: boolean;
+            /** Transfer Proof Required */
+            transfer_proof_required: boolean;
         };
         /**
          * FromScriptIn
@@ -14855,6 +16131,50 @@ export interface components {
             /** Titulo */
             titulo: string;
         };
+        /** KillSwitchEventOut */
+        KillSwitchEventOut: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "activated" | "deactivated" | "denied";
+            /** Actor Label */
+            actor_label: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Reason */
+            reason: string | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "api" | "cli";
+        };
+        /** KillSwitchIn */
+        KillSwitchIn: {
+            /** Active */
+            active: boolean;
+            /** Reason */
+            reason?: string | null;
+        };
+        /** KillSwitchOut */
+        KillSwitchOut: {
+            /** Active */
+            active: boolean;
+            /** Changed At */
+            changed_at: string | null;
+            /** Changed By Label */
+            changed_by_label: string | null;
+            /** History */
+            history: components["schemas"]["KillSwitchEventOut"][];
+            /** Reason */
+            reason: string | null;
+            /** Source */
+            source: ("api" | "cli") | null;
+        };
         /** KpiOut */
         KpiOut: {
             /**
@@ -15411,8 +16731,14 @@ export interface components {
             avg_input_tokens: number | null;
             /** Avg Output Tokens */
             avg_output_tokens: number | null;
+            /** Business Model */
+            business_model: string;
             /** Byok Model */
             byok_model: string | null;
+            /** Effective Model */
+            effective_model?: string | null;
+            /** Effective Source */
+            effective_source?: ("negocio" | "agente") | null;
             /** Has More */
             has_more: boolean;
             /** Items */
@@ -16029,6 +17355,11 @@ export interface components {
             admin_id: string;
             /** Avatar Url */
             avatar_url?: string | null;
+            /**
+             * Currency
+             * @default COP
+             */
+            currency: string;
             /** Email */
             email: string;
             /** Invitaciones Pendientes */
@@ -16052,6 +17383,11 @@ export interface components {
             tenant: components["schemas"]["TenantOption"] | null;
             /** Tenant Count */
             tenant_count: number;
+            /**
+             * Timezone
+             * @default America/Bogota
+             */
+            timezone: string;
             /** Username */
             username: string | null;
         };
@@ -16078,6 +17414,21 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Media Transcription
+             * @description Transcripción del audio o descripción de la imagen.
+             */
+            media_transcription?: string | null;
+            /**
+             * Media Type
+             * @description MIME del archivo (audio/ogg, image/jpeg…).
+             */
+            media_type?: string | null;
+            /**
+             * Media Url
+             * @description URL firmada para descargar o reproducir el archivo.
+             */
+            media_url?: string | null;
             /** Sender Type */
             sender_type: string;
             /** Status */
@@ -17469,6 +18820,19 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** Page[CronNegocioRunOut] */
+        Page_CronNegocioRunOut_: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["CronNegocioRunOut"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
         /** Page[CronRunOut] */
         Page_CronRunOut_: {
             /** Has More */
@@ -18106,6 +19470,164 @@ export interface components {
             /** Tope Filas */
             tope_filas: number;
         };
+        /** PlantillasNegocioAvisoFaltanteOut */
+        PlantillasNegocioAvisoFaltanteOut: {
+            /**
+             * Conexion
+             * @description `clave` de la conexión por la que el aviso no saldrá con plantilla.
+             */
+            conexion: string;
+            /** Estado */
+            estado: string;
+            /** Evento */
+            evento: string;
+            /** Idioma */
+            idioma: string;
+            /** Nombre */
+            nombre: string;
+        };
+        /** PlantillasNegocioCeldaOut */
+        PlantillasNegocioCeldaOut: {
+            /**
+             * Distinta
+             * @description Mismo nombre e idioma con otro texto que el de la fila.
+             */
+            distinta: boolean;
+            /**
+             * Estado
+             * @description `aprobada`, `pendiente`, `sin_enviar`, `rechazada`, `pausada`, `falta` o `no_replicable`.
+             */
+            estado: string;
+            /**
+             * Motivo
+             * @description Motivo del rechazo o de por qué no se puede copiar.
+             */
+            motivo: string;
+            /** Plantilla Id */
+            plantilla_id: string | null;
+        };
+        /** PlantillasNegocioConexionOut */
+        PlantillasNegocioConexionOut: {
+            /** Activa */
+            activa: boolean;
+            /**
+             * Clave
+             * @description `proveedor:id`, la llave de las celdas.
+             */
+            clave: string;
+            /**
+             * Destinable
+             * @description Activa y fuera del Sandbox: se puede copiar a ella.
+             */
+            destinable: boolean;
+            /** Etiqueta */
+            etiqueta: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Motivo Pausa */
+            motivo_pausa: string | null;
+            /**
+             * Proveedor
+             * @enum {string}
+             */
+            proveedor: "meta" | "twilio";
+            /** Sandbox */
+            sandbox: boolean;
+        };
+        /** PlantillasNegocioConexionRef */
+        PlantillasNegocioConexionRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Proveedor
+             * @enum {string}
+             */
+            proveedor: "meta" | "twilio";
+        };
+        /** PlantillasNegocioCopiarIn */
+        PlantillasNegocioCopiarIn: {
+            /** Destinos */
+            destinos: components["schemas"]["PlantillasNegocioConexionRef"][];
+            /** Idioma */
+            idioma: string;
+            /** Nombre */
+            nombre: string;
+            origen: components["schemas"]["PlantillasNegocioConexionRef"];
+        };
+        /** PlantillasNegocioCopiarTodasIn */
+        PlantillasNegocioCopiarTodasIn: {
+            destino: components["schemas"]["PlantillasNegocioConexionRef"];
+            origen: components["schemas"]["PlantillasNegocioConexionRef"];
+        };
+        /** PlantillasNegocioFilaOut */
+        PlantillasNegocioFilaOut: {
+            /** Categoria */
+            categoria: string;
+            /**
+             * Celdas
+             * @description Por `clave` de conexión.
+             */
+            celdas: {
+                [key: string]: components["schemas"]["PlantillasNegocioCeldaOut"];
+            };
+            /** Cuerpo */
+            cuerpo: string;
+            /** Idioma */
+            idioma: string;
+            /** Nombre */
+            nombre: string;
+        };
+        /** PlantillasNegocioMatrizOut */
+        PlantillasNegocioMatrizOut: {
+            /** Avisos Faltantes */
+            avisos_faltantes: components["schemas"]["PlantillasNegocioAvisoFaltanteOut"][];
+            /** Conexiones */
+            conexiones: components["schemas"]["PlantillasNegocioConexionOut"][];
+            /** Filas */
+            filas: components["schemas"]["PlantillasNegocioFilaOut"][];
+        };
+        /** PlantillasNegocioResultadoOut */
+        PlantillasNegocioResultadoOut: {
+            /** Conexion */
+            conexion: string;
+            /** Idioma */
+            idioma: string;
+            /** Motivo */
+            motivo: string;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Resultado
+             * @enum {string}
+             */
+            resultado: "creada" | "ya_existia" | "distinta" | "no_replicable" | "error";
+        };
+        /** PlantillasNegocioResumenOut */
+        PlantillasNegocioResumenOut: {
+            /** Creadas */
+            creadas: number;
+            /** Detalle */
+            detalle: components["schemas"]["PlantillasNegocioResultadoOut"][];
+            /** Distintas */
+            distintas: number;
+            /** Errores */
+            errores: number;
+            /** No Replicables */
+            no_replicables: number;
+            /**
+             * Restantes
+             * @description Las que faltan por copiar (hasta 10 por pedido): repetir el pedido.
+             */
+            restantes: number;
+            /** Ya Existian */
+            ya_existian: number;
+        };
         /**
          * PlatformMetaApp
          * @description Checklist de la app de Meta de la plataforma y la infraestructura (solo master).
@@ -18345,7 +19867,10 @@ export interface components {
             /** Version */
             version: string;
         };
-        /** PoliticaDatosOut */
+        /**
+         * PoliticaDatosOut
+         * @description Contrato legado de la política global; se conserva un release, deprecado.
+         */
         PoliticaDatosOut: {
             /** Acciones */
             acciones: components["schemas"]["AccionPoliticaOut"][];
@@ -18359,8 +19884,7 @@ export interface components {
         };
         /**
          * PoliticaDatosUpdate
-         * @description `{accion_id: {clave: nivel}}`. Lo que no viene para una acción vuelve al valor del módulo.
-         *     Sin `politica` (None) no se tocan los ajustes: sirve para cambiar solo la bandera.
+         * @description Cuerpo legado. Se aplica al especialista por defecto del negocio; lo que no tenga se ignora.
          */
         PoliticaDatosUpdate: {
             /** Herramientas Del Agente */
@@ -18578,6 +20102,31 @@ export interface components {
             recorrido: components["schemas"]["RecorridoOut"];
             /** Total */
             total: number;
+        };
+        /** ProcedimientoDatoOut */
+        ProcedimientoDatoOut: {
+            /** Clave */
+            clave: string;
+            /** Condicion */
+            condicion?: string | null;
+            /** Etiqueta */
+            etiqueta: string;
+            /**
+             * Obligatorio
+             * @default true
+             */
+            obligatorio: boolean;
+            /** Tipo */
+            tipo?: string | null;
+        };
+        /** ProcedimientoDatosOut */
+        ProcedimientoDatosOut: {
+            /** Datos */
+            datos: components["schemas"]["ProcedimientoDatoOut"][];
+            /** Id */
+            id: string;
+            /** Titulo */
+            titulo: string;
         };
         /** ProcedureCompletion */
         ProcedureCompletion: {
@@ -19987,7 +21536,7 @@ export interface components {
         RecorridoOut: {
             /**
              * Abrir
-             * @description El panel debe abrir el asistente solo: nunca se tocó y quien consulta es propietario del negocio.
+             * @description El panel debe abrir el asistente solo: nunca se tocó, el negocio no tiene agente creado y quien consulta es propietario del negocio.
              */
             abrir: boolean;
             /**
@@ -20002,7 +21551,7 @@ export interface components {
             aplica: boolean;
             /**
              * Avisar
-             * @description Aviso persistente: empezó o saltó el recorrido y no lo terminó.
+             * @description Aviso persistente: empezó o saltó el recorrido, no lo terminó y el negocio no tiene agente creado.
              */
             avisar: boolean;
             /** Completado En */
@@ -21047,6 +22596,10 @@ export interface components {
         Superpower: {
             /** Description */
             description: string;
+            /** Group */
+            group: string;
+            /** Group Label */
+            group_label: string;
             /** Id */
             id: string;
             /** Phrases */
@@ -21335,6 +22888,76 @@ export interface components {
             source?: string | null;
             /** Value */
             value: unknown;
+        };
+        /** TelegramAltaIn */
+        TelegramAltaIn: {
+            /**
+             * Bot Token
+             * @description Token del bot que da @BotFather (`123456789:AAH…`). No se devuelve nunca.
+             */
+            bot_token: string;
+            /**
+             * Confirm Overwrite Webhook
+             * @description Reemplazar el webhook que el bot ya tenía hacia otra dirección (otra integración).
+             * @default false
+             */
+            confirm_overwrite_webhook: boolean;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+        };
+        /** TelegramDesconectarIn */
+        TelegramDesconectarIn: {
+            /**
+             * Continuar Si Falla
+             * @description Desconectar aunque no se pueda quitar el webhook del bot (si no, 502 `webhook_no_eliminado` y no se borra nada).
+             * @default false
+             */
+            continuar_si_falla: boolean;
+            /**
+             * Password
+             * @description Contraseña del usuario (confirmación).
+             */
+            password?: string | null;
+        };
+        /** TelegramDesconectarOut */
+        TelegramDesconectarOut: {
+            /** Webhook Quitado */
+            webhook_quitado: boolean;
+        };
+        /** TelegramPruebaIn */
+        TelegramPruebaIn: {
+            /**
+             * Chat Id
+             * @description Id del chat de Telegram de destino. Tiene que haberle escrito al bot antes (/start).
+             */
+            chat_id: number;
+        };
+        /** TelegramPruebaOut */
+        TelegramPruebaOut: {
+            /** Message Id */
+            message_id: number;
+        };
+        /** TelegramRotarIn */
+        TelegramRotarIn: {
+            /**
+             * Bot Token
+             * @description Token del bot que da @BotFather (`123456789:AAH…`). No se devuelve nunca.
+             */
+            bot_token: string;
+            /**
+             * Confirm Overwrite Webhook
+             * @description Reemplazar el webhook que el bot ya tenía hacia otra dirección (otra integración).
+             * @default false
+             */
+            confirm_overwrite_webhook: boolean;
+            /**
+             * Password
+             * @description Contraseña del usuario (confirmación).
+             */
+            password?: string | null;
         };
         /**
          * TemplateCreate
@@ -21906,6 +23529,11 @@ export interface components {
         /** TurnIn */
         TurnIn: {
             /**
+             * Agent Id
+             * @description Agente cuyo BORRADOR se prueba sin publicarlo (HU-AOS-72): el turno va directo a ese agente, simulado y sin release, versión ni instancia. Gana sobre `connection_id`. 404 `agente_no_encontrado` si no es un especialista activo del negocio con borrador.
+             */
+            agent_id?: string | null;
+            /**
              * Connection Id
              * @description Conexión del negocio por cuya release se prueba (HU-AOS-57): el turno corre por el agente publicado ahí. Sin ella, la prueba de siempre (sin release). Sigue siendo del canal `test`.
              */
@@ -21922,6 +23550,12 @@ export interface components {
             escalated: boolean;
             /** Image Url */
             image_url?: string | null;
+            /**
+             * Simulado
+             * @description El turno ejecutó tools en modo simulado (HU-ARCH-14): no se creó data real.
+             * @default false
+             */
+            simulado: boolean;
             /** Text */
             text: string;
         };
@@ -22044,6 +23678,19 @@ export interface components {
              */
             sender_sid: string;
         };
+        /** TwilioCapacidadesOut */
+        TwilioCapacidadesOut: {
+            /**
+             * Sandbox Disponible
+             * @description Este ambiente permite conectar el Sandbox de Twilio.
+             */
+            sandbox_disponible: boolean;
+            /**
+             * Sandbox E164
+             * @description Número compartido del sandbox (`""` si no está disponible).
+             */
+            sandbox_e164: string;
+        };
         /** TwilioCostoMoneda */
         TwilioCostoMoneda: {
             /** Mensajes */
@@ -22109,6 +23756,12 @@ export interface components {
         };
         /** TwilioDesconectarOut */
         TwilioDesconectarOut: {
+            /**
+             * Requiere Limpiar Consola
+             * @description Sandbox: hay que borrar a mano las URL de la consola de Twilio (Sandbox settings). Mientras tanto Twilio recibe 404, sin efecto.
+             * @default false
+             */
+            requiere_limpiar_consola: boolean;
             /** Webhooks Restaurados */
             webhooks_restaurados: boolean;
         };
@@ -22117,6 +23770,11 @@ export interface components {
             account: components["schemas"]["TwilioCuentaOut"];
             /** Senders */
             senders: components["schemas"]["TwilioSenderOut"][];
+        };
+        /** TwilioJoinCodeIn */
+        TwilioJoinCodeIn: {
+            /** Join Code */
+            join_code: string;
         };
         /** TwilioPlantillaIn */
         TwilioPlantillaIn: {
@@ -22186,6 +23844,41 @@ export interface components {
             /** Nombre */
             nombre: string;
         };
+        /** TwilioPruebaEstadoOut */
+        TwilioPruebaEstadoOut: {
+            /**
+             * Actualizado At
+             * Format: date-time
+             */
+            actualizado_at: string;
+            /**
+             * Enviado At
+             * Format: date-time
+             */
+            enviado_at: string;
+            /**
+             * Error Code
+             * @description Código de Twilio cuando no llegó (63015, 63016…).
+             */
+            error_code: number | null;
+            /**
+             * Estado
+             * @description `queued` (Twilio la aceptó), `sent`, `delivered`, `read` o `failed`. Solo avanza.
+             */
+            estado: string;
+            /** Message Sid */
+            message_sid: string;
+            /**
+             * Motivo
+             * @description Por qué no llegó, en palabras, para mostrarlo tal cual.
+             */
+            motivo: string | null;
+            /**
+             * Provider Status
+             * @description El `MessageStatus` de Twilio (`undelivered`, `failed`…).
+             */
+            provider_status: string;
+        };
         /** TwilioPruebaIn */
         TwilioPruebaIn: {
             /**
@@ -22222,6 +23915,29 @@ export interface components {
              * @description Contraseña del usuario (confirmación).
              */
             password?: string | null;
+        };
+        /** TwilioSandboxIn */
+        TwilioSandboxIn: {
+            /**
+             * Account Sid
+             * @description Account SID de Twilio (`AC…`).
+             */
+            account_sid: string;
+            /**
+             * Auth Token
+             * @description Auth Token de la cuenta. No se devuelve nunca.
+             */
+            auth_token: string;
+            /**
+             * Join Code
+             * @description Lo que sigue a `join` en la consola de Twilio (p. ej. `cloud-forgotten`).
+             */
+            join_code?: string | null;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
         };
         /** TwilioSenderOut */
         TwilioSenderOut: {
@@ -22515,6 +24231,24 @@ export interface components {
             name: string;
             /** Slug */
             slug: string;
+        };
+        /** Ventana */
+        Ventana: {
+            /**
+             * Desde
+             * @description HH:MM en hora local.
+             */
+            desde: string;
+            /**
+             * Dias
+             * @description 0=lunes … 6=domingo. Vacío = todos los días.
+             */
+            dias?: number[];
+            /**
+             * Hasta
+             * @description HH:MM en hora local.
+             */
+            hasta: string;
         };
         /** VerifierKind */
         VerifierKind: {
@@ -23663,6 +25397,7 @@ export interface operations {
     list_models_api_v1_admin_agent_models_get: {
         parameters: {
             query?: {
+                agent_id?: string | null;
                 page?: number;
                 page_size?: number;
             };
@@ -23989,6 +25724,78 @@ export interface operations {
             };
         };
     };
+    get_datos_cliente_api_v1_admin_agents__agent_id__datos_cliente_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgenteDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_datos_cliente_api_v1_admin_agents__agent_id__datos_cliente_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgenteDatosUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgenteDatosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     estado_datos_de_prueba_api_v1_admin_agents__agent_id__datos_de_prueba_get: {
         parameters: {
             query?: never;
@@ -24190,6 +25997,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_agent_flow_api_v1_admin_agents__agent_id__flow_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentFlowOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_agent_flow_api_v1_admin_agents__agent_id__flow_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentFlowIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentFlowOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_agent_flow_options_api_v1_admin_agents__agent_id__flow_options_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentFlowOptionsOut"];
                 };
             };
             /** @description Validation Error */
@@ -24576,6 +26489,44 @@ export interface operations {
             };
         };
     };
+    pause_agent_api_v1_admin_agents__agent_id__pause_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentPauseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     publish_to_connections_api_v1_admin_agents__agent_id__publish_post: {
         parameters: {
             query?: never;
@@ -24695,6 +26646,40 @@ export interface operations {
             };
         };
     };
+    resume_agent_api_v1_admin_agents__agent_id__resume_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_retired_references_api_v1_admin_agents__agent_id__retired_references_get: {
         parameters: {
             query?: never;
@@ -24716,6 +26701,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentRetiredNotices"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_agent_schedule_api_v1_admin_agents__agent_id__schedule_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentScheduleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_agent_schedule_api_v1_admin_agents__agent_id__schedule_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentScheduleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentScheduleOut"];
                 };
             };
             /** @description Validation Error */
@@ -25219,9 +27276,152 @@ export interface operations {
             };
         };
     };
+    listar_automatizaciones_api_v1_admin_automatizaciones_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomatizacionesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detalle_automatizacion_api_v1_admin_automatizaciones__cron_name__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                cron_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronNegocioOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    actualizar_automatizacion_api_v1_admin_automatizaciones__cron_name__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                cron_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CronNegocioUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronNegocioOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_ejecuciones_api_v1_admin_automatizaciones__cron_name__runs_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: ("success" | "failed" | "skipped") | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                cron_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CronNegocioRunOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_collaborators_api_v1_admin_collaborators_get: {
         parameters: {
             query?: {
+                eliminadas?: boolean;
                 todos?: boolean;
             };
             header?: {
@@ -25318,6 +27518,42 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_collaborator_endpoint_api_v1_admin_collaborators__admin_id__delete_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                admin_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DeleteRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -25494,6 +27730,45 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reactivate_collaborator_endpoint_api_v1_admin_collaborators__admin_id__reactivate_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                admin_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Tope del plan: `error.code = plan_limit_colaboradores`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -26660,6 +28935,447 @@ export interface operations {
             };
         };
     };
+    listar_api_v1_admin_connections_telegram_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTelegramOut"][];
+                };
+            };
+            /** @description Telegram no está disponible, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conectar_api_v1_admin_connections_telegram_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TelegramAltaIn"];
+            };
+        };
+        responses: {
+            /** @description El bot ya estaba conectado en este negocio: se actualizó. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTelegramOut"];
+                };
+            };
+            /** @description Telegram no está disponible, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `bot_en_otro_negocio`, `webhook_ajeno` (con `details.webhook_url`), `conexion_pausada` o `conflicto`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `telegram_token_invalido`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `telegram_unavailable`, `telegram_error` o `telegram_webhook_no_registrado` (la conexión quedó guardada en `details.connection_id`; repetir el pedido es idempotente). */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `url_publica_no_https`: el ambiente no tiene una URL pública https. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ver_api_v1_admin_connections_telegram__connection_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTelegramOut"];
+                };
+            };
+            /** @description Telegram no está disponible, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rotar_credenciales_api_v1_admin_connections_telegram__connection_id__credentials_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TelegramRotarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTelegramOut"];
+                };
+            };
+            /** @description Telegram no está disponible, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `otro_bot` (el token es de otro bot), `conexion_pausada` o `webhook_ajeno`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `telegram_token_invalido`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `telegram_unavailable`, `telegram_error` o `telegram_webhook_no_registrado` (la conexión quedó guardada en `details.connection_id`; repetir el pedido es idempotente). */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `url_publica_no_https`: el ambiente no tiene una URL pública https. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    desconectar_api_v1_admin_connections_telegram__connection_id__disconnect_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TelegramDesconectarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TelegramDesconectarOut"];
+                };
+            };
+            /** @description `password_required`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `password_incorrect`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description La conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description `webhook_no_eliminado`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    refrescar_api_v1_admin_connections_telegram__connection_id__refresh_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTelegramOut"];
+                };
+            };
+            /** @description Telegram no está disponible, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mensaje_de_prueba_api_v1_admin_connections_telegram__connection_id__test_message_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TelegramPruebaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TelegramPruebaOut"];
+                };
+            };
+            /** @description Telegram no está disponible, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `chat_no_iniciado`, `token_revocado` o `conexion_pausada`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description `too_many_tests` (1 cada 30 s) o `daily_limit` (10 al día). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `telegram_unavailable` o `telegram_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reparar_api_v1_admin_connections_telegram__connection_id__webhooks_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTelegramOut"];
+                };
+            };
+            /** @description Telegram no está disponible, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `conexion_pausada`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description `url_publica_no_https`: el ambiente no tiene una URL pública https. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     conectar_api_v1_admin_connections_twilio_post: {
         parameters: {
             query?: never;
@@ -26963,6 +29679,56 @@ export interface operations {
             };
         };
     };
+    fijar_join_code_api_v1_admin_connections_twilio__connection_id__sandbox_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwilioJoinCodeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTwilioOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `no_es_sandbox`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `join_code_invalido`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listar_plantillas_api_v1_admin_connections_twilio__connection_id__templates_get: {
         parameters: {
             query?: {
@@ -27040,7 +29806,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description `nombre_en_uso` o `plantilla_sin_crear`. */
+            /** @description `nombre_en_uso`, `plantilla_sin_crear` o `no_aplica_sandbox` (en el Sandbox solo sirven las plantillas preaprobadas de Twilio: crear, enviar a aprobación y borrar no aplican). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -27141,7 +29907,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description `nombre_en_uso` o `plantilla_sin_crear`. */
+            /** @description `nombre_en_uso`, `plantilla_sin_crear` o `no_aplica_sandbox` (en el Sandbox solo sirven las plantillas preaprobadas de Twilio: crear, enviar a aprobación y borrar no aplican). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -27202,7 +29968,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description `nombre_en_uso` o `plantilla_sin_crear`. */
+            /** @description `nombre_en_uso`, `plantilla_sin_crear` o `no_aplica_sandbox` (en el Sandbox solo sirven las plantillas preaprobadas de Twilio: crear, enviar a aprobación y borrar no aplican). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -27262,7 +30028,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description `nombre_en_uso` o `plantilla_sin_crear`. */
+            /** @description `nombre_en_uso`, `plantilla_sin_crear` o `no_aplica_sandbox` (en el Sandbox solo sirven las plantillas preaprobadas de Twilio: crear, enviar a aprobación y borrar no aplican). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -27333,7 +30099,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description `numero_invalido`. */
+            /** @description `numero_invalido`, o `participante_no_unido` (Sandbox: el número no mandó `join <código>` o su unión venció; `details.join` y `details.sandbox_e164`). */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -27346,6 +30112,48 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    resultado_de_prueba_api_v1_admin_connections_twilio__connection_id__test_message__message_sid__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                connection_id: string;
+                message_sid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioPruebaEstadoOut"];
+                };
+            };
+            /** @description La conexión no existe, o ese SID no es su última prueba (o ya pasó un día). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
@@ -27370,6 +30178,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConexionTwilioOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sandbox_webhook_manual`: en el Sandbox las URL se pegan en la consola de Twilio (`details.webhook_inbound_url` y `details.webhook_status_url`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    capacidades_api_v1_admin_connections_twilio_capabilities_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwilioCapacidadesOut"];
                 };
             };
             /** @description Twilio no está habilitado para este negocio, o la conexión no existe. */
@@ -27430,6 +30284,68 @@ export interface operations {
                 content?: never;
             };
             /** @description `twilio_credentials_invalid`, `sender_not_found`, `sender_not_online` o `webhook_overwrite_not_confirmed` (con `details.previous_webhook`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_unavailable` o `twilio_error`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    conectar_sandbox_api_v1_admin_connections_twilio_sandbox_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwilioSandboxIn"];
+            };
+        };
+        responses: {
+            /** @description El sandbox de esa cuenta ya estaba conectado en este negocio: se actualizó. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConexionTwilioOut"];
+                };
+            };
+            /** @description Twilio no está habilitado para el negocio o el sandbox no está en este ambiente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `cuenta_en_otro_negocio`, `conexion_pausada`, `twilio_account_suspended` o `conflicto`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `twilio_credentials_invalid` o `join_code_invalido`. */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -28236,7 +31152,7 @@ export interface operations {
             };
         };
     };
-    get_politica_api_v1_admin_datos_cliente_politica_get: {
+    get_politica_deprecada_api_v1_admin_datos_cliente_politica_get: {
         parameters: {
             query?: never;
             header?: {
@@ -28268,7 +31184,7 @@ export interface operations {
             };
         };
     };
-    save_politica_api_v1_admin_datos_cliente_politica_put: {
+    save_politica_deprecado_api_v1_admin_datos_cliente_politica_put: {
         parameters: {
             query?: never;
             header?: {
@@ -32548,6 +35464,40 @@ export interface operations {
             };
         };
     };
+    crons_por_negocio_api_v1_admin_platform_crons__name__negocios_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CronNegocioResumenOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     pause_cron_api_v1_admin_platform_crons__name__pause_post: {
         parameters: {
             query?: never;
@@ -32780,6 +35730,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CronSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    obtener_api_v1_admin_platform_kill_switch_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KillSwitchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fijar_api_v1_admin_platform_kill_switch_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KillSwitchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KillSwitchOut"];
                 };
             };
             /** @description Validation Error */
@@ -33534,6 +36552,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -33690,6 +36709,8 @@ export interface operations {
     playground_history_api_v1_admin_playground_get: {
         parameters: {
             query?: {
+                /** @description Agente cuyo borrador se prueba (HU-AOS-72). Gana sobre `connection_id`. */
+                agent_id?: string | null;
                 /** @description Historial de la prueba por esa conexión. */
                 connection_id?: string | null;
             };
@@ -33710,6 +36731,41 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HistoryOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    playground_close_api_v1_admin_playground_close_post: {
+        parameters: {
+            query?: {
+                /** @description Agente cuyo borrador se prueba (HU-AOS-72). Gana sobre `connection_id`. */
+                agent_id?: string | null;
+                /** @description Cierra la prueba de esa conexión. */
+                connection_id?: string | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -33815,6 +36871,8 @@ export interface operations {
     playground_reset_api_v1_admin_playground_reset_post: {
         parameters: {
             query?: {
+                /** @description Agente cuyo borrador se prueba (HU-AOS-72). Gana sobre `connection_id`. */
+                agent_id?: string | null;
                 /** @description Reinicia la prueba de esa conexión. */
                 connection_id?: string | null;
             };
@@ -36510,6 +39568,134 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    matriz_api_v1_admin_whatsapp_templates_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantillasNegocioMatrizOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copiar_api_v1_admin_whatsapp_templates_copy_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlantillasNegocioCopiarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantillasNegocioResultadoOut"][];
+                };
+            };
+            /** @description `not_found` o `plantilla_no_encontrada`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `origen_no_aprobada` o `no_es_destino` (Sandbox o conexión pausada). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `mismo_destino`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    copiar_todas_api_v1_admin_whatsapp_templates_copy_all_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlantillasNegocioCopiarTodasIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantillasNegocioResumenOut"];
+                };
+            };
+            /** @description `not_found` o `plantilla_no_encontrada`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `origen_no_aprobada` o `no_es_destino` (Sandbox o conexión pausada). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `mismo_destino`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -40150,6 +43336,78 @@ export interface operations {
             };
         };
     };
+    formas_de_pago_del_agente_api_v1_pack_commerce_agents__agent_id__payment_forms_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormasDePagoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    guardar_formas_de_pago_api_v1_pack_commerce_agents__agent_id__payment_forms_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FormasDePagoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormasDePagoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_allies_api_v1_pack_commerce_allies_get: {
         parameters: {
             query?: never;
@@ -40495,7 +43753,7 @@ export interface operations {
                 estado?: string | null;
                 limit?: number;
                 offset?: number;
-                /** @description Estado del pago: pendiente, pagado o rechazado. */
+                /** @description Estado del pago: pendiente, en_revision, pagado o rechazado. */
                 pago?: string | null;
                 /** @description Número de pedido o nombre del cliente. */
                 q?: string | null;
@@ -40518,6 +43776,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    comprobantes_del_pedido_api_v1_pack_commerce_orders__order_id__payment_proofs_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComprobantesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cambiar_estado_de_pago_api_v1_pack_commerce_orders__order_id__payment_status_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EstadoDePagoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComprobantesOut"];
                 };
             };
             /** @description Validation Error */
@@ -40916,6 +44246,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -40949,6 +44280,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -40998,6 +44330,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {
@@ -41030,6 +44363,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "X-Device-Id"?: string | null;
                 "X-Tenant-Id"?: string | null;
             };
             path: {

@@ -8,6 +8,8 @@ type Meta = { icon: IconName; color: (c: Colores) => string };
 const AGENTES: Record<string, Meta> = {
   general: { icon: "smart-toy", color: (c) => c.dataCat2 },
   ventas: { icon: "shopping-cart", color: (c) => c.statusWarningFg },
+  // El lead es del core desde ADR-0193 (agente `leads`, «Lead»).
+  leads: { icon: "person-add", color: (c) => c.statusWarningFg },
   cobranza: { icon: "account-balance-wallet", color: (c) => c.statusDangerFg },
   agenda: { icon: "calendar-month", color: (c) => c.dataCat1 },
   suscripciones: { icon: "autorenew", color: (c) => c.dataCat4 },
