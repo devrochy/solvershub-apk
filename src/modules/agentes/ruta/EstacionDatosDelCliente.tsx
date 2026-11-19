@@ -93,10 +93,9 @@ export function EstacionDatosDelCliente({ agenteId, registrarGuardar, onResumen,
 
   const guardar = useCallback(async (): Promise<boolean> => {
     const { politica: p, estado: e, herramientas: h, metodos: m, guardado: g } = actual.current;
-    if (!p || !g) {
-      setError("Espera a que carguen los datos del cliente.");
-      return false;
-    }
+    // Sin la política no hay nada que guardar ni pantalla donde avisar: la carga muestra su spinner o su error
+    // con «Reintentar», y la ruta no avanza.
+    if (!p || !g) return false;
     if (tieneVentas(p) && m.length === 0) {
       setErrorDeMetodos(TEXTO_SIN_METODOS);
       return false;
