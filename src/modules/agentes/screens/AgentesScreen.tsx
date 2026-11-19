@@ -4,7 +4,7 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { shSpace, shType } from "@core/theme/tokens";
 import { Badge, Button, EmptyState, ListItem, useKit } from "@shared/ui";
-import { cargarAgentes, type AgenteDeLista, type VistaDeAgentes } from "../api";
+import { cargarAgentes, type VistaDeAgentes } from "../api";
 import { avisoDeTopeDeAgentes, etiquetaDeAgente, puedeCrearAgentes } from "../asistente";
 import { AsistenteDeAgente } from "./AsistenteDeAgente";
 import { FichaDeAgente } from "./FichaDeAgente";
@@ -21,7 +21,7 @@ export function AgentesScreen() {
   const [vista, setVista] = useState<VistaDeAgentes | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creando, setCreando] = useState(false);
-  const [abierto, setAbierto] = useState<AgenteDeLista | null>(null);
+  const [abierto, setAbierto] = useState<{ id: string; nombre: string } | null>(null);
 
   // Cada cambio de `intento` vuelve a pedir la lista (reintentar, y al volver del asistente).
   const [intento, setIntento] = useState(0);
@@ -42,19 +42,24 @@ export function AgentesScreen() {
     };
   }, [api, intento]);
 
-  if (creando) {
-    return (
-      <AsistenteDeAgente
-        onTerminar={() => {
-          setCreando(false);
-          cargar();
-        }}
-      />
-    );
-  }
+  // Nuevo agente va a pantalla completa (HU-APP-23), encima de la lista; al cerrarlo la lista se recarga.
+  const asistente = creando ? (
+    <AsistenteDeAgente
+      agentes={vista?.items ?? []}
+      onTerminar={() => {
+        setCreando(false);
+        cargar();
+      }}
+      onAbrirAgente={(id) => {
+        setCreando(false);
+        cargar();
+        setAbierto({ id, nombre: vista?.items.find((a) => a.id === id)?.name ?? "Agente" });
+      }}
+    />
+  ) : null;
 
   if (abierto?.id) {
-    return <FichaDeAgente agentId={abierto.id} nombre={abierto.name} onVolver={() => setAbierto(null)} />;
+    return <FichaDeAgente agentId={abierto.id} nombre={abierto.nombre} onVolver={() => setAbierto(null)} />;
   }
 
   if (error) {
@@ -88,6 +93,7 @@ export function AgentesScreen() {
   };
   return (
     <ScrollView contentContainerStyle={styles.contenido} testID="agentes-lista">
+      {asistente}
       {puedeCrear && (
         <Button variant="primary" onPress={abrirAsistente} fullWidth testID="agentes-nuevo">
           Nuevo agente
@@ -116,7 +122,7 @@ export function AgentesScreen() {
             title={a.name}
             subtitle={etiquetaDeAgente(a)}
             // Los agentes virtuales (sin id) no tienen ficha propia.
-            onPress={a.id ? () => setAbierto(a) : undefined}
+            onPress={a.id ? () => setAbierto({ id: a.id as string, nombre: a.name }) : undefined}
             testID={`agente-${a.ref}`}
             badge={
               a.published ? (
