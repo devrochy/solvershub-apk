@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Button, EmptyState, IconButton, Icono, Sheet, Skeleton, useKit } from "@shared/ui";
 import { FilaNotificacion } from "./FilaNotificacion";
-import { TarjetaPlanFree } from "../plan/TarjetaPlanFree";
+import { TarjetaPlanFree } from "@shared/plan/TarjetaPlanFree";
 import {
   CATEGORIA,
   CATEGORIAS,

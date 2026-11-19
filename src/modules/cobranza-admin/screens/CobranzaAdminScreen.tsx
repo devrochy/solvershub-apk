@@ -46,7 +46,7 @@ import {
 import type { CobranzaAdminStackParamList } from "../navigation";
 import { ClienteCobranzaCard } from "../components/ClienteCard";
 import { ClienteFormSheet } from "../components/ClienteFormSheet";
-import { TarjetaDatosDePrueba } from "../../datos-prueba";
+import { TarjetaDatosDePrueba } from "@shared/datos-prueba";
 import { GestoresTab } from "./GestoresTab";
 
 type Nav = NativeStackNavigationProp<CobranzaAdminStackParamList>;
