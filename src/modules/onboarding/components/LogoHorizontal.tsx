@@ -19,8 +19,10 @@ const PROPORCION = 640 / 163;
  * Logo horizontal con ícono, en la variante del tema activo. Bajo 240 dp de ancho se usa la variante
  * simple (manual de marca §4); nunca se recolorea.
  */
-export function LogoHorizontal({ ancho = 168 }: { ancho?: number }) {
-  const { tema } = useTheme();
+export function LogoHorizontal({ ancho = 168, sobreOscuro = false }: { ancho?: number; sobreOscuro?: boolean }) {
+  const { tema: activo } = useTheme();
+  // En la franja del escenario (siempre oscura) va la variante oscura en los dos temas.
+  const tema = sobreOscuro ? "oscuro" : activo;
   const variante = ancho < 240 ? "simple" : "completo";
   return (
     <Image

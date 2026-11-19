@@ -13,7 +13,7 @@ import type { Recorrido } from "./logica";
 const mockGet = jest.fn();
 const cliente = { get: mockGet, post: jest.fn(), put: jest.fn(), patch: jest.fn(), del: jest.fn() };
 
-const omitido: Recorrido = { estado: "omitido", paso: 3, total_pasos: 6, aplica: true, abrir: false, avisar: true };
+const omitido: Recorrido = { estado: "omitido", paso: 3, total_pasos: 5, aplica: true, abrir: false, avisar: true };
 
 function respuestas(recorrido: Recorrido, rol: string) {
   mockGet.mockImplementation((path: string) => {
@@ -43,7 +43,7 @@ describe("AvisoDeOnboarding (HU-APP-22)", () => {
       </OnboardingProvider>,
     );
     await waitFor(() => api.getByTestId("aviso-onboarding"));
-    expect(api.getByText("Tu agente aún no está listo para probar. Faltan 4 pasos.")).toBeTruthy();
+    expect(api.getByText("Tu agente aún no está listo para responder. Faltan 3 de 5 pasos.")).toBeTruthy();
     await fireEvent.press(api.getByTestId("aviso-onboarding-continuar"));
     // Con el asistente abierto el aviso se oculta: no se duplica.
     expect(api.getByTestId("sonda").props.children).toBe("abierto");

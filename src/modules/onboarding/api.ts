@@ -1,22 +1,17 @@
 import type { ClienteAdmin } from "@core/api/admin";
 import type { components } from "@core/api/schema";
-import type {
-  CambiosDeIdentidad,
-  IdentitySettings,
-  Recorrido,
-  SubPaso,
+import {
+  TOTAL_PASOS,
+  type CambiosDeIdentidad,
+  type IdentitySettings,
+  type Recorrido,
+  type SubPaso,
 } from "./logica";
 
 export type DejarListo = components["schemas"]["DejarListoOut"];
 export type SettingsResponse = components["schemas"]["SettingsResponse"];
 export type PlantillaAgente = components["schemas"]["AgentTemplate"];
 export type CreacionDeAgente = components["schemas"]["FromScriptOut"];
-export type TurnoDePrueba = {
-  text: string;
-  escalated?: boolean;
-  simulado?: boolean;
-  image_url?: string | null;
-};
 
 /** Estado del recorrido del primer uso (`GET /admin/onboarding`); `null` si el negocio no lo tiene. */
 export async function cargarRecorrido(
@@ -28,11 +23,12 @@ export async function cargarRecorrido(
   return res.recorrido ?? null;
 }
 
+/** Guarda la estación a la que llega (1 a 5). `pasos: 5` dice la escala (HU-AOS-84); sin él sería la de 6. */
 export async function avanzar(
   api: ClienteAdmin,
   paso: number,
 ): Promise<Recorrido> {
-  return api.post<Recorrido>("/admin/onboarding/avanzar", { paso });
+  return api.post<Recorrido>("/admin/onboarding/avanzar", { paso, pasos: TOTAL_PASOS });
 }
 
 export async function omitir(api: ClienteAdmin): Promise<Recorrido> {
@@ -104,43 +100,14 @@ export async function guardarIdentidad(
   });
 }
 
-export async function enviarPrueba(
-  api: ClienteAdmin,
-  conexionId: string,
-  text: string,
-): Promise<void> {
-  await api.post("/admin/playground/message", {
-    text,
-    connection_id: conexionId,
-  });
+/** Cambia el nombre del agente ya creado: al volver a «Tu negocio» manda el nombre de la estación 1. */
+export async function renombrarAgente(api: ClienteAdmin, agentId: string, name: string): Promise<void> {
+  await api.patch(`/admin/agents/${agentId}`, { name });
 }
 
-export async function cargarPrueba(
-  api: ClienteAdmin,
-  conexionId: string,
-): Promise<TurnoDePrueba[]> {
-  const res = await api.get<{ turns: TurnoDePrueba[] }>("/admin/playground", {
-    connection_id: conexionId,
-  });
-  return res.turns;
-}
-
-export async function reiniciarPrueba(
-  api: ClienteAdmin,
-  conexionId: string,
-): Promise<void> {
-  await api.post(
-    `/admin/playground/reset?connection_id=${encodeURIComponent(conexionId)}`,
-  );
-}
-
-export async function cerrarPrueba(
-  api: ClienteAdmin,
-  conexionId: string,
-): Promise<void> {
-  await api.post(
-    `/admin/playground/close?connection_id=${encodeURIComponent(conexionId)}`,
-  );
+/** Tipo (plantilla) del agente ya creado, para retomar la bienvenida con su tipo fijo. */
+export async function cargarAgente(api: ClienteAdmin, agentId: string): Promise<{ id: string; key: string; name: string }> {
+  return api.get<{ id: string; key: string; name: string }>(`/admin/agents/${agentId}`);
 }
 
 export type { SubPaso };

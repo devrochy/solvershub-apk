@@ -1,22 +1,26 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
 jest.mock("@core/session/admin-session-context", () => ({
-  useAdminSession: () => ({ sesion: { tenantId: "t1", tenantName: "Moda Sur", role: "admin", permissions: {} } }),
+  useAdminSession: () => ({ sesion: { tenantId: "t1", tenantName: "Panadería La Espiga", role: "owner", permissions: {} } }),
 }));
+jest.mock("@shared/ui/motion", () => ({ ...jest.requireActual("@shared/ui/motion"), useReduceMotion: () => true }));
 
-import { Alert } from "react-native";
+import { useEffect } from "react";
+import { Text } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AdminApiError } from "@core/api/admin";
 import { useAdminApi } from "@core/session/use-admin-api";
+import type { PropsDeEstacionDelAgente } from "@shared/ruta/estacion-del-agente";
 import type { Recorrido } from "../logica";
 import { RecorridoScreen } from "./RecorridoScreen";
 
 const mockGet = jest.fn();
 const mockPost = jest.fn();
 const mockPut = jest.fn();
-const cliente = { get: mockGet, post: mockPost, put: mockPut, patch: jest.fn(), del: jest.fn() };
+const mockPatch = jest.fn();
+const cliente = { get: mockGet, post: mockPost, put: mockPut, patch: mockPatch, del: jest.fn() };
 
-const nuevo: Recorrido = { estado: "pendiente", paso: 1, total_pasos: 6, aplica: true, abrir: true, avisar: false };
+const nuevo: Recorrido = { estado: "pendiente", paso: 1, total_pasos: 5, aplica: true, abrir: true, avisar: false };
 const identidad = {
   assistant_name: "Asistente",
   business_description: "",
@@ -33,169 +37,212 @@ const identidad = {
   tono: "x",
 };
 
-function responder(recorrido: Recorrido) {
+function responder(recorrido: Recorrido, opciones: { keyTaken?: boolean } = {}) {
   mockGet.mockImplementation((path: string) => {
     if (path === "/admin/onboarding") return Promise.resolve({ recorrido });
     if (path === "/admin/settings") return Promise.resolve({ identity: identidad });
     if (path === "/admin/playground") return Promise.resolve({ turns: [] });
+    if (path === "/admin/agents/a-1") return Promise.resolve({ id: "a-1", key: "agenda", name: "Tomás" });
     return Promise.reject(new Error(path));
   });
   mockPost.mockImplementation((path: string, body?: { paso?: number }) => {
     if (path === "/admin/onboarding/avanzar")
-      return Promise.resolve({ ...recorrido, estado: "en_curso", paso: body?.paso ?? 1, abrir: false, avisar: true });
+      return Promise.resolve({
+        ...recorrido,
+        estado: "en_curso",
+        paso: body?.paso ?? 1,
+        abrir: false,
+        avisar: true,
+        agente_id: (body?.paso ?? 1) > 1 ? "a-1" : recorrido.agente_id,
+        conexion_id: (body?.paso ?? 1) > 1 ? "c-1" : recorrido.conexion_id,
+      });
     if (path === "/admin/onboarding/omitir") return Promise.resolve({ ...recorrido, estado: "omitido", avisar: true });
+    if (path === "/admin/agents/from-script") {
+      if (opciones.keyTaken) return Promise.reject(new AdminApiError(409, "key_taken", "Ya tienes un agente", { agent_id: "a-1" }));
+      return Promise.resolve({ agent: { id: "a-1" }, warnings: [], enabled_skills: [], requirements: [] });
+    }
+    if (path === "/admin/onboarding/dejar-listo")
+      return Promise.resolve({
+        conexion_id: "c-1",
+        listo: true,
+        pasos: [],
+        recorrido: { ...recorrido, estado: "en_curso", agente_id: "a-1", conexion_id: "c-1" },
+      });
     return Promise.reject(new Error(path));
   });
   mockPut.mockResolvedValue(undefined);
+  mockPatch.mockResolvedValue(undefined);
 }
 
-describe("RecorridoScreen (HU-APP-22)", () => {
+function llamadas(): string[] {
+  return [...mockPut.mock.calls.map((c) => `PUT ${c[0]}`), ...mockPost.mock.calls.map((c) => `POST ${c[0]}`)];
+}
+
+describe("RecorridoScreen (HU-APP-23, 5 estaciones)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useAdminApi as jest.Mock).mockReturnValue(cliente);
   });
 
-  it("muestra el paso 1 con el logo y no avanza sin lo necesario", async () => {
+  it("abre «Tu negocio» a pantalla completa con la franja, el logo y la mini ruta de 5", async () => {
     responder(nuevo);
     const api = await render(<RecorridoScreen />);
     await waitFor(() => api.getByText("Cuéntanos de tu negocio"));
+    expect(api.getByTestId("onb-escenario")).toBeTruthy();
     expect(api.getByTestId("logo-horizontal")).toBeTruthy();
-    expect(api.getByText("Paso 1 de 6")).toBeTruthy();
+    expect(api.getByText("Paso 1 de 5 · Tu negocio")).toBeTruthy();
+    expect(api.getByTestId("onb-escenario-ruta").props.accessibilityValue).toEqual({ min: 1, max: 5, now: 1 });
+    // Se retoma con lo de 5: el servidor guarda la escala.
+    expect(mockPost).toHaveBeenCalledWith("/admin/onboarding/avanzar", { paso: 1, pasos: 5 });
+  });
+
+  it("llega con lo recomendado: Vendo productos, Laura sugerida y la frase del tipo", async () => {
+    responder(nuevo);
+    const api = await render(<RecorridoScreen />);
+    await waitFor(() => api.getByTestId("onb-tipo-ventas"));
+    expect(api.getByTestId("onb-tipo-ventas").props.accessibilityState.selected).toBe(true);
+    expect(api.getByTestId("onb-tipo-ventas").props.accessibilityHint).toContain("Recomendado");
+    expect(api.getByTestId("onb-nombre").props.value).toBe("Laura");
+    expect(api.getByText("Sugerido")).toBeTruthy();
+    expect(api.getByTestId("onb-negocio").props.value).toBe("Panadería La Espiga");
+    expect(api.getByTestId("onb-descripcion").props.value).toContain("tomamos pedidos");
+    expect(api.getByText("Crear a Laura y seguir")).toBeTruthy();
+    expect(api.queryByText("Usar lo recomendado")).toBeNull();
+  });
+
+  it("cuenta los cambios frente a lo recomendado y «Usar lo recomendado» vuelve a lo de antes", async () => {
+    responder(nuevo);
+    const api = await render(<RecorridoScreen />);
+    await waitFor(() => api.getByTestId("onb-tipo-agenda"));
+    await fireEvent.press(api.getByTestId("onb-tipo-agenda"));
+    expect(api.getByText(/1 cambio/)).toBeTruthy();
+    // La frase siguió al tipo: no es un segundo cambio.
+    expect(api.getByTestId("onb-descripcion").props.value).toContain("cita previa");
+    await fireEvent.press(api.getByTestId("onb-sugerido-Tomás"));
+    expect(api.getByText(/2 cambios/)).toBeTruthy();
+    await fireEvent.press(api.getByTestId("onb-recomendado-usar"));
+    expect(api.getByTestId("onb-tipo-ventas").props.accessibilityState.selected).toBe(true);
+    expect(api.getByTestId("onb-nombre").props.value).toBe("Laura");
+    expect(api.queryByText("Usar lo recomendado")).toBeNull();
+  });
+
+  it("sin nombre del negocio no avanza ni escribe nada", async () => {
+    responder(nuevo);
+    const api = await render(<RecorridoScreen />);
+    await waitFor(() => api.getByTestId("onb-negocio"));
+    await fireEvent.changeText(api.getByTestId("onb-negocio"), "");
     await fireEvent.press(api.getByTestId("onb-siguiente"));
-    expect(api.getByText("Elige a qué se dedica tu negocio.")).toBeTruthy();
+    expect(api.getByText("Escribe cómo se llama tu negocio.")).toBeTruthy();
     expect(mockPut).not.toHaveBeenCalled();
   });
 
-  it("guarda el paso en Identidad (completa, sin lo de solo lectura) y pasa al siguiente", async () => {
+  it("al salir de la estación 1 guarda la identidad, crea el agente, lo deja listo y sigue en Habilidades", async () => {
     responder(nuevo);
     const api = await render(<RecorridoScreen />);
-    await waitFor(() => api.getByTestId("onb-tipo-ventas"));
-    await fireEvent.press(api.getByTestId("onb-tipo-ventas"));
-    await fireEvent.changeText(api.getByTestId("onb-descripcion"), "Vendemos ropa deportiva en Manizales");
-    await fireEvent.press(api.getByTestId("onb-sugerido-Sofía"));
+    await waitFor(() => api.getByTestId("onb-siguiente"));
+    mockPost.mockClear();
     await fireEvent.press(api.getByTestId("onb-siguiente"));
-    await waitFor(() => api.getByText("¿Cómo quieres que hable?"));
-    const [ruta, cuerpo] = mockPut.mock.calls[0];
-    expect(ruta).toBe("/admin/settings/identity");
-    expect(cuerpo).toMatchObject({ assistant_name: "Sofía", persona_tone: "cercano", business_tz: "America/Bogota" });
-    expect(cuerpo).not.toHaveProperty("out_of_hours_default_message");
-    expect(cuerpo).not.toHaveProperty("bot_paused");
-    expect(mockPost).toHaveBeenCalledWith("/admin/onboarding/avanzar", { paso: 2 });
-    expect(api.getByText("Paso 2 de 6")).toBeTruthy();
+    await waitFor(() => api.getByText("Paso 2 de 5 · Habilidades"));
+    expect(llamadas()).toEqual([
+      "PUT /admin/settings/identity",
+      "POST /admin/agents/from-script",
+      "POST /admin/onboarding/dejar-listo",
+      "POST /admin/onboarding/avanzar",
+    ]);
+    expect(mockPut.mock.calls[0][1]).toMatchObject({
+      assistant_name: "Laura",
+      business_description: expect.stringMatching(/^Panadería La Espiga\. Vendemos/),
+      business_tz: "America/Bogota",
+    });
+    expect(mockPost).toHaveBeenCalledWith("/admin/agents/from-script", {
+      template_key: "ventas",
+      answers: { largo_respuesta: "normal" },
+      name: "Laura",
+    });
+    expect(mockPost).toHaveBeenLastCalledWith("/admin/onboarding/avanzar", { paso: 2, pasos: 5 });
+    expect(api.getByText("¿Qué sabe hacer Laura?")).toBeTruthy();
   });
 
-  it("elegir un tipo de negocio no pide activar nada antes: avisa que se activa al terminar", async () => {
-    responder(nuevo);
+  it("si el tipo ya existe (reintento tras un corte) sigue con ese agente en vez de duplicarlo", async () => {
+    responder(nuevo, { keyTaken: true });
     const api = await render(<RecorridoScreen />);
-    await waitFor(() => api.getByTestId("onb-tipo-ventas"));
-    expect(api.queryByTestId("onb-tipo-activara")).toBeNull();
-    await fireEvent.press(api.getByTestId("onb-tipo-ventas"));
-    expect(api.getByTestId("onb-tipo-activara")).toBeTruthy();
-    expect(api.queryByText(/Falta activar una habilidad/)).toBeNull();
+    await waitFor(() => api.getByTestId("onb-siguiente"));
+    await fireEvent.press(api.getByTestId("onb-siguiente"));
+    await waitFor(() => api.getByText("Paso 2 de 5 · Habilidades"));
+    expect(mockPost).toHaveBeenCalledWith("/admin/onboarding/dejar-listo", { agent_id: "a-1" });
   });
 
-  it("«Lo hago después» pide confirmación y deja el recorrido omitido", async () => {
+  it("retoma con el agente creado en su estación, con su tipo fijo y sin crear otro", async () => {
+    responder({ ...nuevo, estado: "en_curso", paso: 3, agente_id: "a-1", conexion_id: "c-1" });
+    const api = await render(<RecorridoScreen />);
+    await waitFor(() => api.getByText("Paso 3 de 5 · Datos del cliente"));
+    expect(api.getByText("¿Qué datos pide Tomás?")).toBeTruthy();
+    expect(mockPost).not.toHaveBeenCalledWith("/admin/agents/from-script", expect.anything());
+    // Vuelve a «Tu negocio»: el tipo del agente no cambia y el botón guarda en vez de crear.
+    await fireEvent.press(api.getByTestId("onb-atras"));
+    await fireEvent.press(api.getByTestId("onb-atras"));
+    await waitFor(() => api.getByText("Guardar y seguir"));
+    expect(api.getByTestId("onb-tipo-ventas").props.accessibilityState.disabled).toBe(true);
+    expect(api.getByTestId("onb-tipo-agenda").props.accessibilityState.selected).toBe(true);
+  });
+
+  it("las estaciones 2 a 4 vienen del módulo de agentes: si su guardado falla, no avanza", async () => {
+    responder({ ...nuevo, estado: "en_curso", paso: 2, agente_id: "a-1", conexion_id: "c-1" });
+    const guardar = jest.fn().mockResolvedValue(false);
+    function Estacion({ estacion, registrarGuardar }: PropsDeEstacionDelAgente) {
+      useEffect(() => {
+        registrarGuardar(guardar);
+        return () => registrarGuardar(null);
+      }, [registrarGuardar]);
+      return <Text>Estación {estacion}</Text>;
+    }
+    const api = await render(<RecorridoScreen estacionDelAgente={Estacion} />);
+    await waitFor(() => api.getByText("Estación habilidades"));
+    expect(api.getByText("Guardar y seguir: Datos del cliente")).toBeTruthy();
+    await fireEvent.press(api.getByTestId("onb-siguiente"));
+    await waitFor(() => expect(guardar).toHaveBeenCalled());
+    expect(api.getByText("Paso 2 de 5 · Habilidades")).toBeTruthy();
+    guardar.mockResolvedValue(true);
+    await fireEvent.press(api.getByTestId("onb-siguiente"));
+    await waitFor(() => api.getByText("Estación datos-cliente"));
+    expect(mockPost).toHaveBeenLastCalledWith("/admin/onboarding/avanzar", { paso: 3, pasos: 5 });
+  });
+
+  it("antes de «Revisar y publicar» deja listo con lo último, y la prueba va por la conexión", async () => {
+    responder({ ...nuevo, estado: "en_curso", paso: 4, agente_id: "a-1", conexion_id: "c-1" });
+    const api = await render(<RecorridoScreen estacionDelAgente={() => null} />);
+    await waitFor(() => api.getByText("Paso 4 de 5 · Datos para probar"));
+    expect(api.getByText("¿Qué citas agenda Tomás?")).toBeTruthy();
+    await fireEvent.press(api.getByTestId("onb-siguiente"));
+    await waitFor(() => api.getByText("Paso 5 de 5 · Revisar y publicar"));
+    expect(mockPost).toHaveBeenCalledWith("/admin/onboarding/dejar-listo", { agent_id: "a-1" });
+    expect(mockGet).toHaveBeenCalledWith("/admin/playground", { connection_id: "c-1" });
+    expect(api.getByTestId("onb-resumen")).toBeTruthy();
+    expect(api.getByText("Publicar a Tomás")).toBeTruthy();
+    expect(api.getByTestId("onb-falta-prueba")).toBeTruthy();
+  });
+
+  it("«Seguir después» confirma qué pasa y omite", async () => {
     responder(nuevo);
-    const alerta = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    const { Alert } = jest.requireActual<typeof import("react-native")>("react-native");
+    const alerta = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
+      botones?.find((b) => b.text === "Seguir después")?.onPress?.();
+    });
     const api = await render(<RecorridoScreen />);
     await waitFor(() => api.getByTestId("onb-omitir"));
     await fireEvent.press(api.getByTestId("onb-omitir"));
-    const botones = alerta.mock.calls[0][2] ?? [];
-    expect(botones.map((b) => b.text)).toEqual(["Seguir ahora", "Lo hago después"]);
-    botones[1].onPress?.();
+    expect(alerta.mock.calls[0][0]).toBe("Laura no atiende hasta que termines.");
     await waitFor(() => expect(mockPost).toHaveBeenCalledWith("/admin/onboarding/omitir"));
     alerta.mockRestore();
   });
 
-  it("retoma en el paso 4 con el agente ya creado y lo deja listo sin crear otro", async () => {
-    const retomado: Recorrido = { ...nuevo, estado: "en_curso", paso: 4, abrir: false, agente_id: "a1" };
-    responder(retomado);
-    mockPost.mockImplementation((path: string, body?: { paso?: number }) => {
-      if (path === "/admin/onboarding/dejar-listo")
-        return Promise.resolve({
-          conexion_id: "c1",
-          release_id: "r1",
-          listo: true,
-          pasos: [
-            { clave: "conexion", estado: "hecho" },
-            { clave: "publicar", estado: "hecho" },
-            { clave: "activar", estado: "hecho" },
-          ],
-          recorrido: { ...retomado, conexion_id: "c1" },
-        });
-      return Promise.resolve({ ...retomado, paso: body?.paso ?? 4 });
-    });
+  it("el chat de las estaciones 1 a 4 es simulado: responde sin red", async () => {
+    responder(nuevo);
     const api = await render(<RecorridoScreen />);
-    await waitFor(() => api.getByText("Crea tu agente"));
-    await fireEvent.press(api.getByTestId("onb-crear"));
-    // SPEC-45: después de crear sigue «Carga sus datos», no la prueba.
-    await waitFor(() => api.getByTestId("onb-siguiente"));
-    expect(api.getByText("Siguiente")).toBeTruthy();
-    expect(mockPost).toHaveBeenCalledWith("/admin/onboarding/dejar-listo", { agent_id: "a1" });
-    expect(mockPost).not.toHaveBeenCalledWith("/admin/agents/from-script", expect.anything());
-    expect(api.getByText("Todo listo. Sigue para probar a tu agente.")).toBeTruthy();
-  });
-
-  it("si ya hay un chat web en vivo lo dice y permite reintentar", async () => {
-    const retomado: Recorrido = { ...nuevo, estado: "en_curso", paso: 4, abrir: false, agente_id: "a1" };
-    responder(retomado);
-    mockPost.mockImplementation((path: string) =>
-      path === "/admin/onboarding/dejar-listo"
-        ? Promise.reject(new AdminApiError(409, "canal_en_vivo", "Hay un chat web en vivo."))
-        : Promise.resolve(retomado),
-    );
-    const api = await render(<RecorridoScreen />);
-    await waitFor(() => api.getByTestId("onb-crear"));
-    await fireEvent.press(api.getByTestId("onb-crear"));
-    await waitFor(() => api.getByText(/Ya tienes un chat web en vivo/));
-    expect(api.getByText("Reintentar")).toBeTruthy();
-  });
-
-  it("con el agente creado, el paso 5 carga sus datos y lleva a probarlo (SPEC-45)", async () => {
-    const enDatos: Recorrido = { ...nuevo, estado: "en_curso", paso: 5, abrir: false, agente_id: "a1", conexion_id: "c1" };
-    responder(enDatos);
-    mockGet.mockImplementation((path: string) => {
-      if (path === "/admin/onboarding") return Promise.resolve({ recorrido: enDatos });
-      if (path === "/admin/settings") return Promise.resolve({ identity: identidad });
-      if (path === "/admin/agents/a1/datos-de-prueba") return Promise.resolve({ disponible: true, falta_descripcion: false, lote: null });
-      return Promise.reject(new Error(path));
-    });
-    const api = await render(<RecorridoScreen />);
-    await waitFor(() => api.getByTestId("paso-datos"));
-    expect(api.getByText("Carga sus datos")).toBeTruthy();
-    expect(api.getByText("Generar datos de prueba")).toBeTruthy();
-    expect(api.getByText("Probar mi agente")).toBeTruthy();
-    expect(api.queryByTestId("onb-conocimiento-prueba")).toBeNull();
-  });
-
-  it("en el chat de prueba lo escrito va junto a su respuesta aunque ya hubiera historial", async () => {
-    const enPrueba: Recorrido = { ...nuevo, estado: "en_curso", paso: 6, abrir: false, agente_id: "a1", conexion_id: "c1" };
-    responder(enPrueba);
-    let turnos = [{ text: "Respuesta vieja", escalated: false }];
-    mockGet.mockImplementation((path: string) => {
-      if (path === "/admin/onboarding") return Promise.resolve({ recorrido: enPrueba });
-      if (path === "/admin/settings") return Promise.resolve({ identity: identidad });
-      if (path === "/admin/playground") return Promise.resolve({ turns: turnos });
-      return Promise.reject(new Error(path));
-    });
-    mockPost.mockImplementation((path: string) => {
-      if (path === "/admin/playground/message") {
-        turnos = [...turnos, { text: "Respuesta nueva", escalated: false }];
-        return Promise.resolve({});
-      }
-      return Promise.resolve(enPrueba);
-    });
-    const api = await render(<RecorridoScreen />);
-    await waitFor(() => api.getByText("Respuesta vieja"));
-    await fireEvent.changeText(api.getByTestId("onb-prueba-texto"), "hola");
-    await fireEvent.press(api.getByTestId("onb-prueba-enviar"));
-    await waitFor(() => api.getByText("Respuesta nueva"));
-    const arbol = JSON.stringify(api.toJSON());
-    expect(mockPost).toHaveBeenCalledWith("/admin/playground/message", { text: "hola", connection_id: "c1" });
-    // «hola» va después de la respuesta vieja y justo antes de la nueva.
-    expect(arbol.indexOf("Respuesta vieja")).toBeLessThan(arbol.indexOf('"hola"'));
-    expect(arbol.indexOf('"hola"')).toBeLessThan(arbol.indexOf("Respuesta nueva"));
-    // Una respuesta del agente habilita Terminar.
-    expect(api.getByTestId("onb-terminar")).toBeTruthy();
+    await waitFor(() => api.getByTestId("vista-previa-quien"));
+    const antes = mockPost.mock.calls.length + mockGet.mock.calls.length;
+    await fireEvent.press(api.getByTestId("vista-previa-quien"));
+    expect(api.getByText("Soy Laura, de Panadería La Espiga. Te ayudo con pedidos, precios y domicilios.")).toBeTruthy();
+    expect(mockPost.mock.calls.length + mockGet.mock.calls.length).toBe(antes);
   });
 });

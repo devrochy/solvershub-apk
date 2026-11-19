@@ -1,136 +1,102 @@
 import {
   ESTADO_INICIAL,
+  PASOS,
+  TOTAL_PASOS,
   accionDelAviso,
-  agregarFrase,
-  cambiosDelPaso,
+  cambiosDelPaso1,
+  conLoRecomendado,
+  conTipo,
   errorDelPaso,
+  errorDelPaso1,
   estadoDesdeIdentidad,
-  franjasDeHorario,
-  horarioDeFranjas,
-  motivosDePalabras,
-  muestraDeVoz,
-  palabrasDeEscalar,
+  fraseDelTipo,
+  ideasDeLaBienvenida,
+  pasoDeCinco,
   pasosQueFaltan,
-  resumenDeHorario,
-  respuestasDeCreacion,
+  textoDeAvance,
   textoDelAviso,
-  type EstadoDelAsistente,
-  type IdentitySettings,
+  tituloDelPaso,
+  valoresDelPaso1,
   type Recorrido,
 } from "./logica";
+import { cambiosFrenteARecomendado } from "@shared/ruta-de-lanzamiento";
 
-const RECORRIDO: Recorrido = { estado: "omitido", paso: 3, total_pasos: 6, aplica: true, abrir: false, avisar: true };
-const listo: EstadoDelAsistente = {
-  ...ESTADO_INICIAL,
-  tipo: "ventas",
-  descripcion: "Vendemos ropa deportiva en Manizales",
-  nombreDelAgente: "Sofía",
-};
+const base: Recorrido = { estado: "en_curso", paso: 1, total_pasos: 5, aplica: true, abrir: false, avisar: true };
 
-describe("lógica del asistente de primer uso (HU-APP-22)", () => {
-  it("exige tipo, una frase del negocio y un nombre antes de salir del primer paso", () => {
-    expect(errorDelPaso("negocio", ESTADO_INICIAL)).toMatch(/Elige a qué se dedica/);
-    expect(errorDelPaso("negocio", { ...listo, descripcion: "corta" })).toMatch(/en una frase/);
-    expect(errorDelPaso("negocio", { ...listo, nombreDelAgente: "  " })).toMatch(/nombre/);
-    expect(errorDelPaso("negocio", listo)).toBeUndefined();
+describe("bienvenida en 5 estaciones (HU-APP-23)", () => {
+  it("tiene las 5 estaciones de la ruta", () => {
+    expect(TOTAL_PASOS).toBe(5);
+    expect(PASOS.map((p) => p.corto)).toEqual(["Tu negocio", "Habilidades", "Datos del cliente", "Datos para probar", "Revisar y publicar"]);
+    expect(textoDeAvance(2)).toBe("Paso 2 de 5");
   });
 
-  it("pide al menos un día si hay horario elegido", () => {
-    expect(errorDelPaso("reglas", { ...listo, horario: { dias: [], bloque: "jornada" } })).toMatch(/al menos un día/);
-    expect(errorDelPaso("reglas", listo)).toBeUndefined();
+  it("traduce un paso guardado con otra escala, como el servidor", () => {
+    expect(pasoDeCinco({ paso: 3, total_pasos: 5 })).toBe(3);
+    expect(pasoDeCinco({ paso: 9, total_pasos: 5 })).toBe(5);
+    expect(pasoDeCinco({ paso: 3, total_pasos: 4 })).toBe(4);
+    expect(pasoDeCinco({ paso: 7, total_pasos: 9 })).toBe(4);
+    expect(pasoDeCinco({ paso: 0, total_pasos: 5 })).toBe(1);
   });
 
-  it("traduce el horario elegido a franjas y las lee de vuelta", () => {
-    const franjas = franjasDeHorario({ dias: [4, 0, 0, 1], bloque: "jornada" });
-    expect(franjas).toEqual([
-      { day: 0, from: "08:00", to: "18:00" },
-      { day: 1, from: "08:00", to: "18:00" },
-      { day: 4, from: "08:00", to: "18:00" },
-    ]);
-    expect(horarioDeFranjas(franjas)).toEqual({ dias: [0, 1, 4], bloque: "jornada" });
-    expect(horarioDeFranjas([{ day: 0, from: "09:15", to: "17:00" }])).toBeNull();
+  it("llega con lo recomendado: Vendo productos, Laura y la frase del tipo", () => {
+    expect(ESTADO_INICIAL).toMatchObject({ tipo: "ventas", nombreDelAgente: "Laura", descripcion: fraseDelTipo("ventas") });
+    expect(ideasDeLaBienvenida("agenda")).toEqual(["Laura", "Tomás", "Luna"]);
+    // Sin nombres de función como idea.
+    expect(ideasDeLaBienvenida("cobranza")).toEqual(["Laura", "Clara", "Nico"]);
   });
 
-  it("resume el horario en palabras", () => {
-    expect(resumenDeHorario({ dias: [0, 1, 2, 3, 4], bloque: "jornada" })).toBe("Lunes a viernes, 8:00 a 18:00");
-    expect(resumenDeHorario({ dias: [0, 1, 2, 3, 4, 5, 6], bloque: "todo" })).toBe("Todos los días, las 24 horas");
-    expect(resumenDeHorario({ dias: [], bloque: "jornada" })).toBe("");
+  it("la frase sigue al tipo solo si el dueño no la editó", () => {
+    const cambiado = conTipo(ESTADO_INICIAL, "agenda");
+    expect(cambiado.descripcion).toBe(fraseDelTipo("agenda"));
+    const propia = conTipo({ ...ESTADO_INICIAL, descripcion: "Pan artesanal" }, "agenda");
+    expect(propia.descripcion).toBe("Pan artesanal");
   });
 
-  it("guarda el horario siempre como informativo: el agente responde 24/7", () => {
-    const cambios = cambiosDelPaso("reglas", listo);
-    expect(cambios.business_hours_mode).toBe("informativo");
-    expect(cambios.business_ranges).toHaveLength(5);
+  it("cambiar el tipo cuenta un cambio, no dos, frente a lo recomendado", () => {
+    const recomendado = conLoRecomendado(ESTADO_INICIAL);
+    expect(cambiosFrenteARecomendado(valoresDelPaso1(conTipo(ESTADO_INICIAL, "agenda")), valoresDelPaso1(recomendado))).toEqual(["tipo"]);
+    const otroNombre = { ...ESTADO_INICIAL, nombreDelAgente: "Sofía" };
+    expect(cambiosFrenteARecomendado(valoresDelPaso1(otroNombre), valoresDelPaso1(recomendado))).toEqual(["nombre"]);
   });
 
-  it("convierte los motivos en palabras y de vuelta", () => {
-    const palabras = palabrasDeEscalar(["persona", "reclamo"]);
-    expect(palabras).toContain("asesor");
-    expect(motivosDePalabras(palabras)).toEqual(["persona", "reclamo"]);
+  it("la estación 1 pide tipo, negocio, frase y nombre", () => {
+    const listo = { ...ESTADO_INICIAL, negocio: "La Espiga" };
+    expect(errorDelPaso1(listo)).toBeUndefined();
+    expect(errorDelPaso1(ESTADO_INICIAL)).toBe("Escribe cómo se llama tu negocio.");
+    expect(errorDelPaso("negocio", { ...listo, tipo: null })).toBe("Elige a qué se dedica tu negocio.");
+    expect(errorDelPaso("negocio", { ...listo, descripcion: "corta" })).toBe("Cuéntanos en una frase a qué se dedica tu negocio.");
+    expect(errorDelPaso("identidad", { ...listo, nombreDelAgente: " " })).toBe("Ponle un nombre a tu agente.");
   });
 
-  it("normaliza frases prohibidas sin repetir ni pasar del máximo", () => {
-    expect(agregarFrase(["gratis"], "  GRATIS ")).toEqual(["gratis"]);
-    expect(agregarFrase([], "  sin   falta ")).toEqual(["sin falta"]);
-    expect(agregarFrase(Array.from({ length: 12 }, (_, i) => `f${i}`), "otra")).toHaveLength(12);
-  });
-
-  it("la voz de ejemplo cambia con el tono, los emojis y el largo", () => {
-    const base = { tono: "cercano", calidez: 4, emojis: "none", largo: "normal" } as const;
-    expect(muestraDeVoz(base, "Sofía", "Moda Sur")).toContain("Soy Sofía, de Moda Sur");
-    expect(muestraDeVoz({ ...base, tono: "formal" }, "Sofía", "")).toContain("Le atiende Sofía");
-    expect(muestraDeVoz({ ...base, emojis: "free" }, "Sofía", "")).toContain("😊");
-    expect(muestraDeVoz({ ...base, largo: "cortas" }, "Sofía", "")).not.toContain("Soy Sofía");
-  });
-
-  it("distingue cada nivel de calidez, incluidos Cálido y Muy cálido", () => {
-    const base = { tono: "cercano", calidez: 4, emojis: "none", largo: "normal" } as const;
-    const seco = muestraDeVoz({ ...base, calidez: 0 }, "Sofía", "");
-    const calido = muestraDeVoz(base, "Sofía", "");
-    const muyCalido = muestraDeVoz({ ...base, calidez: 5 }, "Sofía", "");
-
-    expect(seco).toContain("Vamos al punto");
-    expect(calido).toContain("Con gusto te ayudo");
-    expect(muyCalido).toContain("Me encanta poder ayudarte");
-    expect(calido).not.toBe(muyCalido);
-  });
-
-  it("arma las respuestas de creación y los cambios de identidad", () => {
-    expect(respuestasDeCreacion({ ...listo, largo: "cortas" })).toEqual({ largo_respuesta: "cortas" });
-    expect(respuestasDeCreacion({ ...listo, tipo: "agenda" })).toEqual({ largo_respuesta: "normal" });
-    expect(cambiosDelPaso("voz", { ...listo, largo: "detalladas", calidez: 9 })).toMatchObject({ persona_max_length: 900, persona_warmth: 5 });
-  });
-
-  it("retoma lo ya guardado en Identidad", () => {
-    const identidad = {
-      assistant_name: "Vera",
-      business_description: "Vendemos café",
-      persona_tone: "formal",
-      persona_warmth: 2,
-      persona_emojis: "none",
-      persona_max_length: 300,
-      persona_forbidden: ["gratis"],
-      escalation_keywords: ["asesor", "humano", "persona", "hablar con alguien"],
-      business_ranges: [{ day: 0, from: "08:00", to: "12:00" }],
-    } as unknown as IdentitySettings;
-    expect(estadoDesdeIdentidad(identidad)).toMatchObject({
-      nombreDelAgente: "Vera",
-      tono: "formal",
-      calidez: 2,
-      emojis: "none",
-      largo: "cortas",
-      prohibidas: ["gratis"],
-      motivos: ["persona"],
-      horario: { dias: [0], bloque: "manana" },
+  it("guarda en la identidad «negocio. frase» y el nombre del agente", () => {
+    expect(cambiosDelPaso1({ ...ESTADO_INICIAL, negocio: "La Espiga", descripcion: "Pan artesanal" })).toEqual({
+      business_description: "La Espiga. Pan artesanal",
+      assistant_name: "Laura",
     });
   });
 
-  it("dice cuántos pasos faltan y qué botón ofrecer", () => {
-    expect(pasosQueFaltan(RECORRIDO)).toBe(4);
-    expect(textoDelAviso(RECORRIDO)).toBe("Tu agente aún no está listo para probar. Faltan 4 pasos.");
-    expect(textoDelAviso({ ...RECORRIDO, paso: 6 })).toBe("Tu agente aún no está listo para probar. Falta 1 paso.");
-    expect(pasosQueFaltan({ ...RECORRIDO, estado: "completo" })).toBe(0);
-    expect(accionDelAviso(RECORRIDO)).toBe("Continuar");
-    expect(accionDelAviso({ ...RECORRIDO, estado: "pendiente", paso: 1 })).toBe("Empezar");
+  it("al retomar muestra la frase sola y no toma el nombre del alta como elección", () => {
+    const desde = estadoDesdeIdentidad(
+      { assistant_name: "La Espiga", business_description: "La Espiga. Pan artesanal" },
+      { ...ESTADO_INICIAL, negocio: "La Espiga" },
+    );
+    expect(desde.descripcion).toBe("Pan artesanal");
+    expect(desde.nombreDelAgente).toBe("Laura");
+    expect(estadoDesdeIdentidad({ assistant_name: "Sofía", business_description: "" }).nombreDelAgente).toBe("Sofía");
+  });
+
+  it("los títulos llevan el nombre y «Datos para probar» va por tipo", () => {
+    expect(tituloDelPaso("habilidades", "Laura", "ventas")).toBe("¿Qué sabe hacer Laura?");
+    expect(tituloDelPaso("datos-probar", "Laura", "ventas")).toBe("Dale a Laura algo que vender");
+    expect(tituloDelPaso("datos-probar", "Tomás", "agenda")).toBe("¿Qué citas agenda Tomás?");
+  });
+
+  it("el aviso cuenta las estaciones que faltan de 5", () => {
+    expect(pasosQueFaltan({ ...base, paso: 1 })).toBe(5);
+    expect(textoDelAviso({ ...base, paso: 3 })).toBe("Tu agente aún no está listo para responder. Faltan 3 de 5 pasos.");
+    expect(textoDelAviso({ ...base, paso: 5 })).toBe("Tu agente aún no está listo para responder. Falta 1 de 5 pasos.");
+    expect(pasosQueFaltan({ ...base, estado: "completo" })).toBe(0);
+    expect(accionDelAviso({ ...base, estado: "pendiente", paso: 1 })).toBe("Empezar");
+    expect(accionDelAviso({ ...base, paso: 2 })).toBe("Continuar");
   });
 });

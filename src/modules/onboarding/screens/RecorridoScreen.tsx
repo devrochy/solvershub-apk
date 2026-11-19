@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   BackHandler,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,110 +17,126 @@ import { AdminApiError } from "@core/api/admin";
 import { secureGet, secureSet } from "@core/secure-kv";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
-import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { shSpace, shType } from "@core/theme/tokens";
+import type { RegistroDePrueba } from "@shared/carga-de-datos/carga";
+import { sugerenciasDePrueba } from "@shared/carga-de-datos/carga";
 import { emitirNavegacion } from "@shared/navegacion-evento";
-import { Button, Icono, Sheet, TextField, useKit } from "@shared/ui";
+import { PasoProbar } from "@shared/prueba/PasoProbar";
+import {
+  ESTACIONES_DE_LA_BIENVENIDA,
+  cambiosFrenteARecomendado,
+  siglasDe,
+  textoDeGuardarYSeguir,
+  tipoDeLaPlantilla,
+  type EstacionDeLaRuta,
+} from "@shared/ruta-de-lanzamiento";
+import type { EstacionDelAgente, EstacionDelAgenteId, GuardarEstacion } from "@shared/ruta/estacion-del-agente";
+import {
+  BarraRecomendado,
+  Button,
+  EncabezadoEscenario,
+  PildoraDelAgente,
+  ResumenDeEstaciones,
+  TarjetaDelEscenario,
+  useKit,
+} from "@shared/ui";
+import { ChatDeVistaPrevia } from "@shared/vista-previa/ChatDeVistaPrevia";
 import {
   avanzar,
-  cargarPrueba,
+  cargarAgente,
   cargarRecorrido,
-  cerrarPrueba,
   crearDesdeGuion,
   dejarListo,
-  enviarPrueba,
   finalizar,
   guardarIdentidad,
   omitir,
-  reiniciarPrueba,
-  type TurnoDePrueba,
+  renombrarAgente,
 } from "../api";
-import { Chip } from "../components/Elegible";
-import {
-  cargarDatosDePrueba,
-  conteoLegible,
-  generarDatosDePrueba,
-  MODULOS_DE_PRUEBA,
-  resumenDelLote,
-  type EstadoDatosDePruebaModulo,
-  type ModuloDatosDePrueba,
-} from "../../datos-prueba";
 import { LogoHorizontal } from "../components/LogoHorizontal";
-import { TarjetaDelAgente } from "../components/TarjetaDelAgente";
 import { useOnboarding } from "../contexto";
 import {
+  BAJADA_DEL_PASO,
+  DESCRIPCION_MIN,
   ESTADO_INICIAL,
-  ETIQUETAS_DE_SUBPASO,
+  FALTA_PARA_TERMINAR,
   FRASES_DE_PRUEBA,
-  MOTIVOS_DE_ESCALAR,
   PASOS,
+  TIPO_RECOMENDADO,
   TIPOS_DE_NEGOCIO,
-  TONOS,
   TOTAL_PASOS,
-  cambiosDelPaso,
-  errorDelPaso,
+  cambiosDelPaso1,
+  conLoRecomendado,
+  conTipo,
+  errorDelPaso1,
   estadoDesdeIdentidad,
+  pasoDeCinco,
   plantillaDe,
   respuestasDeCreacion,
-  resumenDeHorario,
-  textoDeAvance,
+  textosDeSeguirDespues,
+  tituloDelPaso,
+  valoresDelPaso1,
   type EstadoDelAsistente,
+  type IdentitySettings,
   type Recorrido,
-  type SubPaso,
+  type TipoDeNegocio,
 } from "../logica";
-import { PasoNegocio, PasoReglas, PasoVoz } from "./Pasos";
-import type { RegistroDePrueba } from "@shared/carga-de-datos/carga";
-import { sugerenciasDePrueba } from "@shared/carga-de-datos/carga";
-import { PasoDatos, type Cargado } from "@shared/carga-de-datos/PasoDatos";
-import { PasoLoCargado } from "@shared/carga-de-datos/PasoLoCargado";
+import { PasoNegocio } from "./Pasos";
 
-const MENSAJE_DE_RED =
-  "Se cortó la conexión. Lo que elegiste sigue aquí: vuelve a intentarlo.";
+const MENSAJE_DE_RED = "Se cortó la conexión. Lo que elegiste sigue aquí: vuelve a intentarlo.";
 
-/** Borrador local: lo que el servidor no guarda por sí mismo (tipo de negocio y nombre comercial). */
-type Borrador = Pick<EstadoDelAsistente, "tipo" | "negocio">;
+/** Borrador local: lo de la estación 1 que todavía no está en el servidor (el tipo vive solo aquí hasta crear el agente). */
+type Borrador = Partial<Pick<EstadoDelAsistente, "tipo" | "negocio" | "descripcion" | "nombreDelAgente">>;
 
-const claveDeBorrador = (negocioId: string | null) =>
-  `sh-onboarding:${negocioId ?? "sin-negocio"}`;
+const claveDeBorrador = (negocioId: string | null) => `sh-onboarding:${negocioId ?? "sin-negocio"}`;
+
+/** La estación (2 a 4) de cada paso de la bienvenida que escribe sobre el agente. */
+const ESTACION_DEL_PASO: Record<number, EstacionDelAgenteId> = { 2: "habilidades", 3: "datos-cliente", 4: "datos-probar" };
+
+/** La estación de la ruta de cada paso (para el chat simulado y el texto de los botones). */
+function estacionDe(paso: number): EstacionDeLaRuta {
+  return ESTACIONES_DE_LA_BIENVENIDA[paso - 1]?.id ?? "negocio";
+}
+
+/** «a», «a y b», «a, b y c». */
+function enLista(partes: string[]): string {
+  return partes.length < 2 ? partes.join("") : `${partes.slice(0, -1).join(", ")} y ${partes[partes.length - 1]}`;
+}
 
 /**
- * Asistente de primer uso a pantalla completa (HU-APP-22, SPEC-41): los mismos seis pasos que el panel, uno
- * por pantalla, con la tarjeta «Tu agente, armándose» en una hoja plegable. Cada paso guarda al avanzar y se
- * retoma donde quedó. «Lo hago después» siempre está a la vista y deja el aviso fijo en el header.
+ * Bienvenida de primer uso en 5 estaciones (HU-APP-23, SPEC-49; la misma ruta que el panel, HU-UX-25), a
+ * pantalla completa: franja del escenario arriba con el logo, mini ruta de 5 puntos y pie fijo con la acción
+ * principal. 1 «Tu negocio» escribe en la identidad y, al salir, crea el agente y lo deja listo para probar; 2 a 4
+ * escriben sobre el agente (las pone el módulo `agentes`, por `estacionDelAgente`); 5 repasa lo hecho, prueba el
+ * chat real por la conexión de pruebas y publica (`dejar-listo` + `finalizar`).
  */
-export function RecorridoScreen() {
+export function RecorridoScreen({ estacionDelAgente }: { estacionDelAgente?: EstacionDelAgente }) {
   const api = useAdminApi();
   const { sesion } = useAdminSession();
   const { c, tonos } = useKit();
   const insets = useSafeAreaInsets();
   const { cerrar, actualizar } = useOnboarding();
   const negocioId = sesion?.tenantId ?? null;
+  const nombreDelNegocio = sesion?.tenantName?.trim() ?? "";
 
   const [recorrido, setRecorrido] = useState<Recorrido | null>(null);
   const [estado, setEstado] = useState<EstadoDelAsistente>(ESTADO_INICIAL);
+  const [tipoFijo, setTipoFijo] = useState<TipoDeNegocio | null>(null);
   const [paso, setPaso] = useState(1);
   const [cargando, setCargando] = useState(true);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [verTarjeta, setVerTarjeta] = useState(false);
   const [terminado, setTerminado] = useState(false);
-  const [subpasos, setSubpasos] = useState<SubPaso[]>([]);
-  const [fase, setFase] = useState<
-    "inactivo" | "creando" | "dejando-listo" | "error" | "listo"
-  >("inactivo");
   const [revision, setRevision] = useState(false);
-  // SPEC-45: lo cargado en «Carga sus datos», para sugerir frases al probar.
+  const [probado, setProbado] = useState(false);
   const [cargados, setCargados] = useState<RegistroDePrueba[]>([]);
+  const [resumenes, setResumenes] = useState<Partial<Record<EstacionDelAgenteId, string>>>({});
+  const guardarEstacion = useRef<GuardarEstacion | null>(null);
   const scroll = useRef<ScrollViewInstance>(null);
 
   const guardarBorrador = useCallback(
     (e: EstadoDelAsistente) => {
-      const b: Borrador = {
-        tipo: e.tipo,
-        negocio: e.negocio,
-      };
-      void secureSet(claveDeBorrador(negocioId), JSON.stringify(b)).catch(
-        () => undefined,
-      );
+      const b: Borrador = { tipo: e.tipo, negocio: e.negocio, descripcion: e.descripcion, nombreDelAgente: e.nombreDelAgente };
+      void secureSet(claveDeBorrador(negocioId), JSON.stringify(b)).catch(() => undefined);
     },
     [negocioId],
   );
@@ -136,51 +153,50 @@ export function RecorridoScreen() {
     [guardarBorrador],
   );
 
-  // Carga lo guardado: el recorrido, la identidad ya elegida y el borrador local; marca el recorrido como empezado.
+  // Carga lo guardado: el recorrido, la identidad, el borrador local y, si ya hay agente, su tipo.
   useEffect(() => {
     let vivo = true;
     (async () => {
       try {
         const [r, ajustes, guardado] = await Promise.all([
           cargarRecorrido(api),
-          api.get<{ identity: Parameters<typeof estadoDesdeIdentidad>[0] }>(
-            "/admin/settings",
-          ),
+          api.get<{ identity: IdentitySettings }>("/admin/settings"),
           secureGet(claveDeBorrador(negocioId)).catch(() => null),
         ]);
         if (!vivo || !r) return;
-        let borrador: Partial<Borrador> = {};
+        let borrador: Borrador = {};
         try {
-          borrador = guardado
-            ? (JSON.parse(guardado) as Partial<Borrador>)
-            : {};
+          borrador = guardado ? (JSON.parse(guardado) as Borrador) : {};
         } catch {
           borrador = {};
         }
-        const base = estadoDesdeIdentidad(ajustes.identity, {
-          ...ESTADO_INICIAL,
-          ...borrador,
-        });
-        // Sin tipo de negocio no se puede crear el agente: si el borrador se perdió, se vuelve al paso 1.
-        const retomado = Math.min(Math.max(r.paso, 1), TOTAL_PASOS);
-        setEstado(base);
-        setPaso(!base.tipo && !r.agente_id && retomado > 1 ? 1 : retomado);
+        const agente = r.agente_id ? await cargarAgente(api, r.agente_id).catch(() => null) : null;
+        const delAgente = tipoDeLaPlantilla(agente?.key);
+        const tipo = delAgente ?? borrador.tipo ?? TIPO_RECOMENDADO;
+        const base = estadoDesdeIdentidad(ajustes.identity, conLoRecomendado({ ...ESTADO_INICIAL, negocio: nombreDelNegocio }, tipo));
+        const conBorrador: EstadoDelAsistente = {
+          ...base,
+          tipo,
+          negocio: borrador.negocio ?? base.negocio,
+          descripcion: borrador.descripcion ?? base.descripcion,
+          nombreDelAgente: agente?.name?.trim() || borrador.nombreDelAgente || base.nombreDelAgente,
+        };
+        if (!vivo) return;
+        setEstado(conBorrador);
+        setTipoFijo(delAgente);
+        // Sin agente no hay estaciones 2 a 5: se vuelve a «Tu negocio».
+        const retomado = r.agente_id ? Math.max(pasoDeCinco(r), 1) : 1;
+        setPaso(retomado);
         setRecorrido(r);
-        if (r.agente_id && r.conexion_id) setFase("listo");
         if (r.estado !== "en_curso") {
-          const empezado = await avanzar(api, Math.max(r.paso, 1)).catch(
-            () => null,
-          );
+          const empezado = await avanzar(api, Math.max(pasoDeCinco(r), 1)).catch(() => null);
           if (vivo && empezado) {
             setRecorrido(empezado);
             actualizar(empezado);
           }
         }
       } catch {
-        if (vivo)
-          setError(
-            "No pudimos cargar tu progreso. Revisa tu conexión e inténtalo de nuevo.",
-          );
+        if (vivo) setError("No pudimos cargar tu progreso. Revisa tu conexión e inténtalo de nuevo.");
       } finally {
         if (vivo) setCargando(false);
       }
@@ -188,15 +204,18 @@ export function RecorridoScreen() {
     return () => {
       vivo = false;
     };
-  }, [api, negocioId, actualizar]);
+  }, [api, negocioId, nombreDelNegocio, actualizar]);
 
-  const pasoActual = PASOS[paso - 1];
+  // Lo recomendado depende solo del tipo fijo (con el agente creado, el suyo); el negocio no se compara.
+  const recomendado = useMemo(() => conLoRecomendado(ESTADO_INICIAL, tipoFijo ?? TIPO_RECOMENDADO), [tipoFijo]);
 
   const irAlPaso = useCallback(
-    async (destino: number) => {
+    async (destino: number, guardarEnServidor: boolean) => {
       setPaso(destino);
       setError(null);
+      guardarEstacion.current = null;
       scroll.current?.scrollTo({ y: 0, animated: false });
+      if (!guardarEnServidor) return;
       const r = await avanzar(api, destino).catch(() => null);
       if (r) {
         setRecorrido(r);
@@ -206,8 +225,27 @@ export function RecorridoScreen() {
     [api, actualizar],
   );
 
-  async function siguiente() {
-    const problema = errorDelPaso(pasoActual.id, estado);
+  /** Deja el agente listo con lo último configurado (idempotente). Devuelve el error, si hubo. */
+  async function prepararPrueba(agente: string): Promise<string | null> {
+    try {
+      const listo = await dejarListo(api, agente);
+      setRevision(!listo.listo);
+      setRecorrido(listo.recorrido);
+      actualizar(listo.recorrido);
+      return null;
+    } catch (e) {
+      if (e instanceof AdminApiError) {
+        return e.code === "canal_en_vivo"
+          ? "Ya tienes un chat web en vivo. Para no tocarlo, termina estos pasos más tarde o pausa ese chat."
+          : e.message;
+      }
+      return MENSAJE_DE_RED;
+    }
+  }
+
+  /** Sale de «Tu negocio»: guarda la identidad, crea el agente (o lo renombra) y lo deja listo para probar. */
+  async function salirDelPaso1() {
+    const problema = errorDelPaso1(estado);
     if (problema) {
       setError(problema);
       return;
@@ -215,8 +253,32 @@ export function RecorridoScreen() {
     setOcupado(true);
     setError(null);
     try {
-      await guardarIdentidad(api, cambiosDelPaso(pasoActual.id, estado));
-      await irAlPaso(paso + 1);
+      await guardarIdentidad(api, cambiosDelPaso1(estado));
+      let agente = recorrido?.agente_id ?? null;
+      if (agente) {
+        await renombrarAgente(api, agente, estado.nombreDelAgente.trim());
+      } else {
+        try {
+          const creado = await crearDesdeGuion(api, {
+            template_key: plantillaDe(estado.tipo ?? TIPO_RECOMENDADO),
+            answers: respuestasDeCreacion(estado),
+            name: estado.nombreDelAgente.trim(),
+          });
+          agente = creado.agent.id;
+        } catch (e) {
+          // Ya existía uno de este tipo (reintento tras un corte): se sigue con ese en vez de duplicarlo.
+          if (e instanceof AdminApiError && e.code === "key_taken" && e.fields?.agent_id) agente = e.fields.agent_id;
+          else throw e;
+        }
+      }
+      setTipoFijo(estado.tipo);
+      const fallo = await prepararPrueba(agente);
+      if (fallo) {
+        setError(fallo);
+        return;
+      }
+      // Sigue en «Habilidades», o donde iba si volvió desde una estación posterior.
+      await irAlPaso(Math.max(2, recorrido ? pasoDeCinco(recorrido) : 2), true);
     } catch (e) {
       setError(e instanceof AdminApiError ? e.message : MENSAJE_DE_RED);
     } finally {
@@ -224,107 +286,94 @@ export function RecorridoScreen() {
     }
   }
 
-  async function crear() {
-    if ((!estado.tipo && !recorrido?.agente_id) || ocupado) return;
+  /** «Guardar y seguir» en las estaciones 2 a 4: guarda la estación y, antes de la 5, deja listo con lo último. */
+  async function salirDeEstacion() {
+    const agente = recorrido?.agente_id;
+    if (!agente) return;
     setOcupado(true);
     setError(null);
     try {
-      let agente = recorrido?.agente_id ?? null;
-      if (!agente) {
-        setFase("creando");
-        try {
-          const creado = await crearDesdeGuion(api, {
-            template_key: plantillaDe(estado.tipo ?? "ventas"),
-            answers: respuestasDeCreacion(estado),
-            name: estado.nombreDelAgente.trim(),
-          });
-          agente = creado.agent.id;
-        } catch (e) {
-          // Ya existía uno de este tipo (reintento tras un corte): se sigue con ese en vez de duplicarlo.
-          if (
-            e instanceof AdminApiError &&
-            e.code === "key_taken" &&
-            e.fields?.agent_id
-          )
-            agente = e.fields.agent_id;
-          else throw e;
+      const guardar = guardarEstacion.current;
+      if (guardar && !(await guardar())) return;
+      const destino = paso + 1;
+      if (destino === TOTAL_PASOS) {
+        const fallo = await prepararPrueba(agente);
+        if (fallo) {
+          setError(fallo);
+          return;
         }
       }
-      setFase("dejando-listo");
-      const listo = await dejarListo(api, agente);
-      setSubpasos(listo.pasos);
-      setRevision(!listo.listo);
-      setRecorrido(listo.recorrido);
-      actualizar(listo.recorrido);
-      setFase("listo");
-    } catch (e) {
-      setFase("error");
-      if (e instanceof AdminApiError) {
-        setError(
-          e.code === "canal_en_vivo"
-            ? "Ya tienes un chat web en vivo. Para no tocarlo, termina estos pasos más tarde o pausa ese chat."
-            : e.message,
-        );
-      } else {
-        setError(MENSAJE_DE_RED);
-      }
+      await irAlPaso(destino, true);
     } finally {
       setOcupado(false);
     }
   }
 
-  async function terminar() {
+  async function publicar() {
+    const agente = recorrido?.agente_id;
+    if (!agente) return;
     setOcupado(true);
     setError(null);
     try {
+      const fallo = await prepararPrueba(agente);
+      if (fallo) {
+        setError(fallo);
+        return;
+      }
       const r = await finalizar(api);
       setRecorrido(r);
       actualizar(r);
       setTerminado(true);
     } catch (e) {
-      setError(
-        e instanceof AdminApiError && e.code === "faltan_pasos"
-          ? "Todavía falta probar a tu agente: escríbele un mensaje."
-          : e instanceof AdminApiError
-            ? e.message
-            : MENSAJE_DE_RED,
-      );
+      if (e instanceof AdminApiError && e.code === "faltan_pasos") {
+        // El 409 no trae el detalle en la APK: lo que suele faltar es la prueba por la conexión.
+        setError(FALTA_PARA_TERMINAR.prueba);
+      } else {
+        setError(e instanceof AdminApiError ? e.message : MENSAJE_DE_RED);
+      }
     } finally {
       setOcupado(false);
     }
   }
 
   const pedirOmitir = useCallback(() => {
-    Alert.alert(
-      "¿Lo haces después?",
-      "Tu agente no quedará listo para probar y verás un aviso hasta que termines estos pasos. Lo que ya elegiste se guarda.",
-      [
-        { text: "Seguir ahora", style: "cancel" },
-        {
-          text: "Lo hago después",
-          onPress: () => {
-            void omitir(api)
-              .then((r) => actualizar(r))
-              .catch(() => undefined)
-              .finally(cerrar);
-          },
+    const textos = textosDeSeguirDespues(estado.nombreDelAgente);
+    Alert.alert(textos.titulo, textos.detalle, [
+      { text: "Seguir ahora", style: "cancel" },
+      {
+        text: "Seguir después",
+        onPress: () => {
+          void omitir(api)
+            .then((r) => actualizar(r))
+            .catch(() => undefined)
+            .finally(cerrar);
         },
-      ],
-    );
-  }, [api, actualizar, cerrar]);
+      },
+    ]);
+  }, [api, actualizar, cerrar, estado.nombreDelAgente]);
 
-  // Atrás de Android: vuelve un paso; en el primero no sale (se omite con «Lo hago después»).
+  // Atrás de Android: vuelve una estación; en la primera no sale (se omite con «Seguir después»).
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (terminado) {
-        cerrar();
-      } else if (paso > 1 && !ocupado) {
-        void irAlPaso(paso - 1);
-      }
+      if (terminado) cerrar();
+      else if (paso > 1 && !ocupado) void irAlPaso(paso - 1, false);
       return true;
     });
     return () => sub.remove();
   }, [paso, ocupado, terminado, irAlPaso, cerrar]);
+
+  const registrarGuardar = useCallback((g: GuardarEstacion | null) => {
+    guardarEstacion.current = g;
+  }, []);
+  const alResumir = useCallback((id: EstacionDelAgenteId, resumen: string) => {
+    setResumenes((r) => (r[id] === resumen ? r : { ...r, [id]: resumen }));
+  }, []);
+  // «Seguir sin datos» de la estación 4 hace lo mismo que el pie, con lo vigente al tocarlo.
+  const salir = useRef(salirDeEstacion);
+  useEffect(() => {
+    salir.current = salirDeEstacion;
+  });
+  const seguirSinDatos = useCallback(() => void salir.current(), []);
 
   if (cargando) {
     return (
@@ -334,30 +383,23 @@ export function RecorridoScreen() {
     );
   }
 
+  const nombre = estado.nombreDelAgente.trim();
+  const quien = nombre || "Tu agente";
+
   if (terminado) {
     return (
       <View
         testID="onboarding-final"
-        style={[
-          styles.pantalla,
-          {
-            backgroundColor: c.bg,
-            paddingTop: insets.top,
-            paddingBottom: insets.bottom,
-          },
-        ]}
+        style={[styles.pantalla, { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom }]}
       >
         <View style={styles.final}>
           <LogoHorizontal ancho={260} />
-          <Text
-            accessibilityRole="header"
-            style={[shType.h1, { color: c.text }]}
-          >
-            {estado.nombreDelAgente.trim() || "Tu agente"} ya está listo
+          <Text accessibilityRole="header" style={[shType.h1, { color: c.text }]}>
+            {quien} ya está listo
           </Text>
           <Text style={[shType.body, { color: c.textMuted }]}>
-            Responde las 24 horas y sabe cuándo atiende tu equipo. Ya puedes
-            conectar tu WhatsApp para atender a tus clientes.
+            Responde las 24 horas y sabe cuándo atiende tu equipo. Ya puedes conectar tu WhatsApp para atender a tus
+            clientes.
           </Text>
           <Button
             testID="onb-final-whatsapp"
@@ -369,12 +411,7 @@ export function RecorridoScreen() {
           >
             Conectar mi WhatsApp
           </Button>
-          <Button
-            testID="onb-final-resumen"
-            variant="secondary"
-            fullWidth
-            onPress={cerrar}
-          >
+          <Button testID="onb-final-resumen" variant="secondary" fullWidth onPress={cerrar}>
             Ir al Resumen
           </Button>
         </View>
@@ -382,10 +419,49 @@ export function RecorridoScreen() {
     );
   }
 
-  const ultimo = paso === TOTAL_PASOS;
   const agenteId = recorrido?.agente_id ?? null;
   const conexionId = recorrido?.conexion_id ?? null;
-  const puedeProbar = Boolean(agenteId && conexionId) && !revision;
+  const tipo = estado.tipo;
+  const negocio = estado.negocio.trim() || nombreDelNegocio;
+  const pasoActual = PASOS[paso - 1];
+  const estacion = estacionDe(paso);
+  const cambios = cambiosFrenteARecomendado(valoresDelPaso1(estado), valoresDelPaso1(recomendado));
+  const tipoDelNegocio = TIPOS_DE_NEGOCIO.find((t) => t.id === tipo);
+  const tieneFrase = estado.descripcion.trim().length >= DESCRIPCION_MIN;
+
+  // El escenario de la estación 1: lo que el agente ya sabe del negocio (n/4).
+  const sabe = [Boolean(nombre), Boolean(estado.negocio.trim()), Boolean(tipoDelNegocio), tieneFrase].filter(Boolean).length;
+  const faltan = [
+    !nombre && "su nombre",
+    !estado.negocio.trim() && "el nombre del negocio",
+    !tipoDelNegocio && "a qué se dedica",
+    !tieneFrase && "cómo presentarse",
+  ].filter((x): x is string => Boolean(x));
+  const tituloDelEscenario =
+    paso === 1
+      ? faltan.length === 0
+        ? `${quien} ya puede saludar`
+        : `${quien} ya sabe ${sabe} de 4 cosas`
+      : quien;
+  const detalleDelEscenario =
+    paso === 1
+      ? faltan.length === 0
+        ? "Sabe quién es y cómo presentarse."
+        : `Falta ${enLista(faltan)}.`
+      : `${tipoDelNegocio?.titulo ?? ""}${negocio ? ` · ${negocio}` : ""}`;
+
+  const estacionDelPaso = ESTACION_DEL_PASO[paso];
+  const Estacion = estacionDelAgente;
+  const textoPrincipal =
+    paso === 1
+      ? agenteId
+        ? "Guardar y seguir"
+        : nombre
+          ? `Crear a ${nombre} y seguir`
+          : "Crear mi agente y seguir"
+      : paso === TOTAL_PASOS
+        ? `Publicar a ${quien}`
+        : textoDeGuardarYSeguir(estacion);
 
   return (
     <KeyboardAvoidingView
@@ -393,266 +469,183 @@ export function RecorridoScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       testID="onboarding-recorrido"
     >
-      <View
-        style={[
-          styles.cabecera,
-          {
-            paddingTop: insets.top + shSpace[2],
-            borderBottomColor: c.border,
-            backgroundColor: c.surface,
-          },
-        ]}
+      <EncabezadoEscenario
+        testID="onb-escenario"
+        insetSuperior={insets.top}
+        marca={<LogoHorizontal ancho={120} sobreOscuro />}
+        extremo={<SeguirDespues onPress={pedirOmitir} deshabilitado={ocupado} />}
+        estaciones={ESTACIONES_DE_LA_BIENVENIDA}
+        actual={paso - 1}
       >
-        <LogoHorizontal ancho={168} />
-        <View style={styles.avance}>
-          <Text
-            style={[shType.caption, { color: c.textMuted }]}
-            testID="onb-avance"
-          >
-            {textoDeAvance(paso)}
-          </Text>
-          <View
-            accessibilityRole="progressbar"
-            accessibilityValue={{ min: 1, max: TOTAL_PASOS, now: paso }}
-            style={[styles.barra, { backgroundColor: c.border }]}
-          >
-            <View
-              style={[
-                styles.relleno,
+        <PildoraDelAgente siglas={siglasDe(quien)} nombre={tituloDelEscenario} detalle={detalleDelEscenario} />
+        {paso === 1 ? (
+          <View style={styles.tarjetas}>
+            <TarjetaDelEscenario etiqueta="Negocio" valor={estado.negocio.trim() || "Falta"} hecha={Boolean(estado.negocio.trim())} />
+            <TarjetaDelEscenario etiqueta="Se dedica a" valor={tipoDelNegocio?.titulo ?? "Elige"} hecha={Boolean(tipoDelNegocio)} />
+          </View>
+        ) : null}
+      </EncabezadoEscenario>
+
+      <ScrollView ref={scroll} contentContainerStyle={styles.contenido} keyboardShouldPersistTaps="handled">
+        <Text accessibilityRole="header" style={[shType.hero, { color: c.text }]} testID="onb-titulo">
+          {tituloDelPaso(pasoActual.id, quien, tipo)}
+        </Text>
+        <Text style={[shType.body, { color: c.textMuted }]}>{BAJADA_DEL_PASO[pasoActual.id].replace("tu agente", quien)}</Text>
+
+        {paso === 1 ? (
+          <>
+            <BarraRecomendado
+              testID="onb-recomendado"
+              cambios={cambios.length}
+              onUsar={() =>
+                cambiar({
+                  tipo: recomendado.tipo,
+                  nombreDelAgente: recomendado.nombreDelAgente,
+                  descripcion: recomendado.descripcion,
+                })
+              }
+            />
+            <PasoNegocio
+              estado={estado}
+              cambiar={cambiar}
+              elegirTipo={(t) => {
+                setError(null);
+                setEstado((e) => {
+                  const nuevo = conTipo(e, t);
+                  guardarBorrador(nuevo);
+                  return nuevo;
+                });
+              }}
+              tipoFijo={tipoFijo}
+              error={error ?? undefined}
+            />
+          </>
+        ) : null}
+
+        {estacionDelPaso && agenteId && Estacion ? (
+          <Estacion
+            estacion={estacionDelPaso}
+            agenteId={agenteId}
+            tipo={tipo}
+            nombre={quien}
+            negocio={negocio}
+            registrarGuardar={registrarGuardar}
+            onResumen={alResumir}
+            onCargados={setCargados}
+            onSeguir={seguirSinDatos}
+          />
+        ) : null}
+
+        {paso === TOTAL_PASOS && agenteId ? (
+          <View style={styles.bloque}>
+            <ResumenDeEstaciones
+              testID="onb-resumen"
+              estaciones={[
                 {
-                  backgroundColor: c.link,
-                  width: `${(paso / TOTAL_PASOS) * 100}%`,
+                  id: "1",
+                  titulo: "Tu negocio",
+                  resumen: [negocio, tipoDelNegocio?.titulo, nombre ? `Atiende como ${nombre}` : ""].filter(Boolean).join(" · "),
+                },
+                { id: "2", titulo: "Habilidades", resumen: resumenes.habilidades ?? "" },
+                { id: "3", titulo: "Datos del cliente", resumen: resumenes["datos-cliente"] ?? "" },
+                {
+                  id: "4",
+                  titulo: "Datos para probar",
+                  resumen:
+                    resumenes["datos-probar"] ??
+                    (cargados.length > 0
+                      ? `${cargados.length} ${cargados.length === 1 ? "registro cargado" : "registros cargados"}`
+                      : "Sin datos de prueba"),
                 },
               ]}
+              onEditar={(id) => void irAlPaso(Number(id), false)}
             />
-          </View>
-        </View>
-      </View>
-
-      <ScrollView
-        ref={scroll}
-        contentContainerStyle={styles.contenido}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text accessibilityRole="header" style={[shType.h1, { color: c.text }]}>
-          {pasoActual.titulo}
-        </Text>
-
-        {pasoActual.id === "negocio" && (
-          <PasoNegocio
-            estado={estado}
-            cambiar={cambiar}
-            error={error ?? undefined}
-          />
-        )}
-        {pasoActual.id === "voz" && (
-          <PasoVoz estado={estado} cambiar={cambiar} />
-        )}
-        {pasoActual.id === "reglas" && (
-          <PasoReglas
-            estado={estado}
-            cambiar={cambiar}
-            error={error ?? undefined}
-          />
-        )}
-        {pasoActual.id === "crear" && (
-          <PasoCrear
-            estado={estado}
-            fase={fase}
-            subpasos={subpasos}
-            revision={revision}
-          />
-        )}
-        {pasoActual.id === "datos" &&
-          (agenteId ? (
-            <PasoDatosDeBienvenida
-              agenteId={agenteId}
-              estado={estado}
-              alIr={cerrar}
-              onRegistros={setCargados}
-            />
-          ) : (
-            <Text style={[shType.body, { color: c.textMuted }]} testID="onb-datos-sin-agente">
-              Primero crea tu agente en el paso anterior: los datos se le cargan a él.
+            <Text accessibilityRole="header" style={[shType.block, { color: c.text }]}>
+              Última prueba: qué le escribes
             </Text>
-          ))}
-        {pasoActual.id === "probar" && puedeProbar && conexionId && (
-          <PasoProbar
-            conexionId={conexionId}
-            nombre={estado.nombreDelAgente.trim() || "tu agente"}
-            sugerencias={sugerenciasConLoCargado(cargados, FRASES_DE_PRUEBA[estado.tipo ?? "ventas"])}
-            alRecibir={(turnos) => {
-              if (turnos.length > 0)
-                setRecorrido((r) =>
-                  r
-                    ? {
-                        ...r,
-                        probado_en: r.probado_en ?? new Date().toISOString(),
-                      }
-                    : r,
-                );
-            }}
-          />
-        )}
-        {pasoActual.id === "probar" && !puedeProbar && (
-          <Text style={[shType.body, { color: c.textMuted }]}>
-            {revision
-              ? "Tu agente quedó creado, pero una persona de SolversHub debe revisarlo antes de que puedas probarlo. Te avisamos cuando esté listo."
-              : "Primero crea tu agente en el paso anterior."}
-          </Text>
-        )}
+            {revision ? (
+              <Text style={[shType.body, { color: tonos.warning.fg }]} accessibilityRole="alert">
+                Tu agente quedó creado, pero una persona de SolversHub debe revisarlo antes de que puedas probarlo. Te
+                avisamos cuando esté listo.
+              </Text>
+            ) : conexionId ? (
+              <PasoProbar
+                destino={{ connection_id: conexionId }}
+                nombre={quien}
+                prefijo="onb"
+                sugerencias={sugerenciasConLoCargado(cargados, FRASES_DE_PRUEBA[tipo ?? TIPO_RECOMENDADO])}
+                alRecibir={() => setProbado(true)}
+              />
+            ) : null}
+            {!probado && !recorrido?.probado_en ? (
+              <Text style={[shType.body, { color: tonos.warning.fg }]} accessibilityRole="status" testID="onb-falta-prueba">
+                Para publicar a {quien}, envíale al menos una frase aquí.
+              </Text>
+            ) : null}
+            <Text style={[shType.caption, { color: c.textMuted }]}>
+              Queda listo en tu chat de pruebas, cerrado al público. Cómo habla, su horario y su flujo los ajustas después
+              en Personalizar; cuando conectes tu WhatsApp, lo activas desde Conexiones.
+            </Text>
+          </View>
+        ) : null}
 
-        {error && pasoActual.id !== "negocio" && pasoActual.id !== "reglas" ? (
-          <Text
-            style={[shType.body, { color: tonos.danger.fg }]}
-            accessibilityRole="alert"
-            testID="onb-error"
-          >
+        {tipo && paso < TOTAL_PASOS ? (
+          <ChatDeVistaPrevia
+            key={`${tipo}:${estacion}:${quien}`}
+            tipo={tipo}
+            estacion={estacion}
+            agente={quien}
+            negocio={negocio}
+            cargados={cargados}
+          />
+        ) : null}
+
+        {error && paso > 1 ? (
+          <Text style={[shType.body, { color: tonos.danger.fg }]} accessibilityRole="alert" testID="onb-error">
             {error}
           </Text>
         ) : null}
       </ScrollView>
 
-      <View
-        style={[
-          styles.pie,
-          {
-            borderTopColor: c.border,
-            backgroundColor: c.surface,
-            paddingBottom: insets.bottom + shSpace[2],
-          },
-        ]}
-      >
-        <Button
-          variant="link"
-          iconLeft="expand-less"
-          onPress={() => setVerTarjeta(true)}
-          testID="onb-ver-agente"
-        >
-          Ver cómo va tu agente
-        </Button>
+      <View style={[styles.pie, { borderTopColor: c.border, backgroundColor: c.surface, paddingBottom: insets.bottom + shSpace[2] }]}>
+        {paso === 1 && !error ? (
+          <Text style={[shType.caption, styles.queSigue, { color: c.textMuted }]}>Sigue: {PASOS[1].corto}.</Text>
+        ) : null}
         <View style={styles.acciones}>
           {paso > 1 ? (
-            <Button
-              variant="secondary"
-              onPress={() => void irAlPaso(paso - 1)}
-              disabled={ocupado}
-              testID="onb-atras"
-            >
+            <Button variant="secondary" onPress={() => void irAlPaso(paso - 1, false)} disabled={ocupado} testID="onb-atras" style={styles.alto}>
               Atrás
             </Button>
           ) : null}
-          {pasoActual.id === "crear" ? (
-            fase === "listo" ? (
-              <Button
-                testID="onb-siguiente"
-                onPress={() => void irAlPaso(paso + 1)}
-                fullWidth
-                style={styles.principal}
-              >
-                Siguiente
-              </Button>
-            ) : (
-              <Button
-                testID="onb-crear"
-                onPress={() => void crear()}
-                loading={ocupado}
-                disabled={!estado.tipo && !agenteId}
-                fullWidth
-                style={styles.principal}
-              >
-                {fase === "error" ? "Reintentar" : "Crear mi agente"}
-              </Button>
-            )
-          ) : ultimo ? (
-            <Button
-              testID="onb-terminar"
-              onPress={() => void terminar()}
-              loading={ocupado}
-              disabled={!puedeProbar || !recorrido?.probado_en}
-              fullWidth
-              style={styles.principal}
-            >
-              Terminar
-            </Button>
-          ) : (
-            <Button
-              testID="onb-siguiente"
-              onPress={() => void siguiente()}
-              loading={ocupado}
-              fullWidth
-              style={styles.principal}
-            >
-              {pasoActual.id === "datos" ? "Probar mi agente" : "Siguiente"}
-            </Button>
-          )}
+          <Button
+            testID={paso === TOTAL_PASOS ? "onb-publicar" : "onb-siguiente"}
+            onPress={() => void (paso === 1 ? salirDelPaso1() : paso === TOTAL_PASOS ? publicar() : salirDeEstacion())}
+            loading={ocupado}
+            disabled={paso === TOTAL_PASOS && (revision || !conexionId)}
+            fullWidth
+            style={[styles.principal, styles.alto]}
+          >
+            {textoPrincipal}
+          </Button>
         </View>
-        <Button
-          variant="ghost"
-          onPress={pedirOmitir}
-          disabled={ocupado}
-          testID="onb-omitir"
-        >
-          Lo hago después
-        </Button>
       </View>
-
-      <Sheet
-        visible={verTarjeta}
-        onClose={() => setVerTarjeta(false)}
-        title="Tu agente, armándose"
-      >
-        <TarjetaDelAgente estado={estado} />
-      </Sheet>
     </KeyboardAvoidingView>
   );
 }
 
-/**
- * Paso 5 (SPEC-45): con el agente ya creado, cargarle datos para probarlo en el paso siguiente: generar datos de
- * prueba (solo en test) o el catálogo desde fotos, y ver lo que quedó cargado. Debajo, el enlace al módulo que lo
- * resuelve. Todo es opcional.
- */
-function PasoDatosDeBienvenida({
-  agenteId,
-  estado,
-  alIr,
-  onRegistros,
-}: {
-  agenteId: string;
-  estado: EstadoDelAsistente;
-  alIr: () => void;
-  onRegistros: (registros: RegistroDePrueba[]) => void;
-}) {
-  const api = useAdminApi();
-  const [cargado, setCargado] = useState<Cargado | null>(null);
+/** «Seguir después», en la franja del escenario. */
+function SeguirDespues({ onPress, deshabilitado }: { onPress: () => void; deshabilitado: boolean }) {
+  const { escenario } = useKit();
   return (
-    <View style={styles.bloque}>
-      {cargado ? (
-        <>
-          <PasoLoCargado
-            api={api}
-            agenteId={agenteId}
-            locales={cargado.registros}
-            resumen={cargado.resumen || null}
-            onRegistros={onRegistros}
-          />
-          <Button variant="secondary" onPress={() => setCargado(null)} testID="onb-datos-otros">
-            Cargar otros datos
-          </Button>
-        </>
-      ) : (
-        <PasoDatos
-          api={api}
-          agenteId={agenteId}
-          onCargado={(nuevo) => {
-            setCargado(nuevo);
-            onRegistros(nuevo.registros);
-          }}
-        />
-      )}
-      <PasoConocimiento estado={estado} alIr={alIr} conPrueba={false} />
-    </View>
+    <Pressable
+      testID="onb-omitir"
+      accessibilityRole="button"
+      onPress={onPress}
+      disabled={deshabilitado}
+      style={styles.seguirDespues}
+    >
+      <Text style={[shType.label, { color: escenario.acento }]}>Seguir después</Text>
+    </Pressable>
   );
 }
 
@@ -662,497 +655,18 @@ function sugerenciasConLoCargado(cargados: RegistroDePrueba[], delTipo: readonly
   return [...new Set([...propias, ...delTipo])].slice(0, 6);
 }
 
-/**
- * Lo que el agente sabe: enlaza al módulo que lo resuelve. Va debajo de la carga de datos (SPEC-45); ahí no ofrece
- * generar datos de prueba por módulo (`conPrueba` falso), porque ya lo hace el paso con el agente creado.
- */
-function PasoConocimiento({
-  estado,
-  alIr,
-  conPrueba = true,
-}: {
-  estado: EstadoDelAsistente;
-  alIr: () => void;
-  conPrueba?: boolean;
-}) {
-  const { c } = useKit();
-  const api = useAdminApi();
-  const tipo = TIPOS_DE_NEGOCIO.find((t) => t.id === estado.tipo);
-  const moduloPrueba: ModuloDatosDePrueba | null =
-    tipo?.contenido === "catalogo"
-      ? "ventas"
-      : tipo?.contenido === "servicios"
-        ? "agenda"
-        : tipo?.contenido === "cartera"
-          ? "cobranza"
-          : tipo?.id === "suscripciones"
-            ? "suscripciones"
-            : null;
-  const [prueba, setPrueba] = useState<EstadoDatosDePruebaModulo | null>(null);
-  const [generandoPrueba, setGenerandoPrueba] = useState(false);
-  const destinos = {
-    catalogo: {
-      titulo: "Carga tu catálogo",
-      texto: "Agrega los productos que tu agente puede ofrecer y cotizar.",
-      accion: "Cargar productos",
-      tab: "comercio",
-    },
-    servicios: {
-      titulo: "Define tus servicios",
-      texto: "Crea los tipos de cita que tus clientes pueden agendar.",
-      accion: "Crear servicios",
-      tab: "calendario",
-    },
-    cartera: {
-      titulo: "Carga tu cartera",
-      texto: "Agrega los clientes que tu agente va a gestionar.",
-      accion: "Cargar clientes",
-      tab: "cobranza",
-    },
-  } as const;
-  const destino = tipo?.contenido ? destinos[tipo.contenido] : null;
-
-  useEffect(() => {
-    let vivo = true;
-    if (!moduloPrueba || !conPrueba) {
-      return;
-    }
-    cargarDatosDePrueba(api, moduloPrueba)
-      .then((estado) => {
-        if (vivo) setPrueba(estado);
-      })
-      .catch(() => {
-        if (vivo) setPrueba(null);
-      });
-    return () => {
-      vivo = false;
-    };
-  }, [api, moduloPrueba, conPrueba]);
-
-  async function generarPrueba() {
-    if (!moduloPrueba || !prueba) return;
-    if (prueba.falta_descripcion) {
-      Alert.alert(
-        "Falta la descripción de tu negocio",
-        "Escríbela en Configuración › Identidad y vuelve a intentarlo.",
-      );
-      return;
-    }
-    setGenerandoPrueba(true);
-    try {
-      const lote = await generarDatosDePrueba(api, moduloPrueba);
-      setPrueba(await cargarDatosDePrueba(api, moduloPrueba));
-      Alert.alert("Datos de prueba listos", resumenDelLote(lote));
-    } catch (e) {
-      Alert.alert(
-        "No se pudieron generar los datos",
-        e instanceof AdminApiError ? e.message : "Revisa tu conexión e inténtalo de nuevo.",
-      );
-    } finally {
-      setGenerandoPrueba(false);
-    }
-  }
-
-  return (
-    <View style={styles.bloque}>
-      <Text style={[shType.body, { color: c.text }]}>
-        Tu agente responde con lo que tú le cargas. Nunca inventa precios, citas
-        ni deudas: si algo falta, lo dice y pasa a una persona.
-      </Text>
-      {destino ? (
-        <View
-          style={[
-            styles.aviso,
-            { borderColor: c.border, backgroundColor: c.surface },
-          ]}
-        >
-          <Text style={[shType.label, { color: c.text }]}>
-            {destino.titulo}
-          </Text>
-          <Text style={[shType.body, { color: c.textMuted }]}>
-            {destino.texto}
-          </Text>
-          <Text style={[shType.caption, { color: c.textSoft }]}>
-            Puedes seguir y hacerlo después.
-          </Text>
-          <Button
-            variant="secondary"
-            iconRight="open-in-new"
-            testID="onb-conocimiento-ir"
-            onPress={() => {
-              emitirNavegacion({ tab: destino.tab });
-              alIr();
-            }}
-          >
-            {destino.accion}
-          </Button>
-        </View>
-      ) : (
-        <Text style={[shType.body, { color: c.textMuted }]}>
-          Tus clientes ya están en sus planes: tu agente los atiende con esa
-          información. Puedes seguir.
-        </Text>
-      )}
-      {prueba?.disponible && moduloPrueba ? (
-        <View style={[styles.aviso, { borderColor: c.border, backgroundColor: c.surface }]}>
-          <Text style={[shType.label, { color: c.text }]}>
-            Datos de prueba de {MODULOS_DE_PRUEBA[moduloPrueba].titulo}
-          </Text>
-          <Text style={[shType.body, { color: c.textMuted }]}>
-            {MODULOS_DE_PRUEBA[moduloPrueba].aviso}
-          </Text>
-          {prueba.lote ? (
-            <Text style={[shType.caption, { color: c.textSoft }]}>
-              Ya hay {conteoLegible(prueba.lote.conteos)}. Puedes reemplazarlos.
-            </Text>
-          ) : null}
-          <Button
-            variant="secondary"
-            iconLeft="auto-awesome"
-            testID="onb-conocimiento-prueba"
-            loading={generandoPrueba}
-            disabled={generandoPrueba}
-            onPress={() => void generarPrueba()}
-          >
-            Generar datos de prueba
-          </Button>
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-/** Paso 5: resumen de lo decidido y el avance de «Crear mi agente». */
-function PasoCrear({
-  estado,
-  fase,
-  subpasos,
-  revision,
-}: {
-  estado: EstadoDelAsistente;
-  fase: "inactivo" | "creando" | "dejando-listo" | "error" | "listo";
-  subpasos: SubPaso[];
-  revision: boolean;
-}) {
-  const { c, tonos } = useKit();
-  const tipo = TIPOS_DE_NEGOCIO.find((t) => t.id === estado.tipo);
-  const filas: [string, string][] = [
-    ["Tipo", tipo?.titulo ?? "—"],
-    ["Se llama", estado.nombreDelAgente.trim() || "—"],
-    ["Tono", TONOS.find((t) => t.id === estado.tono)?.titulo ?? "—"],
-    [
-      "Atiende tu equipo",
-      estado.horario
-        ? resumenDeHorario(estado.horario) || "—"
-        : "Sin horario definido",
-    ],
-    [
-      "Pasa a una persona si",
-      MOTIVOS_DE_ESCALAR.filter((m) => estado.motivos.includes(m.id))
-        .map((m) => m.titulo)
-        .join(", ") || "—",
-    ],
-  ];
-  const claves = ["conexion", "publicar", "activar"] as const;
-  const muestraAvance = fase !== "inactivo" && fase !== "error";
-  return (
-    <View style={styles.bloque}>
-      <View style={styles.bloque}>
-        {filas.map(([titulo, valor]) => (
-          <View
-            key={titulo}
-            accessible
-            accessibilityLabel={`${titulo}: ${valor}`}
-          >
-            <Text style={[shType.caption, { color: c.textSoft }]}>
-              {titulo}
-            </Text>
-            <Text style={[shType.body, { color: c.text }]}>{valor}</Text>
-          </View>
-        ))}
-      </View>
-      {muestraAvance ? (
-        <View
-          style={styles.bloque}
-          accessibilityLiveRegion="polite"
-          testID="onb-avance-crear"
-        >
-          <Linea
-            hecho={fase !== "creando"}
-            activo={fase === "creando"}
-            texto="Crear tu agente"
-          />
-          {claves.map((clave) => {
-            const sub = subpasos.find((p) => p.clave === clave);
-            return (
-              <Linea
-                key={clave}
-                hecho={
-                  sub
-                    ? sub.estado !== "pendiente_de_revision"
-                    : fase === "listo"
-                }
-                alerta={sub?.estado === "pendiente_de_revision"}
-                activo={fase === "dejando-listo" && !sub}
-                texto={`${ETIQUETAS_DE_SUBPASO[clave]}${sub?.estado === "pendiente_de_revision" ? " · pendiente de revisión" : ""}`}
-              />
-            );
-          })}
-        </View>
-      ) : null}
-      {revision ? (
-        <Text
-          style={[shType.body, { color: tonos.warning.fg }]}
-          accessibilityRole="alert"
-        >
-          Tu agente quedó creado, pero una persona de SolversHub debe revisarlo
-          antes de que puedas probarlo. Te avisamos cuando esté listo.
-        </Text>
-      ) : null}
-      {fase === "listo" && !revision ? (
-        <Text style={[shType.body, { color: c.text }]}>
-          Todo listo. Sigue para probar a{" "}
-          {estado.nombreDelAgente.trim() || "tu agente"}.
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
-function Linea({
-  texto,
-  hecho,
-  activo,
-  alerta,
-}: {
-  texto: string;
-  hecho?: boolean;
-  activo?: boolean;
-  alerta?: boolean;
-}) {
-  const { c, tonos } = useKit();
-  return (
-    <View
-      style={styles.linea}
-      accessible
-      accessibilityLabel={`${texto}${hecho ? ", hecho" : activo ? ", en curso" : ", pendiente"}`}
-    >
-      {alerta ? (
-        <Icono name="warning-amber" size={20} color={tonos.warning.fg} />
-      ) : hecho ? (
-        <Icono name="check-circle" size={20} color={tonos.success.fg} />
-      ) : activo ? (
-        <ActivityIndicator size="small" />
-      ) : (
-        <Icono name="radio-button-unchecked" size={20} color={c.textSoft} />
-      )}
-      <Text style={[shType.body, { color: hecho ? c.text : c.textSoft }]}>
-        {texto}
-      </Text>
-    </View>
-  );
-}
-
-/** Paso 6: chat de prueba contra el agente publicado en la conexión de pruebas. */
-function PasoProbar({
-  conexionId,
-  nombre,
-  sugerencias,
-  alRecibir,
-}: {
-  conexionId: string;
-  nombre: string;
-  sugerencias: string[];
-  alRecibir: (turnos: TurnoDePrueba[]) => void;
-}) {
-  const api = useAdminApi();
-  const { c, tonos } = useKit();
-  const [turnos, setTurnos] = useState<TurnoDePrueba[]>([]);
-  const [texto, setTexto] = useState("");
-  const [enviando, setEnviando] = useState(false);
-  const [aviso, setAviso] = useState<string | null>(null);
-  // El historial del servidor trae solo las respuestas del agente: lo escrito aquí se muestra en su turno.
-  const [mios, setMios] = useState<string[]>([]);
-  // Respuestas que ya había al abrir el paso: lo escrito aquí empieza después de ellas.
-  const [previos, setPrevios] = useState(0);
-
-  useEffect(() => {
-    let vivo = true;
-    cargarPrueba(api, conexionId)
-      .then((t) => {
-        if (!vivo) return;
-        setPrevios(t.length);
-        setTurnos(t);
-      })
-      .catch(() => undefined);
-    return () => {
-      vivo = false;
-      void cerrarPrueba(api, conexionId).catch(() => undefined);
-    };
-  }, [api, conexionId]);
-
-  async function enviar(mensaje: string) {
-    const limpio = mensaje.trim();
-    if (!limpio || enviando) return;
-    setEnviando(true);
-    setAviso(null);
-    setTexto("");
-    setMios((m) => [...m, limpio]);
-    try {
-      await enviarPrueba(api, conexionId, limpio);
-      const t = await cargarPrueba(api, conexionId);
-      setTurnos(t);
-      // Solo cuenta una respuesta del agente: si pasó a una persona (falló el modelo, p. ej.) no hubo prueba.
-      if (t.some((x) => !x.escalated)) alRecibir(t);
-    } catch (e) {
-      setAviso(
-        e instanceof AdminApiError
-          ? e.message
-          : "No pudimos enviar tu mensaje. Inténtalo de nuevo.",
-      );
-    } finally {
-      setEnviando(false);
-    }
-  }
-
-  return (
-    <View style={styles.bloque}>
-      <Text style={[shType.body, { color: c.textMuted }]}>
-        Escríbele a {nombre} como lo haría un cliente. Es un chat de prueba:
-        nadie más lo ve.
-      </Text>
-      <View style={styles.chips}>
-        {sugerencias.map((s) => (
-          <Chip
-            key={s}
-            titulo={s}
-            rol="button"
-            elegido={false}
-            onPress={() => void enviar(s)}
-            testID={`onb-prueba-${s}`}
-          />
-        ))}
-      </View>
-      <View style={styles.bloque} testID="onb-chat">
-        {turnos.map((t, i) => (
-          <View key={i} style={styles.bloque}>
-            {i >= previos && mios[i - previos] ? (
-              <View
-                style={[styles.burbuja, styles.mia, { borderColor: c.link }]}
-                accessible
-                accessibilityLabel={`Tú: ${mios[i - previos]}`}
-              >
-                <Text style={[shType.body, { color: c.text }]}>{mios[i - previos]}</Text>
-              </View>
-            ) : null}
-            <View
-              style={[
-                styles.burbuja,
-                { borderColor: c.border, backgroundColor: c.surface2 },
-              ]}
-              accessible
-              accessibilityLabel={`${nombre}: ${t.text}`}
-            >
-              <Text style={[shType.body, { color: c.text }]}>{t.text}</Text>
-            </View>
-          </View>
-        ))}
-        {enviando ? (
-          <ActivityIndicator
-            accessibilityLabel={`${nombre} está escribiendo`}
-          />
-        ) : null}
-      </View>
-      {aviso ? (
-        <Text
-          style={[shType.body, { color: tonos.danger.fg }]}
-          accessibilityRole="alert"
-        >
-          {aviso}
-        </Text>
-      ) : null}
-      <TextField
-        testID="onb-prueba-texto"
-        accessibilityLabel="Mensaje de prueba"
-        placeholder="Escribe un mensaje"
-        value={texto}
-        onChangeText={setTexto}
-        returnKeyType="send"
-        onSubmitEditing={() => void enviar(texto)}
-      />
-      <View style={styles.acciones}>
-        <Button
-          testID="onb-prueba-enviar"
-          onPress={() => void enviar(texto)}
-          loading={enviando}
-          disabled={!texto.trim()}
-        >
-          Enviar
-        </Button>
-        <Button
-          variant="ghost"
-          onPress={() => {
-            void reiniciarPrueba(api, conexionId)
-              .then(() => {
-                setTurnos([]);
-                setMios([]);
-                setPrevios(0);
-              })
-              .catch(() => undefined);
-          }}
-          disabled={enviando || turnos.length === 0}
-        >
-          Empezar de nuevo
-        </Button>
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  pantalla: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10,
-    elevation: 10,
-  },
+  pantalla: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, elevation: 10 },
   centro: { alignItems: "center", justifyContent: "center" },
-  cabecera: {
-    gap: shSpace[2],
-    paddingHorizontal: shSpace[4],
-    paddingBottom: shSpace[3],
-    borderBottomWidth: 1,
-  },
-  avance: { gap: shSpace[1] },
-  barra: { height: 6, borderRadius: 3, overflow: "hidden" },
-  relleno: { height: 6, borderRadius: 3 },
-  contenido: { gap: shSpace[4], padding: shSpace[4] },
+  contenido: { gap: shSpace[4], padding: shSpace[4], paddingBottom: shSpace[8] },
   bloque: { gap: shSpace[3] },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[2] },
-  pie: {
-    gap: shSpace[1],
-    paddingHorizontal: shSpace[4],
-    paddingTop: shSpace[2],
-    borderTopWidth: 1,
-  },
+  tarjetas: { flexDirection: "row", gap: shSpace[2] },
+  pie: { gap: shSpace[2], paddingHorizontal: shSpace[4], paddingTop: shSpace[3], borderTopWidth: 1 },
+  queSigue: { textAlign: "center" },
   acciones: { flexDirection: "row", gap: shSpace[2], alignItems: "center" },
   principal: { flex: 1 },
-  final: {
-    flex: 1,
-    gap: shSpace[4],
-    padding: shSpace[4],
-    justifyContent: "center",
-  },
-  aviso: {
-    gap: shSpace[2],
-    padding: shSpace[3],
-    borderWidth: 1,
-    borderRadius: shRadius.md,
-  },
-  linea: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
-  mia: { alignSelf: "flex-end", maxWidth: "85%" },
-  burbuja: { padding: shSpace[3], borderWidth: 1, borderRadius: shRadius.md },
+  /** La acción principal del pie mide 54 dp (tableros `rb1`–`rb5`). */
+  alto: { minHeight: 54 },
+  seguirDespues: { minHeight: 48, justifyContent: "center", paddingHorizontal: shSpace[1] },
+  final: { flex: 1, gap: shSpace[4], padding: shSpace[4], justifyContent: "center" },
 });
