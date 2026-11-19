@@ -50,6 +50,23 @@ const PLANTILLAS = [
   plantilla("cobranza", "Cobranza"),
   plantilla("suscripciones", "Suscripciones", { available: false }),
 ];
+const DATOS_DE_LA_CITA = {
+  agente_id: "a-1",
+  niveles: ["requerido", "recomendado", "no_pedir"],
+  herramientas_del_agente: false,
+  procedimientos: [],
+  acciones: [
+    {
+      id: "agenda.agendar_cita",
+      modulo: "agenda",
+      etiqueta: "Agendar una cita",
+      campos: [
+        { clave: "nombre", etiqueta: "Nombre", nivel: "requerido", por_defecto: "requerido", ajustable: true, ajustado: false },
+        { clave: "invitados", etiqueta: "Invitados", nivel: "no_pedir", por_defecto: "no_pedir", ajustable: true, ajustado: false },
+      ],
+    },
+  ],
+};
 const laura: AgenteDelNegocio = { id: "a-9", key: "ventas", name: "Laura", status: "active", virtual: false };
 
 function responder(opciones: { borrador?: { key: string; name: string; latest_version: number | null } } = {}) {
@@ -65,6 +82,7 @@ function responder(opciones: { borrador?: { key: string; name: string; latest_ve
         ],
       });
     if (path === "/admin/playground") return Promise.resolve({ turns: [] });
+    if (path === "/admin/agents/a-1/datos-cliente") return Promise.resolve(DATOS_DE_LA_CITA);
     // Fuera de test no hay carga para Agenda (404): la estación 4 ofrece «Seguir sin datos».
     return Promise.reject(new AdminApiError(404, "not_found", path));
   });
@@ -184,6 +202,23 @@ describe("AsistenteDeAgente en 5 estaciones (HU-APP-23)", () => {
     expect(api.getByTestId("asistente-tipo-agenda").props.accessibilityState.disabled).toBe(false);
     expect(api.getByTestId("asistente-tipo-cobranza").props.accessibilityState.disabled).toBe(true);
     expect(mockPost).not.toHaveBeenCalledWith("/admin/agents/from-script", expect.anything());
+  });
+
+  it("Datos del cliente: un cambio se guarda con un PUT al seguir y pasa a la 4", async () => {
+    responder({ borrador: { key: "agenda", name: "Tomás", latest_version: null } });
+    mockPut.mockResolvedValue({});
+    (secureGet as jest.Mock).mockResolvedValue(JSON.stringify({ agentId: "a-1", estacion: 3 }));
+    const api = await render(<AsistenteDeAgente agentes={[]} onTerminar={jest.fn()} />);
+    await waitFor(() => api.getByTestId("datos-cliente"));
+    await fireEvent.press(api.getByTestId("datos-cliente-accion-agenda.agendar_cita-abrir"));
+    await fireEvent.press(api.getByTestId("datos-cliente-agenda.agendar_cita-invitados-requerido"));
+    await fireEvent.press(api.getByTestId("asistente-siguiente"));
+    await waitFor(() => api.getByText("Nuevo agente · 4 de 5"));
+    expect(mockPut).toHaveBeenCalledWith("/admin/agents/a-1/datos-cliente", {
+      politica: { "agenda.agendar_cita": { invitados: "requerido" } },
+      herramientas_del_agente: false,
+      metodos_entrega: ["domicilio", "recoger_en_tienda"],
+    });
   });
 
   it("un borrador ya publicado no se retoma: se empieza de nuevo", async () => {
