@@ -24,7 +24,7 @@ import { CobranzaAdminNavigator } from "../modules/cobranza-admin";
 import { ComercioScreen } from "../modules/comercio";
 import { CalendarioScreen } from "../modules/calendario";
 import { SuscripcionesScreen } from "../modules/suscripciones";
-import { AgentesScreen } from "../modules/agentes";
+import { AgentesScreen, EstacionDelAgente } from "../modules/agentes";
 import { SeguridadScreen } from "../modules/seguridad";
 import { NegocioScreen } from "../modules/negocio";
 import { ColaboradorDetalleScreen, ConfiguracionScreen } from "../modules/configuracion";
@@ -398,7 +398,7 @@ function PanelShellInterno() {
         </PanelStack.Navigator>
       </NavigationContainer>
       <CajonPanel onAbrirPerfil={abrirPerfil} />
-      {abierto && <RecorridoScreen />}
+      {abierto && <RecorridoScreen estacionDelAgente={EstacionDelAgente} />}
     </MenuPanelProvider>
   );
 }
