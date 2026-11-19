@@ -157,3 +157,21 @@ export async function desarchivarAgente(api: ClienteAdmin, agentId: string): Pro
 export async function activarVersion(api: ClienteAdmin, connectionId: string, releaseId: string): Promise<void> {
   await api.post(`/admin/connections/${connectionId}/releases/${releaseId}/promote`);
 }
+
+// ------------------------------------------------------------ datos del cliente (HU-APP-24, HU-CRM-28)
+
+export type AgenteDatos = components["schemas"]["AgenteDatosOut"];
+export type AgenteDatosIn = components["schemas"]["AgenteDatosUpdate"];
+
+/** Qué datos pide el agente en cada operación, con su `por_defecto`, si se puede ajustar y sus tipos de pedido. */
+export async function cargarDatosCliente(api: ClienteAdmin, agentId: string): Promise<AgenteDatos> {
+  return api.get<AgenteDatos>(`/admin/agents/${agentId}/datos-cliente`);
+}
+
+/**
+ * Guarda `politica` (solo lo que difiere del `por_defecto`), `herramientas_del_agente` y `metodos_entrega`;
+ * 422 `metodos_entrega_vacios` si no queda ningún tipo de pedido.
+ */
+export async function guardarDatosCliente(api: ClienteAdmin, agentId: string, cuerpo: AgenteDatosIn): Promise<AgenteDatos> {
+  return api.put<AgenteDatos>(`/admin/agents/${agentId}/datos-cliente`, cuerpo);
+}
