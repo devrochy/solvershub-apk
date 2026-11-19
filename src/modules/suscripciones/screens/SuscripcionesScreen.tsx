@@ -4,7 +4,7 @@ import { useAdminApi } from "@core/session/use-admin-api";
 import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicial";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { useKit } from "@shared/ui";
-import { TarjetaDatosDePrueba } from "../../datos-prueba";
+import { TarjetaDatosDePrueba } from "@shared/datos-prueba";
 import {
   cargarCargos,
   cargarMetricas,

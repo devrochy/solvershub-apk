@@ -7,6 +7,7 @@
 
 ### Nuevo
 
+- Ruta de lanzamiento (HU-APP-23, SPEC-49): la bienvenida y Nuevo agente pasan a las mismas 5 estaciones que el panel (Tu negocio o Tipo, Habilidades, Datos del cliente, Datos para probar y Revisar y publicar), a pantalla completa con la franja del escenario, la mini ruta y el pie fijo. Todo llega con lo recomendado («Laura» en la bienvenida, «Tomás» en Agenda) y «Usar lo recomendado» deshace los cambios. Nuevo agente crea el borrador al salir de «Tipo» y lo retoma sin duplicarlo, avisa el tipo ocupado (con «Desarchívalo» si está archivado) y publica eligiendo dónde atiende. Las estaciones 1 a 4 tienen un chat simulado sin red; la 5 prueba al agente de verdad.
 - Telegram (HU-CONN-28, ADR-0199): las conversaciones y conexiones de Telegram se ven con su logo y la etiqueta «Telegram», y la conexión muestra el @usuario del bot (nunca su id).
 - «Documentación» en la tarjeta de cuenta del cajón (entre Perfil y Tema oscuro): abre la wiki del panel (`/ayuda`, exige sesión del panel) en el navegador del sistema. `LICENSE` con el titular del proyecto y aviso de Expo en `NOTICE`.
 - Seguridad del negocio (SPEC-42, ADR-0174): la app registra el teléfono (`X-Device-Id` en toda

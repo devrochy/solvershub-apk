@@ -1,7 +1,9 @@
-# Smoke de los primeros pasos (HU-APP-22, SPEC-41): un dueño de un negocio NUEVO ve el asistente abrirse
-# solo, lo omite y queda el aviso fijo; lo retoma desde el aviso. No crea el agente (no escribe datos de
-# agente en test). Requiere un APK/OTA con el módulo onboarding, el backend con `/admin/onboarding` y un
-# negocio creado después de ONBOARDING_DESDE. Credenciales demo: demo12345.
+# Smoke de la bienvenida en 5 estaciones (HU-APP-23, SPEC-49): un dueño de un negocio NUEVO ve la bienvenida
+# abrirse sola a pantalla completa, con la franja del escenario, la mini ruta y lo recomendado preelegido
+# (Vendo productos, «Laura»). Cambia una opción, vuelve a lo recomendado y la omite con «Seguir después»; queda
+# el aviso fijo y la retoma. NO pulsa «Crear a Laura y seguir»: eso crea el agente y no se escriben datos de
+# agente en test. Requiere un APK/OTA con HU-APP-23, el backend con HU-AOS-84 y un negocio creado después de
+# ONBOARDING_DESDE. Credenciales demo: demo12345.
 appId: com.solvershub.apk
 ---
 - launchApp
@@ -14,53 +16,51 @@ appId: com.solvershub.apk
 - inputText: "demo12345"
 - tapOn:
     id: "login-entrar"
-# Se abre solo, con el logo y el paso 1.
+# Se abre sola, con la franja del escenario, el logo y la estación 1 de 5.
 - extendedWaitUntil:
     visible:
       id: "onboarding-recorrido"
     timeout: 30000
 - assertVisible:
+    id: "onb-escenario"
+- assertVisible:
     id: "logo-horizontal"
-- assertVisible: "Paso 1 de 6"
-# Sin elegir tipo no avanza.
+- assertVisible: "Paso 1 de 5 · Tu negocio"
+# Llega con lo recomendado.
+- assertVisible: "Recomendado"
+- assertVisible: "Crear a Laura y seguir"
+# Cambiar una opción cuenta un cambio; «Usar lo recomendado» vuelve atrás.
 - tapOn:
-    id: "onb-siguiente"
-- assertVisible: "Elige a qué se dedica tu negocio."
-# Elige lo mínimo y avanza al paso 2.
+    id: "onb-tipo-agenda"
+- assertVisible: ".*1 cambio.*"
 - tapOn:
-    id: "onb-tipo-ventas"
-- tapOn:
-    id: "onb-descripcion"
-- inputText: "Vendemos ropa deportiva en Manizales"
-- hideKeyboard
+    id: "onb-recomendado-usar"
+- assertNotVisible: "Usar lo recomendado"
+# El chat de la estación 1 es simulado: responde sin red.
 - scrollUntilVisible:
     element:
-      id: "onb-sugerido-Sofía"
+      id: "vista-previa-quien"
     direction: DOWN
 - tapOn:
-    id: "onb-sugerido-Sofía"
-- tapOn:
-    id: "onb-siguiente"
-- assertVisible: "Paso 2 de 6"
-# La tarjeta del agente muestra lo decidido.
-- tapOn:
-    id: "onb-ver-agente"
-- assertVisible: "Sofía"
-- pressKey: back
-# Lo hace después: confirma y queda el aviso fijo.
+    id: "vista-previa-quien"
+- assertVisible: "Es una vista previa: no le escribe a nadie"
+# Lo deja para después: confirma y queda el aviso fijo.
 - tapOn:
     id: "onb-omitir"
-- tapOn: "Lo hago después"
+# El texto también es el del enlace de la franja: se toca el botón del diálogo.
+- tapOn:
+    text: "Seguir después"
+    index: 1
 - extendedWaitUntil:
     visible:
       id: "aviso-onboarding"
     timeout: 20000
-- assertVisible: "Tu agente aún no está listo para probar. Faltan 5 pasos."
-# Lo retoma desde el aviso en el paso donde quedó.
+- assertVisible: "Tu agente aún no está listo para responder. Faltan 5 de 5 pasos."
+# La retoma desde el aviso en la estación donde quedó.
 - tapOn:
     id: "aviso-onboarding-continuar"
 - extendedWaitUntil:
     visible:
       id: "onboarding-recorrido"
     timeout: 20000
-- assertVisible: "Paso 2 de 6"
+- assertVisible: "Paso 1 de 5 · Tu negocio"

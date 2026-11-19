@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { Button, Icono, Sheet, useKit, type IconName } from "@shared/ui";
-import { TarjetaDatosDePrueba } from "../../datos-prueba";
+import { TarjetaDatosDePrueba } from "@shared/datos-prueba";
 
 import type { CalendarListOut, CollaboratorItem, TypeOut } from "../api";
 import { SeccionAgendas } from "./secciones/SeccionAgendas";

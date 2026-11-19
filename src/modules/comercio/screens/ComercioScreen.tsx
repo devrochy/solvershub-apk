@@ -14,7 +14,7 @@ import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import NetInfo from "@react-native-community/netinfo";
 import { baseActual } from "@data/bootstrap";
-import { TarjetaDatosDePrueba } from "../../datos-prueba";
+import { TarjetaDatosDePrueba } from "@shared/datos-prueba";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { AvisosDeSeguimiento } from "../components/AvisosDeSeguimiento";
 import { cambiarEstadoPedidoConOffline } from "../offline";

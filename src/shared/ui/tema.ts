@@ -61,6 +61,26 @@ export interface KitTema {
     /** Relleno translúcido (avatar, botón cerrar) sobre la banda. */
     relleno: string;
   };
+  /**
+   * Franja del escenario de la «Ruta de lanzamiento» (HU-APP-23, SPEC-49): siempre oscura, en los dos temas,
+   * con el navy de la marca y el cian de lo hecho. Las tarjetas sobre ella son sólidas (sin transparencia
+   * detrás del texto).
+   */
+  escenario: {
+    fondo: string;
+    tarjeta: string;
+    borde: string;
+    texto: string;
+    textoSuave: string;
+    acento: string;
+    /** Texto sobre el acento (el ✓ de los nodos hechos). */
+    sobreAcento: string;
+    /** Puntos pendientes de la mini ruta. */
+    pendiente: string;
+    /** Degradado de los nodos hechos (de `desde` a `hasta`). */
+    desde: string;
+    hasta: string;
+  };
 }
 
 function crearKit(tema: Tema): KitTema {
@@ -86,6 +106,18 @@ function crearKit(tema: Tema): KitTema {
       textoSuave: shColor.ice,
       borde: conAlfa(shColor.white, 0.7),
       relleno: conAlfa(shColor.white, 0.18),
+    },
+    escenario: {
+      fondo: shColor.navy["800"],
+      tarjeta: shColor.navy["750"],
+      borde: shColor.navy["600"],
+      texto: shColor.white,
+      textoSuave: shColor.fog,
+      acento: shColor.cyan["400"],
+      sobreAcento: shColor.navy["900"],
+      pendiente: shColor.slate["500"],
+      desde: shColor.cyan["400"],
+      hasta: shColor.blue["500"],
     },
     tonos: {
       neutral: { fg: c.textMuted, bg: c.surface2, border: c.border },

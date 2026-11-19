@@ -1,6 +1,7 @@
-# Smoke del asistente de creación de agentes (HU-AOS-56, SPEC-39): recorre el guion de «Ventas»
-# hasta «Revisar y crear» SIN crear el agente (no escribe datos en test). Requiere un APK/OTA con
-# el módulo Agentes y el backend con `/admin/agents/from-script`. Credenciales demo: demo12345.
+# Smoke de Nuevo agente en 5 estaciones (HU-APP-23, SPEC-49): se abre a pantalla completa con ✕ y «Nuevo
+# agente · 1 de 5», con el tipo recomendado preelegido, su guion y su nombre sugerido. Cambia una opción, vuelve
+# a lo recomendado y cierra con ✕ SIN crear el agente (no escribe datos en test). Requiere un APK/OTA con
+# HU-APP-23 y el backend con `/admin/agents/from-script`. Credenciales demo: demo12345.
 appId: com.solvershub.apk
 ---
 - launchApp
@@ -35,22 +36,27 @@ appId: com.solvershub.apk
     timeout: 20000
 - tapOn:
     id: "agentes-nuevo"
-# Paso 1: sin elegir tipo no avanza.
-- tapOn: "Siguiente"
-- assertVisible: "Elige qué quieres que haga tu agente."
+- extendedWaitUntil:
+    visible:
+      id: "asistente-escenario"
+    timeout: 20000
+- assertVisible: "Nuevo agente · 1 de 5"
+- assertVisible: "Paso 1 de 5 · Tipo"
+- assertVisible: "¿Qué quieres que haga tu agente?"
+- assertVisible: "Recomendado"
+# El botón dice a quién crea (el nombre sugerido del tipo recomendado).
+- assertVisible: "Crear a .* y seguir"
+# Cambiar el nombre cuenta un cambio; «Usar lo recomendado» vuelve atrás.
 - tapOn:
-    id: "asistente-tipo-ventas"
-# Preguntas del guion (valor por defecto marcado), nombre y lo ya cargado.
-- repeat:
-    while:
-      notVisible: "Crear mi agente"
-    times: 8
-    commands:
-      - tapOn: "Siguiente"
-- assertVisible:
-    id: "asistente-resumen"
-- assertVisible: "Crear mi agente"
-# Cancelar deja todo como estaba.
-- tapOn: "Cancelar"
+    id: "asistente-nombre"
+- inputText: "Prueba"
+- hideKeyboard
+- assertVisible: ".*1 cambio.*"
+- tapOn:
+    id: "asistente-recomendado-usar"
+- assertNotVisible: "Usar lo recomendado"
+# ✕ cierra sin crear nada.
+- tapOn:
+    id: "asistente-escenario-cerrar"
 - assertVisible:
     id: "agentes-lista"

@@ -23,7 +23,7 @@ function sesion(permissions: Record<string, string>, role = "owner") {
   (useAdminSession as jest.Mock).mockReturnValue({ sesion: { token: "t", role, permissions } });
 }
 
-describe("AgentesScreen (HU-AOS-56)", () => {
+describe("AgentesScreen (HU-AOS-56, HU-APP-23)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useAdminApi as jest.Mock).mockReturnValue(cliente);
@@ -37,7 +37,8 @@ describe("AgentesScreen (HU-AOS-56)", () => {
     expect(getByText("Publicado")).toBeTruthy();
     expect(getByText("Borrador")).toBeTruthy();
     await fireEvent.press(getByTestId("agentes-nuevo"));
-    await waitFor(() => getByTestId("asistente-stepper"));
+    await waitFor(() => getByTestId("asistente-escenario"));
+    expect(getByTestId("agentes-lista")).toBeTruthy();
   });
 
   it("sin permiso de edición no ofrece crear", async () => {
@@ -61,7 +62,7 @@ describe("AgentesScreen (HU-AOS-56)", () => {
       expect.stringMatching(/Mejora tu plan/),
       expect.any(Array),
     );
-    expect(queryByTestId("asistente-stepper")).toBeNull();
+    expect(queryByTestId("asistente-escenario")).toBeNull();
     alerta.mockRestore();
   });
 

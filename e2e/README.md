@@ -16,7 +16,7 @@ Flujos de regresión de cobranza (HU-APP-07). Se corren contra el **APK preview*
 ```bash
 maestro test e2e/smoke-cobranza.yaml     # campo (gestor)
 maestro test e2e/smoke-panel-dueno.yaml  # panel (dueño)
-maestro test e2e/smoke-asistente-agentes.yaml  # asistente de agentes (dueño; no crea nada)
+maestro test e2e/smoke-asistente-agentes.yaml  # Nuevo agente en 5 estaciones (dueño; no crea nada)
 ```
 
 Cada flujo arranca sin sesión: entre corridas, `adb uninstall com.solvershub.apk` +

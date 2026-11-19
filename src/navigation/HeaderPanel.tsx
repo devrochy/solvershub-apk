@@ -4,8 +4,8 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { shSpace, shType } from "@core/theme/tokens";
 import { CampanaDelPanel, IconButton, useKit } from "@shared/ui";
 import { AvisoDeOnboarding } from "../modules/onboarding";
-import { AvisoDePlanFree } from "../modules/plan/AvisoDePlanFree";
-import { avisoDePlanFree, puedeMejorarPlan } from "../modules/plan/plan-free";
+import { AvisoDePlanFree } from "@shared/plan/AvisoDePlanFree";
+import { avisoDePlanFree, puedeMejorarPlan } from "@shared/plan/plan-free";
 import { useMenuPanel } from "./menu-panel-context";
 
 /**

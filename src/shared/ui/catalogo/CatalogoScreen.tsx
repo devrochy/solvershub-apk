@@ -6,7 +6,14 @@ import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import {
   Avatar,
   Badge,
+  BarraRecomendado,
   Button,
+  Chip,
+  Elegible,
+  EncabezadoEscenario,
+  PildoraDelAgente,
+  ResumenDeEstaciones,
+  RutaDeEstaciones,
   CanalIcono,
   Card,
   Checkbox,
@@ -189,6 +196,28 @@ function Catalogo() {
         />
       </Seccion>
 
+      <Seccion titulo="Ruta de lanzamiento">
+        <EncabezadoEscenario onCerrar={() => undefined} titulo="Nuevo agente · 2 de 5" estaciones={ESTACIONES_DEMO} actual={1}>
+          <PildoraDelAgente siglas="TO" nombre="Tomás" detalle="Agenda · Borrador" />
+        </EncabezadoEscenario>
+        <RutaDeEstaciones estaciones={ESTACIONES_DEMO} actual={3} />
+        <BarraRecomendado cambios={2} onUsar={() => undefined} />
+        <Elegible titulo="Agenda" ayuda="Agenda citas y entregas" icono="event" etiqueta="Recomendado" elegido onPress={() => undefined} />
+        <Elegible
+          titulo="Ventas"
+          icono="storefront"
+          elegido={false}
+          deshabilitado
+          nota="Ya tienes un agente «Ventas»: edítalo en vez de crear otro."
+          onPress={() => undefined}
+        />
+        <View style={styles.fila}>
+          <Chip titulo="Tomás" inicial="T" rol="radio" elegido onPress={() => undefined} />
+          <Chip titulo="Sofía" inicial="S" rol="radio" elegido={false} onPress={() => undefined} />
+        </View>
+        <ResumenDeEstaciones estaciones={[{ id: "1", titulo: "Tipo", resumen: "Agenda" }]} onEditar={() => undefined} />
+      </Seccion>
+
       <Seccion titulo="Canales">
         <Fila>
           <CanalIcono canal="whatsapp" />
@@ -356,6 +385,14 @@ function Catalogo() {
     </ScrollView>
   );
 }
+
+const ESTACIONES_DEMO = [
+  { id: "tipo", titulo: "Tipo" },
+  { id: "habilidades", titulo: "Habilidades" },
+  { id: "datos-cliente", titulo: "Datos del cliente" },
+  { id: "datos-probar", titulo: "Datos para probar" },
+  { id: "revisar", titulo: "Revisar y publicar" },
+];
 
 function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
   const { c } = useKit();
