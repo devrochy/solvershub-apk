@@ -184,7 +184,7 @@ export function EstacionHabilidades({ agenteId, tipo, nombre, registrarGuardar, 
 
   return (
     <View style={styles.estacion} testID="estacion-habilidades">
-      <View style={styles.fila}>
+      <View style={styles.linea}>
         <Icono name="check" size={18} color={tonos.success.fg} />
         <Text style={[shType.dense, styles.flex, { color: c.text }]}>
           <Text style={shType.label}>Solver para {NOMBRE_DEL_TIPO[tipo ?? ""] ?? "tu negocio"}</Text> · activada por el
@@ -332,6 +332,7 @@ const styles = StyleSheet.create({
   grupo: { gap: shSpace[2] },
   fila: { flexDirection: "row", alignItems: "center", gap: shSpace[2], flexWrap: "wrap" },
   flex: { flexShrink: 1 },
+  linea: { flexDirection: "row", alignItems: "center", gap: shSpace[2] },
   grilla: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[3] },
   marca: { borderWidth: 1, borderRadius: shRadius.pill, paddingHorizontal: shSpace[2] },
   avanzadas: { flexDirection: "row", alignItems: "center", gap: shSpace[1], minHeight: 48 },

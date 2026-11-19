@@ -68,8 +68,8 @@ export function Elegible({
         ]}
       >
         {icono ? (
-          <View style={[styles.icono, { backgroundColor: elegido ? tonos.accent.border : c.surface2 }]}>
-            <Icono name={icono} size={22} color={elegido ? c.link : c.textMuted} />
+          <View style={[styles.icono, baldosa && styles.iconoBaldosa, { backgroundColor: elegido ? tonos.accent.border : c.surface2 }]}>
+            <Icono name={icono} size={baldosa ? 18 : 22} color={elegido ? c.link : c.textMuted} />
           </View>
         ) : null}
         <View style={styles.textos}>
@@ -81,7 +81,7 @@ export function Elegible({
             </Text>
           ) : null}
         </View>
-        {elegido ? <Icono name="check-circle" size={22} color={c.link} /> : null}
+        {elegido ? <Icono name="check-circle" size={baldosa ? 18 : 22} color={c.link} /> : null}
         {etiqueta ? (
           <View
             style={[styles.etiqueta, { borderColor: c.link, backgroundColor: c.surface }]}
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
   baldosa: { gap: shSpace[2], padding: shSpace[2] },
   deshabilitada: { borderStyle: "dashed" },
   presionada: { opacity: 0.85 },
+  iconoBaldosa: { width: 30, height: 30 },
   icono: { width: 40, height: 40, borderRadius: shRadius.sm, alignItems: "center", justifyContent: "center" },
   textos: { flex: 1, gap: shSpace[1] },
   etiqueta: {
