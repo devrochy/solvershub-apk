@@ -47,7 +47,10 @@ appId: com.solvershub.apk
 # Lo deja para después: confirma y queda el aviso fijo.
 - tapOn:
     id: "onb-omitir"
-- tapOn: "Seguir después"
+# El texto también es el del enlace de la franja: se toca el botón del diálogo.
+- tapOn:
+    text: "Seguir después"
+    index: 1
 - extendedWaitUntil:
     visible:
       id: "aviso-onboarding"
