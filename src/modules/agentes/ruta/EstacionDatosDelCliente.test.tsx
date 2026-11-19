@@ -1,5 +1,6 @@
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
 
+import { StyleSheet } from "react-native";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AdminApiError } from "@core/api/admin";
 import { useAdminApi } from "@core/session/use-admin-api";
@@ -23,10 +24,38 @@ const POLITICA = {
       modulo: "ventas",
       etiqueta: "Crear un pedido",
       campos: [
-        { clave: "nombre", etiqueta: "Nombre", nivel: "requerido", por_defecto: "requerido", ajustable: true, ajustado: false },
-        { clave: "telefono", etiqueta: "Teléfono", nivel: "requerido", por_defecto: "requerido", ajustable: false, ajustado: false },
-        { clave: "direccion", etiqueta: "Dirección", nivel: "recomendado", por_defecto: "recomendado", ajustable: true, ajustado: false },
-        { clave: "correo", etiqueta: "Correo", nivel: "no_pedir", por_defecto: "no_pedir", ajustable: true, ajustado: false },
+        {
+          clave: "nombre",
+          etiqueta: "Nombre",
+          nivel: "requerido",
+          por_defecto: "requerido",
+          ajustable: true,
+          ajustado: false,
+        },
+        {
+          clave: "telefono",
+          etiqueta: "Teléfono",
+          nivel: "requerido",
+          por_defecto: "requerido",
+          ajustable: false,
+          ajustado: false,
+        },
+        {
+          clave: "direccion",
+          etiqueta: "Dirección",
+          nivel: "recomendado",
+          por_defecto: "recomendado",
+          ajustable: true,
+          ajustado: false,
+        },
+        {
+          clave: "correo",
+          etiqueta: "Correo",
+          nivel: "no_pedir",
+          por_defecto: "no_pedir",
+          ajustable: true,
+          ajustado: false,
+        },
       ],
     },
   ],
@@ -110,7 +139,10 @@ describe("EstacionDatosDelCliente", () => {
     expect(api.getByTestId(nivel("direccion", "no_pedir"))).toHaveTextContent("checkNo pedir");
     expect(api.getByTestId(nivel("direccion", "recomendado"))).toHaveTextContent("back-handRecomendado");
     expect(api.getByTestId(`datos-cliente-${PEDIDO}-direccion-pista`)).toHaveTextContent("Por defecto: Recomendado.");
-    expect(api.getByTestId(nivel("direccion", "no_pedir"))).toHaveStyle({ minHeight: 48 });
+    for (const opcion of ["requerido", "recomendado", "no_pedir"]) {
+      const estilo = StyleSheet.flatten(api.getByTestId(nivel("direccion", opcion)).props.style);
+      expect(estilo.minHeight).toBeGreaterThanOrEqual(48);
+    }
     // Con solo la dirección en «No pedir» coincide con «Lo mínimo».
     expect(onResumen).toHaveBeenLastCalledWith("datos-cliente", "«Lo mínimo»");
     expect(api.getByTestId("datos-cliente-cuanto-minimo").props.accessibilityState.checked).toBe(true);
@@ -128,7 +160,9 @@ describe("EstacionDatosDelCliente", () => {
     expect(bajar.props.accessibilityState.disabled).toBe(true);
     await fireEvent.press(bajar);
     expect(api.getByTestId(nivel("telefono", "requerido")).props.accessibilityState.checked).toBe(true);
-    expect(api.getByTestId(`datos-cliente-${PEDIDO}-telefono-piso`)).toHaveTextContent("Necesario para crear un pedido.");
+    expect(api.getByTestId(`datos-cliente-${PEDIDO}-telefono-piso`)).toHaveTextContent(
+      "Necesario para crear un pedido.",
+    );
     // «Completo» tampoco toca el piso, y «Lo mínimo» lo deja requerido.
     await fireEvent.press(api.getByTestId("datos-cliente-cuanto-minimo"));
     expect(api.getByTestId(nivel("telefono", "requerido")).props.accessibilityState.checked).toBe(true);
@@ -143,7 +177,9 @@ describe("EstacionDatosDelCliente", () => {
     expect(recoger.props.accessibilityState.disabled).toBe(true);
     expect(recoger.props.accessibilityHint).toContain("Debe quedar al menos uno.");
     await fireEvent.press(recoger);
-    expect(primera.api.getByTestId("datos-cliente-metodo-recoger_en_tienda").props.accessibilityState.checked).toBe(true);
+    expect(primera.api.getByTestId("datos-cliente-metodo-recoger_en_tienda").props.accessibilityState.checked).toBe(
+      true,
+    );
 
     let ok = false;
     await act(async () => {
@@ -161,7 +197,9 @@ describe("EstacionDatosDelCliente", () => {
     const vuelta = await montar();
     expect(mockGet).toHaveBeenCalledTimes(2);
     expect(vuelta.api.getByTestId("datos-cliente-metodo-domicilio").props.accessibilityState.checked).toBe(false);
-    expect(vuelta.api.getByTestId("datos-cliente-metodo-recoger_en_tienda").props.accessibilityState.checked).toBe(true);
+    expect(vuelta.api.getByTestId("datos-cliente-metodo-recoger_en_tienda").props.accessibilityState.checked).toBe(
+      true,
+    );
   });
 
   it("si el guardado falla, muestra el error con «Reintentar» y no deja avanzar", async () => {
@@ -181,7 +219,10 @@ describe("EstacionDatosDelCliente", () => {
       ok = await guardar();
     });
     expect(ok).toBe(true);
-    expect(mockPut).toHaveBeenLastCalledWith("/admin/agents/a-1/datos-cliente", expect.objectContaining({ herramientas_del_agente: true }));
+    expect(mockPut).toHaveBeenLastCalledWith(
+      "/admin/agents/a-1/datos-cliente",
+      expect.objectContaining({ herramientas_del_agente: true }),
+    );
     expect(api.queryByTestId("datos-cliente-error")).toBeNull();
   });
 

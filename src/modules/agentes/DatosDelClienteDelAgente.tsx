@@ -381,8 +381,6 @@ function FilaDeDato({
                 color={marcado ? relleno.primario : c.textMuted}
               />
               <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
                 style={[
                   marcado ? shType.label : shType.dense,
                   styles.textoSegmento,
@@ -433,16 +431,17 @@ const styles = StyleSheet.create({
     borderRadius: shRadius.md,
     overflow: "hidden",
   },
+  // Ícono arriba y palabra abajo: «Recomendado» cabe entero en un tercio de un celular de 360 dp.
   segmento: {
     flex: 1,
-    minHeight: shDensity.controlLg,
-    flexDirection: "row",
+    minHeight: 56,
     alignItems: "center",
     justifyContent: "center",
-    gap: shSpace[1],
+    gap: 2,
     paddingHorizontal: shSpace[1],
+    paddingVertical: shSpace[1],
   },
-  textoSegmento: { flexShrink: 1 },
+  textoSegmento: { textAlign: "center" },
   bloqueado: { opacity: 0.6 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: shSpace[1] },
   chip: {
