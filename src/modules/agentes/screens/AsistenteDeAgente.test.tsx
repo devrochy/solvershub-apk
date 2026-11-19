@@ -221,6 +221,21 @@ describe("AsistenteDeAgente en 5 estaciones (HU-APP-23)", () => {
     });
   });
 
+  it("Datos del cliente: si el guardado falla, se queda en la 3 con el error y «Reintentar» sigue al salir bien", async () => {
+    responder({ borrador: { key: "agenda", name: "Tomás", latest_version: null } });
+    mockPut.mockRejectedValueOnce(new TypeError("Network request failed")).mockResolvedValue({});
+    (secureGet as jest.Mock).mockResolvedValue(JSON.stringify({ agentId: "a-1", estacion: 3 }));
+    const api = await render(<AsistenteDeAgente agentes={[]} onTerminar={jest.fn()} />);
+    await waitFor(() => api.getByTestId("datos-cliente"));
+    await fireEvent.press(api.getByTestId("datos-cliente-historial"));
+    await fireEvent.press(api.getByTestId("asistente-siguiente"));
+    await waitFor(() => api.getByTestId("datos-cliente-error"));
+    expect(api.getByText("Nuevo agente · 3 de 5")).toBeTruthy();
+    await fireEvent.press(api.getByTestId("datos-cliente-reintentar"));
+    await waitFor(() => api.getByText("Nuevo agente · 4 de 5"));
+    expect(mockPut).toHaveBeenCalledTimes(2);
+  });
+
   it("un borrador ya publicado no se retoma: se empieza de nuevo", async () => {
     responder({ borrador: { key: "agenda", name: "Tomás", latest_version: 1 } });
     (secureGet as jest.Mock).mockResolvedValue(JSON.stringify({ agentId: "a-1", estacion: 3 }));

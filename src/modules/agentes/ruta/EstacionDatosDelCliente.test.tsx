@@ -236,6 +236,55 @@ describe("EstacionDatosDelCliente", () => {
     expect(api.getByTestId("datos-cliente-error")).toHaveTextContent(/No tienes permiso/);
   });
 
+  it("un 422 de dato que ya no se ajusta vuelve a cargar lo vigente y no avanza", async () => {
+    const { api, guardar } = await montar();
+    await fireEvent.press(api.getByTestId(`datos-cliente-accion-${PEDIDO}-abrir`));
+    await fireEvent.press(api.getByTestId(nivel("direccion", "no_pedir")));
+    // Mientras elegía, la dirección pasó a ser un piso técnico.
+    politicaDelServidor = {
+      ...POLITICA,
+      acciones: [
+        {
+          ...POLITICA.acciones[0],
+          campos: POLITICA.acciones[0].campos.map((c) =>
+            c.clave === "direccion" ? { ...c, nivel: "requerido", por_defecto: "requerido", ajustable: false } : c,
+          ),
+        },
+      ],
+    };
+    mockPut.mockRejectedValueOnce(
+      new AdminApiError(422, "dato_no_ajustable", "Ese dato lo exige el sistema y no se puede cambiar."),
+    );
+    let ok = true;
+    await act(async () => {
+      ok = await guardar();
+    });
+    expect(ok).toBe(false);
+    await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(2));
+    await waitFor(() => api.getByTestId("datos-cliente-error"));
+    expect(api.getByTestId("datos-cliente-error")).toHaveTextContent(/Ya cargamos lo vigente/);
+    await fireEvent.press(api.getByTestId(`datos-cliente-accion-${PEDIDO}-abrir`));
+    expect(api.getByTestId(nivel("direccion", "requerido")).props.accessibilityState.checked).toBe(true);
+    expect(api.getByTestId(`datos-cliente-${PEDIDO}-direccion-piso`)).toBeTruthy();
+  });
+
+  it("un 422 metodos_entrega_vacios se explica junto a «Tipos de pedido»", async () => {
+    mockPut.mockRejectedValueOnce(
+      new AdminApiError(422, "metodos_entrega_vacios", "Elige al menos un método de entrega."),
+    );
+    const { api, guardar } = await montar();
+    await fireEvent.press(api.getByTestId("datos-cliente-metodo-domicilio"));
+    let ok = true;
+    await act(async () => {
+      ok = await guardar();
+    });
+    expect(ok).toBe(false);
+    expect(api.getByTestId("datos-cliente-tipos-de-pedido")).toHaveTextContent(
+      /Deja al menos un tipo de pedido para que pueda cerrar pedidos\./,
+    );
+    expect(api.getByTestId("datos-cliente-error")).toHaveTextContent(/Elige al menos un método de entrega/);
+  });
+
   it("si no carga, lo dice y «Reintentar» vuelve a pedirlo", async () => {
     mockGet.mockRejectedValueOnce(new TypeError("Network request failed"));
     const api = await render(

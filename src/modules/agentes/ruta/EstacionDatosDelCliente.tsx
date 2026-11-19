@@ -35,6 +35,14 @@ type Guardado = {
 const TEXTO_SIN_CONEXION = "Se cortó la conexión. Lo que elegiste sigue aquí: vuelve a intentarlo.";
 
 /**
+ * Errores 422 que dicen que lo cargado quedó viejo (el agente cambió de operaciones o un dato pasó a ser exigido
+ * por el sistema): reintentar con lo mismo fallaría siempre, así que se vuelve a cargar lo vigente.
+ */
+const CODIGOS_DESACTUALIZADOS = new Set(["dato_no_ajustable", "dato_desconocido", "accion_desconocida"]);
+const TEXTO_DESACTUALIZADO =
+  "Algunos de esos datos cambiaron mientras elegías. Ya cargamos lo vigente: revísalo y vuelve a guardar.";
+
+/**
  * Estación 3, «Datos del cliente» (HU-APP-24, tableros `rb3`/`rn3`), en las dos rutas: carga
  * `GET /admin/agents/{id}/datos-cliente` y, con «Guardar y seguir», escribe `politica`, `herramientas_del_agente`
  * y `metodos_entrega` con un solo `PUT`, solo si algo cambió (igual que «Datos del cliente» del panel). Si el
@@ -117,6 +125,13 @@ export function EstacionDatosDelCliente({ agenteId, registrarGuardar, onResumen,
       setGuardado({ estado: e, herramientas: h, metodos: m });
       return true;
     } catch (err) {
+      if (err instanceof AdminApiError && err.status === 422 && CODIGOS_DESACTUALIZADOS.has(err.code)) {
+        setError(TEXTO_DESACTUALIZADO);
+        setPolitica(null);
+        setGuardado(null);
+        setIntento((n) => n + 1);
+        return false;
+      }
       if (err instanceof AdminApiError && err.code === "metodos_entrega_vacios") setErrorDeMetodos(TEXTO_SIN_METODOS);
       setError(err instanceof AdminApiError ? mensajeDeErrorAlGuardar(err.status, err.message) : TEXTO_SIN_CONEXION);
       return false;
