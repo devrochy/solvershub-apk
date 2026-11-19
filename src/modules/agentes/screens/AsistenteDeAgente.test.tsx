@@ -216,6 +216,62 @@ describe("AsistenteDeAgente en 5 estaciones (HU-APP-23)", () => {
     expect(secureSet).toHaveBeenLastCalledWith("sh-nuevo-agente:n-1", "");
   });
 
+  it("con el borrador creado, «Usar lo recomendado» no le cambia el tipo y su guion queda fijo", async () => {
+    responder();
+    const api = await render(<AsistenteDeAgente agentes={[]} onTerminar={jest.fn()} />);
+    await waitFor(() => api.getByTestId("asistente-tipo-agenda"));
+    // Elige Agenda en vez de Ventas (lo recomendado) y crea el borrador.
+    await fireEvent.press(api.getByTestId("asistente-tipo-agenda"));
+    await fireEvent.press(api.getByTestId("asistente-siguiente"));
+    await waitFor(() => api.getByText("Nuevo agente · 2 de 5"));
+    await fireEvent.press(api.getByTestId("asistente-atras"));
+    await waitFor(() => api.getByText("Guardar y seguir"));
+    // Lo recomendado ahora es su propio tipo: no hay cambios que deshacer ni otro tipo al que saltar.
+    expect(api.queryByText("Usar lo recomendado")).toBeNull();
+    expect(api.getByTestId("asistente-tipo-agenda").props.accessibilityState.selected).toBe(true);
+    expect(api.getByTestId("asistente-tipo-agenda").props.accessibilityHint).toContain("Recomendado");
+    expect(api.getByTestId("asistente-largo_respuesta-cortas").props.accessibilityState.disabled).toBe(true);
+    expect(api.getByTestId("asistente-guion-fijo")).toBeTruthy();
+    // Cambiar el nombre sí cuenta, y volver a lo recomendado deja el tipo del borrador.
+    await fireEvent.changeText(api.getByTestId("asistente-nombre"), "Tomasa");
+    await fireEvent.press(api.getByTestId("asistente-recomendado-usar"));
+    expect(api.getByTestId("asistente-tipo-agenda").props.accessibilityState.selected).toBe(true);
+    expect(api.getByTestId("asistente-nombre").props.value).toBe("Tomás");
+  });
+
+  it("un tipo que se ocupó mientras tanto no intenta crearse: avisa sin llamar a from-script", async () => {
+    responder();
+    const api = await render(<AsistenteDeAgente agentes={[]} onTerminar={jest.fn()} />);
+    await waitFor(() => api.getByTestId("asistente-nombre"));
+    await fireEvent.changeText(api.getByTestId("asistente-nombre"), "Sofía");
+    // La lista de agentes llega después con un Ventas activo: la elección del dueño queda en Ventas.
+    await api.rerender(<AsistenteDeAgente agentes={[laura]} onTerminar={jest.fn()} />);
+    await fireEvent.press(api.getByTestId("asistente-siguiente"));
+    await waitFor(() => api.getByTestId("asistente-existente"));
+    expect(api.getAllByText("Ya tienes un agente «Ventas»: edítalo en vez de crear otro.").length).toBeGreaterThan(0);
+    expect(mockPost).not.toHaveBeenCalledWith("/admin/agents/from-script", expect.anything());
+  });
+
+  it("un corte de red al retomar no olvida el borrador (no se duplica al volver)", async () => {
+    responder();
+    const normal = mockGet.getMockImplementation()!;
+    mockGet.mockImplementation((path: string, ...resto: unknown[]) =>
+      path === "/admin/agents/a-1" ? Promise.reject(new TypeError("Network request failed")) : normal(path, ...resto),
+    );
+    (secureGet as jest.Mock).mockResolvedValue(JSON.stringify({ agentId: "a-1", estacion: 3 }));
+    const api = await render(<AsistenteDeAgente agentes={[]} onTerminar={jest.fn()} />);
+    await waitFor(() => api.getByText("Nuevo agente · 1 de 5"));
+    expect(secureSet).not.toHaveBeenCalledWith("sh-nuevo-agente:n-1", "");
+  });
+
+  it("un borrador que ya no existe (404) se olvida", async () => {
+    responder();
+    (secureGet as jest.Mock).mockResolvedValue(JSON.stringify({ agentId: "a-1", estacion: 3 }));
+    const api = await render(<AsistenteDeAgente agentes={[]} onTerminar={jest.fn()} />);
+    await waitFor(() => api.getByText("Nuevo agente · 1 de 5"));
+    await waitFor(() => expect(secureSet).toHaveBeenCalledWith("sh-nuevo-agente:n-1", ""));
+  });
+
   it("si otro creó el tipo mientras tanto (409 key_taken), avisa con el agente que lo ocupa", async () => {
     responder();
     mockPost.mockRejectedValueOnce(new AdminApiError(409, "key_taken", "Ya existe", { agent_id: "a-9" }));

@@ -61,6 +61,7 @@ import {
   cambiarTipo,
   claveDeNuevoAgente,
   cuerpoDeCreacion,
+  elegirTipo,
   errorDeLaEstacion1,
   estadoRecomendado,
   leerBorradorDeNuevoAgente,
@@ -141,6 +142,8 @@ export function AsistenteDeAgente({
   const [plantillas, setPlantillas] = useState<PlantillaAgente[] | null>(null);
   const [errorDeCarga, setErrorDeCarga] = useState<string | null>(null);
   const [agenteId, setAgenteId] = useState<string | null>(null);
+  // Con el borrador creado, su tipo y su guion quedan fijos: lo recomendado ya no puede cambiarlos.
+  const [fijo, setFijo] = useState<{ plantilla: string; respuestas: Record<string, string> } | null>(null);
   const [nombreGuardado, setNombreGuardado] = useState("");
   const [numero, setNumero] = useState(1);
   const [estado, setEstado] = useState<EstadoDelAsistente | null>(null);
@@ -166,15 +169,26 @@ export function AsistenteDeAgente({
         ]);
         if (!vivo) return;
         const borrador = leerBorradorDeNuevoAgente(crudo);
-        const agente = borrador ? await cargarAgente(api, borrador.agentId).catch(() => null) : null;
+        let agente: Awaited<ReturnType<typeof cargarAgente>> | null = null;
+        // Solo un 404 dice que el borrador ya no existe; un corte de red no lo olvida (si no, se duplicaría).
+        let yaNoExiste = false;
+        if (borrador) {
+          try {
+            agente = await cargarAgente(api, borrador.agentId);
+          } catch (e) {
+            yaNoExiste = e instanceof AdminApiError && e.status === 404;
+          }
+        }
         if (!vivo) return;
         const plantilla = agente ? lista.find((p) => p.key === agente.key) : undefined;
         if (borrador && agente && plantilla && agente.latest_version === null && agente.status !== "archived") {
+          const respuestas = respuestasPorDefecto(plantilla);
           setAgenteId(agente.id);
+          setFijo({ plantilla: plantilla.key, respuestas });
           setNombreGuardado(agente.name);
-          setEstado({ plantilla: plantilla.key, respuestas: respuestasPorDefecto(plantilla), nombre: agente.name });
+          setEstado({ plantilla: plantilla.key, respuestas, nombre: agente.name });
           setNumero(borrador.estacion);
-        } else if (borrador) {
+        } else if (borrador && (agente || yaNoExiste)) {
           void secureSet(claveDeNuevoAgente(negocioId), "").catch(() => undefined);
         }
         setPlantillas(lista);
@@ -187,10 +201,13 @@ export function AsistenteDeAgente({
     };
   }, [api, negocioId]);
 
-  const recomendado = useMemo(
-    () => (plantillas ? estadoRecomendado(plantillas, agentes, agenteId) : null),
-    [plantillas, agentes, agenteId],
-  );
+  const recomendado = useMemo(() => {
+    if (!plantillas) return null;
+    const delBorrador = fijo ? plantillas.find((p) => p.key === fijo.plantilla) : undefined;
+    // Con el borrador creado, lo recomendado es su propio tipo (con su guion): solo el nombre puede volver.
+    if (fijo && delBorrador) return { ...elegirTipo(delBorrador), respuestas: fijo.respuestas };
+    return estadoRecomendado(plantillas, agentes, agenteId);
+  }, [plantillas, agentes, agenteId, fijo]);
   const actual: EstadoDelAsistente | null = estado ?? recomendado;
   const plantilla = plantillas?.find((p) => p.key === actual?.plantilla) ?? null;
   const key = plantilla?.key ?? null;
@@ -255,6 +272,12 @@ export function AsistenteDeAgente({
     const problema = errorDeLaEstacion1(actual, plantilla);
     setError(problema ?? null);
     if (problema || !plantilla) return;
+    // Un tipo que el negocio ya tiene nunca intenta crearse: se avisa igual que en su tarjeta.
+    const yaOcupado = agenteId ? null : ocupadoDe(plantilla.key, agentes);
+    if (yaOcupado) {
+      setExistente({ texto: textoDeOcupado(plantilla.name, yaOcupado.archivado), ocupado: yaOcupado });
+      return;
+    }
     setOcupadoEnCurso(true);
     setExistente(null);
     try {
@@ -268,6 +291,7 @@ export function AsistenteDeAgente({
         const creado = await crearDesdeGuion(api, cuerpoDeCreacion(actual, plantilla));
         id = creado.agent.id;
         setAgenteId(id);
+        setFijo({ plantilla: plantilla.key, respuestas: actual.respuestas });
         setNombreGuardado(nombre);
         setEstado(actual);
       }
@@ -530,6 +554,11 @@ export function AsistenteDeAgente({
                     <Text style={[shType.label, { color: c.text }]}>Su guion</Text>
                     {preguntas.every((q) => actual.respuestas[q.id] === q.default) ? <Marca texto="Recomendado" /> : null}
                   </View>
+                  {agenteId ? (
+                    <Text style={[shType.caption, { color: c.textMuted }]} testID="asistente-guion-fijo">
+                      Su guion quedó guardado con el borrador; se ajusta en el panel web.
+                    </Text>
+                  ) : null}
                   {preguntas.map((q) => (
                     <View key={q.id} style={styles.grupo} accessibilityRole="radiogroup" accessibilityLabel={q.text}>
                       <Text style={[shType.dense, { color: c.textMuted }]}>{q.text}</Text>
@@ -541,6 +570,7 @@ export function AsistenteDeAgente({
                           ayuda={o.help || undefined}
                           etiqueta={o.id === q.default ? "Recomendado" : undefined}
                           elegido={actual.respuestas[q.id] === o.id}
+                          deshabilitado={Boolean(agenteId)}
                           onPress={() => cambiar({ respuestas: { ...actual.respuestas, [q.id]: o.id } })}
                         />
                       ))}
