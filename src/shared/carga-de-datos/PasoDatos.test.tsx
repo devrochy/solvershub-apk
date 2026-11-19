@@ -134,3 +134,21 @@ describe("PasoLoCargado", () => {
     expect(r.getByText("«¿Tienen Pan?»")).toBeTruthy();
   });
 });
+
+describe("PasoDatos fuera de test (HU-APP-23)", () => {
+  it("sin ninguna forma de carga ofrece «Seguir sin datos» en la ruta", async () => {
+    const api = { get: jest.fn(() => Promise.reject(new Error("404"))), post: jest.fn() } as unknown as ClienteAdmin;
+    const onSeguirSinDatos = jest.fn();
+    const r = await render(<PasoDatos api={api} agenteId="a-1" onCargado={jest.fn()} onSeguirSinDatos={onSeguirSinDatos} />);
+    await waitFor(() => r.getByText("Por ahora no hay datos que cargar para este tipo"));
+    await fireEvent.press(r.getByText("Seguir sin datos"));
+    expect(onSeguirSinDatos).toHaveBeenCalled();
+  });
+
+  it("en Ventas, fuera de test, solo quedan las fotos", async () => {
+    const r = await render(<PasoDatos api={comoCliente(cliente(false))} agenteId="a-1" onCargado={jest.fn()} onSeguirSinDatos={jest.fn()} />);
+    await waitFor(() => r.getByText("Cargar desde fotos"));
+    expect(r.queryByText("Generar datos de prueba")).toBeNull();
+    expect(r.queryByText("Seguir sin datos")).toBeNull();
+  });
+});

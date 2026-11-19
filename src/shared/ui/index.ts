@@ -4,6 +4,7 @@
  */
 export { Avatar, iniciales, type AvatarProps, type AvatarSize, type AvatarStatus } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeSize } from "./Badge";
+export { BarraRecomendado, TEXTO_RECOMENDADO } from "./BarraRecomendado";
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from "./Button";
 export { Card, type CardProps } from "./Card";
 export { CampanaDelPanel, CampanaNotificaciones, textoContador, type CampanaNotificacionesProps } from "./CampanaNotificaciones";
@@ -11,6 +12,13 @@ export { CampoTelefono } from "./CampoTelefono";
 export { CanalIcono, marcaDelCanal, type CanalIconoProps } from "./CanalIcono";
 export { Checkbox, type CheckboxProps } from "./Checkbox";
 export { Drawer, type DrawerProps } from "./Drawer";
+export { Chip, Elegible, type ChipProps, type ElegibleProps } from "./Elegible";
+export {
+  EncabezadoEscenario,
+  PildoraDelAgente,
+  TarjetaDelEscenario,
+  type EncabezadoEscenarioProps,
+} from "./EncabezadoEscenario";
 export { EmptyState, type EmptyStateAction, type EmptyStateProps } from "./EmptyState";
 export { Field, nombreDeCampo, useField, type FieldContexto, type FieldProps } from "./Field";
 export { IconButton, type IconButtonProps, type IconButtonSize, type IconButtonTone } from "./IconButton";
@@ -25,6 +33,8 @@ export { curva, duracion, useReduceMotion, type CurvaMotion, type DuracionMotion
 export { PageHeader, type PageHeaderProps } from "./PageHeader";
 export { PasswordField, type PasswordFieldProps } from "./PasswordField";
 export { RadioGroup, type RadioGroupProps, type RadioOption } from "./RadioGroup";
+export { ResumenDeEstaciones, type EstacionResumida } from "./ResumenDeEstaciones";
+export { RutaDeEstaciones, type EstacionDeRuta, type RutaDeEstacionesProps } from "./RutaDeEstaciones";
 export { SelectorFechaHora } from "./SelectorFechaHora";
 export { Sheet, type SheetProps } from "./Sheet";
 export { Skeleton, type SkeletonProps, type SkeletonShape } from "./Skeleton";

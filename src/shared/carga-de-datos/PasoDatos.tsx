@@ -5,7 +5,7 @@ import { AdminApiError, type ClienteAdmin } from "@core/api/admin";
 import { useAdminSession } from "@core/session/admin-session-context";
 import { shSpace, shType } from "@core/theme/tokens";
 import { prepararFotoDeProducto } from "@shared/media/preparar-foto-producto";
-import { Badge, Button, Field, IconButton, RadioGroup, TextField, useKit } from "@shared/ui";
+import { Badge, Button, EmptyState, Field, IconButton, RadioGroup, TextField, useKit } from "@shared/ui";
 import {
   MAX_FOTOS,
   ErrorDeFoto,
@@ -51,10 +51,16 @@ export function PasoDatos({
   api,
   agenteId,
   onCargado,
+  onSeguirSinDatos,
 }: {
   api: ClienteAdmin;
   agenteId: string;
   onCargado: (c: Cargado) => void;
+  /**
+   * Ruta de lanzamiento (HU-APP-23): sin ninguna forma de carga (fuera de test, todo tipo salvo Ventas), el paso
+   * muestra un estado vacío con «Seguir sin datos», que pasa a la estación siguiente.
+   */
+  onSeguirSinDatos?: () => void;
 }) {
   const { c, tonos } = useKit();
   const { sesion } = useAdminSession();
@@ -98,6 +104,18 @@ export function PasoDatos({
       ? [{ value: "fotos", label: "Cargar desde fotos", description: "Una foto por producto: la IA propone nombre, categoría y precio si se ve. Cuesta créditos y te decimos cuántos antes." }]
       : []),
   ];
+
+  if (opciones.length === 0 && onSeguirSinDatos) {
+    return (
+      <EmptyState
+        icon="inventory-2"
+        title="Por ahora no hay datos que cargar para este tipo"
+        description="Puedes probarlo igual en la estación siguiente y cargarle datos después, cuando esté disponible."
+        action={{ label: "Seguir sin datos", onPress: onSeguirSinDatos }}
+        testID="datos-vacio"
+      />
+    );
+  }
 
   async function generar() {
     setError(null);
