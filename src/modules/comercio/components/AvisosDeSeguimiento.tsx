@@ -6,7 +6,7 @@ import { Card, IconButton, Switch, useKit } from "@shared/ui";
 
 import {
   avisosDeConfig,
-  cargarConfigDeVentas,
+  cargarConfigDeCaptarLeads,
   guardarAvisosDeSeguimiento,
   HORA_DEL_RESUMEN_MAX,
   textoDeHora,
@@ -28,7 +28,7 @@ export function AvisosDeSeguimiento({ puedeEscribir }: { puedeEscribir: boolean 
 
   useEffect(() => {
     let vigente = true;
-    cargarConfigDeVentas(api)
+    cargarConfigDeCaptarLeads(api)
       .then((values) => {
         if (!vigente) return;
         setConfig(values);

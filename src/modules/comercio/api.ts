@@ -113,14 +113,19 @@ export interface AvisosDeSeguimiento {
 
 export const HORA_DEL_RESUMEN_MAX = 19;
 
-interface ConfigPlugin {
-  plugin_id: string;
+/**
+ * Los avisos de seguimiento son de Captar leads, del core desde ADR-0193 (HU-AOS-70): su config ya no está en la de
+ * comercio. El servidor no devuelve los secretos del intake y los conserva si no llegan.
+ */
+export const CONFIG_DE_CAPTAR_LEADS = "/admin/captar-leads/config";
+
+interface ConfigCaptarLeads {
   values: Record<string, unknown>;
 }
 
 /** Lee los valores completos de la configuración: el guardado necesita todos para no reponer defaults. */
-export async function cargarConfigDeVentas(api: ClienteAdmin): Promise<Record<string, unknown>> {
-  const config = await api.get<ConfigPlugin>("/admin/plugins/pack_commerce/config");
+export async function cargarConfigDeCaptarLeads(api: ClienteAdmin): Promise<Record<string, unknown>> {
+  const config = await api.get<ConfigCaptarLeads>(CONFIG_DE_CAPTAR_LEADS);
   return config.values ?? {};
 }
 
@@ -139,7 +144,7 @@ export async function guardarAvisosDeSeguimiento(
   actual: Record<string, unknown>,
   cambio: Partial<AvisosDeSeguimiento>,
 ): Promise<Record<string, unknown>> {
-  const config = await api.put<ConfigPlugin>("/admin/plugins/pack_commerce/config", { values: { ...actual, ...cambio } });
+  const config = await api.put<ConfigCaptarLeads>(CONFIG_DE_CAPTAR_LEADS, { values: { ...actual, ...cambio } });
   return config.values ?? { ...actual, ...cambio };
 }
 

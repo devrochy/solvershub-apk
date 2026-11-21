@@ -18,13 +18,12 @@ const CONFIG = {
   seguimiento_resumen_hora: 8,
 };
 
-describe("AvisosDeSeguimiento (HU-CRM-22)", () => {
+describe("AvisosDeSeguimiento (HU-CRM-22, config de Captar leads de HU-AOS-70)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAdminApi.mockReturnValue({ get: mockGet, put: mockPut });
-    mockGet.mockResolvedValue({ plugin_id: "pack_commerce", values: CONFIG });
+    mockGet.mockResolvedValue({ values: CONFIG });
     mockPut.mockImplementation(async (_path: string, cuerpo: { values: Record<string, unknown> }) => ({
-      plugin_id: "pack_commerce",
       values: cuerpo.values,
     }));
   });
@@ -33,34 +32,34 @@ describe("AvisosDeSeguimiento (HU-CRM-22)", () => {
     const { findByTestId, getByTestId } = await render(<AvisosDeSeguimiento puedeEscribir />);
     expect(await findByTestId("avisos-seguimiento")).toBeTruthy();
     expect(getByTestId("avisos-hora").props.children).toBe("8:00 a. m.");
-    expect(mockGet).toHaveBeenCalledWith("/admin/plugins/pack_commerce/config");
+    expect(mockGet).toHaveBeenCalledWith("/admin/captar-leads/config");
   });
 
   it("apagar los recordatorios guarda la configuración completa con ese cambio", async () => {
     const { findByTestId } = await render(<AvisosDeSeguimiento puedeEscribir />);
     await fireEvent.press(await findByTestId("avisos-recordatorios"));
     await waitFor(() =>
-      expect(mockPut).toHaveBeenCalledWith("/admin/plugins/pack_commerce/config", {
+      expect(mockPut).toHaveBeenCalledWith("/admin/captar-leads/config", {
         values: { ...CONFIG, seguimiento_recordatorios: false },
       }),
     );
   });
 
   it("cambia la hora del resumen de a una hora y no pasa del tope", async () => {
-    mockGet.mockResolvedValue({ plugin_id: "pack_commerce", values: { ...CONFIG, seguimiento_resumen_hora: 19 } });
+    mockGet.mockResolvedValue({ values: { ...CONFIG, seguimiento_resumen_hora: 19 } });
     const { findByTestId, getByTestId } = await render(<AvisosDeSeguimiento puedeEscribir />);
     await findByTestId("avisos-hora");
     expect(getByTestId("avisos-hora-mas").props.accessibilityState?.disabled).toBe(true);
     await fireEvent.press(getByTestId("avisos-hora-menos"));
     await waitFor(() =>
-      expect(mockPut).toHaveBeenCalledWith("/admin/plugins/pack_commerce/config", {
+      expect(mockPut).toHaveBeenCalledWith("/admin/captar-leads/config", {
         values: { ...CONFIG, seguimiento_resumen_hora: 18 },
       }),
     );
   });
 
   it("sin resumen diario no ofrece la hora", async () => {
-    mockGet.mockResolvedValue({ plugin_id: "pack_commerce", values: { ...CONFIG, seguimiento_resumen_diario: false } });
+    mockGet.mockResolvedValue({ values: { ...CONFIG, seguimiento_resumen_diario: false } });
     const { findByTestId, queryByTestId } = await render(<AvisosDeSeguimiento puedeEscribir />);
     await findByTestId("avisos-seguimiento");
     expect(queryByTestId("avisos-hora")).toBeNull();
