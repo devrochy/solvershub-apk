@@ -1071,6 +1071,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/captar-leads/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Config */
+        get: operations["get_config_api_v1_admin_captar_leads_config_get"];
+        /**
+         * Save Config
+         * @description Reemplaza la config del negocio. Un campo que no llega toma su valor por defecto, salvo los secretos, que
+         *     conservan el guardado (también si llegan vacíos). Valores inválidos: 422 `invalid_config` con `fields`.
+         */
+        put: operations["save_config_api_v1_admin_captar_leads_config_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/collaborators": {
         parameters: {
             query?: never;
@@ -12085,6 +12107,31 @@ export interface components {
              */
             suscripcion_id: string;
         };
+        /** CaptarLeadsConfigResponse */
+        CaptarLeadsConfigResponse: {
+            /**
+             * Configured
+             * @description El negocio ya tiene config de Captar leads (si no, se muestran los valores por defecto)
+             */
+            configured: boolean;
+            /** Configured Secrets */
+            configured_secrets: string[];
+            /** Schema */
+            schema: {
+                [key: string]: unknown;
+            };
+            /** Values */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /** CaptarLeadsConfigSave */
+        CaptarLeadsConfigSave: {
+            /** Values */
+            values: {
+                [key: string]: unknown;
+            };
+        };
         /** CargoItem */
         CargoItem: {
             cliente?: components["schemas"]["ClienteRef"] | null;
@@ -21558,7 +21605,7 @@ export interface components {
         RecorridoOut: {
             /**
              * Abrir
-             * @description El panel debe abrir el asistente solo: nunca se tocó, el negocio no tiene agente creado y quien consulta es propietario del negocio.
+             * @description El panel debe abrir el asistente solo: nunca se tocó, el negocio no tiene un agente propio ajeno a la bienvenida y quien consulta es propietario del negocio.
              */
             abrir: boolean;
             /**
@@ -21573,7 +21620,7 @@ export interface components {
             aplica: boolean;
             /**
              * Avisar
-             * @description Aviso persistente: empezó o saltó el recorrido, no lo terminó y el negocio no tiene agente creado.
+             * @description Aviso persistente: empezó o saltó el recorrido, no lo terminó y el negocio no tiene un agente propio ajeno a la bienvenida (el agente que creó la bienvenida no lo apaga).
              */
             avisar: boolean;
             /** Completado En */
@@ -27427,6 +27474,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_CronNegocioRunOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_config_api_v1_admin_captar_leads_config_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptarLeadsConfigResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_config_api_v1_admin_captar_leads_config_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaptarLeadsConfigSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptarLeadsConfigResponse"];
                 };
             };
             /** @description Validation Error */

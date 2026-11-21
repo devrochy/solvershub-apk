@@ -75,6 +75,9 @@
 
 ### Técnico
 
+- Avisos de seguimiento de Ventas (HU-AOS-70, ADR-0193): leen y guardan la config de Captar leads del core
+  (`/admin/captar-leads/config`), no la de comercio. Tipos de la API regenerados con agent-core develop.
+
 - App sobre **Expo SDK 58** (React Native 0.88 y React 19.3): es un cambio nativo, así que
   necesita binario nuevo (APK/AAB); los binarios anteriores en SDK 57 no reciben el OTA.
   Requiere Node 22.13+/24.3+ para compilar.
