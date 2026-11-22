@@ -32891,6 +32891,13 @@ export interface operations {
                     "application/json": components["schemas"]["EnvioOut"];
                 };
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_feature_not_included`; `plan_feature_not_included` trae `error.details = {feature, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -32966,6 +32973,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["VistaPreviaOut"];
                 };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_feature_not_included`; `plan_feature_not_included` trae `error.details = {feature, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
