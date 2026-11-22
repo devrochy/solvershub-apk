@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,16 +15,23 @@ import {
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { useAdminSession } from "@core/session/admin-session-context";
+import { AdminApiError } from "@core/api/admin";
+import { Badge, Button, Sheet } from "@shared/ui";
 import {
   cargarCostos,
   cargarPlan,
+  comprarRecarga,
   type CostsResponse,
   type PlanResponse,
 } from "../api";
 import {
   beneficiosDelPlan,
   creditoDelMes,
+  desgloseDelSaldo,
+  errorDeRecarga,
   precioDelPlan,
+  puedeComprarCreditos,
+  recargaEnPalabras,
   topesDelPlan,
 } from "../consumo";
 
@@ -88,7 +96,34 @@ export function NegocioScreen({
   }, [cargar]);
 
   const credito = creditoDelMes(plan?.credit);
+  const saldo =
+    plan?.credit?.used != null ? desgloseDelSaldo(plan.credit.balance) : null;
   const topes = topesDelPlan(plan?.usage);
+  // «Comprar créditos» (HU-BILL-23): solo si la API manda paquetes (no Free, suscripción activa) y
+  // quien mira escribe en plan.
+  const recargas = plan?.recargas ?? [];
+  const puedeComprar = recargas.length > 0 && puedeComprarCreditos(sesion);
+  const [comprando, setComprando] = useState(false);
+  const [abriendo, setAbriendo] = useState<string | null>(null);
+  const [errorCompra, setErrorCompra] = useState<string | null>(null);
+
+  async function comprar(paquete: string) {
+    setAbriendo(paquete);
+    setErrorCompra(null);
+    try {
+      const { checkout_url } = await comprarRecarga(api, paquete);
+      await Linking.openURL(checkout_url);
+      setComprando(false);
+    } catch (e) {
+      setErrorCompra(
+        e instanceof AdminApiError
+          ? errorDeRecarga(e.code, e.message)
+          : errorDeRecarga(null, null),
+      );
+    } finally {
+      setAbriendo(null);
+    }
+  }
 
   if (cargando) {
     return (
@@ -188,6 +223,45 @@ export function NegocioScreen({
               >
                 {credito.detalle}
               </Text>
+              {saldo ? (
+                <View testID="negocio-saldo" style={styles.saldo}>
+                  <Text
+                    style={{ color: colores.texto, fontSize: 13, fontWeight: "600" }}
+                  >
+                    {saldo.total}
+                  </Text>
+                  {saldo.partes.map((p) => (
+                    <View
+                      key={p.clave}
+                      testID={`negocio-saldo-${p.clave}`}
+                      style={styles.saldoFila}
+                    >
+                      <Text style={{ color: colores.texto, fontSize: 12 }}>
+                        {p.nombre}
+                        {p.nota ? ` · ${p.nota}` : ""}
+                      </Text>
+                      <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
+                        {p.uso}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+              {puedeComprar ? (
+                <View style={styles.saldo}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    testID="negocio-comprar-creditos"
+                    onPress={() => {
+                      setErrorCompra(null);
+                      setComprando(true);
+                    }}
+                  >
+                    Comprar créditos
+                  </Button>
+                </View>
+              ) : null}
             </View>
           ) : null}
 
@@ -249,6 +323,66 @@ export function NegocioScreen({
           >
             Para cambiar de plan, usa el checkout desde el panel web.
           </Text>
+          <Sheet
+            visible={comprando}
+            onClose={() => setComprando(false)}
+            title="Comprar créditos"
+            description="Se suman a tu saldo y se usan después del crédito del mes y lo acumulado. 1 crédito = $ 10."
+            testID="negocio-recargas"
+          >
+            {recargas.map((p) => {
+              const r = recargaEnPalabras(p);
+              return (
+                <View
+                  key={p.id}
+                  testID={`negocio-recarga-${p.id}`}
+                  style={[styles.planFila, { borderColor: colores.borde }]}
+                >
+                  <View style={styles.recargaTexto}>
+                    <Text style={{ color: colores.texto, fontWeight: "700" }}>
+                      {r.creditos}
+                    </Text>
+                    <View style={styles.recargaPrecio}>
+                      {r.lista ? (
+                        <Text
+                          testID={`negocio-recarga-${p.id}-lista`}
+                          style={{
+                            color: colores.textoSuave,
+                            fontSize: 12,
+                            textDecorationLine: "line-through",
+                          }}
+                        >
+                          {r.lista}
+                        </Text>
+                      ) : null}
+                      <Text style={{ color: colores.texto, fontWeight: "600" }}>
+                        {r.precio}
+                      </Text>
+                      {r.descuento ? <Badge tone="accent" label={r.descuento} /> : null}
+                    </View>
+                  </View>
+                  <Button
+                    size="sm"
+                    testID={`negocio-recarga-${p.id}-comprar`}
+                    loading={abriendo === p.id}
+                    disabled={abriendo !== null}
+                    onPress={() => void comprar(p.id)}
+                  >
+                    Comprar
+                  </Button>
+                </View>
+              );
+            })}
+            {errorCompra ? (
+              <Text
+                testID="negocio-recarga-error"
+                accessibilityLiveRegion="polite"
+                style={{ color: colores.peligro, fontSize: 13, marginTop: 4 }}
+              >
+                {errorCompra}
+              </Text>
+            ) : null}
+          </Sheet>
         </>
       ) : (
         <>
@@ -369,6 +503,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   grid: { flexDirection: "row", gap: 10, marginBottom: 8 },
+  saldo: { marginTop: 10, gap: 4 },
+  saldoFila: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  recargaTexto: { flex: 1, gap: 2 },
+  recargaPrecio: { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" },
   kpi: { flex: 1, borderWidth: 1, borderRadius: 12, padding: 12 },
   kpiValor: { fontSize: 18, fontWeight: "700" },
 });
