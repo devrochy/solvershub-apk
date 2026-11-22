@@ -39,7 +39,7 @@ import { SeleccionNegocioAdminScreen } from "./src/modules/auth/screens/Seleccio
 import { EquipoEnEsperaScreen } from "./src/modules/auth/screens/EquipoEnEsperaScreen";
 import { consultarEquipo } from "./src/core/api/acceso";
 import { apiGestorToken } from "./src/core/api/auth-admin";
-import { claveDeSesion, reintentarCampoAprobado, useModoPanel } from "./src/core/session/modo-panel";
+import { claveDeSesion, resolverModo, useModoPanel } from "./src/core/session/modo-panel";
 import { suscribirAccesoDeEquipo, type CodigoDeEquipo } from "@shared/acceso-evento";
 import { PanelShell } from "./src/navigation/PanelShell";
 import { campoNavRef } from "./src/navigation/refs";
@@ -181,7 +181,7 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
   const { sesion: sesionAdmin, loading: loadingAdmin, logout: logoutAdmin } = useAdminSession();
   const bio = useBloqueoBiometrico(sesionAdmin?.adminId ?? null);
   // El modo panel vale solo para la sesión admin que lo encendió (apk#220); se identifica por el token.
-  const { enPanel: modoPanel, entrarPanel } = useModoPanel(claveDeSesion(sesionAdmin), gestor?.rol ?? null);
+  const { enPanel: modoPanel, entrarPanel, salirDelPanel } = useModoPanel(claveDeSesion(sesionAdmin), gestor?.rol ?? null);
   const [bloqueoDeEquipo, setBloqueoDeEquipo] = useState<CodigoDeEquipo | null>(null);
   const [introAlInicio, setIntroAlInicio] = useState<boolean | null>(null);
   const [introTerminada, setIntroTerminada] = useState(false);
@@ -227,32 +227,52 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
     () => consultarEquipo(tokenAdmin ?? "", negocioAdmin ?? ""),
     [tokenAdmin, negocioAdmin],
   );
+  // Modo panel/campo con la regla única de `resolverModo` (apk#270): pregunta al backend con la
+  // sesión admin. La usan la aprobación del equipo y el arranque en frío.
+  const tokenVigente = useRef(tokenAdmin);
+  useEffect(() => {
+    tokenVigente.current = tokenAdmin;
+  }, [tokenAdmin]);
+  const resolverModoDeEntrada = useCallback(
+    (hayCampo: boolean, respaldoInmediato = false) => {
+      const token = tokenAdmin;
+      return resolverModo({
+        token,
+        negocio: negocioAdmin,
+        hayCampo,
+        pedirCampo: apiGestorToken,
+        aplicarCampo: async (campo) => aplicarSesionExterna?.(campo as never),
+        descartarCampo: logoutCampo,
+        entrarPanel,
+        salirDelPanel,
+        vigente: () => tokenVigente.current === token,
+        respaldoInmediato,
+      });
+    },
+    [tokenAdmin, negocioAdmin, aplicarSesionExterna, logoutCampo, entrarPanel, salirDelPanel],
+  );
   const equipoAprobado = useCallback(async () => {
+    // Entra sola, sin pedir la clave. La espera se quita cuando ya se sabe el modo: así no se ve
+    // un instante el panel (o el campo) que había antes de aprobar.
+    await resolverModoDeEntrada(Boolean(gestor));
     setBloqueoDeEquipo(null);
-    // Entra sola: repite el intercambio a campo que el 403 había frenado, sin pedir la clave.
-    await reintentarCampoAprobado({
-      token: tokenAdmin,
-      negocio: negocioAdmin,
-      hayCampo: Boolean(gestor),
-      pedirCampo: apiGestorToken,
-      aplicarCampo: async (campo) => aplicarSesionExterna?.(campo as never),
-      entrarPanel,
-    });
-  }, [tokenAdmin, negocioAdmin, gestor, aplicarSesionExterna, entrarPanel]);
+  }, [resolverModoDeEntrada, gestor]);
   const salirDelEquipo = useCallback(async () => {
     setBloqueoDeEquipo(null);
     await logoutCampo();
     await logoutAdmin();
   }, [logoutCampo, logoutAdmin]);
 
-  // Hidratación inicial: admin persistido sin sesión de campo (usuario de
-  // panel) entra directo al panel; el login en curso no dispara este efecto.
+  // Hidratación inicial: entra con lo guardado y lo confirma con el backend; el login en curso no
+  // dispara este efecto.
   const hidratado = useRef(false);
   useEffect(() => {
     if (!loadingAdmin && !loading && !hidratado.current) {
       hidratado.current = true;
-      if (sesionAdmin && !gestor) {
-        entrarPanel();
+      // Misma regla que al aprobar el equipo (apk#270): se pregunta al backend; mientras responde
+      // (o sin red) vale el respaldo, que es lo guardado: perfil de campo → campo, si no, panel.
+      if (sesionAdmin) {
+        void resolverModoDeEntrada(Boolean(gestor), true);
       }
       // La decisión se toma una sola vez por arranque: si había sesión, el intro
       // no reaparece después de cerrar sesión en la misma ejecución.
@@ -270,7 +290,7 @@ function RootNavigator({ presentacion }: { presentacion: Presentacion }) {
     loading,
     sesionAdmin,
     gestor,
-    entrarPanel,
+    resolverModoDeEntrada,
     presentacion.vista,
     presentacion.reduceMotion,
   ]);
