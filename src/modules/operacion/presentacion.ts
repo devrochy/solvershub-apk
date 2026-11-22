@@ -61,10 +61,12 @@ export const MOTIVO: Record<string, string> = {
   envio_fallido: "No se pudo enviar el mensaje",
   sin_resolver: "Varios turnos sin resolver",
   limite_iteraciones: "El asistente no llegó a una respuesta",
+  creditos_agotados: "Se agotó el crédito del plan",
   otro: "Otro",
 };
 
-const MOTIVO_DE_RIESGO = new Set(["queja", "monto_alto"]);
+// `creditos_agotados` pide una decisión del dueño (revisar el plan), no es una falla técnica.
+const MOTIVO_DE_RIESGO = new Set(["queja", "monto_alto", "creditos_agotados"]);
 const MOTIVO_TECNICO = new Set([
   "falla_ia",
   "rechazo_ia",

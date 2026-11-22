@@ -11,6 +11,10 @@ describe("tabDelPanelParaPush (HU-APP-05, deep link en el panel)", () => {
     expect(tabDelPanelParaPush({ type: "cobranza.sync" })).toBe("cobranza");
   });
 
+  it("los avisos de consumo del crédito llevan a Plan y consumo (HU-BILL-27)", () => {
+    expect(tabDelPanelParaPush({ type: "core.credit_threshold", threshold: "80" })).toBe("negocio");
+  });
+
   it("un tipo desconocido o sin datos no navega", () => {
     expect(tabDelPanelParaPush({ type: "otro" })).toBeNull();
     expect(tabDelPanelParaPush(undefined)).toBeNull();
@@ -80,6 +84,7 @@ describe("destinoDeNotificacion / destinoDePush (ADR-0167)", () => {
   it("el push prefiere el target neutro y cae al type legado", () => {
     expect(destinoDePush({ target: t("pedido") })).toEqual({ tab: "comercio", pestana: "pedidos" });
     expect(destinoDePush({ type: "core.escalation" })).toEqual({ tab: "conversaciones" });
+    expect(destinoDePush({ type: "core.credit_threshold", threshold: "colchon" })).toEqual({ tab: "negocio" });
     expect(destinoDePush({ type: "otro" })).toBeNull();
     expect(destinoDePush(undefined)).toBeNull();
   });

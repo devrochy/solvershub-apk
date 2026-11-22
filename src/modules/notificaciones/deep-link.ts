@@ -13,6 +13,9 @@ export function tabDelPanelParaPush(datos: PushDatos | undefined): string | null
       return "conversaciones";
     case "cobranza.sync":
       return "cobranza";
+    // Avisos de consumo del crédito (80 %, 100 % y reserva, HU-BILL-20): sin `target`, van a Plan y consumo.
+    case "core.credit_threshold":
+      return "negocio";
     default:
       return null;
   }

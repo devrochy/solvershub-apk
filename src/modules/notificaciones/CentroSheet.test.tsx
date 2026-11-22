@@ -54,6 +54,27 @@ describe("CentroSheet (ADR-0167)", () => {
     expect(onAbrir).toHaveBeenCalledWith(expect.objectContaining({ id: "n1" }));
   });
 
+  it("pinta los avisos de crédito (HU-BILL-20/27) con su título, texto y severidad", async () => {
+    const aviso = item({
+      id: "n2",
+      event_key: "core.credit_100",
+      title: "Usaste todo el crédito del mes",
+      body: "Tu negocio consumió todo el crédito de este ciclo.",
+      category: "sistema",
+      severity: "critical",
+      target: null,
+      data: { type: "core.credit_threshold", threshold: "100" },
+    });
+    const onAbrir = jest.fn();
+    await render(
+      <CentroSheet visible onClose={jest.fn()} n={estado({ items: [aviso], conocidas: new Set(["n2"]) })} onAbrirNotificacion={onAbrir} />,
+    );
+    expect(screen.getByText("Usaste todo el crédito del mes")).toBeTruthy();
+    expect(screen.getByText("Tu negocio consumió todo el crédito de este ciclo.")).toBeTruthy();
+    await fireEvent.press(screen.getByRole("button", { name: /^No leída\. Usaste todo el crédito del mes\. Sistema\..*Urgente$/ }));
+    expect(onAbrir).toHaveBeenCalledWith(expect.objectContaining({ id: "n2" }));
+  });
+
   it("sin notificaciones muestra un estado vacío con acción", async () => {
     await render(
       <CentroSheet visible onClose={jest.fn()} n={estado({ items: [], noLeidas: 0 })} onAbrirNotificacion={jest.fn()} />,

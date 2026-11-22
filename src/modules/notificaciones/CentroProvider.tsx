@@ -4,7 +4,8 @@ import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { emitirNavegacion } from "@shared/navegacion-evento";
 import { CentroSheet } from "./CentroSheet";
-import { destinoDeNotificacion } from "./deep-link";
+import { destinoDeNotificacion, destinoDePush } from "./deep-link";
+import type { PushDatos } from "./provider";
 import type { NotificacionItem } from "./tipos";
 import { useCentro } from "./use-centro";
 
@@ -63,7 +64,8 @@ function CentroActivo({
     (item: NotificacionItem) => {
       void n.marcarLeida(item.id);
       setAbierto(false);
-      const destino = destinoDeNotificacion(item.target);
+      // Sin `target` (p. ej. los avisos de crédito), se navega por `data.type` como un push.
+      const destino = destinoDeNotificacion(item.target) ?? destinoDePush(item.data as PushDatos);
       if (destino) emitirNavegacion(destino);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `marcarLeida` es estable por `api`

@@ -52,6 +52,11 @@ describe("presentación de la bandeja", () => {
     expect(etiquetaDelMotivo({ reason_code: "otro", reason: "motivo libre" })).toBe("Otro");
   });
 
+  it("el crédito agotado tiene su etiqueta y pide atención (HU-BILL-27)", () => {
+    expect(etiquetaDelMotivo({ reason_code: "creditos_agotados" })).toBe("Se agotó el crédito del plan");
+    expect(tonoDelMotivo("creditos_agotados")).toBe("warning");
+  });
+
   it("resume costo y tokens", () => {
     expect(formatearCostoYTokens(0.02, 1500)).toContain("1.500 tokens");
   });
