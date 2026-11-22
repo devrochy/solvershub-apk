@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { useAdminSession } from "@core/session/admin-session-context";
 import { AvanzadoTab } from "./AvanzadoTab";
 import { ChatWebTab } from "./ChatWebTab";
 import { AdminApiError } from "@core/api/admin";
@@ -81,6 +82,9 @@ interface CamposMemoria {
 export function AjustesTab() {
   const { colores } = useTheme();
   const api = useAdminApi();
+  // Los modelos del Cerebro solo los ve y cambia el master (ADR-0210 §5): al gestor la API se los manda
+  // vacíos e ignora los que mande, así que no se pintan (el primario vacío viaja tal cual y no cambia nada).
+  const verModelos = useAdminSession().sesion?.role === "master";
   const [sub, setSub] = useState<SubPestana>("identidad");
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -268,27 +272,31 @@ export function AjustesTab() {
             />
           ) : sub === "cerebro" ? (
             <View testID="ajustes-cerebro">
-              <Campo id="ajustes-model-primary" label="Modelo primario">
-                <InputCampo
-                  id="ajustes-model-primary"
-                  valor={cerebro.model_primary}
-                  onChange={(v) => setCerebro({ ...cerebro, model_primary: v })}
-                />
-              </Campo>
-              <Campo id="ajustes-model-router" label="Modelo de razonamiento">
-                <InputCampo
-                  id="ajustes-model-router"
-                  valor={cerebro.model_router}
-                  onChange={(v) => setCerebro({ ...cerebro, model_router: v })}
-                />
-              </Campo>
-              <Campo id="ajustes-model-fallback" label="Modelo de respaldo">
-                <InputCampo
-                  id="ajustes-model-fallback"
-                  valor={cerebro.model_fallback}
-                  onChange={(v) => setCerebro({ ...cerebro, model_fallback: v })}
-                />
-              </Campo>
+              {verModelos ? (
+                <>
+                  <Campo id="ajustes-model-primary" label="Modelo primario">
+                    <InputCampo
+                      id="ajustes-model-primary"
+                      valor={cerebro.model_primary}
+                      onChange={(v) => setCerebro({ ...cerebro, model_primary: v })}
+                    />
+                  </Campo>
+                  <Campo id="ajustes-model-router" label="Modelo de razonamiento">
+                    <InputCampo
+                      id="ajustes-model-router"
+                      valor={cerebro.model_router}
+                      onChange={(v) => setCerebro({ ...cerebro, model_router: v })}
+                    />
+                  </Campo>
+                  <Campo id="ajustes-model-fallback" label="Modelo de respaldo">
+                    <InputCampo
+                      id="ajustes-model-fallback"
+                      valor={cerebro.model_fallback}
+                      onChange={(v) => setCerebro({ ...cerebro, model_fallback: v })}
+                    />
+                  </Campo>
+                </>
+              ) : null}
               <Campo id="ajustes-temperature" label="Temperatura (0-2)" error={erroresNum.model_temperature}>
                 <InputCampo
                   id="ajustes-temperature"

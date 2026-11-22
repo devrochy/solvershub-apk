@@ -1,5 +1,6 @@
 jest.mock("expo-secure-store");
 jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
+jest.mock("@core/session/admin-session-context", () => ({ useAdminSession: jest.fn(() => ({ sesion: null })) }));
 jest.mock("@data/ajustes", () => ({
   leerAjuste: jest.fn(),
   guardarAjuste: jest.fn(() => Promise.resolve()),
@@ -7,6 +8,7 @@ jest.mock("@data/ajustes", () => ({
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AdminApiError } from "@core/api/admin";
+import { useAdminSession } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { leerAjuste } from "@data/ajustes";
 import catalogo from "../testing/catalogo.json";
@@ -301,5 +303,36 @@ describe("AjustesTab · números de Cerebro y Memoria", () => {
     expect(getByTestId("ajustes-rag-topk").props.value).toBe("4");
     await fireEvent.changeText(getByTestId("ajustes-rag-topk"), "1a2");
     expect(getByTestId("ajustes-rag-topk").props.value).toBe("12");
+  });
+});
+
+describe("AjustesTab · el modelo solo lo ve el master (HU-BILL-24, HU-BILL-27)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useAdminApi as jest.Mock).mockReturnValue(cliente);
+    (leerAjuste as jest.Mock).mockResolvedValue(null);
+    mockPut.mockResolvedValue(undefined);
+  });
+
+  it("al gestor el Cerebro no pinta los modelos y se guarda igual", async () => {
+    (useAdminSession as jest.Mock).mockReturnValue({ sesion: { role: "admin", permissions: {} } });
+    configurarApi();
+    const { findByTestId, queryByTestId, getByTestId } = await render(<AjustesTab />);
+    await fireEvent.press(await findByTestId("ajustes-sub-cerebro"));
+    await findByTestId("ajustes-temperature");
+    expect(queryByTestId("ajustes-model-primary")).toBeNull();
+    expect(queryByTestId("ajustes-model-router")).toBeNull();
+    expect(queryByTestId("ajustes-model-fallback")).toBeNull();
+    await fireEvent.press(getByTestId("ajustes-guardar"));
+    await waitFor(() => expect(mockPut).toHaveBeenCalled());
+    expect(mockPut.mock.calls[0][0]).toBe("/admin/settings/brain");
+  });
+
+  it("el master sigue viendo y editando los modelos", async () => {
+    (useAdminSession as jest.Mock).mockReturnValue({ sesion: { role: "master", permissions: {} } });
+    configurarApi();
+    const { findByTestId } = await render(<AjustesTab />);
+    await fireEvent.press(await findByTestId("ajustes-sub-cerebro"));
+    expect((await findByTestId("ajustes-model-primary")).props.value).toBe("m");
   });
 });

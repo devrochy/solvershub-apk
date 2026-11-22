@@ -13,7 +13,11 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useIsFocused } from "@react-navigation/native";
 import { shSpace, shType } from "@core/theme/tokens";
 import { AdminApiError } from "@core/api/admin";
+import { useAdminSessionOpcional } from "@core/session/admin-session-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { emitirNavegacion } from "@shared/navegacion-evento";
+import { avisoDeHistorial, type AvisoDeHistorial } from "@shared/plan/historial";
+import { puedeMejorarPlan, TEXTO_MEJORAR_PLAN } from "@shared/plan/plan-free";
 import { Button, EmptyState, Sheet, useKit } from "@shared/ui";
 import {
   agregarNotaConversacion,
@@ -54,14 +58,20 @@ export function ConversacionDetalleScreen({ route, navigation }: Props) {
   const [detalle, setDetalle] = useState<ConversationDetail | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // HU-BILL-25: una conversación más vieja que el historial del plan (409); no es una falla de conexión.
+  const [fueraDelHistorial, setFueraDelHistorial] = useState<AvisoDeHistorial | null>(null);
+  const sesion = useAdminSessionOpcional()?.sesion ?? null;
 
   const cargar = useCallback(async () => {
     setCargando(true);
     try {
       setDetalle(await detalleConversacion(api, id));
       setError(null);
-    } catch {
-      setError("No pudimos cargar la conversación. Revisa tu conexión.");
+      setFueraDelHistorial(null);
+    } catch (fallo) {
+      const aviso = fallo instanceof AdminApiError ? avisoDeHistorial(fallo) : null;
+      setFueraDelHistorial(aviso);
+      if (!aviso) setError("No pudimos cargar la conversación. Revisa tu conexión.");
     } finally {
       setCargando(false);
     }
@@ -77,6 +87,32 @@ export function ConversacionDetalleScreen({ route, navigation }: Props) {
       <View style={[styles.centro, { backgroundColor: c.bg }]}>
         <ActivityIndicator size="large" color={c.link} />
         <Text style={[shType.caption, { color: c.textSoft }]}>Cargando conversación…</Text>
+      </View>
+    );
+  }
+
+  if (!detalle && fueraDelHistorial) {
+    const volver = { label: "Volver", onPress: () => navigation.goBack() };
+    return (
+      <View style={[styles.centro, { backgroundColor: c.bg }]}>
+        {sesion && puedeMejorarPlan(sesion.permissions, sesion.role === "master") ? (
+          <EmptyState
+            icon="history"
+            title={fueraDelHistorial.titulo}
+            description={fueraDelHistorial.descripcion}
+            action={{ label: TEXTO_MEJORAR_PLAN, onPress: () => emitirNavegacion({ tab: "negocio", pestana: "plan" }) }}
+            secondaryAction={volver}
+            testID="detalle-fuera-del-historial"
+          />
+        ) : (
+          <EmptyState
+            icon="history"
+            title={fueraDelHistorial.titulo}
+            description={fueraDelHistorial.descripcion}
+            secondaryAction={volver}
+            testID="detalle-fuera-del-historial"
+          />
+        )}
       </View>
     );
   }
