@@ -54,7 +54,10 @@ export const ORDEN_MODULOS: readonly ModuloPanel[] = [
  * sistema) y, si tiene stack propio, el nombre de su pantalla raíz. Con pestaña,
  * el header lleva el nombre de la entrada del cajón (`tituloDeDestino`).
  */
-export const MODULOS_PANEL: Record<ModuloPanel, { label: string; raizStack?: string }> = {
+export const MODULOS_PANEL: Record<
+  ModuloPanel,
+  { label: string; raizStack?: string }
+> = {
   inicio: { label: "Resumen" },
   conversaciones: { label: "Conversaciones", raizStack: "Operacion" },
   cobranza: { label: "Cobranza", raizStack: "CobranzaAdmin" },
@@ -98,7 +101,8 @@ export interface EntradaMenuPanel {
   label: string;
   icono: Icono;
   /** Pack del negocio: si no está habilitado, la entrada queda con candado. */
-  pack?: "pack_cobranza" | "pack_commerce" | "pack_calendar" | "pack_subscriptions";
+  pack?:
+    "pack_cobranza" | "pack_commerce" | "pack_calendar" | "pack_subscriptions";
   soloMaster?: boolean;
   soloDev?: boolean;
   /** En orden: tocar la entrada abre la primera permitida. */
@@ -122,16 +126,77 @@ export interface GrupoMenuPanel {
  * el área que contiene su pestaña.
  */
 const COBRANZA: PestanaMenuPanel[] = [
-  { label: "Resumen", modulo: "cobranza", pestana: "resumen", seccion: "pack_cobranza:resumen", sub: "Resumen" },
-  { label: "Carteras", modulo: "cobranza", pestana: "carteras", seccion: "pack_cobranza:carteras", sub: "Carteras" },
-  { label: "Clientes", modulo: "cobranza", pestana: "clientes", seccion: "pack_cobranza:clientes", sub: "Carteras", oculta: true },
-  { label: "Pagos", modulo: "cobranza", pestana: "pagos", seccion: "pack_cobranza:cobros", sub: "Actividad" },
-  { label: "Promesas", modulo: "cobranza", pestana: "promesas", seccion: "pack_cobranza:promesas", sub: "Actividad" },
-  { label: "Reportes", modulo: "cobranza", pestana: "reportes", seccion: "pack_cobranza:reportes", sub: "Actividad" },
-  { label: "Gestores", modulo: "cobranza", pestana: "gestores", seccion: "pack_cobranza:gestores", sub: "Equipo" },
-  { label: "Auditoría", modulo: "cobranza", pestana: "auditoria", seccion: "pack_cobranza:auditoria", sub: "Equipo" },
-  { label: "Monitoreo IA", modulo: "cobranza", pestana: "monitoreo", seccion: "pack_cobranza:monitoreo", sub: "Asistente" },
-  { label: "Reglas de negociación", modulo: "cobranza", pestana: "reglas", seccion: "pack_cobranza:reglas", sub: "Asistente" },
+  {
+    label: "Resumen",
+    modulo: "cobranza",
+    pestana: "resumen",
+    seccion: "pack_cobranza:resumen",
+    sub: "Resumen",
+  },
+  {
+    label: "Carteras",
+    modulo: "cobranza",
+    pestana: "carteras",
+    seccion: "pack_cobranza:carteras",
+    sub: "Carteras",
+  },
+  {
+    label: "Clientes",
+    modulo: "cobranza",
+    pestana: "clientes",
+    seccion: "pack_cobranza:clientes",
+    sub: "Carteras",
+    oculta: true,
+  },
+  {
+    label: "Pagos",
+    modulo: "cobranza",
+    pestana: "pagos",
+    seccion: "pack_cobranza:cobros",
+    sub: "Actividad",
+  },
+  {
+    label: "Promesas",
+    modulo: "cobranza",
+    pestana: "promesas",
+    seccion: "pack_cobranza:promesas",
+    sub: "Actividad",
+  },
+  {
+    label: "Reportes",
+    modulo: "cobranza",
+    pestana: "reportes",
+    seccion: "pack_cobranza:reportes",
+    sub: "Actividad",
+  },
+  {
+    label: "Gestores",
+    modulo: "cobranza",
+    pestana: "gestores",
+    seccion: "pack_cobranza:gestores",
+    sub: "Equipo",
+  },
+  {
+    label: "Auditoría",
+    modulo: "cobranza",
+    pestana: "auditoria",
+    seccion: "pack_cobranza:auditoria",
+    sub: "Equipo",
+  },
+  {
+    label: "Monitoreo IA",
+    modulo: "cobranza",
+    pestana: "monitoreo",
+    seccion: "pack_cobranza:monitoreo",
+    sub: "Asistente",
+  },
+  {
+    label: "Reglas de negociación",
+    modulo: "cobranza",
+    pestana: "reglas",
+    seccion: "pack_cobranza:reglas",
+    sub: "Asistente",
+  },
 ];
 
 export const MENU_PANEL: GrupoMenuPanel[] = [
@@ -144,22 +209,41 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         id: "resumen",
         label: "Resumen",
         icono: "dashboard",
-        pestanas: [{ label: "Resumen", modulo: "inicio", seccion: "dashboard" }],
+        pestanas: [
+          { label: "Resumen", modulo: "inicio", seccion: "dashboard" },
+        ],
       },
       {
         id: "conversaciones",
         label: "Conversaciones",
         icono: "chat",
         pestanas: [
-          { label: "Conversaciones", modulo: "conversaciones", pestana: "conversaciones", seccion: "conversations" },
-          { label: "Escalaciones", modulo: "conversaciones", pestana: "escalaciones", seccion: "escalations" },
+          {
+            label: "Conversaciones",
+            modulo: "conversaciones",
+            pestana: "conversaciones",
+            seccion: "conversations",
+          },
+          {
+            label: "Escalaciones",
+            modulo: "conversaciones",
+            pestana: "escalaciones",
+            seccion: "escalations",
+          },
         ],
       },
       {
         id: "clientes",
         label: "Clientes",
         icono: "people",
-        pestanas: [{ label: "Clientes", modulo: "conversaciones", pestana: "leads", seccion: "leads" }],
+        pestanas: [
+          {
+            label: "Clientes",
+            modulo: "conversaciones",
+            pestana: "leads",
+            seccion: "leads",
+          },
+        ],
       },
     ],
   },
@@ -175,7 +259,12 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         icono: "smart-toy",
         pestanas: [
           { label: "Agentes", modulo: "agentes", seccion: "settings" },
-          { label: "Probar asistente", modulo: "conversaciones", pestana: "playground", seccion: "connections" },
+          {
+            label: "Probar asistente",
+            modulo: "conversaciones",
+            pestana: "playground",
+            seccion: "connections",
+          },
         ],
       },
       {
@@ -184,10 +273,30 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         label: "Conexiones",
         icono: "cable",
         pestanas: [
-          { label: "Conexiones", modulo: "configuracion", pestana: "conexiones", seccion: "connections" },
-          { label: "Plantillas", modulo: "configuracion", pestana: "conexiones", seccion: "connections" },
-          { label: "Producción", modulo: "configuracion", pestana: "conexiones", seccion: "connections" },
-          { label: "Requisitos de Meta", modulo: "configuracion", pestana: "conexiones", seccion: "connections" },
+          {
+            label: "Conexiones",
+            modulo: "configuracion",
+            pestana: "conexiones",
+            seccion: "connections",
+          },
+          {
+            label: "Plantillas",
+            modulo: "configuracion",
+            pestana: "conexiones",
+            seccion: "connections",
+          },
+          {
+            label: "Producción",
+            modulo: "configuracion",
+            pestana: "conexiones",
+            seccion: "connections",
+          },
+          {
+            label: "Requisitos de Meta",
+            modulo: "configuracion",
+            pestana: "conexiones",
+            seccion: "connections",
+          },
         ],
       },
     ],
@@ -205,7 +314,12 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         // HU-CAL-08: una sola vista con el calendario y un cajón de ajustes. Google
         // Calendar se administra en Conexiones.
         pestanas: [
-          { label: "Agenda", modulo: "calendario", pestana: "agenda", seccion: "pack_calendar:citas" },
+          {
+            label: "Agenda",
+            modulo: "calendario",
+            pestana: "agenda",
+            seccion: "pack_calendar:citas",
+          },
         ],
       },
       {
@@ -214,23 +328,69 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         icono: "storefront",
         pack: "pack_commerce",
         pestanas: [
-          { label: "Resumen", modulo: "comercio", pestana: "resumen", seccion: "pack_commerce" },
-          { label: "Productos", modulo: "comercio", pestana: "productos", seccion: "pack_commerce" },
-          { label: "Categorías", modulo: "comercio", pestana: "categorias", seccion: "pack_commerce" },
-          { label: "Promociones", modulo: "comercio", pestana: "promociones", seccion: "pack_commerce" },
-          { label: "Pedidos", modulo: "comercio", pestana: "pedidos", seccion: "pack_commerce" },
+          {
+            label: "Resumen",
+            modulo: "comercio",
+            pestana: "resumen",
+            seccion: "pack_commerce",
+          },
+          {
+            label: "Productos",
+            modulo: "comercio",
+            pestana: "productos",
+            seccion: "pack_commerce",
+          },
+          {
+            label: "Categorías",
+            modulo: "comercio",
+            pestana: "categorias",
+            seccion: "pack_commerce",
+          },
+          {
+            label: "Promociones",
+            modulo: "comercio",
+            pestana: "promociones",
+            seccion: "pack_commerce",
+          },
+          {
+            label: "Pedidos",
+            modulo: "comercio",
+            pestana: "pedidos",
+            seccion: "pack_commerce",
+          },
         ],
       },
-      { id: "cobranza", label: "Cobranza", icono: "payments", pack: "pack_cobranza", pestanas: COBRANZA },
+      {
+        id: "cobranza",
+        label: "Cobranza",
+        icono: "payments",
+        pack: "pack_cobranza",
+        pestanas: COBRANZA,
+      },
       {
         id: "suscripciones",
         label: "Suscripciones",
         icono: "autorenew",
         pack: "pack_subscriptions",
         pestanas: [
-          { label: "Resumen", modulo: "suscripciones", pestana: "resumen", seccion: "pack_subscriptions:suscripciones" },
-          { label: "Suscripciones", modulo: "suscripciones", pestana: "suscripciones", seccion: "pack_subscriptions:suscripciones" },
-          { label: "Pagos", modulo: "suscripciones", pestana: "pagos", seccion: "pack_subscriptions:suscripciones" },
+          {
+            label: "Resumen",
+            modulo: "suscripciones",
+            pestana: "resumen",
+            seccion: "pack_subscriptions:suscripciones",
+          },
+          {
+            label: "Suscripciones",
+            modulo: "suscripciones",
+            pestana: "suscripciones",
+            seccion: "pack_subscriptions:suscripciones",
+          },
+          {
+            label: "Pagos",
+            modulo: "suscripciones",
+            pestana: "pagos",
+            seccion: "pack_subscriptions:suscripciones",
+          },
         ],
       },
     ],
@@ -245,15 +405,34 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         label: "Consumo y plan",
         icono: "credit-card",
         pestanas: [
-          { label: "Plan", modulo: "negocio", pestana: "plan", seccion: "plan" },
-          { label: "Costos", modulo: "negocio", pestana: "costos", seccion: "costs" },
+          {
+            label: "Plan",
+            modulo: "negocio",
+            pestana: "plan",
+            seccion: "plan",
+          },
+          // USD por modelo: solo el master (ADR-0210 §5, el negocio no ve qué modelo corre).
+          {
+            label: "Costos",
+            modulo: "negocio",
+            pestana: "costos",
+            seccion: "costs",
+            soloMaster: true,
+          },
         ],
       },
       {
         id: "equipo",
         label: "Equipo",
         icono: "group",
-        pestanas: [{ label: "Colaboradores", modulo: "configuracion", pestana: "colaboradores", seccion: "collaborators" }],
+        pestanas: [
+          {
+            label: "Colaboradores",
+            modulo: "configuracion",
+            pestana: "colaboradores",
+            seccion: "collaborators",
+          },
+        ],
       },
       {
         // Dispositivos y alertas de acceso son del negocio, no de Cobranza (ADR-0174, HU-ACC-05).
@@ -261,8 +440,18 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         label: "Seguridad",
         icono: "lock",
         pestanas: [
-          { label: "Dispositivos", modulo: "seguridad", pestana: "dispositivos", seccion: "devices" },
-          { label: "Alertas de acceso", modulo: "seguridad", pestana: "alertas", seccion: "access_alerts" },
+          {
+            label: "Dispositivos",
+            modulo: "seguridad",
+            pestana: "dispositivos",
+            seccion: "devices",
+          },
+          {
+            label: "Alertas de acceso",
+            modulo: "seguridad",
+            pestana: "alertas",
+            seccion: "access_alerts",
+          },
         ],
       },
       {
@@ -270,11 +459,31 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         label: "Configuración",
         icono: "settings",
         pestanas: [
-          { label: "General", modulo: "configuracion", pestana: "ajustes", seccion: "settings" },
-          { label: "Habilidades", modulo: "configuracion", pestana: "habilidades", seccion: "plugins" },
-          { label: "Mensajes fallidos", modulo: "herramientas", pestana: "fallos", seccion: "settings" },
+          {
+            label: "General",
+            modulo: "configuracion",
+            pestana: "ajustes",
+            seccion: "settings",
+          },
+          {
+            label: "Habilidades",
+            modulo: "configuracion",
+            pestana: "habilidades",
+            seccion: "plugins",
+          },
+          {
+            label: "Mensajes fallidos",
+            modulo: "herramientas",
+            pestana: "fallos",
+            seccion: "settings",
+          },
           // Solo de la app (el push es del dispositivo): no existe en el panel web.
-          { label: "Notificaciones push", modulo: "configuracion", pestana: "notificaciones", seccion: "settings" },
+          {
+            label: "Notificaciones push",
+            modulo: "configuracion",
+            pestana: "notificaciones",
+            seccion: "settings",
+          },
         ],
       },
     ],
@@ -290,7 +499,15 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         label: "Negocios",
         icono: "business",
         soloMaster: true,
-        pestanas: [{ label: "Negocios", modulo: "herramientas", pestana: "negocios", seccion: "tenants", soloMaster: true }],
+        pestanas: [
+          {
+            label: "Negocios",
+            modulo: "herramientas",
+            pestana: "negocios",
+            seccion: "tenants",
+            soloMaster: true,
+          },
+        ],
       },
     ],
   },
@@ -305,7 +522,9 @@ export const MENU_PANEL: GrupoMenuPanel[] = [
         label: "Catálogo de UI",
         icono: "palette",
         soloDev: true,
-        pestanas: [{ label: "Catálogo de UI", modulo: "catalogo", seccion: null }],
+        pestanas: [
+          { label: "Catálogo de UI", modulo: "catalogo", seccion: null },
+        ],
       },
     ],
   },
@@ -327,7 +546,11 @@ function tieneAlgunPermiso(permisos: PermisosSeccion): boolean {
   return Object.values(permisos).some((v) => v != null);
 }
 
-function pestanaVisible(pestana: PestanaMenuPanel, permisos: PermisosSeccion, esMaster: boolean): boolean {
+function pestanaVisible(
+  pestana: PestanaMenuPanel,
+  permisos: PermisosSeccion,
+  esMaster: boolean,
+): boolean {
   if (pestana.soloMaster && !esMaster) return false;
   if (pestana.seccion === null) return true;
   return puedeVerSeccion(permisos, pestana.seccion, esMaster);
@@ -339,7 +562,9 @@ export type EntradaVisible = EntradaMenuPanel & {
   bloqueado: boolean;
 };
 
-export type GrupoVisible = Omit<GrupoMenuPanel, "entradas"> & { entradas: EntradaVisible[] };
+export type GrupoVisible = Omit<GrupoMenuPanel, "entradas"> & {
+  entradas: EntradaVisible[];
+};
 
 /**
  * Grupos con las entradas que el usuario puede ver: una entrada se ve si tiene
@@ -357,9 +582,12 @@ export function gruposDeMenu(
     const entradas = grupo.entradas.flatMap((entrada): EntradaVisible[] => {
       if (entrada.soloMaster && !esMaster) return [];
       if (entrada.soloDev && !dev) return [];
-      const pestanas = entrada.pestanas.filter((p) => pestanaVisible(p, permisos, esMaster));
+      const pestanas = entrada.pestanas.filter((p) =>
+        pestanaVisible(p, permisos, esMaster),
+      );
       if (pestanas.length === 0) return [];
-      const bloqueado = Boolean(entrada.pack) && opciones.packs?.[entrada.pack!] === false;
+      const bloqueado =
+        Boolean(entrada.pack) && opciones.packs?.[entrada.pack!] === false;
       return [{ ...entrada, pestanas, destino: pestanas[0], bloqueado }];
     });
     if (entradas.length === 0) return [];
@@ -367,7 +595,11 @@ export function gruposDeMenu(
   });
 }
 
-export type PestanaVisible = PestanaMenuPanel & { entrada: string; grupo: string; bloqueado: boolean };
+export type PestanaVisible = PestanaMenuPanel & {
+  entrada: string;
+  grupo: string;
+  bloqueado: boolean;
+};
 
 /** Pestañas visibles de todas las entradas, planas (lógica pura, testeable). */
 export function seccionesDeMenu(
@@ -377,7 +609,12 @@ export function seccionesDeMenu(
 ): PestanaVisible[] {
   return gruposDeMenu(permisos, esMaster, opciones).flatMap((g) =>
     g.entradas.flatMap((e) =>
-      e.pestanas.map((p) => ({ ...p, entrada: e.id, grupo: g.label, bloqueado: e.bloqueado })),
+      e.pestanas.map((p) => ({
+        ...p,
+        entrada: e.id,
+        grupo: g.label,
+        bloqueado: e.bloqueado,
+      })),
     ),
   );
 }
@@ -392,7 +629,9 @@ export function modulosVisibles(
   esMaster: boolean,
   opciones: OpcionesMenu = {},
 ): ModuloPanel[] {
-  const presentes = new Set<ModuloPanel>(seccionesDeMenu(permisos, esMaster, opciones).map((p) => p.modulo));
+  const presentes = new Set<ModuloPanel>(
+    seccionesDeMenu(permisos, esMaster, opciones).map((p) => p.modulo),
+  );
   if (esMaster || tieneAlgunPermiso(permisos)) presentes.add("busqueda");
   return ORDEN_MODULOS.filter((m) => presentes.has(m));
 }
@@ -402,7 +641,9 @@ export function entradaContiene(
   entrada: Pick<EntradaMenuPanel, "pestanas">,
   destino: { modulo: ModuloPanel; pestana?: string },
 ): boolean {
-  return entrada.pestanas.some((p) => p.modulo === destino.modulo && p.pestana === destino.pestana);
+  return entrada.pestanas.some(
+    (p) => p.modulo === destino.modulo && p.pestana === destino.pestana,
+  );
 }
 
 /** Destino del shell: módulo, pestaña interna y, si se sabe, la entrada del cajón. */
@@ -430,9 +671,13 @@ export function entradaDeDestino(
   destino: DestinoMenu,
   opciones: OpcionesMenu = {},
 ): EntradaVisible | null {
-  const entradas = gruposDeMenu(permisos, esMaster, opciones).flatMap((g) => g.entradas);
+  const entradas = gruposDeMenu(permisos, esMaster, opciones).flatMap(
+    (g) => g.entradas,
+  );
   return (
-    (destino.entrada ? entradas.find((e) => e.id === destino.entrada) : undefined) ??
+    (destino.entrada
+      ? entradas.find((e) => e.id === destino.entrada)
+      : undefined) ??
     entradas.find((e) => entradaContiene(e, destino)) ??
     entradas.find((e) => e.pestanas.some((p) => p.modulo === destino.modulo)) ??
     null
@@ -444,7 +689,9 @@ export function entradaDeDestino(
  * apuntan a una pestaña interna y sin repetir (las cuatro de Conexiones viven
  * en la misma pestaña de Configuración).
  */
-export function pestanasDeEntrada(entrada: Pick<EntradaMenuPanel, "id" | "pestanas">): EntradaPestanas {
+export function pestanasDeEntrada(
+  entrada: Pick<EntradaMenuPanel, "id" | "pestanas">,
+): EntradaPestanas {
   const vistas = new Set<string>();
   const pestanas = entrada.pestanas.flatMap((p) => {
     if (!p.pestana) return [];
