@@ -29,12 +29,13 @@ export async function cargarHabilidades(api: ClienteAdmin): Promise<PluginSummar
   return api.get<PluginSummary[]>("/admin/plugins");
 }
 
-export async function accionHabilidad(
-  api: ClienteAdmin,
-  id: string,
-  action: "activate" | "deactivate" | "retry",
-): Promise<void> {
-  await api.post(`/admin/plugins/${id}/action`, { action });
+/**
+ * Limpia el error de salud de la habilidad en el negocio (`retry`). Ya no hay
+ * interruptor del negocio: `activate`/`deactivate` responden 410 (HU-AOS-91) y la
+ * habilidad se instala en el agente que la usa.
+ */
+export async function reintentarHabilidad(api: ClienteAdmin, id: string): Promise<void> {
+  await api.post(`/admin/plugins/${id}/action`, { action: "retry" });
 }
 
 export async function cargarConexiones(api: ClienteAdmin): Promise<ConnectionsResponse> {
@@ -231,7 +232,6 @@ export type WebChatSettings = components["schemas"]["WebChatSettings"];
 export type WebChatUpdate = components["schemas"]["WebChatUpdate"];
 export type AdvancedResponse = components["schemas"]["AdvancedResponse"];
 export type LlmUpdate = components["schemas"]["LlmUpdate"];
-export type GuardrailsSettings = components["schemas"]["GuardrailsSettings"];
 
 export async function cargarChatWeb(api: ClienteAdmin): Promise<WebChatSettings> {
   return api.get<WebChatSettings>("/admin/settings/web-chat");
@@ -250,25 +250,6 @@ export async function cargarAvanzado(api: ClienteAdmin): Promise<AdvancedRespons
 
 export async function guardarLlm(api: ClienteAdmin, values: LlmUpdate): Promise<void> {
   await api.put<void>("/admin/settings/advanced/llm", values);
-}
-
-/** Devuelve las líneas del DSL que el backend ignoró (el resto sí se guarda). */
-export async function guardarGuardrails(
-  api: ClienteAdmin,
-  guardrailsText: string,
-): Promise<GuardrailsSettings> {
-  return api.put<GuardrailsSettings>("/admin/settings/advanced/guardrails", {
-    guardrails_text: guardrailsText,
-  });
-}
-
-/** Reemplaza el AgentSpec completo; el backend crea versión solo si cambió. */
-export async function guardarSpec(api: ClienteAdmin, spec: Record<string, unknown>): Promise<void> {
-  await api.put<void>("/admin/settings/advanced/spec", { spec });
-}
-
-export async function activarVersionSpec(api: ClienteAdmin, versionId: string): Promise<void> {
-  await api.post<void>(`/admin/settings/advanced/versions/${encodeURIComponent(versionId)}/activate`);
 }
 
 // ---------------- Cierre de réplica: checklist de Meta ----------------

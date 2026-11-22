@@ -1201,6 +1201,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/collaborators/{admin_id}/pack-roles/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Collaborator Pack Role
+         * @description Quita un rol de pack de la cuenta en el negocio activo (#870), p. ej. el perfil de Gestor de
+         *     Cobranza: vuelve a la política de Colaborador. El pack da de baja su perfil sin tocar registros
+         *     ni carteras. Vale aunque el pack ya no esté activo en el negocio.
+         */
+        post: operations["revoke_collaborator_pack_role_api_v1_admin_collaborators__admin_id__pack_roles_revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/collaborators/{admin_id}/password": {
         parameters: {
             query?: never;
@@ -1355,7 +1377,8 @@ export interface paths {
         };
         /**
          * List Pack Roles
-         * @description Roles de colaborador que aportan los packs habilitados (ADR-0066).
+         * @description Roles de colaborador que aportan los packs ACTIVOS en el negocio activo (ADR-0066, #870): pack
+         *     encendido y con un especialista publicado, la misma regla con la que el panel habilita el módulo.
          */
         get: operations["list_pack_roles_api_v1_admin_collaborators_pack_roles_get"];
         put?: never;
@@ -5697,12 +5720,10 @@ export interface paths {
         put?: never;
         /**
          * Plugin Action
-         * @description Habilita/deshabilita el pack para el tenant, o limpia su salud de error.
+         * @description Limpia la salud de error del pack para el tenant (`retry`, ADR-0024).
          *
-         *     Habilitar aplica la cuota del plan (409 `plan_limit_plugins` con `used`/`limit` y
-         *     `enabled: false`: nada cambia y `GET /admin/plugins` la sigue mostrando deshabilitada);
-         *     deshabilitar no toca a otros tenants; y `retry` reinicia la salud (ADR-0024). Reusa el
-         *     servicio del panel SSR.
+         *     `activate` y `deactivate` responden 410 `business_activation_retired`: ya no hay interruptor del negocio, la
+         *     habilidad se instala o se quita en el agente que la usa (`/admin/agents/{id}/skills`).
          */
         post: operations["plugin_action_api_v1_admin_plugins__plugin_id__action_post"];
         delete?: never;
@@ -6298,7 +6319,8 @@ export interface paths {
         };
         /**
          * Get Advanced
-         * @description Versiones del AgentSpec, LLM, guardrails, flow de atención y evals.
+         * @description LLM propio, flujo de atención y corridas de evals. `versions`, `guardrails_text` y `spec` quedan vacíos: eran
+         *     del AgentSpec v2 (ADR-0206, HU-AOS-91) y se mantienen para no romper la APK instalada.
          */
         get: operations["get_advanced_api_v1_admin_settings_advanced_get"];
         put?: never;
@@ -6319,7 +6341,7 @@ export interface paths {
         get?: never;
         /**
          * Save Guardrails Settings
-         * @description Guardrails personalizados del tenant (DSL seguro, una regla por línea).
+         * @description Retirado: los guardrails personalizados vivían en el AgentSpec v2 (410 `v2_retirado`).
          */
         put: operations["save_guardrails_settings_api_v1_admin_settings_advanced_guardrails_put"];
         post?: never;
@@ -6358,18 +6380,12 @@ export interface paths {
         };
         /**
          * Get Raw Spec
-         * @description AgentSpec activo (editor crudo de Configuración → Avanzado), con los headers sensibles
-         *     de las tools declarativas enmascarados (HU-AOS-12). El `tenantId` mostrado es el del
-         *     negocio de la sesión, aunque la fila traiga otro.
+         * @description Retirado: el editor crudo del AgentSpec v2 (410 `v2_retirado`).
          */
         get: operations["get_raw_spec_api_v1_admin_settings_advanced_spec_get"];
         /**
          * Save Raw Spec
-         * @description Valida el JSON contra el contrato del AgentSpec y guarda si cambió.
-         *
-         *     `save_spec_if_changed` solo crea versión cuando el contenido difiere, así que
-         *     guardar el mismo spec es un no-op (no ensucia el historial). El `tenantId` es
-         *     siempre el del negocio de la sesión: el del cuerpo se ignora.
+         * @description Retirado: el editor crudo del AgentSpec v2 (410 `v2_retirado`).
          */
         put: operations["save_raw_spec_api_v1_admin_settings_advanced_spec_put"];
         post?: never;
@@ -6390,7 +6406,7 @@ export interface paths {
         put?: never;
         /**
          * Activate Spec Version Endpoint
-         * @description Activa (o revierte a) una versión concreta del AgentSpec (ADR-0051).
+         * @description Retirado con el AgentSpec v2 (410 `v2_retirado`).
          */
         post: operations["activate_spec_version_endpoint_api_v1_admin_settings_advanced_versions__version_id__activate_post"];
         delete?: never;
@@ -6411,8 +6427,9 @@ export interface paths {
         /**
          * Asistente Aplicar
          * @description Escribe lo que mostró la vista previa. Todo o nada: la configuración del negocio y la persona
-         *     del agente se guardan en una sola transacción, y si lo que se escribiría ya no es lo que se vio
-         *     (la configuración cambió en medio) responde 409 sin escribir.
+         *     de los valores por defecto de los agentes (`agent_defaults`) van en la misma fila de `app_settings` y
+         *     en una sola transacción, y si lo que se escribiría ya no es lo que se vio (la configuración cambió en
+         *     medio) responde 409 sin escribir.
          */
         post: operations["asistente_aplicar_api_v1_admin_settings_asistente__seccion__aplicar_post"];
         delete?: never;
@@ -6495,7 +6512,11 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Save Brain */
+        /**
+         * Save Brain
+         * @description Modelo y políticas de los valores por defecto de los agentes (`agent_defaults`, ADR-0206 §6): sin versión
+         *     del spec. Solo cambia lo que vino; un modelo principal vacío no cambia.
+         */
         put: operations["save_brain_api_v1_admin_settings_brain_put"];
         post?: never;
         delete?: never;
@@ -6671,7 +6692,7 @@ export interface paths {
         get?: never;
         /**
          * Save Memory Settings
-         * @description Memoria del agente: turnos de contexto y recall RAG.
+         * @description Memoria de los valores por defecto de los agentes (`agent_defaults`): turnos de contexto y recall RAG.
          */
         put: operations["save_memory_settings_api_v1_admin_settings_memory_put"];
         post?: never;
@@ -6737,7 +6758,7 @@ export interface paths {
         get?: never;
         /**
          * Save Skills Settings
-         * @description On/off y límites por herramienta (solo tools de packs habilitados).
+         * @description Retirado: las tools del negocio vivían en el AgentSpec v2 (410 `v2_retirado`).
          */
         put: operations["save_skills_settings_api_v1_admin_settings_skills_put"];
         post?: never;
@@ -12895,13 +12916,6 @@ export interface components {
             /** Webhook Status Url */
             webhook_status_url: string;
         };
-        /** ConfiguredSecret */
-        ConfiguredSecret: {
-            /** Domains */
-            domains: string[];
-            /** Name */
-            name: string;
-        };
         /** ConfirmarPagoBody */
         ConfirmarPagoBody: {
             /**
@@ -14172,17 +14186,6 @@ export interface components {
         DatosRetirados: {
             /** Retirados */
             retirados: number;
-        };
-        /** DeclarativeToolsOut */
-        DeclarativeToolsOut: {
-            /** Literals To Migrate */
-            literals_to_migrate: string[];
-            /** Secrets */
-            secrets: components["schemas"]["ConfiguredSecret"][];
-            /** Tools */
-            tools: {
-                [key: string]: unknown;
-            }[];
         };
         /** Definicion */
         Definicion: {
@@ -20657,6 +20660,11 @@ export interface components {
             error: string | null;
             /** Instance */
             instance: string;
+            /**
+             * Release Activated
+             * @default false
+             */
+            release_activated: boolean;
             /** Release Created */
             release_created: boolean | null;
             /** Release Id */
@@ -22260,6 +22268,11 @@ export interface components {
              */
             supresion_en_modulos_pendiente: boolean;
         };
+        /** RevokePackRoleRequest */
+        RevokePackRoleRequest: {
+            /** Value */
+            value: string;
+        };
         /** RevokeRequest */
         RevokeRequest: {
             /** Section */
@@ -23167,11 +23180,6 @@ export interface components {
             language: string;
             /** Name */
             name: string;
-            /**
-             * Packs
-             * @default []
-             */
-            packs: string[];
             /**
              * Slug
              * @default
@@ -27754,6 +27762,42 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LinkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_collaborator_pack_role_api_v1_admin_collaborators__admin_id__pack_roles_revoke_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                admin_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokePackRoleRequest"];
             };
         };
         responses: {
@@ -37187,8 +37231,8 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description El plan no permite habilitar más habilidades: `error.code = plan_limit_plugins`, `error.details = {metric, used, limit, enabled: false}`; la habilidad queda deshabilitada. */
-            409: {
+            /** @description `activate`/`deactivate` retirados (ADR-0206, HU-AOS-91): `error.code = business_activation_retired`. Una habilidad es del negocio si algún agente activo la tiene instalada; se instala en el agente. */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -37265,13 +37309,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PluginConfigResponse"];
                 };
-            };
-            /** @description El plan no permite habilitar más habilidades: `error.code = plan_limit_plugins`, `error.details = {metric, used, limit, enabled: false}`; la habilidad queda deshabilitada. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -38461,6 +38498,13 @@ export interface operations {
                     "application/json": components["schemas"]["GuardrailsSettings"];
                 };
             };
+            /** @description Retirado con el AgentSpec v2: `error.code = v2_retirado` (ADR-0206, HU-AOS-91). */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -38529,6 +38573,13 @@ export interface operations {
                     "application/json": components["schemas"]["SpecPayload"];
                 };
             };
+            /** @description Retirado con el AgentSpec v2: `error.code = v2_retirado` (ADR-0206, HU-AOS-91). */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -38565,6 +38616,13 @@ export interface operations {
                     "application/json": components["schemas"]["SpecPayload"];
                 };
             };
+            /** @description Retirado con el AgentSpec v2: `error.code = v2_retirado` (ADR-0206, HU-AOS-91). */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -38598,6 +38656,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SpecVersion"];
                 };
+            };
+            /** @description Retirado con el AgentSpec v2: `error.code = v2_retirado` (ADR-0206, HU-AOS-91). */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -38870,13 +38935,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Retirado con el AgentSpec v2: `error.code = v2_retirado` (ADR-0206, HU-AOS-91). */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeclarativeToolsOut"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -38900,28 +38965,15 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Valores de secretos (solo escritura); null quita el secreto. */
-                    secrets?: {
-                        [key: string]: string | null;
-                    };
-                    /** @description Tools declarativas (ADR-0052). Headers sensibles como {"secret": "<nombre>"}. */
-                    tools: {
-                        [key: string]: unknown;
-                    }[];
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Retirado con el AgentSpec v2: `error.code = v2_retirado` (ADR-0206, HU-AOS-91). */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeclarativeToolsOut"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -39307,6 +39359,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SkillBinding"][];
                 };
+            };
+            /** @description Retirado con el AgentSpec v2: `error.code = v2_retirado` (ADR-0206, HU-AOS-91). */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
