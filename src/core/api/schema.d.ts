@@ -4504,7 +4504,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Accept Waweb Risk */
+        /**
+         * Accept Waweb Risk
+         * @description Acepta el aviso de riesgo y crea (o reanuda) la conexión por QR: es un alta para el plan (HU-BILL-19).
+         */
         post: operations["accept_waweb_risk_api_v1_admin_meta_waweb_accept_risk_post"];
         delete?: never;
         options?: never;
@@ -10164,7 +10167,7 @@ export interface components {
              * Reason Code
              * @enum {string}
              */
-            reason_code: "solicitud_cliente" | "queja" | "fuera_de_alcance" | "intentos_fallidos" | "monto_alto" | "palabra_clave" | "accion_habilidad" | "regla_negocio" | "verificacion" | "frase_prohibida" | "falla_ia" | "rechazo_ia" | "envio_fallido" | "sin_resolver" | "limite_iteraciones" | "otro";
+            reason_code: "solicitud_cliente" | "queja" | "fuera_de_alcance" | "intentos_fallidos" | "monto_alto" | "palabra_clave" | "accion_habilidad" | "regla_negocio" | "verificacion" | "frase_prohibida" | "falla_ia" | "rechazo_ia" | "envio_fallido" | "sin_resolver" | "limite_iteraciones" | "creditos_agotados" | "otro";
             /** Reason Label */
             reason_label: string;
             /**
@@ -14623,7 +14626,7 @@ export interface components {
              * @description Código cerrado del motivo (HU-UX-17)
              * @enum {string}
              */
-            reason_code: "solicitud_cliente" | "queja" | "fuera_de_alcance" | "intentos_fallidos" | "monto_alto" | "palabra_clave" | "accion_habilidad" | "regla_negocio" | "verificacion" | "frase_prohibida" | "falla_ia" | "rechazo_ia" | "envio_fallido" | "sin_resolver" | "limite_iteraciones" | "otro";
+            reason_code: "solicitud_cliente" | "queja" | "fuera_de_alcance" | "intentos_fallidos" | "monto_alto" | "palabra_clave" | "accion_habilidad" | "regla_negocio" | "verificacion" | "frase_prohibida" | "falla_ia" | "rechazo_ia" | "envio_fallido" | "sin_resolver" | "limite_iteraciones" | "creditos_agotados" | "otro";
             /**
              * Reason Label
              * @description Motivo legible en español
@@ -25606,7 +25609,7 @@ export interface operations {
                     "application/json": components["schemas"]["FromTemplateOut"];
                 };
             };
-            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_agentes`, `plan_plugin_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_plugin_not_included` trae `error.details = {skills, min_plan, plan}`. No se escribió nada. */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -26928,6 +26931,13 @@ export interface operations {
                     "application/json": components["schemas"]["AgentSkill"];
                 };
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_plugin_not_included`; `plan_plugin_not_included` trae `error.details = {skills, min_plan, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -27271,7 +27281,7 @@ export interface operations {
                     "application/json": components["schemas"]["FromScriptOut"];
                 };
             };
-            /** @description Tope del plan: `error.code = plan_limit_agentes`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_agentes`, `plan_plugin_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_plugin_not_included` trae `error.details = {skills, min_plan, plan}`. No se escribió nada. */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -28234,6 +28244,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_limit_correos`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -29069,6 +29086,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_limit_correos`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -29194,7 +29218,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description `bot_en_otro_negocio`, `webhook_ajeno` (con `details.webhook_url`), `conexion_pausada` o `conflicto`. */
+            /** @description `bot_en_otro_negocio`, `webhook_ajeno` (con `details.webhook_url`), `conexion_pausada` o `conflicto`. Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -29596,7 +29620,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description `sender_ya_conectado`, `cuenta_en_otro_negocio`, `twilio_account_suspended` o `conflicto`. */
+            /** @description `sender_ya_conectado`, `cuenta_en_otro_negocio`, `twilio_account_suspended` o `conflicto`. Tope o alcance del plan: `error.code` es `plan_limit_conexiones`; `plan_limit_*` trae `error.details = {metric, used, limit}`. No se escribió nada. */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -30519,7 +30543,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description `cuenta_en_otro_negocio`, `conexion_pausada`, `twilio_account_suspended` o `conflicto`. */
+            /** @description `cuenta_en_otro_negocio`, `conexion_pausada`, `twilio_account_suspended`, `conflicto` o `plan_limit_conexiones` (`error.details = {metric, used, limit}`, HU-BILL-19). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -31639,7 +31663,7 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 /** @description Filtra por código de motivo */
-                reason_code?: ("solicitud_cliente" | "queja" | "fuera_de_alcance" | "intentos_fallidos" | "monto_alto" | "palabra_clave" | "accion_habilidad" | "regla_negocio" | "verificacion" | "frase_prohibida" | "falla_ia" | "rechazo_ia" | "envio_fallido" | "sin_resolver" | "limite_iteraciones" | "otro") | null;
+                reason_code?: ("solicitud_cliente" | "queja" | "fuera_de_alcance" | "intentos_fallidos" | "monto_alto" | "palabra_clave" | "accion_habilidad" | "regla_negocio" | "verificacion" | "frase_prohibida" | "falla_ia" | "rechazo_ia" | "envio_fallido" | "sin_resolver" | "limite_iteraciones" | "creditos_agotados" | "otro") | null;
             };
             header?: {
                 "X-Device-Id"?: string | null;
@@ -33421,6 +33445,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -34279,6 +34310,13 @@ export interface operations {
                     "application/json": components["schemas"]["InstagramAttemptOut"];
                 };
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -34387,6 +34425,13 @@ export interface operations {
                     "application/json": components["schemas"]["InstagramLoginCompleteOut"];
                 };
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -34418,6 +34463,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["InstagramLoginStartOut"];
                 };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -34456,6 +34508,13 @@ export interface operations {
                         [key: string]: unknown;
                     };
                 };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -34520,6 +34579,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AttemptOut"];
                 };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -34655,6 +34721,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -34680,6 +34753,13 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -34819,6 +34899,13 @@ export interface operations {
                     "application/json": components["schemas"]["WizardByokOut"];
                 };
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -34890,6 +34977,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["WizardSessionOut"];
                 };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -35068,6 +35162,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["WizardSessionOut"];
                 };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -39502,6 +39603,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["WebChatSettings"];
                 };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_conexiones`, `plan_channel_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_channel_not_included` trae `error.details = {channel, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

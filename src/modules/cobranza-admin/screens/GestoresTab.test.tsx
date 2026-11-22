@@ -2,6 +2,7 @@ jest.mock("expo-secure-store");
 
 import { Alert } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { AdminApiError } from "@core/api/admin";
 import { GestoresTab } from "./GestoresTab";
 
 const mockGet = jest.fn();
@@ -59,6 +60,18 @@ describe("GestoresTab (cierre de réplica)", () => {
         password: "clave123",
       }),
     );
+  });
+
+  it("el alta sobre el tope del plan muestra su mensaje (409, HU-BILL-27)", async () => {
+    mockPost.mockRejectedValue(new AdminApiError(409, "plan_limit_colaboradores", "Llegaste al tope de tu plan."));
+    const { getByTestId } = await render(<GestoresTab api={api} />);
+    await waitFor(() => expect(getByTestId("gestores-lista")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("gestores-nuevo"));
+    await fireEvent.changeText(getByTestId("gestor-nombre"), "Nuevo Cobrador");
+    await fireEvent.press(getByTestId("gestor-guardar"));
+
+    await waitFor(() => expect(getByTestId("gestores-error").props.children).toBe("Llegaste al tope de tu plan."));
   });
 
   it("edita permisos y guarda la matriz", async () => {

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { AdminApiError } from "@core/api/admin";
 import { cargarChatWeb, guardarChatWeb, type WebChatSettings } from "../api";
 import { PasswordField } from "@shared/ui";
 
@@ -65,8 +66,9 @@ export function ChatWebTab() {
       setTurnstile("");
       setRotar(false);
       setMensaje("Chat web guardado.");
-    } catch {
-      setError("No se pudo guardar el chat web.");
+    } catch (err) {
+      // El 409 de plan (`plan_limit_conexiones`, `plan_channel_not_included`) trae el mensaje del tope.
+      setError(err instanceof AdminApiError ? err.message : "No se pudo guardar el chat web.");
     } finally {
       setGuardando(false);
     }

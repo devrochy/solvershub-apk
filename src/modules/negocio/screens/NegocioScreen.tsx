@@ -11,6 +11,7 @@ import { usePestanaInicial, type SolicitudPestana } from "@shared/pestana-inicia
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { cargarCostos, cargarPlan, type CostsResponse, type PlanResponse } from "../api";
+import { beneficiosDelPlan, creditoDelMes, precioDelPlan, topesDelPlan } from "../consumo";
 
 type Pestana = "plan" | "costos";
 const PESTANAS: readonly Pestana[] = ["plan", "costos"];
@@ -56,6 +57,9 @@ export function NegocioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPe
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial: los setState ocurren después del await (no síncronos)
     void cargar().finally(() => setCargando(false));
   }, [cargar]);
+
+  const credito = creditoDelMes(plan?.credit);
+  const topes = topesDelPlan(plan?.usage);
 
   if (cargando) {
     return (
@@ -108,13 +112,26 @@ export function NegocioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPe
             </Text>
           </View>
 
-          {(plan?.usage ?? []).map((u) => (
-            <View key={u.key} style={styles.uso}>
-              <Text style={{ color: colores.texto, fontSize: 13 }}>{u.label}</Text>
-              <Barra porcentaje={u.percent ?? 0} />
-              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
-                {u.limit != null ? `${u.remaining ?? 0} restantes de ${u.limit}` : "Ilimitado"}
-              </Text>
+          {credito ? (
+            <View
+              testID="negocio-credito"
+              style={[styles.tarjeta, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+            >
+              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>Crédito del mes</Text>
+              <Text style={[styles.titulo, { color: colores.texto }]}>{credito.titulo}</Text>
+              {credito.porcentaje != null ? <Barra porcentaje={credito.porcentaje} /> : null}
+              <Text style={{ color: colores.textoSuave, fontSize: 12, marginTop: 4 }}>{credito.detalle}</Text>
+            </View>
+          ) : null}
+
+          {topes.length > 0 ? (
+            <Text style={[styles.seccion, { color: colores.texto }]}>Topes del plan</Text>
+          ) : null}
+          {topes.map((t) => (
+            <View key={t.clave} testID={`negocio-tope-${t.clave}`} style={styles.uso}>
+              <Text style={{ color: colores.texto, fontSize: 13 }}>{t.titulo}</Text>
+              {t.porcentaje != null ? <Barra porcentaje={t.porcentaje} /> : null}
+              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>{t.uso}</Text>
             </View>
           ))}
 
@@ -122,15 +139,21 @@ export function NegocioScreen({ pestanaInicial }: { pestanaInicial?: SolicitudPe
           {(plan?.plans ?? []).map((p) => (
             <View
               key={p.id}
-              style={[styles.planFila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
+              testID={`negocio-plan-${p.id}`}
+              style={[styles.planTarjeta, { borderColor: p.current ? colores.acento : colores.borde, backgroundColor: colores.tarjeta }]}
             >
-              <Text style={{ color: colores.texto, fontWeight: p.current ? "700" : "400" }}>
-                {p.name}
-                {p.current ? " · actual" : ""}
-              </Text>
-              <Text style={{ color: colores.textoSuave, fontSize: 12 }}>
-                {p.is_free ? "Gratis" : `$${p.price_cop}`}
-              </Text>
+              <View style={styles.planCabecera}>
+                <Text style={{ color: colores.texto, fontWeight: "700" }}>
+                  {p.name}
+                  {p.current ? " · actual" : ""}
+                </Text>
+                <Text style={{ color: colores.texto }}>{precioDelPlan(p)}</Text>
+              </View>
+              {beneficiosDelPlan(p).map((b) => (
+                <Text key={b} style={{ color: colores.textoSuave, fontSize: 12 }}>
+                  · {b}
+                </Text>
+              ))}
             </View>
           ))}
           <Text style={{ color: colores.textoSuave, fontSize: 12, marginTop: 8 }}>
@@ -192,6 +215,8 @@ const styles = StyleSheet.create({
   barraFondo: { height: 6, borderRadius: 999, overflow: "hidden" },
   barra: { height: 6, borderRadius: 999 },
   seccion: { fontSize: 15, fontWeight: "700", marginTop: 12, marginBottom: 8 },
+  planTarjeta: { borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 8, gap: 2 },
+  planCabecera: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
   planFila: {
     borderWidth: 1,
     borderRadius: 10,

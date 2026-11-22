@@ -4,6 +4,7 @@ jest.mock("@core/session/use-admin-api", () => ({ useAdminApi: jest.fn() }));
 import { Share } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { AdminApiError } from "@core/api/admin";
 import { ChatWebTab } from "./ChatWebTab";
 
 const mockGet = jest.fn();
@@ -79,5 +80,27 @@ describe("ChatWebTab (HU-APP-12 · Chat web)", () => {
 
     await fireEvent.press(getByTestId("chatweb-compartir"));
     expect(compartir).toHaveBeenCalledWith({ message: ACTUAL.snippet });
+  });
+
+  it("muestra el mensaje del tope del plan al guardar (409, HU-BILL-27)", async () => {
+    mockPut.mockRejectedValue(
+      new AdminApiError(409, "plan_limit_conexiones", "Llegaste al tope de conexiones de tu plan."),
+    );
+    const { getByTestId } = await render(<ChatWebTab />);
+    await waitFor(() => expect(getByTestId("chatweb-guardar")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("chatweb-guardar"));
+    await waitFor(() =>
+      expect(getByTestId("chatweb-error").props.children).toBe("Llegaste al tope de conexiones de tu plan."),
+    );
+  });
+
+  it("sin respuesta del servidor deja el aviso genérico", async () => {
+    mockPut.mockRejectedValue(new Error("Network request failed"));
+    const { getByTestId } = await render(<ChatWebTab />);
+    await waitFor(() => expect(getByTestId("chatweb-guardar")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("chatweb-guardar"));
+    await waitFor(() => expect(getByTestId("chatweb-error").props.children).toBe("No se pudo guardar el chat web."));
   });
 });
