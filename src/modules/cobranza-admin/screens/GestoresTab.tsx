@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
-import type { ClienteAdmin } from "@core/api/admin";
+import { AdminApiError, type ClienteAdmin } from "@core/api/admin";
 import {
   cargarGestores,
   cargarPermisosGestor,
@@ -122,8 +122,9 @@ export function GestoresTab({ api }: { api: ClienteAdmin }) {
       setEditando(null);
       setCreando(false);
       await cargar();
-    } catch {
-      setError("No se pudo guardar. Revisa los datos.");
+    } catch (err) {
+      // El alta puede chocar con el tope del plan (409 `plan_limit_*`): va su mensaje.
+      setError(err instanceof AdminApiError ? err.message : "No se pudo guardar. Revisa los datos.");
     } finally {
       setEnviando(false);
     }

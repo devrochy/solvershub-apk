@@ -141,8 +141,9 @@ export function ColaboradorDetalleScreen({
       setActivo(nuevo);
       setMensaje(nuevo ? "Colaborador activado." : "Colaborador desactivado.");
       notificarCambioEquipo();
-    } catch {
-      setError("No pudimos cambiar el estado de la cuenta.");
+    } catch (err) {
+      // Reactivar puede chocar con el tope del plan (409 `plan_limit_colaboradores`): va su mensaje.
+      setError(err instanceof AdminApiError ? err.message : "No pudimos cambiar el estado de la cuenta.");
     } finally {
       setCambiandoEstado(false);
     }

@@ -21,6 +21,7 @@ jest.mock("@core/session/admin-session-context", () => ({
 import { Alert } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
+import { AdminApiError } from "@core/api/admin";
 import { ColaboradorDetalleScreen } from "./ColaboradorDetalleScreen";
 import type { CollaboratorItem } from "../api";
 
@@ -120,6 +121,19 @@ describe("ColaboradorDetalleScreen", () => {
       expect(mockPost).toHaveBeenCalledWith("/admin/collaborators/a-1/toggle"),
     );
     alertSpy.mockRestore();
+  });
+
+  it("reactivar sobre el tope del plan muestra su mensaje (409, HU-BILL-27)", async () => {
+    mockPost.mockRejectedValue(
+      new AdminApiError(409, "plan_limit_colaboradores", "Llegaste al tope de colaboradores de tu plan."),
+    );
+    const { getByTestId, getByText } = await render(
+      <ColaboradorDetalleScreen colaborador={{ ...COLABORADOR, active: false }} onBack={jest.fn()} />,
+    );
+    await waitFor(() => expect(getByTestId("colaborador-estado")).toBeTruthy());
+    await fireEvent.press(getByTestId("colaborador-estado"));
+
+    await waitFor(() => expect(getByText("Llegaste al tope de colaboradores de tu plan.")).toBeTruthy());
   });
 
   it("carga la grilla y guarda los permisos en bloque", async () => {
