@@ -1,4 +1,13 @@
-import { beneficiosDelPlan, creditoDelMes, precioDelPlan, topesDelPlan } from "./consumo";
+import {
+  beneficiosDelPlan,
+  creditoDelMes,
+  desgloseDelSaldo,
+  errorDeRecarga,
+  precioDelPlan,
+  puedeComprarCreditos,
+  recargaEnPalabras,
+  topesDelPlan,
+} from "./consumo";
 
 const uso = (key: string, used: number, limit: number | null) => ({
   key,
@@ -99,5 +108,76 @@ describe("consumo del plan v3 (HU-BILL-27)", () => {
     };
     expect(precioDelPlan(free)).toBe("Gratis");
     expect(beneficiosDelPlan(free)).toEqual(["1.500 créditos al mes", "1 agente", "Clientes sin límite", "Sin correos"]);
+  });
+});
+
+describe("saldo desglosado y compra de créditos (HU-BILL-27 parte 2b)", () => {
+  const AHORA = new Date(2026, 10, 22, 12);
+  const saldo = {
+    total: 20000,
+    month: 12000,
+    accumulated: 3000,
+    accumulated_expires_at: new Date(2026, 11, 19, 12).toISOString(),
+    top_ups: 5000,
+    used_month: 12000,
+    used_accumulated: 1000,
+    used_top_ups: 0,
+    over_balance: 0,
+  };
+
+  it("con saldo, la cuenta va sobre el total del ciclo y la barra usa `balance_percent`", () => {
+    expect(
+      creditoDelMes({ limit: 12000, used: 13000, percent: 108.3, by_agent_truncated: false, balance: saldo, balance_percent: 65 }),
+    ).toEqual({ titulo: "Te quedan 7.000 créditos", detalle: "Unos $ 70.000 · Usaste 13.000 de 20.000", porcentaje: 65 });
+    const agotado = creditoDelMes({ limit: 12000, used: 20000, percent: 166, by_agent_truncated: false, balance: saldo, balance_percent: 100 });
+    expect(agotado?.titulo).toBe("Usaste todo tu saldo de créditos");
+  });
+
+  it("desglosa el saldo en mes, acumulado (con vencimiento) y recargas", () => {
+    const d = desgloseDelSaldo(saldo, AHORA);
+    expect(d?.total).toBe("Saldo total: 20.000 créditos · $ 200.000");
+    expect(d?.partes).toEqual([
+      { clave: "mes", nombre: "Del mes", uso: "Usaste 12.000 de 12.000", nota: null },
+      { clave: "acumulado", nombre: "Acumulado", uso: "Usaste 1.000 de 3.000", nota: "Vence el 19 de dic." },
+      { clave: "recargas", nombre: "Recargas", uso: "Usaste 0 de 5.000", nota: null },
+    ]);
+    const basic = desgloseDelSaldo({ ...saldo, total: 12000, accumulated: 0, used_accumulated: 0, top_ups: 0, accumulated_expires_at: null }, AHORA);
+    expect(basic?.partes.map((p) => p.clave)).toEqual(["mes"]);
+    expect(desgloseDelSaldo(null)).toBeNull();
+  });
+
+  it("paquetes con y sin descuento", () => {
+    expect(recargaEnPalabras({ id: "r", creditos: 5000, precio_lista_cop: 50000, descuento_pct: 25, precio_cop: 37500 })).toEqual({
+      creditos: "5.000 créditos",
+      precio: "$ 37.500",
+      lista: "$ 50.000",
+      descuento: "−25 %",
+    });
+    expect(recargaEnPalabras({ id: "r", creditos: 5000, precio_lista_cop: 50000, descuento_pct: 0, precio_cop: 50000 })).toMatchObject({
+      lista: null,
+      descuento: null,
+    });
+  });
+
+  it("comprar es del dueño, del master o de quien escribe en plan", () => {
+    expect(puedeComprarCreditos({ role: "admin", tenantRole: "owner", permissions: {} })).toBe(true);
+    expect(puedeComprarCreditos({ role: "master", permissions: {} })).toBe(true);
+    expect(puedeComprarCreditos({ role: "admin", tenantRole: "colaborador", permissions: { plan: "write" } })).toBe(true);
+    expect(puedeComprarCreditos({ role: "admin", tenantRole: "colaborador", permissions: { plan: "read" } })).toBe(false);
+    expect(puedeComprarCreditos(null)).toBe(false);
+  });
+
+  it("los errores: «bajo el mínimo» tal cual; los demás, un texto claro", () => {
+    expect(errorDeRecarga("recarga_bajo_minimo", "Esta recarga cuesta $50.000 COP…")).toBe("Esta recarga cuesta $50.000 COP…");
+    expect(errorDeRecarga("recarga_no_disponible", "x")).toMatch(/plan pago activo/);
+    expect(errorDeRecarga("500", "Ocurrió un error.")).toBe("No pudimos abrir el pago de la recarga. Vuelve a intentarlo.");
+  });
+
+  it("Basic (descuento 0) anuncia que puede comprar créditos; Free (null) no", () => {
+    const plan = (descuento_recarga: number | null) => ({
+      id: "x", name: "X", price_cop: 1, is_free: false, current: false, limits: {}, features: { descuento_recarga },
+    });
+    expect(beneficiosDelPlan(plan(0))).toContain("Puedes comprar créditos extra");
+    expect(beneficiosDelPlan(plan(null))).not.toContain("Puedes comprar créditos extra");
   });
 });
