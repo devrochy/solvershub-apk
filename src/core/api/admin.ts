@@ -14,6 +14,8 @@ export class AdminApiError extends Error {
     message: string,
     /** Errores por campo (`{campo: mensaje}`) de un 422, para marcarlos junto a cada control. */
     public readonly fields?: Record<string, string>,
+    /** Estado que la API adjunta al error (`error.details`), p. ej. `{feature, plan, historial_dias}` de un 409 del plan. */
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = "AdminApiError";
@@ -84,9 +86,10 @@ async function errorDeRespuesta(res: Response): Promise<AdminApiError> {
   let code = String(res.status);
   let message = "Ocurrió un error. Intenta de nuevo.";
   let fields: Record<string, string> | undefined;
+  let details: Record<string, unknown> | undefined;
   try {
     const data = (await res.json()) as {
-      error?: string | { code?: string; message?: string; fields?: Record<string, unknown> };
+      error?: string | { code?: string; message?: string; fields?: Record<string, unknown>; details?: unknown };
       code?: string;
     };
     // Dos formatos (ADR-0174): del core `{error: {code, message}}` y del pack `{error: "texto", code}`.
@@ -97,10 +100,12 @@ async function errorDeRespuesta(res: Response): Promise<AdminApiError> {
       (par): par is [string, string] => typeof par[1] === "string",
     );
     if (campos.length > 0) fields = Object.fromEntries(campos);
+    const detalles = anidado?.details;
+    if (detalles && typeof detalles === "object" && !Array.isArray(detalles)) details = detalles as Record<string, unknown>;
   } catch {
     // sin cuerpo JSON
   }
-  return new AdminApiError(res.status, code, message, fields);
+  return new AdminApiError(res.status, code, message, fields, details);
 }
 
 async function pedir<T>(

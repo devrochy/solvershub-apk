@@ -2395,7 +2395,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Conversation */
+        /**
+         * Get Conversation
+         * @description Detalle con los mensajes. Con el historial del plan (HU-BILL-25), una conversación sin actividad
+         *     en la ventana responde 409 `plan_feature_not_included` (`feature = historial`) y de una visible solo
+         *     salen los mensajes desde el corte.
+         */
         get: operations["get_conversation_api_v1_admin_conversations__conversation_id__get"];
         put?: never;
         post?: never;
@@ -2649,6 +2654,32 @@ export interface paths {
          *     Conversaciones: quien atiende no necesita ver la sección Conexiones.
          */
         get: operations["list_conversation_connections_api_v1_admin_conversations_connections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/conversations/export.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Conversations Csv
+         * @description Conversaciones del negocio y sus mensajes en CSV (HU-BILL-25), una fila por mensaje, de las más
+         *     antiguas a las más nuevas. Solo planes con `features.exportar` (Premium y Empresarial); en los demás,
+         *     409 `plan_feature_not_included` con `details = {feature: "exportar", plan}`.
+         *
+         *     Respeta el historial del plan, excluye el Centro de pruebas y no trae URLs de archivos. Tope de
+         *     `EXPORTAR_MAX_MENSAJES` mensajes; si se recorta, la respuesta lo dice en `X-Export-Truncated: true`.
+         *     Se transmite por lotes con un cursor del servidor.
+         */
+        get: operations["export_conversations_csv_api_v1_admin_conversations_export_csv_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6518,7 +6549,8 @@ export interface paths {
         /**
          * Save Brain
          * @description Modelo y políticas de los valores por defecto de los agentes (`agent_defaults`, ADR-0206 §6): sin versión
-         *     del spec. Solo cambia lo que vino; un modelo principal vacío no cambia.
+         *     del spec. Solo cambia lo que vino; un modelo principal vacío no cambia. Los modelos solo los cambia el master
+         *     (ADR-0210 §5): del gestor se ignoran y la respuesta no los trae.
          */
         put: operations["save_brain_api_v1_admin_settings_brain_put"];
         post?: never;
@@ -10446,6 +10478,13 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Nivel Ia
+             * @description Nivel de IA del agente. Cambiarlo se aplica al publicar; si el plan ya no lo incluye, el agente atiende en Estándar.
+             * @default estandar
+             * @enum {string}
+             */
+            nivel_ia: "estandar" | "avanzado";
+            /**
              * Paused
              * @default false
              */
@@ -10627,6 +10666,8 @@ export interface components {
             description?: string | null;
             /** Name */
             name?: string | null;
+            /** Nivel Ia */
+            nivel_ia?: ("estandar" | "avanzado") | null;
             /** Status */
             status?: ("active" | "archived") | null;
         };
@@ -10815,6 +10856,13 @@ export interface components {
             latest_version: number | null;
             /** Name */
             name: string;
+            /**
+             * Nivel Ia
+             * @description Nivel de IA del agente. Cambiarlo se aplica al publicar; si el plan ya no lo incluye, el agente atiende en Estándar.
+             * @default estandar
+             * @enum {string}
+             */
+            nivel_ia: "estandar" | "avanzado";
             /**
              * Paused
              * @default false
@@ -13806,6 +13854,52 @@ export interface components {
             value?: string | null;
         };
         /**
+         * CreditBalance
+         * @description Saldo del ciclo desglosado (ADR-0209 §2 y §5, HU-BILL-22): el crédito del mes del plan más lo
+         *     acumulado (sobrante de ciclos anteriores, en Premium y Empresarial) y las recargas. Se gasta en ese
+         *     orden: mes, acumulado (el que vence antes primero) y recargas. `over_balance` es lo consumido por
+         *     encima del saldo (colchón de las conversaciones abiertas, lo absorbe la plataforma). En créditos con
+         *     décimas (1 crédito = COP 10).
+         */
+        CreditBalance: {
+            /**
+             * Accumulated
+             * @default 0
+             */
+            accumulated: number;
+            /** Accumulated Expires At */
+            accumulated_expires_at?: string | null;
+            /** Month */
+            month: number;
+            /**
+             * Over Balance
+             * @default 0
+             */
+            over_balance: number;
+            /**
+             * Top Ups
+             * @default 0
+             */
+            top_ups: number;
+            /** Total */
+            total: number;
+            /**
+             * Used Accumulated
+             * @default 0
+             */
+            used_accumulated: number;
+            /**
+             * Used Month
+             * @default 0
+             */
+            used_month: number;
+            /**
+             * Used Top Ups
+             * @default 0
+             */
+            used_top_ups: number;
+        };
+        /**
          * CreditByAgent
          * @description Créditos del mes de un agente. `agent_id`/`name` null: consumo sin agente (turnos de antes
          *     del runtime v3 y fees de notas de voz, imágenes y plantillas).
@@ -13836,6 +13930,9 @@ export interface components {
          *     El mes de consumo es `[period_start, period_end)`, alineado con el ciclo de la suscripción.
          */
         CreditUsage: {
+            balance?: components["schemas"]["CreditBalance"] | null;
+            /** Balance Percent */
+            balance_percent?: number | null;
             /** By Agent */
             by_agent?: components["schemas"]["CreditByAgent"][] | null;
             /**
@@ -13855,6 +13952,7 @@ export interface components {
             period_end?: string | null;
             /** Period Start */
             period_start?: string | null;
+            playground?: components["schemas"]["PlaygroundCredit"] | null;
             /** Used */
             used?: number | null;
         };
@@ -19761,6 +19859,22 @@ export interface components {
             slug: string;
             /** Status */
             status: string;
+        };
+        /**
+         * PlaygroundCredit
+         * @description Consumo del playground del panel en el mes del ciclo (D-79, ADR-0208 §15). Es gratis hasta
+         *     `free_limit` créditos; lo que pasa (`charged`) ya está sumado en `used` del crédito y en
+         *     `by_concept.playground`. El playground lo lee para avisar antes de empezar a descontar.
+         */
+        PlaygroundCredit: {
+            /** Charged */
+            charged: number;
+            /** Free Limit */
+            free_limit: number;
+            /** Free Remaining */
+            free_remaining: number;
+            /** Used */
+            used: number;
         };
         /** PlaygroundMensajeOut */
         PlaygroundMensajeOut: {
@@ -25756,6 +25870,13 @@ export interface operations {
                     "application/json": components["schemas"]["AgentSummary"];
                 };
             };
+            /** @description `plan_nivel_ia_not_included` con `error.details = {nivel_ia, plan}` si el plan no incluye el nivel de IA pedido (no se escribió nada); `nivel_ia_not_applicable` si el agente no es un especialista; `agent_reserved` o `agent_in_use` al archivar. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -30630,6 +30751,13 @@ export interface operations {
                     "application/json": components["schemas"]["ConversationDetail"];
                 };
             };
+            /** @description El plan no incluye la feature: `error.code = plan_feature_not_included`, `error.details = {feature, plan}` (feature `historial`; `historial` trae además `historial_dias`). No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -30700,6 +30828,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MessagesSince"];
                 };
+            };
+            /** @description El plan no incluye la feature: `error.code = plan_feature_not_included`, `error.details = {feature, plan}` (feature `historial`; `historial` trae además `historial_dias`). No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -31080,6 +31215,45 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ConversationConnection"][];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_conversations_csv_api_v1_admin_conversations_export_csv_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CSV con una fila por mensaje (UTF-8 con BOM). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": unknown;
+                };
+            };
+            /** @description El plan no incluye la feature: `error.code = plan_feature_not_included`, `error.details = {feature, plan}` (feature `exportar`). No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -32717,6 +32891,13 @@ export interface operations {
                     "application/json": components["schemas"]["EnvioOut"];
                 };
             };
+            /** @description Tope o alcance del plan: `error.code` es `plan_feature_not_included`; `plan_feature_not_included` trae `error.details = {feature, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -32792,6 +32973,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["VistaPreviaOut"];
                 };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_feature_not_included`; `plan_feature_not_included` trae `error.details = {feature, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -44643,7 +44831,7 @@ export interface operations {
                     "application/json": components["schemas"]["DocumentoOut"];
                 };
             };
-            /** @description Tope del plan: `error.code = plan_limit_documentos`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            /** @description Tope del plan: `error.code = plan_limit_documentos | plan_limit_conocimiento_mb | plan_limit_creditos`, `error.details = {metric, used, limit}`; no se escribió nada. */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -44722,6 +44910,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["DocumentoOut"];
                 };
+            };
+            /** @description Tope del plan: `error.code = plan_limit_creditos`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
