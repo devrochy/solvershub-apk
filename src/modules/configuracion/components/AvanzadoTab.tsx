@@ -1,15 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTheme } from "@core/theme/theme-context";
 import { useAdminApi } from "@core/session/use-admin-api";
-import {
-  activarVersionSpec,
-  cargarAvanzado,
-  guardarGuardrails,
-  guardarLlm,
-  guardarSpec,
-  type AdvancedResponse,
-} from "../api";
+import { cargarAvanzado, guardarLlm, type AdvancedResponse } from "../api";
 import { PasswordField } from "@shared/ui";
 
 function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
@@ -47,8 +40,9 @@ function Boton({
 }
 
 /**
- * Configuración avanzada del agente (panel: /configuracion?tab=avanzado): versiones,
- * proveedor LLM (BYOK), guardrails, flow y evals, y el editor crudo del AgentSpec.
+ * Configuración avanzada del agente (panel: /configuracion?tab=avanzado): proveedor LLM
+ * (BYOK), flow y evals. Las versiones del spec, los guardrails personalizados y el editor
+ * crudo del AgentSpec se retiraron con el v2 (HU-AOS-91): el backend responde 410.
  */
 export function AvanzadoTab() {
   const { colores } = useTheme();
@@ -58,12 +52,9 @@ export function AvanzadoTab() {
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
-  const [ignoradas, setIgnoradas] = useState<string[]>([]);
   const [proveedor, setProveedor] = useState("");
   const [modelo, setModelo] = useState("");
   const [llave, setLlave] = useState("");
-  const [guardrails, setGuardrails] = useState("");
-  const [spec, setSpec] = useState("");
 
   const cargar = useCallback(async () => {
     try {
@@ -71,8 +62,6 @@ export function AvanzadoTab() {
       setDatos(d);
       setProveedor(d.llm.llm_provider);
       setModelo(d.llm.llm_model);
-      setGuardrails(d.guardrails_text);
-      setSpec(JSON.stringify(d.spec ?? {}, null, 2));
     } catch {
       setError("No pudimos cargar la configuración avanzada.");
     } finally {
@@ -86,23 +75,14 @@ export function AvanzadoTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- carga inicial de la pestaña
   }, []);
 
-  /**
-   * Ejecuta una acción con su mensaje y recarga (versiones nuevas). La acción puede
-   * devolver líneas de guardrails que el backend ignoró.
-   */
-  const ejecutar = async (
-    clave: string,
-    accion: () => Promise<string[] | void>,
-    ok: string,
-  ) => {
+  /** Ejecuta una acción con su mensaje y recarga. */
+  const ejecutar = async (clave: string, accion: () => Promise<void>, ok: string) => {
     setOcupado(clave);
     setError(null);
     setMensaje(null);
-    setIgnoradas([]);
     try {
-      const ignoradasNuevas = await accion();
+      await accion();
       setMensaje(ok);
-      setIgnoradas(ignoradasNuevas ?? []);
       await cargar();
     } catch {
       setError("No se pudo guardar.");
@@ -120,49 +100,6 @@ export function AvanzadoTab() {
       },
       "LLM actualizado.",
     );
-
-  const guardarGuardrailsActual = () =>
-    void ejecutar(
-      "guardrails",
-      async () => (await guardarGuardrails(api, guardrails))?.ignored ?? [],
-      "Guardrails guardados.",
-    );
-
-  const confirmarSpec = () => {
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = JSON.parse(spec) as Record<string, unknown>;
-    } catch {
-      setMensaje(null);
-      setError("El AgentSpec no es JSON válido.");
-      return;
-    }
-    Alert.alert(
-      "Reemplazar AgentSpec",
-      "Reemplaza toda la configuración del agente y crea una versión nueva si cambió. Las anteriores quedan como históricas.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Guardar",
-          style: "destructive",
-          onPress: () =>
-            void ejecutar("spec", () => guardarSpec(api, parsed), "AgentSpec guardado."),
-        },
-      ],
-    );
-  };
-
-  const confirmarVersion = (id: string, version: string) => {
-    Alert.alert("Activar versión", `Se activará la versión ${version} y reemplaza a la activa.`, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Activar",
-        style: "destructive",
-        onPress: () =>
-          void ejecutar(`version-${id}`, () => activarVersionSpec(api, id), `Versión ${version} activada.`),
-      },
-    ]);
-  };
 
   if (cargando) {
     return <ActivityIndicator testID="avanzado-cargando" style={{ marginTop: 30 }} />;
@@ -189,42 +126,6 @@ export function AvanzadoTab() {
           {mensaje}
         </Text>
       ) : null}
-      {ignoradas.length > 0 ? (
-        <View testID="avanzado-ignoradas" style={[styles.aviso, { borderColor: colores.peligro }]}>
-          <Text style={{ color: colores.texto, fontWeight: "600", fontSize: 12 }}>
-            {`Se ignoraron ${ignoradas.length} línea(s) de guardrails (el resto sí se guardó):`}
-          </Text>
-          {ignoradas.map((l) => (
-            <Text key={l} style={{ color: colores.texto, fontSize: 12 }}>{`• ${l}`}</Text>
-          ))}
-        </View>
-      ) : null}
-
-      <Seccion titulo="Versiones del agente">
-        {datos.versions.length === 0 ? (
-          <Text style={{ color: colores.textoSuave, fontSize: 12 }}>Sin versiones registradas.</Text>
-        ) : (
-          datos.versions.slice(0, 10).map((v) => (
-            <View key={v.id} testID={`avanzado-version-${v.id}`} style={styles.filaVersion}>
-              <Text style={{ flex: 1, color: colores.texto, fontFamily: "monospace", fontSize: 12 }}>
-                {v.version}
-              </Text>
-              {v.is_active ? (
-                <Text style={{ color: colores.acento, fontSize: 12, fontWeight: "700" }}>activa</Text>
-              ) : (
-                <Pressable
-                  testID={`avanzado-activar-${v.id}`}
-                  disabled={ocupado !== null}
-                  onPress={() => confirmarVersion(v.id, v.version)}
-                >
-                  <Text style={{ color: colores.acento, fontSize: 12, fontWeight: "600" }}>Activar</Text>
-                </Pressable>
-              )}
-            </View>
-          ))
-        )}
-      </Seccion>
-
       <Seccion titulo="Proveedor LLM">
         <Text style={[styles.label, { color: colores.texto }]}>Proveedor</Text>
         <TextInput
@@ -261,28 +162,6 @@ export function AvanzadoTab() {
           texto={ocupado === "llm" ? "Guardando…" : "Guardar LLM"}
           deshabilitado={ocupado !== null}
           onPress={guardarLlmActual}
-        />
-      </Seccion>
-
-      <Seccion titulo="Guardrails personalizados">
-        <TextInput
-          testID="avanzado-guardrails"
-          value={guardrails}
-          onChangeText={setGuardrails}
-          multiline
-          autoCapitalize="none"
-          autoCorrect={false}
-          style={[estiloInput, { minHeight: 90, textAlignVertical: "top" }]}
-        />
-        <Text style={[styles.ayuda, { color: colores.textoSuave }]}>
-          Una regla por línea: forbidden_phrase | frases | retry · required_tool | frases | tool |
-          escalate · max_length | 500 | retry
-        </Text>
-        <Boton
-          testID="avanzado-guardrails-guardar"
-          texto={ocupado === "guardrails" ? "Guardando…" : "Guardar guardrails"}
-          deshabilitado={ocupado !== null}
-          onPress={guardarGuardrailsActual}
         />
       </Seccion>
 
@@ -338,26 +217,6 @@ export function AvanzadoTab() {
         )}
       </Seccion>
 
-      <Seccion titulo="Editor crudo del AgentSpec">
-        <Text style={[styles.ayuda, { color: colores.textoSuave, marginTop: 0 }]}>
-          Guardar este JSON reemplaza toda la configuración del agente y crea una versión nueva.
-        </Text>
-        <TextInput
-          testID="avanzado-spec"
-          value={spec}
-          onChangeText={setSpec}
-          multiline
-          autoCapitalize="none"
-          autoCorrect={false}
-          style={[estiloInput, styles.spec]}
-        />
-        <Boton
-          testID="avanzado-spec-guardar"
-          texto={ocupado === "spec" ? "Guardando…" : "Guardar AgentSpec"}
-          deshabilitado={ocupado !== null}
-          onPress={confirmarSpec}
-        />
-      </Seccion>
     </View>
   );
 }
@@ -374,9 +233,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     fontSize: 13,
   },
-  spec: { minHeight: 220, fontFamily: "monospace", fontSize: 11, textAlignVertical: "top" },
   filaVersion: { flexDirection: "row", alignItems: "center", paddingVertical: 6 },
-  aviso: { borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 12 },
   resultado: { textAlign: "center", marginBottom: 10 },
   boton: { alignSelf: "flex-start", paddingHorizontal: 18, paddingVertical: 9, borderRadius: 8 },
 });

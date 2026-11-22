@@ -25,17 +25,18 @@ import { AjustesTab } from "../components/AjustesTab";
 import { GoogleCalendarCard } from "../components/GoogleCalendarCard";
 import { MetaChecklist } from "../components/MetaChecklist";
 import {
-  accionHabilidad,
   borrarPlantilla,
   cargarConexiones,
   cargarHabilidades,
   cargarPlantillas,
+  reintentarHabilidad,
   sincronizarPlantillas,
   type PlantillaMeta,
   type ConnectionItem,
   type PluginSummary,
 } from "../api";
 import { EquipoTab } from "../equipo/EquipoTab";
+import { emitirNavegacion } from "@shared/navegacion-evento";
 
 type Pestana =
   | "colaboradores"
@@ -117,25 +118,11 @@ export function ConfiguracionScreen({
       .finally(() => setPlantillasCargando(false));
   };
 
-  const toggleHabilidad = (h: PluginSummary) => {
-    const accion = h.enabled_for_tenant ? "deactivate" : "activate";
-    Alert.alert(
-      `${h.enabled_for_tenant ? "Desactivar" : "Activar"} ${h.display_name ?? h.name}`,
-      h.enabled_for_tenant
-        ? "El asistente dejará de usar esta habilidad en tu negocio."
-        : "El asistente podrá volver a usar esta habilidad.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Confirmar",
-          onPress: () => {
-            void accionHabilidad(api, h.id, accion)
-              .then(cargar)
-              .catch(() => setError("No se pudo cambiar la habilidad."));
-          },
-        },
-      ],
-    );
+  /** Limpia el error de salud de la habilidad (`retry`); no la activa ni la desactiva. */
+  const reintentar = (h: PluginSummary) => {
+    void reintentarHabilidad(api, h.id)
+      .then(cargar)
+      .catch(() => setError("No se pudo reintentar la habilidad."));
   };
 
   return (
@@ -207,9 +194,8 @@ export function ConfiguracionScreen({
             </Text>
           }
           renderItem={({ item }) => (
-            <Pressable
+            <View
               testID={`habilidad-${item.id}`}
-              onPress={() => toggleHabilidad(item)}
               style={[styles.fila, { borderColor: colores.borde, backgroundColor: colores.tarjeta }]}
             >
               <View style={{ flex: 1 }}>
@@ -220,16 +206,37 @@ export function ConfiguracionScreen({
                   v{item.version} · {item.status}
                   {item.error_message ? ` · ${item.error_message}` : ""}
                 </Text>
+                {item.tenant_health_error ? (
+                  <Text style={{ color: colores.peligro, fontSize: 12 }}>{item.tenant_health_error}</Text>
+                ) : null}
+                {item.enabled_for_tenant ? null : (
+                  <Text testID={`habilidad-${item.id}-ayuda`} style={{ color: colores.textoSuave, fontSize: 12 }}>
+                    {"Se instala en el agente que la usa. "}
+                    <Text
+                      testID={`habilidad-${item.id}-agentes`}
+                      onPress={() => emitirNavegacion({ tab: "agentes" })}
+                      style={{ color: colores.acento, fontWeight: "600" }}
+                    >
+                      Ir a Agentes
+                    </Text>
+                  </Text>
+                )}
               </View>
-              <Text
-                style={{
-                  color: item.enabled_for_tenant ? colores.acento : colores.textoSuave,
-                  fontSize: 12,
-                }}
-              >
-                {item.enabled_for_tenant ? "activa" : "inactiva"}
-              </Text>
-            </Pressable>
+              {item.tenant_health_error ? (
+                <Pressable testID={`habilidad-${item.id}-reintentar`} onPress={() => reintentar(item)}>
+                  <Text style={{ color: colores.acento, fontSize: 12, fontWeight: "600" }}>Reintentar</Text>
+                </Pressable>
+              ) : (
+                <Text
+                  style={{
+                    color: item.enabled_for_tenant ? colores.acento : colores.textoSuave,
+                    fontSize: 12,
+                  }}
+                >
+                  {item.enabled_for_tenant ? "en uso" : "sin instalar"}
+                </Text>
+              )}
+            </View>
           )}
         />
       ) : pestana === "conexiones" ? (

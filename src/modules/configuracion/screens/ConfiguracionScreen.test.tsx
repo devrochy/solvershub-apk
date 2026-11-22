@@ -17,11 +17,12 @@ jest.mock("@data/ajustes", () => ({
   guardarAjuste: jest.fn(() => Promise.resolve()),
 }));
 
-import { Alert, Linking } from "react-native";
+import { Linking } from "react-native";
 import { apiRoot } from "@core/config";
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { guardarAjuste as mockGuardarAjuste } from "@data/ajustes";
+import { suscribirNavegacion } from "@shared/navegacion-evento";
 import { ConfiguracionScreen } from "./ConfiguracionScreen";
 import catalogo from "../testing/catalogo.json";
 
@@ -67,6 +68,34 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
             enabled_for_tenant: true,
             tenant_health_error: null,
             display_name: "Cobranza",
+            category: "vertical",
+            description: "",
+            required_connections: [],
+          },
+          {
+            id: "pack_calendar",
+            name: "pack_calendar",
+            version: "1.0",
+            status: "active",
+            error_message: null,
+            has_config: false,
+            enabled_for_tenant: true,
+            tenant_health_error: "Falló la conexión con Google",
+            display_name: "Agenda",
+            category: "vertical",
+            description: "",
+            required_connections: [],
+          },
+          {
+            id: "pack_commerce",
+            name: "pack_commerce",
+            version: "1.0",
+            status: "active",
+            error_message: null,
+            has_config: false,
+            enabled_for_tenant: false,
+            tenant_health_error: null,
+            display_name: "Comercio",
             category: "vertical",
             description: "",
             required_connections: [],
@@ -201,23 +230,47 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
     });
   });
 
-  it("desactiva una habilidad con confirmación", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_t, _m, botones) => {
-      botones?.find((b) => b.text === "Confirmar")?.onPress?.();
-    });
-
-    const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
+  it("las habilidades no tienen interruptor: tocar una no la activa ni la desactiva (HU-AOS-91)", async () => {
+    const { getByTestId, getByText, queryByTestId } = await render(<ConfiguracionScreen />);
     await waitFor(() => expect(getByTestId("config-habilidades")).toBeTruthy());
 
     await fireEvent.press(getByTestId("config-habilidades"));
     expect(getByText("Cobranza")).toBeTruthy();
-    await fireEvent.press(getByTestId("habilidad-pack_cobranza"));
+    expect(getByText("en uso")).toBeTruthy();
+    expect(queryByTestId("habilidad-pack_cobranza-reintentar")).toBeNull();
+    expect(queryByTestId("habilidad-pack_cobranza-ayuda")).toBeNull();
+    expect(mockPost).not.toHaveBeenCalledWith(
+      expect.stringContaining("/admin/plugins/"),
+      expect.anything(),
+    );
+  });
+
+  it("una habilidad sin instalar explica que se instala en el agente y enlaza a Agentes", async () => {
+    const oyente = jest.fn();
+    const desuscribir = suscribirNavegacion(oyente);
+    const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
+    await waitFor(() => expect(getByTestId("config-habilidades")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("config-habilidades"));
+    expect(getByText("sin instalar")).toBeTruthy();
+    expect(getByTestId("habilidad-pack_commerce-ayuda")).toBeTruthy();
+    await fireEvent.press(getByTestId("habilidad-pack_commerce-agentes"));
+    expect(oyente).toHaveBeenCalledWith({ tab: "agentes" });
+    desuscribir();
+  });
+
+  it("reintenta una habilidad con error de salud", async () => {
+    const { getByTestId, getByText } = await render(<ConfiguracionScreen />);
+    await waitFor(() => expect(getByTestId("config-habilidades")).toBeTruthy());
+
+    await fireEvent.press(getByTestId("config-habilidades"));
+    expect(getByText("Falló la conexión con Google")).toBeTruthy();
+    await fireEvent.press(getByTestId("habilidad-pack_calendar-reintentar"));
     await waitFor(() =>
-      expect(mockPost).toHaveBeenCalledWith("/admin/plugins/pack_cobranza/action", {
-        action: "deactivate",
+      expect(mockPost).toHaveBeenCalledWith("/admin/plugins/pack_calendar/action", {
+        action: "retry",
       }),
     );
-    alertSpy.mockRestore();
   });
 
   it("lista conexiones con su estado", async () => {
