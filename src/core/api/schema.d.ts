@@ -4915,6 +4915,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/plan/recargas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Comprar Recarga
+         * @description Link de pago de un paquete de recarga de créditos (ADR-0209 §4, HU-BILL-23). Mismo permiso que
+         *     `POST /subscribe`. El precio lo arma el servidor con el descuento del plan vigente.
+         *
+         *     400 `unknown_package`: paquete desconocido.
+         *     409 `recarga_no_disponible`: sin suscripción activa o en Free.
+         *     409 `recarga_bajo_minimo`: el precio queda bajo el mínimo de Wompi del ambiente (sandbox: 150.000 COP).
+         */
+        post: operations["comprar_recarga_api_v1_admin_plan_recargas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/plan/subscribe": {
         parameters: {
             query?: never;
@@ -13725,10 +13750,17 @@ export interface components {
             /** Checkout Url */
             checkout_url: string | null;
             /**
+             * Concepto
+             * @default plan
+             */
+            concepto: string;
+            /**
              * Created At
              * Format: date-time
              */
             created_at: string;
+            /** Creditos */
+            creditos?: number | null;
             /** Paid At */
             paid_at: string | null;
             /** Periodo */
@@ -19597,6 +19629,11 @@ export interface components {
             plan_por_el_asistente: boolean;
             /** Plans */
             plans: components["schemas"]["PlanInfo"][];
+            /**
+             * Recargas
+             * @default []
+             */
+            recargas: components["schemas"]["TopUpPackage"][];
             /** Usage */
             usage: components["schemas"]["UsageMetric"][];
         };
@@ -23501,6 +23538,28 @@ export interface components {
             token_expires_at?: string | null;
             /** Type */
             type?: string | null;
+        };
+        /**
+         * TopUpPackage
+         * @description Paquete de recarga de créditos con el precio del plan vigente (ADR-0209 §4, D-79): el de lista
+         *     menos `features.descuento_recarga` del plan, en pesos enteros.
+         */
+        TopUpPackage: {
+            /** Creditos */
+            creditos: number;
+            /** Descuento Pct */
+            descuento_pct: number;
+            /** Id */
+            id: string;
+            /** Precio Cop */
+            precio_cop: number;
+            /** Precio Lista Cop */
+            precio_lista_cop: number;
+        };
+        /** TopUpRequest */
+        TopUpRequest: {
+            /** Paquete */
+            paquete: string;
         };
         /** TramoDeMora */
         TramoDeMora: {
@@ -35595,6 +35654,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    comprar_recarga_api_v1_admin_plan_recargas_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TopUpRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscribeResponse"];
                 };
             };
             /** @description Validation Error */
