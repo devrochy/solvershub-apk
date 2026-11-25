@@ -46,8 +46,8 @@ export async function cargarAgentes(api: ClienteAdmin): Promise<VistaDeAgentes> 
 }
 
 export async function cargarPlantillas(api: ClienteAdmin): Promise<PlantillaAgente[]> {
-  const pagina = await api.get<{ items: PlantillaAgente[] }>("/admin/agent-templates", { page_size: 100 });
-  return pagina.items;
+  const catalogo = await api.get<{ types: PlantillaAgente[] }>("/admin/agent-types");
+  return catalogo.types;
 }
 
 /** Crea el borrador (sin publicar) desde las respuestas del guion; 422 por pregunta y 409 `key_taken`. */

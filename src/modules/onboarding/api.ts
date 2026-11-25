@@ -57,11 +57,10 @@ export async function dejarListo(
 export async function cargarPlantillas(
   api: ClienteAdmin,
 ): Promise<PlantillaAgente[]> {
-  const pagina = await api.get<{ items: PlantillaAgente[] }>(
-    "/admin/agent-templates",
-    { page_size: 100 },
+  const catalogo = await api.get<{ types: PlantillaAgente[] }>(
+    "/admin/agent-types",
   );
-  return pagina.items;
+  return catalogo.types;
 }
 
 export async function crearDesdeGuion(
