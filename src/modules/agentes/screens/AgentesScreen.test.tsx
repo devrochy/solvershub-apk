@@ -31,7 +31,9 @@ describe("AgentesScreen (HU-AOS-56, HU-APP-23)", () => {
 
   it("lista los agentes con su tipo y estado, y ofrece «Nuevo agente» a quien puede crear", async () => {
     sesion({ settings: "write" });
-    mockGet.mockResolvedValue(vista("v3", [general, ventas]));
+    mockGet.mockImplementation((ruta: string) =>
+      Promise.resolve(ruta === "/admin/agent-types" ? { types: [] } : vista("v3", [general, ventas])),
+    );
     const { getByText, getByTestId } = await render(<AgentesScreen />);
     await waitFor(() => getByText("Ventas"));
     expect(getByText("Publicado")).toBeTruthy();

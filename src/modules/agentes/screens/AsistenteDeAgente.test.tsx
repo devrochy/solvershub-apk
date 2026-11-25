@@ -71,7 +71,7 @@ const laura: AgenteDelNegocio = { id: "a-9", key: "ventas", name: "Laura", statu
 
 function responder(opciones: { borrador?: { key: string; name: string; latest_version: number | null } } = {}) {
   mockGet.mockImplementation((path: string) => {
-    if (path === "/admin/agent-templates") return Promise.resolve({ items: PLANTILLAS });
+    if (path === "/admin/agent-types") return Promise.resolve({ types: PLANTILLAS });
     if (path === "/admin/agents/a-1" && opciones.borrador)
       return Promise.resolve({ id: "a-1", status: "active", ...opciones.borrador });
     if (path === "/admin/agents/a-1/publish-targets")
