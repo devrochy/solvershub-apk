@@ -260,7 +260,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Templates */
+        /**
+         * List Templates
+         * @deprecated
+         * @description Obsoleta: usa `GET /admin/agent-types` (HU-AOS-94, ADR-0207 §6). Sigue igual hasta que panel y APK migren.
+         */
         get: operations["list_templates_api_v1_admin_agent_templates_get"];
         put?: never;
         post?: never;
@@ -279,8 +283,49 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create From Template */
+        /**
+         * Create From Template
+         * @deprecated
+         */
         post: operations["create_from_template_api_v1_admin_agent_templates__template_key__agents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agent-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Agent Types
+         * @description El Coordinador y los tipos de agente (Ventas, Agenda, Cobranza, Suscripciones) desde los manifiestos de los
+         *     packs. Reemplaza a `agent-templates` (HU-AOS-94, ADR-0207 §6): cada tipo trae todo lo de la plantilla.
+         */
+        get: operations["list_agent_types_api_v1_admin_agent_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agent-types/{template_key}/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create From Template */
+        post: operations["create_from_template_api_v1_admin_agent_types__template_key__agents_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -721,6 +766,28 @@ export interface paths {
          *     defecto y A2A no le pasa conversaciones.
          */
         post: operations["pause_agent_api_v1_admin_agents__agent_id__pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/posibles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Agent Posibles
+         * @description Lo que la ficha del agente puede mostrar de sus habilidades (HU-AOS-94): la de especialidad, las operaciones
+         *     de datos del cliente de su tipo y las transversales que su tipo admite con su estado. 404 si el agente no es del
+         *     negocio. El Coordinador responde con su habilidad fija y sin transversales; un agente sin tipo, con todo vacío.
+         */
+        get: operations["get_agent_posibles_api_v1_admin_agents__agent_id__posibles_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6980,6 +7047,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/skill-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Skill Catalog
+         * @description Cada habilidad de la plataforma con sus tools y metadatos (HU-AOS-94). Es el mismo catálogo para todos los
+         *     negocios: no lleva configuración, secretos ni instalaciones de nadie.
+         */
+        get: operations["get_skill_catalog_api_v1_admin_skill_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/skills/installations": {
         parameters: {
             query?: never;
@@ -10815,6 +10903,16 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /** AgentPosibles */
+        AgentPosibles: {
+            /** Customer Data */
+            customer_data: components["schemas"]["CustomerDataOperation"][];
+            specialty: components["schemas"]["Skill"] | null;
+            /** Transversal */
+            transversal: components["schemas"]["PosibleTransversal"][];
+            /** Type Key */
+            type_key: string | null;
+        };
         /** AgentRecordItem */
         AgentRecordItem: {
             /** Agent Version */
@@ -11078,6 +11176,71 @@ export interface components {
             tools: string[];
             /** Will Enable */
             will_enable: string[];
+        };
+        /**
+         * AgentType
+         * @description Un tipo de agente: todo lo de `AgentTemplate` (el panel migra 1 a 1) y lo que declara su manifiesto.
+         */
+        AgentType: {
+            /** Available */
+            available: boolean;
+            /** Customer Data Operations */
+            customer_data_operations: components["schemas"]["CustomerDataOperation"][];
+            /** Default Flow Sections */
+            default_flow_sections: string[];
+            /** Description */
+            description: string;
+            /** Key */
+            key: string;
+            /** Mandatory Skills */
+            mandatory_skills: string[];
+            /** Missing Skills */
+            missing_skills: string[];
+            /** Name */
+            name: string;
+            /** Optional Skills */
+            optional_skills: string[];
+            /** Questions */
+            questions: components["schemas"]["Question"][];
+            /** Requirements */
+            requirements: components["schemas"]["Requirement"][];
+            /** Section */
+            section: string;
+            /** Skills */
+            skills: string[];
+            /** Superpowers */
+            superpowers: components["schemas"]["Superpower"][];
+            /** Tools */
+            tools: string[];
+            /** Transversal Skills */
+            transversal_skills: string[];
+            /** Will Enable */
+            will_enable: string[];
+        };
+        /**
+         * AgentTypeCoordinator
+         * @description El Coordinador: no es un tipo de pack, su habilidad es fija (ADR-0205 §5).
+         */
+        AgentTypeCoordinator: {
+            /** Description */
+            description: string;
+            /**
+             * Key
+             * @constant
+             */
+            key: "coordinador";
+            /** Name */
+            name: string;
+            /** Skill */
+            skill: string;
+            /** Tools */
+            tools: string[];
+        };
+        /** AgentTypesOut */
+        AgentTypesOut: {
+            coordinator: components["schemas"]["AgentTypeCoordinator"];
+            /** Types */
+            types: components["schemas"]["AgentType"][];
         };
         /** AgentUsage */
         AgentUsage: {
@@ -14496,6 +14659,22 @@ export interface components {
              */
             holderName: string;
         };
+        /**
+         * CustomerDataOperation
+         * @description Una operación del módulo que pide datos del cliente (ADR-0198). Sin niveles: esos son del agente.
+         */
+        CustomerDataOperation: {
+            /** Fields */
+            fields: components["schemas"]["DataOperationField"][];
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Module */
+            module: string;
+            /** Pack */
+            pack: string;
+        };
         /** DashboardResponse */
         DashboardResponse: {
             billing: components["schemas"]["BillingSummary"] | null;
@@ -14508,6 +14687,15 @@ export interface components {
             recent: components["schemas"]["RecentConversation"][];
             /** Tenant Id */
             tenant_id: string | null;
+        };
+        /** DataOperationField */
+        DataOperationField: {
+            /** Adjustable */
+            adjustable: boolean;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
         };
         /** DatosRetirados */
         DatosRetirados: {
@@ -20490,6 +20678,18 @@ export interface components {
              */
             tipo_interes: number;
         };
+        /** PosibleTransversal */
+        PosibleTransversal: {
+            /** Pack Id */
+            pack_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "lista" | "falta_configurar" | "sin_agregar";
+            /** Tools */
+            tools: components["schemas"]["SkillTool"][];
+        };
         /** PositionIn */
         PositionIn: {
             /** Lat */
@@ -22866,6 +23066,26 @@ export interface components {
             /** Skills */
             skills: components["schemas"]["SkillBinding"][];
         };
+        /**
+         * Skill
+         * @description Una habilidad con sus tools. `core:recepcion` repite a propósito tools de otras habilidades (es la vista del
+         *     Coordinador): quien sume tools por habilidad las contaría dos veces.
+         */
+        Skill: {
+            /** Description */
+            description: string;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "core" | "especialidad" | "transversal";
+            /** Name */
+            name: string;
+            /** Tools */
+            tools: components["schemas"]["SkillTool"][];
+        };
         /** SkillBinding */
         SkillBinding: {
             /** Description */
@@ -22947,6 +23167,21 @@ export interface components {
         SkillsUpdate: {
             /** Tools */
             tools: components["schemas"]["SkillBinding"][];
+        };
+        /** SkillTool */
+        SkillTool: {
+            /** Description */
+            description: string;
+            /** Group */
+            group: string;
+            /** Name */
+            name: string;
+            /** Requires Confirmation Default */
+            requires_confirmation_default: boolean;
+            /** Scopes */
+            scopes: string[];
+            /** Side Effect */
+            side_effect: string | null;
         };
         /** SkippedPageOut */
         SkippedPageOut: {
@@ -26044,6 +26279,83 @@ export interface operations {
             };
         };
     };
+    list_agent_types_api_v1_admin_agent_types_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentTypesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_from_template_api_v1_admin_agent_types__template_key__agents_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                template_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FromTemplateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FromTemplateOut"];
+                };
+            };
+            /** @description Tope o alcance del plan: `error.code` es `plan_limit_agentes`, `plan_plugin_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_plugin_not_included` trae `error.details = {skills, min_plan, plan}`. No se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_agents_api_v1_admin_agents_get: {
         parameters: {
             query?: never;
@@ -27162,6 +27474,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_agent_posibles_api_v1_admin_agents__agent_id__posibles_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentPosibles"];
                 };
             };
             /** @description Validation Error */
@@ -40412,6 +40758,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WaWebPolicySettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_skill_catalog_api_v1_admin_skill_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Skill"][];
                 };
             };
             /** @description Validation Error */
