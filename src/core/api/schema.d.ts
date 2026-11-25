@@ -414,6 +414,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/declarative-tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Agent Declarative Tools
+         * @description Las tools HTTP del borrador del agente, los secretos del negocio (nombres y dominios, nunca valores) y las
+         *     tools que el turno no ofrecerá. El Coordinador no tiene tools (lista vacía).
+         */
+        get: operations["get_agent_declarative_tools_api_v1_admin_agents__agent_id__declarative_tools_get"];
+        /**
+         * Save Agent Declarative Tools
+         * @description Reemplaza las tools HTTP del borrador. Valida todo antes de escribir: un header sensible con valor literal,
+         *     un dominio interno, un secreto sin valor o un valor que ninguna tool usa dan 422 por campo y no se guarda nada.
+         *     Luego cifra los secretos nuevos en la instalación `core` del negocio, atados a los dominios de las tools que los
+         *     usan (más los que ya tenían), y por último guarda el borrador. Si el borrador choca con otra edición (409) los
+         *     secretos ya quedaron escritos (un valor rotado ya vale para las tools publicadas que lo usan); reintentar con
+         *     el borrador al día termina de guardar.
+         */
+        put: operations["save_agent_declarative_tools_api_v1_admin_agents__agent_id__declarative_tools_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/draft": {
         parameters: {
             query?: never;
@@ -469,6 +499,32 @@ export interface paths {
          */
         get: operations["get_agent_flow_options_api_v1_admin_agents__agent_id__flow_options_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/guardrails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Agent Guardrails
+         * @description Las reglas de respuesta del borrador del agente. El Coordinador no tiene (lista vacía).
+         */
+        get: operations["get_agent_guardrails_api_v1_admin_agents__agent_id__guardrails_get"];
+        /**
+         * Save Agent Guardrails
+         * @description Reemplaza las reglas del borrador (frase prohibida, tool obligatoria ante una frase, largo máximo; con
+         *     `retry` o `escalate`). Valen al publicar. 422 por campo (`guardrails[i]...`); 409 `coordinador_inmutable`
+         *     para el Coordinador y `stale_lock_version` si otro guardó antes.
+         */
+        put: operations["save_agent_guardrails_api_v1_admin_agents__agent_id__guardrails_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2688,6 +2744,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/coordinator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leer Opciones */
+        get: operations["leer_opciones_api_v1_admin_coordinator_get"];
+        /** Guardar Opciones */
+        put: operations["guardar_opciones_api_v1_admin_coordinator_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/costs": {
         parameters: {
             query?: never;
@@ -2829,17 +2903,17 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Politica Deprecada
+         * Get Politica Retirada
          * @deprecated
-         * @description Deprecado: la política es de cada agente. Devuelve la del especialista por defecto.
+         * @description Retirado (ADR-0198 §5): la política de datos del cliente es de cada agente (410 `politica_por_agente`).
          */
-        get: operations["get_politica_deprecada_api_v1_admin_datos_cliente_politica_get"];
+        get: operations["get_politica_retirada_api_v1_admin_datos_cliente_politica_get"];
         /**
-         * Save Politica Deprecado
+         * Save Politica Retirada
          * @deprecated
-         * @description Deprecado: aplica el cuerpo al especialista por defecto, ignorando lo que ese agente no tenga.
+         * @description Retirado (ADR-0198 §5): la política de datos del cliente es de cada agente (410 `politica_por_agente`).
          */
-        put: operations["save_politica_deprecado_api_v1_admin_datos_cliente_politica_put"];
+        put: operations["save_politica_retirada_api_v1_admin_datos_cliente_politica_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -6870,11 +6944,11 @@ export interface paths {
         /**
          * Save Web Chat Settings
          * @description Habilita/deshabilita el chat web, edita dominios permitidos, rota la clave
-         *     o cambia el secreto de Turnstile. Se guarda en `app_settings.web_chat_config`
-         *     (JSONB, migración 0047) y, en la misma transacción, en la conexión `webchat` del
-         *     negocio (ADR-0115 §4, doble escritura hasta el *contract*: `chat_web_conexion`). El
-         *     primer guardado crea la conexión con sus instancias de agentes si el negocio ya las
-         *     tiene (HU-AOS-11 parte 2).
+         *     o cambia la protección de Turnstile (site key + secret key). Se guarda en
+         *     `app_settings.web_chat_config` (JSONB, migración 0047) y, en la misma transacción, en
+         *     la conexión `webchat` del negocio (ADR-0115 §4, doble escritura hasta el *contract*:
+         *     `chat_web_conexion`). El primer guardado crea la conexión con sus instancias de agentes
+         *     si el negocio ya las tiene (HU-AOS-11 parte 2).
          */
         put: operations["save_web_chat_settings_api_v1_admin_settings_web_chat_put"];
         post?: never;
@@ -10474,6 +10548,30 @@ export interface components {
             /** Turns */
             turns: number;
         };
+        /** AgentDeclarativeToolsIn */
+        AgentDeclarativeToolsIn: {
+            /** Lock Version */
+            lock_version: number;
+            /** Secrets */
+            secrets?: {
+                [key: string]: string;
+            };
+            /** Tools */
+            tools: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** AgentDeclarativeToolsOut */
+        AgentDeclarativeToolsOut: {
+            /** Lock Version */
+            lock_version: number;
+            /** Omitted */
+            omitted: string[];
+            /** Secrets */
+            secrets: components["schemas"]["ConfiguredSecret"][];
+            /** Tools */
+            tools: components["schemas"]["DeclarativeTool"][];
+        };
         /** AgentDetail */
         AgentDetail: {
             /** Contract */
@@ -10651,6 +10749,22 @@ export interface components {
              * @default []
              */
             warnings: string[];
+        };
+        /** AgentGuardrailsIn */
+        AgentGuardrailsIn: {
+            /** Guardrails */
+            guardrails: {
+                [key: string]: unknown;
+            }[];
+            /** Lock Version */
+            lock_version: number;
+        };
+        /** AgentGuardrailsOut */
+        AgentGuardrailsOut: {
+            /** Guardrails */
+            guardrails: components["schemas"]["GuardrailRule"][];
+            /** Lock Version */
+            lock_version: number;
         };
         /** AgentOverviewItem */
         AgentOverviewItem: {
@@ -11759,6 +11873,15 @@ export interface components {
              * @default []
              */
             warnings: string[];
+        };
+        /** BusinessRange */
+        BusinessRange: {
+            /** Day */
+            day: number;
+            /** From */
+            from: string;
+            /** To */
+            to: string;
         };
         /** CalendarDelete */
         CalendarDelete: {
@@ -12992,6 +13115,16 @@ export interface components {
             /** Webhook Status Url */
             webhook_status_url: string;
         };
+        /**
+         * ConfiguredSecret
+         * @description Un secreto del negocio: su nombre y los dominios a los que puede viajar. Nunca el valor.
+         */
+        ConfiguredSecret: {
+            /** Domains */
+            domains: string[];
+            /** Name */
+            name: string;
+        };
         /** ConfirmarPagoBody */
         ConfirmarPagoBody: {
             /**
@@ -13730,6 +13863,67 @@ export interface components {
             /** Turns */
             turns: number;
         };
+        /** CoordinatorOptions */
+        CoordinatorOptions: {
+            /** Assistant Name */
+            assistant_name: string;
+            /** Brand Voice */
+            brand_voice: string;
+            /** Business Description */
+            business_description: string;
+            /**
+             * Business Hours Mode
+             * @enum {string}
+             */
+            business_hours_mode: "bloquea" | "informativo";
+            /** Business Ranges */
+            business_ranges: components["schemas"]["BusinessRange"][];
+            /** Business Tz */
+            business_tz: string;
+            /** Guardrails */
+            guardrails: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Guardrails Problems
+             * @default []
+             */
+            guardrails_problems: string[];
+            /**
+             * Nivel Ia
+             * @enum {string}
+             */
+            nivel_ia: "estandar" | "avanzado";
+            /** Out Of Hours Message */
+            out_of_hours_message: string;
+        };
+        /**
+         * CoordinatorOptionsUpdate
+         * @description Todos opcionales: solo cambia lo que viene. `null` equivale a no enviarlo; para vaciar se envía `[]` o `""`
+         *     (`business_ranges: []` borra el horario del negocio).
+         */
+        CoordinatorOptionsUpdate: {
+            /** Assistant Name */
+            assistant_name?: string | null;
+            /** Brand Voice */
+            brand_voice?: string | null;
+            /** Business Description */
+            business_description?: string | null;
+            /** Business Hours Mode */
+            business_hours_mode?: ("bloquea" | "informativo") | null;
+            /** Business Ranges */
+            business_ranges?: components["schemas"]["BusinessRange"][] | null;
+            /** Business Tz */
+            business_tz?: string | null;
+            /** Guardrails */
+            guardrails?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Nivel Ia */
+            nivel_ia?: ("estandar" | "avanzado") | null;
+            /** Out Of Hours Message */
+            out_of_hours_message?: string | null;
+        };
         /** Kpi */
         core__api__routers__dashboard__Kpi: {
             /** Active Plugins */
@@ -14319,6 +14513,47 @@ export interface components {
         DatosRetirados: {
             /** Retirados */
             retirados: number;
+        };
+        /** DeclarativeTool */
+        DeclarativeTool: {
+            /**
+             * Alloweddomains
+             * @default []
+             */
+            allowedDomains: string[];
+            /**
+             * Body
+             * @default {}
+             */
+            body: {
+                [key: string]: unknown;
+            };
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Headers
+             * @default {}
+             */
+            headers: {
+                [key: string]: string | components["schemas"]["SecretRef"];
+            };
+            /**
+             * Method
+             * @default GET
+             * @enum {string}
+             */
+            method: "GET" | "POST";
+            /** Name */
+            name: string;
+            /** Parameters */
+            parameters?: {
+                [key: string]: unknown;
+            };
+            /** Url */
+            url: string;
         };
         /** Definicion */
         Definicion: {
@@ -15461,6 +15696,31 @@ export interface components {
          */
         GuardadoErrorOut: {
             error: components["schemas"]["GuardadoError"];
+        };
+        /** GuardrailRule */
+        GuardrailRule: {
+            /**
+             * Action
+             * @default retry
+             * @enum {string}
+             */
+            action: "retry" | "escalate";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "forbidden_phrase" | "required_tool" | "max_length";
+            /** Name */
+            name: string;
+            /**
+             * Phrases
+             * @default []
+             */
+            phrases: string[];
+            /** Tool */
+            tool?: string | null;
+            /** Value */
+            value?: number | null;
         };
         /** GuardrailsSettings */
         GuardrailsSettings: {
@@ -20093,35 +20353,6 @@ export interface components {
             /** Version */
             version: string;
         };
-        /**
-         * PoliticaDatosOut
-         * @description Contrato legado de la política global; se conserva un release, deprecado.
-         */
-        PoliticaDatosOut: {
-            /** Acciones */
-            acciones: components["schemas"]["AccionPoliticaOut"][];
-            /**
-             * Herramientas Del Agente
-             * @default false
-             */
-            herramientas_del_agente: boolean;
-            /** Niveles */
-            niveles: ("requerido" | "recomendado" | "no_pedir")[];
-        };
-        /**
-         * PoliticaDatosUpdate
-         * @description Cuerpo legado. Se aplica al especialista por defecto del negocio; lo que no tenga se ignora.
-         */
-        PoliticaDatosUpdate: {
-            /** Herramientas Del Agente */
-            herramientas_del_agente?: boolean | null;
-            /** Politica */
-            politica?: {
-                [key: string]: {
-                    [key: string]: "requerido" | "recomendado" | "no_pedir";
-                };
-            } | null;
-        };
         /** Portfolio */
         Portfolio: {
             /**
@@ -22599,6 +22830,11 @@ export interface components {
             /** Resultados */
             resultados: components["schemas"]["ResultadoSeccion"][];
         };
+        /** SecretRef */
+        SecretRef: {
+            /** Secret */
+            secret: string;
+        };
         /**
          * SeguimientoHechoIn
          * @description Cierra el seguimiento y, si se pide, programa el siguiente en el mismo gesto (HU-CRM-21). `siguiente_en` es
@@ -24759,7 +24995,8 @@ export interface components {
         /**
          * WebChatSettings
          * @description Configuración del chat web embebible (HU-CHAN-02). El secreto de Turnstile
-         *     NUNCA se devuelve; solo si está configurado (`turnstile_configured`).
+         *     NUNCA se devuelve; solo si está configurado (`turnstile_configured`). La site key
+         *     es pública (la necesita el widget para pedir el token).
          */
         WebChatSettings: {
             /**
@@ -24787,6 +25024,11 @@ export interface components {
              * @default false
              */
             turnstile_configured: boolean;
+            /**
+             * Turnstile Site Key
+             * @default
+             */
+            turnstile_site_key: string;
         };
         /** WebChatUpdate */
         WebChatUpdate: {
@@ -24807,6 +25049,8 @@ export interface components {
             rotate_key: boolean;
             /** Turnstile Secret */
             turnstile_secret?: string | null;
+            /** Turnstile Site Key */
+            turnstile_site_key?: string | null;
         };
         /** WebhooksResponse */
         WebhooksResponse: {
@@ -26192,6 +26436,78 @@ export interface operations {
             };
         };
     };
+    get_agent_declarative_tools_api_v1_admin_agents__agent_id__declarative_tools_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentDeclarativeToolsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_agent_declarative_tools_api_v1_admin_agents__agent_id__declarative_tools_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentDeclarativeToolsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentDeclarativeToolsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_draft_api_v1_admin_agents__agent_id__draft_get: {
         parameters: {
             query?: never;
@@ -26363,6 +26679,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentFlowOptionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_agent_guardrails_api_v1_admin_agents__agent_id__guardrails_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentGuardrailsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_agent_guardrails_api_v1_admin_agents__agent_id__guardrails_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentGuardrailsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentGuardrailsOut"];
                 };
             };
             /** @description Validation Error */
@@ -31325,6 +31713,74 @@ export interface operations {
             };
         };
     };
+    leer_opciones_api_v1_admin_coordinator_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoordinatorOptions"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    guardar_opciones_api_v1_admin_coordinator_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoordinatorOptionsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoordinatorOptions"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_costs_api_v1_admin_costs_get: {
         parameters: {
             query?: never;
@@ -31590,7 +32046,7 @@ export interface operations {
             };
         };
     };
-    get_politica_deprecada_api_v1_admin_datos_cliente_politica_get: {
+    get_politica_retirada_api_v1_admin_datos_cliente_politica_get: {
         parameters: {
             query?: never;
             header?: {
@@ -31602,13 +32058,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Retirado: la política es de cada agente, `error.code = politica_por_agente` (ADR-0198 §5). */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PoliticaDatosOut"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -31622,7 +32078,7 @@ export interface operations {
             };
         };
     };
-    save_politica_deprecado_api_v1_admin_datos_cliente_politica_put: {
+    save_politica_retirada_api_v1_admin_datos_cliente_politica_put: {
         parameters: {
             query?: never;
             header?: {
@@ -31632,19 +32088,15 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PoliticaDatosUpdate"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Retirado: la política es de cada agente, `error.code = politica_por_agente` (ADR-0198 §5). */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PoliticaDatosOut"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
