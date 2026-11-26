@@ -28,6 +28,7 @@ import {
   tipoDeLaPlantilla,
   type EstacionDeLaRuta,
 } from "@shared/ruta-de-lanzamiento";
+import { useAvisoVisible } from "@shared/ruta/aviso-visible";
 import type { EstacionDelAgenteId, GuardarEstacion } from "@shared/ruta/estacion-del-agente";
 import {
   BarraRecomendado,
@@ -415,6 +416,13 @@ export function AsistenteDeAgente({
   const alResumir = useCallback((id: EstacionDelAgenteId, resumen: string) => {
     setResumenes((r) => (r[id] === resumen ? r : { ...r, [id]: resumen }));
   }, []);
+  // Los avisos de error quedan debajo de la estación y del chat, lejos del pie: se traen a la vista al aparecer.
+  const yDeLaEstacion = useRef(0);
+  const desplazarA = useCallback((y: number) => {
+    scroll.current?.scrollTo({ y: Math.max(0, y - shSpace[4]), animated: true });
+  }, []);
+  const mostrarAvisoDeEstacion = useCallback((y: number) => desplazarA(yDeLaEstacion.current + y), [desplazarA]);
+  const alMedirError = useAvisoVisible(error, desplazarA);
 
   let cuerpo: ReactNode;
   if (errorDeCarga) {
@@ -588,17 +596,20 @@ export function AsistenteDeAgente({
           ) : null}
 
           {estacionDelAgente && agenteId ? (
-            <EstacionDelAgente
-              estacion={estacionDelAgente}
-              agenteId={agenteId}
-              tipo={tipo}
-              nombre={quien}
-              negocio={negocio}
-              registrarGuardar={registrarGuardar}
-              onResumen={alResumir}
-              onCargados={setCargados}
-              onSeguir={seguirSinDatos}
-            />
+            <View testID="asistente-estacion" onLayout={(e) => (yDeLaEstacion.current = e.nativeEvent.layout.y)}>
+              <EstacionDelAgente
+                estacion={estacionDelAgente}
+                agenteId={agenteId}
+                tipo={tipo}
+                nombre={quien}
+                negocio={negocio}
+                registrarGuardar={registrarGuardar}
+                onResumen={alResumir}
+                onCargados={setCargados}
+                onSeguir={seguirSinDatos}
+                mostrarAviso={mostrarAvisoDeEstacion}
+              />
+            </View>
           ) : null}
 
           {numero === 5 && agenteId ? (
@@ -686,7 +697,13 @@ export function AsistenteDeAgente({
           ) : null}
 
           {error ? (
-            <Text style={[shType.body, { color: tonos.danger.fg }]} accessibilityRole="alert" testID="asistente-aviso">
+            <Text
+              style={[shType.body, { color: tonos.danger.fg }]}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="assertive"
+              onLayout={alMedirError}
+              testID="asistente-aviso"
+            >
               {error}
             </Text>
           ) : null}

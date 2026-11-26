@@ -30,6 +30,7 @@ import {
   tipoDeLaPlantilla,
   type EstacionDeLaRuta,
 } from "@shared/ruta-de-lanzamiento";
+import { useAvisoVisible } from "@shared/ruta/aviso-visible";
 import type { EstacionDelAgente, EstacionDelAgenteId, GuardarEstacion } from "@shared/ruta/estacion-del-agente";
 import {
   BarraRecomendado,
@@ -374,6 +375,13 @@ export function RecorridoScreen({ estacionDelAgente }: { estacionDelAgente?: Est
     salir.current = salirDeEstacion;
   });
   const seguirSinDatos = useCallback(() => void salir.current(), []);
+  // Los avisos de error quedan debajo de la estación y del chat, lejos del pie: se traen a la vista al aparecer.
+  const yDeLaEstacion = useRef(0);
+  const desplazarA = useCallback((y: number) => {
+    scroll.current?.scrollTo({ y: Math.max(0, y - shSpace[4]), animated: true });
+  }, []);
+  const mostrarAvisoDeEstacion = useCallback((y: number) => desplazarA(yDeLaEstacion.current + y), [desplazarA]);
+  const alMedirError = useAvisoVisible(paso > 1 ? error : null, desplazarA);
 
   if (cargando) {
     return (
@@ -523,17 +531,20 @@ export function RecorridoScreen({ estacionDelAgente }: { estacionDelAgente?: Est
         ) : null}
 
         {estacionDelPaso && agenteId && Estacion ? (
-          <Estacion
-            estacion={estacionDelPaso}
-            agenteId={agenteId}
-            tipo={tipo}
-            nombre={quien}
-            negocio={negocio}
-            registrarGuardar={registrarGuardar}
-            onResumen={alResumir}
-            onCargados={setCargados}
-            onSeguir={seguirSinDatos}
-          />
+          <View testID="onb-estacion" onLayout={(e) => (yDeLaEstacion.current = e.nativeEvent.layout.y)}>
+            <Estacion
+              estacion={estacionDelPaso}
+              agenteId={agenteId}
+              tipo={tipo}
+              nombre={quien}
+              negocio={negocio}
+              registrarGuardar={registrarGuardar}
+              onResumen={alResumir}
+              onCargados={setCargados}
+              onSeguir={seguirSinDatos}
+              mostrarAviso={mostrarAvisoDeEstacion}
+            />
+          </View>
         ) : null}
 
         {paso === TOTAL_PASOS && agenteId ? (
@@ -578,7 +589,7 @@ export function RecorridoScreen({ estacionDelAgente }: { estacionDelAgente?: Est
               />
             ) : null}
             {!probado && !recorrido?.probado_en ? (
-              <Text style={[shType.body, { color: tonos.warning.fg }]} accessibilityRole="status" testID="onb-falta-prueba">
+              <Text style={[shType.body, { color: tonos.warning.fg }]} accessibilityLiveRegion="polite" testID="onb-falta-prueba">
                 Para publicar a {quien}, envíale al menos una frase aquí.
               </Text>
             ) : null}
@@ -601,7 +612,13 @@ export function RecorridoScreen({ estacionDelAgente }: { estacionDelAgente?: Est
         ) : null}
 
         {error && paso > 1 ? (
-          <Text style={[shType.body, { color: tonos.danger.fg }]} accessibilityRole="alert" testID="onb-error">
+          <Text
+            style={[shType.body, { color: tonos.danger.fg }]}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="assertive"
+            onLayout={alMedirError}
+            testID="onb-error"
+          >
             {error}
           </Text>
         ) : null}

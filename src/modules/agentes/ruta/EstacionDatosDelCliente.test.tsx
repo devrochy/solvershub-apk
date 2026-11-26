@@ -79,6 +79,7 @@ async function montar() {
   let guardar: GuardarEstacion | null = null;
   const onResumen = jest.fn();
   const onSeguir = jest.fn();
+  const mostrarAviso = jest.fn();
   const api = await render(
     <EstacionDatosDelCliente
       estacion="datos-cliente"
@@ -92,10 +93,11 @@ async function montar() {
       onResumen={onResumen}
       onCargados={jest.fn()}
       onSeguir={onSeguir}
+      mostrarAviso={mostrarAviso}
     />,
   );
   await waitFor(() => api.getByTestId("datos-cliente"));
-  return { api, onResumen, onSeguir, guardar: () => guardar!() };
+  return { api, onResumen, onSeguir, mostrarAviso, guardar: () => guardar!() };
 }
 
 const nivel = (dato: string, valor: string) => `datos-cliente-${PEDIDO}-${dato}-${valor}`;
@@ -224,6 +226,23 @@ describe("EstacionDatosDelCliente", () => {
       expect.objectContaining({ herramientas_del_agente: true }),
     );
     expect(api.queryByTestId("datos-cliente-error")).toBeNull();
+  });
+
+  it("sin conexión, el error se trae a la vista una vez y se anuncia (el pie fijo queda lejos de él)", async () => {
+    mockPut.mockRejectedValueOnce(new TypeError("Network request failed"));
+    const { api, guardar, mostrarAviso } = await montar();
+    await fireEvent.press(api.getByTestId("datos-cliente-historial"));
+    await act(async () => {
+      await guardar();
+    });
+    const aviso = api.getByTestId("datos-cliente-error");
+    expect(aviso.props.accessibilityLiveRegion).toBe("assertive");
+    const medida = { nativeEvent: { layout: { x: 0, y: 640, width: 360, height: 120 } } };
+    await fireEvent(aviso, "layout", medida);
+    expect(mostrarAviso).toHaveBeenCalledWith(640);
+    // Un relayout con el mismo error no vuelve a mover la pantalla.
+    await fireEvent(aviso, "layout", medida);
+    expect(mostrarAviso).toHaveBeenCalledTimes(1);
   });
 
   it("explica un 403 sin jerga", async () => {

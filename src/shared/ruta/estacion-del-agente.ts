@@ -26,6 +26,11 @@ export interface PropsDeEstacionDelAgente {
   onCargados: (registros: RegistroDePrueba[]) => void;
   /** «Seguir sin datos» (estación 4 fuera de test): pasa a la estación 5. */
   onSeguir: () => void;
+  /**
+   * Trae a la vista un aviso de la estación (p. ej. «Se cortó la conexión…» tras «Guardar y seguir»): `y` es su
+   * posición dentro de la estación; la ruta, dueña del scroll, se desplaza hasta ahí.
+   */
+  mostrarAviso?: (y: number) => void;
 }
 
 export type EstacionDelAgente = (props: PropsDeEstacionDelAgente) => ReactNode;
