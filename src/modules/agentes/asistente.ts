@@ -12,7 +12,11 @@ import {
  * backend (`questions` de cada plantilla) y va dentro de la estación 1, ya respondido con lo recomendado
  * (`Question.default`). Al salir de la 1 nace el borrador (`from-script`); las estaciones 2 a 4 escriben sobre él.
  */
-export type PlantillaAgente = components["schemas"]["AgentTemplate"];
+/** La plantilla de un tipo de agente: lo que traía `agent-templates` (retirada), sin lo que suma el manifiesto. */
+export type PlantillaAgente = Omit<
+  components["schemas"]["AgentType"],
+  "mandatory_skills" | "transversal_skills" | "customer_data_operations" | "default_flow_sections"
+>;
 export type PreguntaDeAgente = components["schemas"]["Question"];
 export type AgenteDelNegocio = Pick<components["schemas"]["AgentOverviewItem"], "id" | "key" | "name" | "status" | "virtual">;
 
