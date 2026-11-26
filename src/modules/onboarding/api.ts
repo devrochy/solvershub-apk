@@ -10,7 +10,11 @@ import {
 
 export type DejarListo = components["schemas"]["DejarListoOut"];
 export type SettingsResponse = components["schemas"]["SettingsResponse"];
-export type PlantillaAgente = components["schemas"]["AgentTemplate"];
+/** La plantilla de un tipo de agente: lo que traía `agent-templates` (retirada), sin lo que suma el manifiesto. */
+export type PlantillaAgente = Omit<
+  components["schemas"]["AgentType"],
+  "mandatory_skills" | "transversal_skills" | "customer_data_operations" | "default_flow_sections"
+>;
 export type CreacionDeAgente = components["schemas"]["FromScriptOut"];
 
 /** Estado del recorrido del primer uso (`GET /admin/onboarding`); `null` si el negocio no lo tiene. */

@@ -3,7 +3,11 @@ import type { components } from "@core/api/schema";
 
 export type VistaDeAgentes = components["schemas"]["AgentsOverview"];
 export type AgenteDeLista = components["schemas"]["AgentOverviewItem"];
-export type PlantillaAgente = components["schemas"]["AgentTemplate"];
+/** La plantilla de un tipo de agente: lo que traía `agent-templates` (retirada), sin lo que suma el manifiesto. */
+export type PlantillaAgente = Omit<
+  components["schemas"]["AgentType"],
+  "mandatory_skills" | "transversal_skills" | "customer_data_operations" | "default_flow_sections"
+>;
 export type RequisitoDeAgente = components["schemas"]["Requirement"];
 export type DestinoDePublicacion = components["schemas"]["PublishTarget"];
 export type CreacionDeAgente = components["schemas"]["FromScriptOut"];
