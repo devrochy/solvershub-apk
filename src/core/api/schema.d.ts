@@ -253,47 +253,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/agent-templates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Templates
-         * @deprecated
-         * @description Obsoleta: usa `GET /admin/agent-types` (HU-AOS-94, ADR-0207 §6). Sigue igual hasta que panel y APK migren.
-         */
-        get: operations["list_templates_api_v1_admin_agent_templates_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/agent-templates/{template_key}/agents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create From Template
-         * @deprecated
-         */
-        post: operations["create_from_template_api_v1_admin_agent_templates__template_key__agents_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/admin/agent-types": {
         parameters: {
             query?: never;
@@ -304,7 +263,7 @@ export interface paths {
         /**
          * List Agent Types
          * @description El Coordinador y los tipos de agente (Ventas, Agenda, Cobranza, Suscripciones) desde los manifiestos de los
-         *     packs. Reemplaza a `agent-templates` (HU-AOS-94, ADR-0207 §6): cada tipo trae todo lo de la plantilla.
+         *     packs (HU-AOS-94, ADR-0207 §6): cada tipo trae la plantilla y lo que declara su manifiesto.
          */
         get: operations["list_agent_types_api_v1_admin_agent_types_get"];
         put?: never;
@@ -11148,35 +11107,6 @@ export interface components {
              */
             updated_at: string;
         };
-        /** AgentTemplate */
-        AgentTemplate: {
-            /** Available */
-            available: boolean;
-            /** Description */
-            description: string;
-            /** Key */
-            key: string;
-            /** Missing Skills */
-            missing_skills: string[];
-            /** Name */
-            name: string;
-            /** Optional Skills */
-            optional_skills: string[];
-            /** Questions */
-            questions: components["schemas"]["Question"][];
-            /** Requirements */
-            requirements: components["schemas"]["Requirement"][];
-            /** Section */
-            section: string;
-            /** Skills */
-            skills: string[];
-            /** Superpowers */
-            superpowers: components["schemas"]["Superpower"][];
-            /** Tools */
-            tools: string[];
-            /** Will Enable */
-            will_enable: string[];
-        };
         /**
          * AgentType
          * @description Un tipo de agente: todo lo de `AgentTemplate` (el panel migra 1 a 1) y lo que declara su manifiesto.
@@ -19408,19 +19338,6 @@ export interface components {
             /** Total */
             total: number;
         };
-        /** Page[AgentTemplate] */
-        Page_AgentTemplate_: {
-            /** Has More */
-            has_more: boolean;
-            /** Items */
-            items: components["schemas"]["AgentTemplate"][];
-            /** Page */
-            page: number;
-            /** Page Size */
-            page_size: number;
-            /** Total */
-            total: number;
-        };
         /** Page[CanjeOut] */
         Page_CanjeOut_: {
             /** Has More */
@@ -26187,86 +26104,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Page_Superpower_"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_templates_api_v1_admin_agent_templates_get: {
-        parameters: {
-            query?: {
-                page?: number;
-                page_size?: number;
-            };
-            header?: {
-                "X-Device-Id"?: string | null;
-                "X-Tenant-Id"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Page_AgentTemplate_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_from_template_api_v1_admin_agent_templates__template_key__agents_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Device-Id"?: string | null;
-                "X-Tenant-Id"?: string | null;
-            };
-            path: {
-                template_key: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FromTemplateIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FromTemplateOut"];
-                };
-            };
-            /** @description Tope o alcance del plan: `error.code` es `plan_limit_agentes`, `plan_plugin_not_included`; `plan_limit_*` trae `error.details = {metric, used, limit}`; `plan_plugin_not_included` trae `error.details = {skills, min_plan, plan}`. No se escribió nada. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
