@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { AdminApiError } from "@core/api/admin";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
+import { useAvisoVisible } from "@shared/ruta/aviso-visible";
 import type { PropsDeEstacionDelAgente } from "@shared/ruta/estacion-del-agente";
 import { Button, useKit } from "@shared/ui";
 import { cargarDatosCliente, guardarDatosCliente } from "../api";
@@ -48,7 +49,7 @@ const TEXTO_DESACTUALIZADO =
  * y `metodos_entrega` con un solo `PUT`, solo si algo cambió (igual que «Datos del cliente» del panel). Si el
  * guardado falla, se queda en la estación con el error y «Reintentar» (que vuelve a guardar y sigue).
  */
-export function EstacionDatosDelCliente({ agenteId, registrarGuardar, onResumen, onSeguir }: PropsDeEstacionDelAgente) {
+export function EstacionDatosDelCliente({ agenteId, registrarGuardar, onResumen, onSeguir, mostrarAviso }: PropsDeEstacionDelAgente) {
   const api = useAdminApi();
   const { tonos } = useKit();
   const [politica, setPolitica] = useState<AgenteDatos | null>(null);
@@ -61,6 +62,8 @@ export function EstacionDatosDelCliente({ agenteId, registrarGuardar, onResumen,
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDeMetodos, setErrorDeMetodos] = useState<string | null>(null);
+  // El error queda al final del contenido, lejos del pie que lo provocó: se trae a la vista y se anuncia.
+  const alMedirError = useAvisoVisible(error, mostrarAviso);
 
   useEffect(() => {
     let vivo = true;
@@ -216,6 +219,8 @@ export function EstacionDatosDelCliente({ agenteId, registrarGuardar, onResumen,
             },
           ]}
           testID="datos-cliente-error"
+          accessibilityLiveRegion="assertive"
+          onLayout={alMedirError}
         >
           <Text style={[shType.body, { color: tonos.danger.fg }]} accessibilityRole="alert">
             {error}

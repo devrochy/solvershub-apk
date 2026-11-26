@@ -4,6 +4,7 @@ import { AdminApiError } from "@core/api/admin";
 import { useAdminApi } from "@core/session/use-admin-api";
 import { shRadius, shSpace, shType } from "@core/theme/tokens";
 import { cambiosFrenteARecomendado } from "@shared/ruta-de-lanzamiento";
+import { useAvisoVisible } from "@shared/ruta/aviso-visible";
 import type { PropsDeEstacionDelAgente } from "@shared/ruta/estacion-del-agente";
 import { BarraRecomendado, Button, Elegible, Field, Icono, RadioGroup, TextField, useKit } from "@shared/ui";
 import {
@@ -62,7 +63,7 @@ type Cargado = {
  * línea (solo Ventas), y las frases mínimas en «Opciones avanzadas». Guarda con «Guardar y seguir»: el borrador
  * (`procedures`), las formas de pago y la habilidad de Pagos en línea, solo si cambiaron.
  */
-export function EstacionHabilidades({ agenteId, tipo, nombre, registrarGuardar, onResumen }: PropsDeEstacionDelAgente) {
+export function EstacionHabilidades({ agenteId, tipo, nombre, registrarGuardar, onResumen, mostrarAviso }: PropsDeEstacionDelAgente) {
   const api = useAdminApi();
   const { c, tonos } = useKit();
   const [datos, setDatos] = useState<Cargado | null>(null);
@@ -73,6 +74,8 @@ export function EstacionHabilidades({ agenteId, tipo, nombre, registrarGuardar, 
   const [error, setError] = useState<string | null>(null);
   const [avanzadas, setAvanzadas] = useState(false);
   const [escritas, setEscritas] = useState<Record<string, string>>({});
+  // El error queda al final del contenido, lejos del pie que lo provocó: se trae a la vista y se anuncia.
+  const alMedirError = useAvisoVisible(error, mostrarAviso);
 
   useEffect(() => {
     let vivo = true;
@@ -319,7 +322,13 @@ export function EstacionHabilidades({ agenteId, tipo, nombre, registrarGuardar, 
         : null}
 
       {error ? (
-        <Text style={[shType.body, { color: tonos.danger.fg }]} accessibilityRole="alert" testID="habilidades-error">
+        <Text
+          style={[shType.body, { color: tonos.danger.fg }]}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="assertive"
+          onLayout={alMedirError}
+          testID="habilidades-error"
+        >
           {error}
         </Text>
       ) : null}

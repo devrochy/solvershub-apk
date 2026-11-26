@@ -6,7 +6,7 @@ jest.mock("@core/session/admin-session-context", () => ({
 jest.mock("@shared/ui/motion", () => ({ ...jest.requireActual("@shared/ui/motion"), useReduceMotion: () => true }));
 
 import { useEffect } from "react";
-import { Text } from "react-native";
+import { Pressable, ScrollView, Text } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AdminApiError } from "@core/api/admin";
 import { useAdminApi } from "@core/session/use-admin-api";
@@ -219,7 +219,25 @@ describe("RecorridoScreen (HU-APP-23, 5 estaciones)", () => {
     expect(mockGet).toHaveBeenCalledWith("/admin/playground", { connection_id: "c-1" });
     expect(api.getByTestId("onb-resumen")).toBeTruthy();
     expect(api.getByText("Publicar a Tomás")).toBeTruthy();
-    expect(api.getByTestId("onb-falta-prueba")).toBeTruthy();
+    // Android no acepta el rol «status» (cerraba la app al entrar aquí): el aviso se anuncia como región viva.
+    const falta = api.getByTestId("onb-falta-prueba");
+    expect(falta.props.accessibilityRole).toBeUndefined();
+    expect(falta.props.accessibilityLiveRegion).toBe("polite");
+  });
+
+  it("un aviso de la estación se trae a la vista: desplaza el scroll hasta él, sumando dónde va la estación", async () => {
+    responder({ ...nuevo, estado: "en_curso", paso: 3, agente_id: "a-1", conexion_id: "c-1" });
+    const scrollTo = jest.spyOn(ScrollView.prototype as unknown as { scrollTo: () => void }, "scrollTo");
+    function Estacion({ mostrarAviso }: PropsDeEstacionDelAgente) {
+      return <Pressable testID="estacion-falla" onPress={() => mostrarAviso?.(200)} />;
+    }
+    const api = await render(<RecorridoScreen estacionDelAgente={Estacion} />);
+    await waitFor(() => api.getByTestId("estacion-falla"));
+    await fireEvent(api.getByTestId("onb-estacion"), "layout", { nativeEvent: { layout: { x: 0, y: 300, width: 360, height: 900 } } });
+    scrollTo.mockClear();
+    await fireEvent.press(api.getByTestId("estacion-falla"));
+    expect(scrollTo).toHaveBeenCalledWith({ y: 484, animated: true });
+    scrollTo.mockRestore();
   });
 
   it("«Seguir después» confirma qué pasa y omite", async () => {

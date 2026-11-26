@@ -49,6 +49,7 @@ function preparar() {
 async function montar() {
   let guardar: GuardarEstacion | null = null;
   const onResumen = jest.fn();
+  const mostrarAviso = jest.fn();
   const api = await render(
     <EstacionHabilidades
       estacion="habilidades"
@@ -62,10 +63,11 @@ async function montar() {
       onResumen={onResumen}
       onCargados={jest.fn()}
       onSeguir={jest.fn()}
+      mostrarAviso={mostrarAviso}
     />,
   );
   await waitFor(() => api.getByTestId("habilidad-pc.pedido"));
-  return { api, onResumen, guardar: () => (guardar as unknown as GuardarEstacion)() };
+  return { api, onResumen, mostrarAviso, guardar: () => (guardar as unknown as GuardarEstacion)() };
 }
 
 describe("EstacionHabilidades (HU-APP-23)", () => {
@@ -117,5 +119,19 @@ describe("EstacionHabilidades (HU-APP-23)", () => {
     });
     expect(api.getByText("Marca al menos un superpoder para este agente.")).toBeTruthy();
     expect(mockPut).not.toHaveBeenCalled();
+  });
+
+  it("sin conexión, el error se trae a la vista y se anuncia", async () => {
+    const { api, guardar, mostrarAviso } = await montar();
+    mockPut.mockRejectedValueOnce(new TypeError("Network request failed"));
+    await fireEvent.press(api.getByTestId("habilidad-pc.cotizar"));
+    await act(async () => {
+      await expect(guardar()).resolves.toBe(false);
+    });
+    const aviso = api.getByTestId("habilidades-error");
+    expect(aviso).toHaveTextContent(/Se cortó la conexión/);
+    expect(aviso.props.accessibilityLiveRegion).toBe("assertive");
+    await fireEvent(aviso, "layout", { nativeEvent: { layout: { x: 0, y: 480, width: 360, height: 40 } } });
+    expect(mostrarAviso).toHaveBeenCalledWith(480);
   });
 });
