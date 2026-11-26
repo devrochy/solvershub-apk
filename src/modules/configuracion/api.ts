@@ -42,6 +42,22 @@ export async function cargarConexiones(api: ClienteAdmin): Promise<ConnectionsRe
   return api.get<ConnectionsResponse>("/admin/connections");
 }
 
+/**
+ * Conexiones conversacionales que hoy atiende solo el Coordinador (HU-AOS-95, D-78): sin especialistas
+ * habilitados y con Coordinador. Si la consola no carga devuelve vacío: es un aviso, no debe romper la lista.
+ */
+export async function conexionesConCoordinador(api: ClienteAdmin): Promise<Set<string>> {
+  try {
+    const consola = await api.get<components["schemas"]["ConnectionsConsole"]>("/admin/connections/console?page=1&page_size=50");
+    return new Set(
+      consola.items
+        .filter((c) => c.conversational && c.coordinator?.enabled && !c.agents.some((a) => a.enabled))
+        .map((c) => c.id),
+    );
+  } catch {
+    return new Set();
+  }
+}
 
 // ---------------- Equipo · colaboradores e invitaciones ----------------
 

@@ -28,6 +28,7 @@ import {
   borrarPlantilla,
   cargarConexiones,
   cargarHabilidades,
+  conexionesConCoordinador,
   cargarPlantillas,
   reintentarHabilidad,
   sincronizarPlantillas,
@@ -66,6 +67,7 @@ export function ConfiguracionScreen({
   );
   const [habilidades, setHabilidades] = useState<PluginSummary[]>([]);
   const [conexiones, setConexiones] = useState<ConnectionItem[]>([]);
+  const [conCoordinador, setConCoordinador] = useState<Set<string>>(new Set());
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [conexionPlantillas, setConexionPlantillas] = useState<ConnectionItem | null>(null);
@@ -78,13 +80,15 @@ export function ConfiguracionScreen({
 
   const cargar = useCallback(async () => {
     try {
-      const [h, cx] = await Promise.all([
+      const [h, cx, coordinador] = await Promise.all([
         cargarHabilidades(api),
         cargarConexiones(api),
+        conexionesConCoordinador(api),
       ]);
       setError(null);
       setHabilidades(h);
       setConexiones(cx.items);
+      setConCoordinador(coordinador);
     } catch {
       setError("No pudimos cargar la configuración. Revisa tu conexión.");
     }
@@ -300,6 +304,22 @@ export function ConfiguracionScreen({
                         {item.channel}
                         {detalle ? ` · ${detalle}` : ""}
                       </Text>
+                      {conCoordinador.has(item.id) ? (
+                        <>
+                          <Text testID={`conexion-${item.id}-coordinador`} style={{ color: colores.textoSuave, fontSize: 12 }}>
+                            Atendiendo con el Coordinador (recepción y captura de leads)
+                          </Text>
+                          {puedeEditarConexiones ? (
+                            <Text
+                              testID={`conexion-${item.id}-crear-agente`}
+                              onPress={() => emitirNavegacion({ tab: "agentes" })}
+                              style={{ color: colores.acento, fontWeight: "600", fontSize: 12 }}
+                            >
+                              Crear agente especialista
+                            </Text>
+                          ) : null}
+                        </>
+                      ) : null}
                     </View>
                     <Text style={{ color: item.active ? colores.acento : colores.peligro, fontSize: 12 }}>
                       {item.active ? "activa" : "inactiva"}

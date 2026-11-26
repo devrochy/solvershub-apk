@@ -102,6 +102,16 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
           },
         ]);
       }
+      // HU-AOS-95: Principal la atiende solo el Coordinador; la de WhatsApp Web ya tiene un especialista.
+      if (path.startsWith("/admin/connections/console")) {
+        const agente = (rol: string) => ({ instance_id: `i-${rol}`, agent_id: `a-${rol}`, key: rol, name: rol, role: rol, is_default: false, enabled: true, priority: 100, release_version: 1, latest_version: 1 });
+        return Promise.resolve({
+          items: [
+            { id: "cx-1", conversational: true, coordinator: agente("core"), agents: [] },
+            { id: "waweb-1", conversational: true, coordinator: agente("core"), agents: [agente("specialist")] },
+          ],
+        });
+      }
       if (path === "/admin/connections") {
         return Promise.resolve({
           items: [
@@ -279,6 +289,20 @@ describe("ConfiguracionScreen (HU-APP-12)", () => {
 
     await fireEvent.press(getByTestId("config-conexiones"));
     expect(getByText("Principal · principal")).toBeTruthy();
+  });
+
+  it("una conexión sin especialistas dice que atiende el Coordinador y lleva a crear un agente (HU-AOS-95)", async () => {
+    const destinos: unknown[] = [];
+    const baja = suscribirNavegacion((d) => destinos.push(d));
+    const { getByTestId, queryByTestId } = await render(<ConfiguracionScreen />);
+    await waitFor(() => expect(getByTestId("config-conexiones")).toBeTruthy());
+    await fireEvent.press(getByTestId("config-conexiones"));
+
+    await waitFor(() => expect(getByTestId("conexion-cx-1-coordinador")).toBeTruthy());
+    expect(queryByTestId("conexion-waweb-1-coordinador")).toBeNull();
+    await fireEvent.press(getByTestId("conexion-cx-1-crear-agente"));
+    expect(destinos).toContainEqual({ tab: "agentes" });
+    baja();
   });
 
   it("muestra el nombre y el número del WhatsApp Web vinculado", async () => {
