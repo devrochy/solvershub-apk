@@ -1,5 +1,5 @@
 import type { components } from "@core/api/schema";
-import { aRangosTexto, textoARangos } from "./horarioAtencion";
+import { textoARangos, type Franja } from "./horarioAtencion";
 import { leerNumero } from "./numeros";
 
 /**
@@ -12,7 +12,7 @@ export type OpcionConfig = components["schemas"]["Opcion"];
 export type ValorPosibleConfig = components["schemas"]["ValorPosible"];
 
 /** Lo que edita la pantalla: cada tipo de opción tiene su forma de borrador. */
-export type EstadoCampo = string | boolean | string[];
+export type EstadoCampo = string | boolean | string[] | Franja[];
 export type EstadoIdentidad = Record<string, EstadoCampo>;
 
 /** Secciones de Identidad, en el orden en que se muestran. */
@@ -102,7 +102,7 @@ export function aEstado(opcion: OpcionConfig, valor: unknown): EstadoCampo {
     case "lista_de_textos":
       return Array.isArray(valor) ? (valor as string[]).filter((x) => typeof x === "string") : [];
     case "franjas":
-      return aRangosTexto(Array.isArray(valor) ? (valor as Record<string, unknown>[]) : []);
+      return Array.isArray(valor) ? (valor as Franja[]) : [];
     default:
       return valor == null ? "" : String(valor);
   }
@@ -117,7 +117,8 @@ export function deEstado(opcion: OpcionConfig, estado: EstadoCampo): unknown {
     case "lista_de_textos":
       return Array.isArray(estado) ? estado : [];
     case "franjas":
-      return typeof estado === "string" ? textoARangos(estado) : [];
+      if (Array.isArray(estado)) return estado as Franja[];
+      return typeof estado === "string" ? (textoARangos(estado) as Franja[]) : [];
     default:
       return estado;
   }

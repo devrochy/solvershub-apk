@@ -135,7 +135,7 @@ describe("AjustesTab · Identidad guiada (HU-CFG-06)", () => {
     const mensaje = await findByTestId("ajustes-out_of_hours_message");
     expect(mensaje.props.editable).toBe(false);
     expect(await findByText(/Sin horario de atención/)).toBeTruthy();
-    await fireEvent.changeText(getByTestId("ajustes-business_ranges"), "0 08:00-18:00");
+    await fireEvent(getByTestId("ajustes-business_ranges-siempre"), "valueChange", false);
     await waitFor(() => expect(getByTestId("ajustes-out_of_hours_message").props.editable).toBe(true));
   });
 
