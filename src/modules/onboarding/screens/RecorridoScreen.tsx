@@ -403,7 +403,7 @@ export function RecorridoScreen({ estacionDelAgente }: { estacionDelAgente?: Est
         <View style={styles.final}>
           <LogoHorizontal ancho={260} />
           <Text accessibilityRole="header" style={[shType.h1, { color: c.text }]}>
-            {quien} ya está listo
+            {quien} ya puede atender
           </Text>
           <Text style={[shType.body, { color: c.textMuted }]}>
             Responde las 24 horas y sabe cuándo atiende tu equipo. Ya puedes conectar tu WhatsApp para atender a tus

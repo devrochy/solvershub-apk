@@ -7,7 +7,15 @@ import type { ClienteAdmin } from "@core/api/admin";
  */
 export type DestinoDePrueba = { connection_id: string } | { agent_id: string };
 
+/** Un turno del historial (`GET /admin/playground`): la memoria de trabajo guarda lo del cliente y lo del agente. */
 export type TurnoDePrueba = {
+  role: "user" | "assistant";
+  content: string;
+  tool_calls?: unknown[];
+};
+
+/** Respuesta de `POST /admin/playground/message`: solo ella dice si el turno pasó a una persona. */
+export type RespuestaDePrueba = {
   text: string;
   escalated?: boolean;
   simulado?: boolean;
@@ -20,8 +28,8 @@ function consulta(destino: DestinoDePrueba): string {
     : `connection_id=${encodeURIComponent(destino.connection_id)}`;
 }
 
-export async function enviarPrueba(api: ClienteAdmin, destino: DestinoDePrueba, text: string): Promise<void> {
-  await api.post("/admin/playground/message", { text, ...destino });
+export async function enviarPrueba(api: ClienteAdmin, destino: DestinoDePrueba, text: string): Promise<RespuestaDePrueba> {
+  return api.post<RespuestaDePrueba>("/admin/playground/message", { text, ...destino });
 }
 
 export async function cargarPrueba(api: ClienteAdmin, destino: DestinoDePrueba): Promise<TurnoDePrueba[]> {

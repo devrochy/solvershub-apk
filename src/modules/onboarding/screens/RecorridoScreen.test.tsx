@@ -56,6 +56,7 @@ function responder(recorrido: Recorrido, opciones: { keyTaken?: boolean } = {}) 
         agente_id: (body?.paso ?? 1) > 1 ? "a-1" : recorrido.agente_id,
         conexion_id: (body?.paso ?? 1) > 1 ? "c-1" : recorrido.conexion_id,
       });
+    if (path === "/admin/onboarding/finalizar") return Promise.resolve({ ...recorrido, estado: "completado", avisar: false });
     if (path === "/admin/onboarding/omitir") return Promise.resolve({ ...recorrido, estado: "omitido", avisar: true });
     if (path === "/admin/agents/from-script") {
       if (opciones.keyTaken) return Promise.reject(new AdminApiError(409, "key_taken", "Ya tienes un agente", { agent_id: "a-1" }));
@@ -223,6 +224,17 @@ describe("RecorridoScreen (HU-APP-23, 5 estaciones)", () => {
     const falta = api.getByTestId("onb-falta-prueba");
     expect(falta.props.accessibilityRole).toBeUndefined();
     expect(falta.props.accessibilityLiveRegion).toBe("polite");
+  });
+
+  it("al publicar, la pantalla final dice que el agente ya puede atender, sin género", async () => {
+    responder({ ...nuevo, estado: "en_curso", paso: 5, agente_id: "a-1", conexion_id: "c-1", probado_en: "2026-11-27T10:00:00Z" });
+    const api = await render(<RecorridoScreen estacionDelAgente={() => null} />);
+    await waitFor(() => api.getByText("Paso 5 de 5 · Revisar y publicar"));
+    await fireEvent.press(api.getByTestId("onb-publicar"));
+    await waitFor(() => api.getByTestId("onboarding-final"));
+    expect(mockPost).toHaveBeenCalledWith("/admin/onboarding/finalizar");
+    expect(api.getByText("Tomás ya puede atender")).toBeTruthy();
+    expect(api.queryByText(/ya está listo/)).toBeNull();
   });
 
   it("un aviso de la estación se trae a la vista: desplaza el scroll hasta él, sumando dónde va la estación", async () => {

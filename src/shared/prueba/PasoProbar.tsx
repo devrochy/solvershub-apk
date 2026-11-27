@@ -11,7 +11,7 @@ export interface PasoProbarProps {
   destino: DestinoDePrueba;
   nombre: string;
   sugerencias: readonly string[];
-  /** Llega una respuesta del agente que no pasó a una persona: cuenta como prueba. */
+  /** El agente respondió y el turno no pasó a una persona: cuenta como prueba. */
   alRecibir?: (turnos: TurnoDePrueba[]) => void;
   /** Prefijo de los testID (`onb` en la bienvenida, `asistente` en Nuevo agente). */
   prefijo?: string;
@@ -28,10 +28,8 @@ export function PasoProbar({ destino, nombre, sugerencias, alRecibir, prefijo = 
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
-  // El historial del servidor trae solo las respuestas del agente: lo escrito aquí se muestra en su turno.
-  const [mios, setMios] = useState<string[]>([]);
-  // Respuestas que ya había al abrir el paso: lo escrito aquí empieza después de ellas.
-  const [previos, setPrevios] = useState(0);
+  // El historial del servidor trae los dos lados; lo que se está enviando se muestra mientras llega la respuesta.
+  const [pendiente, setPendiente] = useState<string | null>(null);
   const clave = JSON.stringify(destino);
 
   useEffect(() => {
@@ -39,9 +37,7 @@ export function PasoProbar({ destino, nombre, sugerencias, alRecibir, prefijo = 
     const d = JSON.parse(clave) as DestinoDePrueba;
     cargarPrueba(api, d)
       .then((t) => {
-        if (!vivo) return;
-        setPrevios(t.length);
-        setTurnos(t);
+        if (vivo) setTurnos(t);
       })
       .catch(() => undefined);
     return () => {
@@ -56,16 +52,19 @@ export function PasoProbar({ destino, nombre, sugerencias, alRecibir, prefijo = 
     setEnviando(true);
     setAviso(null);
     setTexto("");
-    setMios((m) => [...m, limpio]);
+    setPendiente(limpio);
     try {
-      await enviarPrueba(api, destino, limpio);
+      const respuesta = await enviarPrueba(api, destino, limpio);
       const t = await cargarPrueba(api, destino);
       setTurnos(t);
       // Solo cuenta una respuesta del agente: si pasó a una persona (falló el modelo, p. ej.) no hubo prueba.
-      if (t.some((x) => !x.escalated)) alRecibir?.(t);
+      // El historial no guarda `escalated`: lo dice la respuesta del envío.
+      if (!respuesta?.escalated) alRecibir?.(t);
     } catch (e) {
+      setTexto(limpio);
       setAviso(e instanceof AdminApiError ? e.message : "No pudimos enviar tu mensaje. Inténtalo de nuevo.");
     } finally {
+      setPendiente(null);
       setEnviando(false);
     }
   }
@@ -81,26 +80,21 @@ export function PasoProbar({ destino, nombre, sugerencias, alRecibir, prefijo = 
         ))}
       </View>
       <View style={styles.bloque} testID={`${prefijo}-chat`}>
-        {turnos.map((t, i) => (
-          <View key={i} style={styles.bloque}>
-            {i >= previos && mios[i - previos] ? (
-              <View
-                style={[styles.burbuja, styles.mia, { borderColor: c.link }]}
-                accessible
-                accessibilityLabel={`Tú: ${mios[i - previos]}`}
-              >
-                <Text style={[shType.body, { color: c.text }]}>{mios[i - previos]}</Text>
-              </View>
-            ) : null}
+        {turnos.map((t, i) =>
+          t.role === "user" ? (
+            <BurbujaMia key={i} texto={t.content} />
+          ) : (
             <View
+              key={i}
               style={[styles.burbuja, { borderColor: c.border, backgroundColor: c.surface2 }]}
               accessible
-              accessibilityLabel={`${nombre}: ${t.text}`}
+              accessibilityLabel={`${nombre}: ${t.content}`}
             >
-              <Text style={[shType.body, { color: c.text }]}>{t.text}</Text>
+              <Text style={[shType.body, { color: c.text }]}>{t.content}</Text>
             </View>
-          </View>
-        ))}
+          ),
+        )}
+        {pendiente ? <BurbujaMia texto={pendiente} /> : null}
         {enviando ? <ActivityIndicator accessibilityLabel={`${nombre} está escribiendo`} /> : null}
       </View>
       {aviso ? (
@@ -127,8 +121,6 @@ export function PasoProbar({ destino, nombre, sugerencias, alRecibir, prefijo = 
             void reiniciarPrueba(api, destino)
               .then(() => {
                 setTurnos([]);
-                setMios([]);
-                setPrevios(0);
               })
               .catch(() => undefined);
           }}
@@ -137,6 +129,15 @@ export function PasoProbar({ destino, nombre, sugerencias, alRecibir, prefijo = 
           Empezar de nuevo
         </Button>
       </View>
+    </View>
+  );
+}
+
+function BurbujaMia({ texto }: { texto: string }) {
+  const { c } = useKit();
+  return (
+    <View style={[styles.burbuja, styles.mia, { borderColor: c.link }]} accessible accessibilityLabel={`Tú: ${texto}`}>
+      <Text style={[shType.body, { color: c.text }]}>{texto}</Text>
     </View>
   );
 }
