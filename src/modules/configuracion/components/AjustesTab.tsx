@@ -20,6 +20,7 @@ import {
 } from "../catalogo";
 import { ayudaFueraDeHorario } from "../fueraDeHorario";
 import { usePendientes } from "../frases";
+import { erroresDeFranjas } from "../horarioAtencion";
 import {
   cargarSettings,
   guardarBrain,
@@ -137,7 +138,8 @@ export function AjustesTab() {
       // El texto escrito en una lista y no agregado se suma antes de validar y de guardar.
       const pendiente = pendientes.completar((clave) => {
         const valor = identidad[clave];
-        return Array.isArray(valor) ? valor : undefined;
+        if (!Array.isArray(valor) || valor.some((item) => typeof item !== "string")) return undefined;
+        return valor as string[];
       });
       completa = { ...identidad, ...pendiente.listas };
       const locales = { ...erroresDeRango(catalogo, completa), ...pendiente.errores };
@@ -165,6 +167,13 @@ export function AjustesTab() {
     setMensaje(null);
     try {
       if (sub === "identidad" && catalogo) {
+        // El editor de horario marca el día; aquí se bloquea el guardado y se enruta al campo.
+        const erroresHorario = erroresDeFranjas(completa.business_ranges);
+        if (erroresHorario.length > 0) {
+          setErroresId({ business_ranges: erroresHorario[0].message });
+          setError("Revisa los campos marcados antes de guardar.");
+          return;
+        }
         // Solo viaja lo que el catálogo pinta; `tono` está retirado (ADR-0166). `bot_paused` solo si
         // el usuario lo movió: así guardar no deshace una pausa hecha mientras el formulario estaba abierto.
         const cuerpo: Record<string, unknown> = {};

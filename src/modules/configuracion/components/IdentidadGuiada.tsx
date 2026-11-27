@@ -18,8 +18,9 @@ import {
   type OpcionConfig,
 } from "../catalogo";
 import { usePendientes, type Pendiente } from "../frases";
-import { leyendaDias } from "../horarioAtencion";
+import type { Franja } from "../horarioAtencion";
 import { Campo, Chips, InputCampo, ListaDeFrases } from "./campos";
+import { HorarioSemanal } from "./HorarioSemanal";
 
 const MUCHAS_OPCIONES = 6;
 /** Tope de frases por lista de Identidad, igual al del panel. */
@@ -74,7 +75,7 @@ function CampoGuiado({
   }
 
   if (opcion.tipo === "elegir_varias") {
-    const apagadas = Array.isArray(estado) ? estado : [];
+    const apagadas = Array.isArray(estado) ? (estado as string[]) : [];
     const posibles = opcion.valores ?? [];
     if (posibles.length === 0) return null;
     return (
@@ -103,6 +104,20 @@ function CampoGuiado({
     );
   }
 
+  if (opcion.tipo === "franjas") {
+    return (
+      <Campo id={id} label={opcion.etiqueta} ayuda={ayuda} error={error}>
+        <HorarioSemanal
+          id={id}
+          franjas={Array.isArray(estado) ? (estado as Franja[]) : []}
+          modoInformativo={valores.business_hours_mode === "informativo"}
+          disabled={bloqueado}
+          onChange={(franjas) => onCambio(opcion.clave, franjas)}
+        />
+      </Campo>
+    );
+  }
+
   let control: React.ReactNode;
   if (opcion.tipo === "elegir_una") {
     const actual = typeof estado === "string" ? estado : "";
@@ -120,7 +135,7 @@ function CampoGuiado({
     control = (
       <ListaDeFrases
         id={id}
-        frases={Array.isArray(estado) ? estado : []}
+        frases={Array.isArray(estado) ? (estado as string[]) : []}
         onChange={(frases) => onCambio(opcion.clave, frases)}
         minLargo={opcion.clave === "persona_forbidden" ? 3 : 2}
         max={MAX_FRASES}
@@ -134,7 +149,7 @@ function CampoGuiado({
         id={id}
         valor={typeof estado === "string" ? estado : ""}
         onChange={(v) => onCambio(opcion.clave, v)}
-        multiline={opcion.tipo === "texto_largo" || opcion.tipo === "franjas"}
+        multiline={opcion.tipo === "texto_largo"}
         numeric={opcion.tipo === "entero" || opcion.tipo === "decimal"}
         decimal={opcion.tipo === "decimal"}
         deshabilitado={bloqueado}
@@ -145,9 +160,6 @@ function CampoGuiado({
   return (
     <Campo id={id} label={opcion.etiqueta} ayuda={`${ayuda}${enlace}`.trim()} error={error}>
       {control}
-      {opcion.tipo === "franjas" ? (
-        <Text style={{ color: colores.textoSuave, fontSize: 11, marginTop: 2 }}>Días: {leyendaDias()}</Text>
-      ) : null}
     </Campo>
   );
 }
