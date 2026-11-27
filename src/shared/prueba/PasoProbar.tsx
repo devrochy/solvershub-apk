@@ -59,7 +59,7 @@ export function PasoProbar({ destino, nombre, sugerencias, alRecibir, prefijo = 
       setTurnos(t);
       // Solo cuenta una respuesta del agente: si pasó a una persona (falló el modelo, p. ej.) no hubo prueba.
       // El historial no guarda `escalated`: lo dice la respuesta del envío.
-      if (!respuesta.escalated) alRecibir?.(t);
+      if (!respuesta?.escalated) alRecibir?.(t);
     } catch (e) {
       setTexto(limpio);
       setAviso(e instanceof AdminApiError ? e.message : "No pudimos enviar tu mensaje. Inténtalo de nuevo.");
