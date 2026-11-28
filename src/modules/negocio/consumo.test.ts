@@ -122,6 +122,8 @@ describe("saldo desglosado y compra de créditos (HU-BILL-27 parte 2b)", () => {
     used_month: 12000,
     used_accumulated: 1000,
     used_top_ups: 0,
+    bonuses: 0,
+    used_bonuses: 0,
     over_balance: 0,
   };
 
@@ -144,6 +146,12 @@ describe("saldo desglosado y compra de créditos (HU-BILL-27 parte 2b)", () => {
     const basic = desgloseDelSaldo({ ...saldo, total: 12000, accumulated: 0, used_accumulated: 0, top_ups: 0, accumulated_expires_at: null }, AHORA);
     expect(basic?.partes.map((p) => p.clave)).toEqual(["mes"]);
     expect(desgloseDelSaldo(null)).toBeNull();
+  });
+
+  it("los créditos de regalo (SPEC-54) van entre el acumulado y las recargas", () => {
+    const d = desgloseDelSaldo({ ...saldo, total: 22000, bonuses: 2000, used_bonuses: 500 }, AHORA);
+    expect(d?.partes.map((p) => p.clave)).toEqual(["mes", "acumulado", "regalos", "recargas"]);
+    expect(d?.partes[2]).toEqual({ clave: "regalos", nombre: "Regalos", uso: "Usaste 500 de 2.000", nota: null });
   });
 
   it("paquetes con y sin descuento", () => {

@@ -86,7 +86,7 @@ const creditos = (n: number) => {
 };
 
 export type ParteDelSaldo = {
-  clave: "mes" | "acumulado" | "recargas";
+  clave: "mes" | "acumulado" | "regalos" | "recargas";
   nombre: string;
   /** «Usaste 3.000 de 12.000». */
   uso: string;
@@ -96,7 +96,7 @@ export type ParteDelSaldo = {
 
 /**
  * El saldo del ciclo desglosado (HU-BILL-22), igual que en el panel: el total con su equivalente en
- * pesos y, por parte, lo usado. El mes siempre va; el acumulado y las recargas solo si hay algo.
+ * pesos y, por parte, lo usado. El mes siempre va; el acumulado, los regalos y las recargas solo si hay algo.
  */
 export function desgloseDelSaldo(
   saldo: Saldo | null | undefined,
@@ -117,6 +117,11 @@ export function desgloseDelSaldo(
       uso: uso(saldo.used_accumulated ?? 0, acumulado),
       nota: vence ? `Vence el ${vence}` : null,
     });
+  }
+  // Créditos de regalo por reportes aprobados (SPEC-54, ADR-0213): se gastan antes que las recargas.
+  const regalos = saldo.bonuses ?? 0;
+  if (regalos > 0 || (saldo.used_bonuses ?? 0) > 0) {
+    partes.push({ clave: "regalos", nombre: "Regalos", uso: uso(saldo.used_bonuses ?? 0, regalos), nota: null });
   }
   const recargas = saldo.top_ups ?? 0;
   if (recargas > 0 || (saldo.used_top_ups ?? 0) > 0) {

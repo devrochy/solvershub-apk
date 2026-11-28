@@ -1,4 +1,4 @@
-import { tabDelPanelParaPush } from "./deep-link";
+import { destinoDeNotificacion, tabDelPanelParaPush } from "./deep-link";
 
 describe("tabDelPanelParaPush (HU-APP-05, deep link en el panel)", () => {
   it("una escalación lleva a Conversaciones", () => {
@@ -87,5 +87,12 @@ describe("destinoDeNotificacion / destinoDePush (ADR-0167)", () => {
     expect(destinoDePush({ type: "core.credit_threshold", threshold: "colchon" })).toEqual({ tab: "negocio" });
     expect(destinoDePush({ type: "otro" })).toBeNull();
     expect(destinoDePush(undefined)).toBeNull();
+  });
+});
+
+describe("aviso de un reporte decidido (SPEC-54, HU-FB-07)", () => {
+  it("abre el detalle del reporte; sin id, «Mis reportes»", () => {
+    expect(destinoDeNotificacion({ entity: "feedback_reporte", id: "r-1" } as never)).toEqual({ tab: "feedback", reporte: "r-1" });
+    expect(destinoDeNotificacion({ entity: "feedback_reporte", id: null } as never)).toEqual({ tab: "feedback" });
   });
 });

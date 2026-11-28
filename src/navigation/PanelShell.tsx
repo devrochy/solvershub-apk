@@ -32,6 +32,8 @@ import { HerramientasScreen } from "../modules/herramientas";
 import { BusquedaScreen } from "../modules/busqueda";
 import { OnboardingProvider, RecorridoScreen, useOnboarding } from "../modules/onboarding";
 import { PerfilAdminScreen } from "../modules/perfil";
+import { MisReportesScreen, ReportarProblemaScreen, ReporteDetalleScreen } from "../modules/feedback";
+import { TAB_FEEDBACK } from "../modules/notificaciones";
 import { CajonPanel } from "./CajonPanel";
 import { HeaderPanel } from "./HeaderPanel";
 import {
@@ -70,7 +72,13 @@ export interface PanelStackParamList extends Record<string, object | undefined> 
   Panel: { screen?: ModuloPanel; params?: object } | undefined;
   Perfil: undefined;
   ColaboradorDetalle: { colaborador: ColaboradorEquipo };
+  ReportarProblema: undefined;
+  MisReportes: undefined;
+  ReporteDetalle: { id: string };
 }
+
+/** Rutas del stack sobre el panel: al estar en una, ninguna entrada del cajón queda resaltada. */
+const RUTAS_SOBRE_EL_PANEL = new Set(["Perfil", "ColaboradorDetalle", "ReportarProblema", "MisReportes", "ReporteDetalle"]);
 
 type ParamsModulo =
   | {
@@ -271,6 +279,8 @@ function PanelShellInterno() {
   const destinoPendiente = useRef<DestinoPanel | null>(null);
   const perfilPendiente = useRef(false);
   const colaboradorPendiente = useRef<ColaboradorEquipo | null>(null);
+  /** Reporte de un aviso tocado antes de montar la navegación ("" = «Mis reportes»). */
+  const reportePendiente = useRef<string | null>(null);
 
   const navegar = useCallback(
     (destino: DestinoPanel) => {
@@ -309,16 +319,30 @@ function PanelShellInterno() {
     navRef.current.navigate("Perfil");
   }, []);
 
+  const abrirReportar = useCallback(() => {
+    if (navRef.current?.isReady()) navRef.current.navigate("ReportarProblema");
+  }, []);
+
   useEffect(() => {
-    return suscribirNavegacion((destino) =>
+    return suscribirNavegacion((destino) => {
+      // Aviso de un reporte decidido (HU-FB-07): no es un módulo, se abre sobre el panel.
+      if (destino.tab === TAB_FEEDBACK) {
+        if (!navRef.current?.isReady()) {
+          reportePendiente.current = destino.reporte ?? "";
+          return;
+        }
+        if (destino.reporte) navRef.current.navigate("ReporteDetalle", { id: destino.reporte });
+        else navRef.current.navigate("MisReportes");
+        return;
+      }
       navegar({
         modulo: destino.tab as ModuloPanel,
         pestana: destino.pestana,
         ajustes: destino.ajustes,
         cliente: destino.cliente,
         filtro: destino.filtro,
-      }),
-    );
+      });
+    });
   }, [navegar]);
 
   useEffect(() => {
@@ -348,6 +372,12 @@ function PanelShellInterno() {
             colaboradorPendiente.current = null;
             navRef.current?.navigate("ColaboradorDetalle", { colaborador });
           }
+          if (reportePendiente.current !== null) {
+            const id = reportePendiente.current;
+            reportePendiente.current = null;
+            if (id) navRef.current?.navigate("ReporteDetalle", { id });
+            else navRef.current?.navigate("MisReportes");
+          }
           if (destinoPendiente.current) {
             const destino = destinoPendiente.current;
             destinoPendiente.current = null;
@@ -357,7 +387,7 @@ function PanelShellInterno() {
         onStateChange={() => {
           const estado = navRef.current?.getRootState();
           const ruta = estado?.routes[estado.index];
-          if (ruta?.name === "Perfil" || ruta?.name === "ColaboradorDetalle") {
+          if (ruta?.name && RUTAS_SOBRE_EL_PANEL.has(ruta.name)) {
             setActivo(null);
             return;
           }
@@ -395,9 +425,29 @@ function PanelShellInterno() {
               />
             )}
           </PanelStack.Screen>
+          <PanelStack.Screen name="ReportarProblema" options={OPCIONES_PERFIL}>
+            {() => (
+              <ReportarProblemaScreen
+                onBack={() => navRef.current?.goBack()}
+                onVerMisReportes={() => navRef.current?.navigate("MisReportes")}
+              />
+            )}
+          </PanelStack.Screen>
+          <PanelStack.Screen name="MisReportes" options={OPCIONES_PERFIL}>
+            {() => (
+              <MisReportesScreen
+                onBack={() => navRef.current?.goBack()}
+                onAbrir={(id) => navRef.current?.navigate("ReporteDetalle", { id })}
+                onNuevo={() => navRef.current?.navigate("ReportarProblema")}
+              />
+            )}
+          </PanelStack.Screen>
+          <PanelStack.Screen name="ReporteDetalle" options={OPCIONES_PERFIL}>
+            {({ route }) => <ReporteDetalleScreen id={route.params.id} onBack={() => navRef.current?.goBack()} />}
+          </PanelStack.Screen>
         </PanelStack.Navigator>
       </NavigationContainer>
-      <CajonPanel onAbrirPerfil={abrirPerfil} />
+      <CajonPanel onAbrirPerfil={abrirPerfil} onAbrirReportar={abrirReportar} />
       {abierto && <RecorridoScreen estacionDelAgente={EstacionDelAgente} />}
     </MenuPanelProvider>
   );

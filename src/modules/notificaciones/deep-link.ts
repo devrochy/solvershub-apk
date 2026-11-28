@@ -21,6 +21,9 @@ export function tabDelPanelParaPush(datos: PushDatos | undefined): string | null
   }
 }
 
+/** Destino de los reportes de clientes: no es un módulo del cajón, el shell lo abre sobre el panel. */
+export const TAB_FEEDBACK = "feedback";
+
 /** Solo `clave:valor` simple: el filtro llega en un aviso y se manda tal cual a la lista. */
 const FILTRO_DE_DESTINO = /^[a-z_]+:[a-z0-9_]+$/;
 
@@ -56,6 +59,9 @@ export function destinoDeNotificacion(destino: NotificacionDestino | null | unde
       return { tab: "herramientas", pestana: "fallos" };
     case "cobranza":
       return { tab: "cobranza", pestana: "resumen" };
+    case "feedback_reporte":
+      // Aprobado o rechazado (SPEC-54): el detalle del reporte; sin id, «Mis reportes».
+      return { tab: TAB_FEEDBACK, ...(destino.id ? { reporte: destino.id } : {}) };
     default:
       return null;
   }
