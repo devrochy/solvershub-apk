@@ -753,6 +753,255 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/agents/{agent_id}/pruebas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Escenarios
+         * @description Los escenarios del agente y su última corrida.
+         */
+        get: operations["listar_escenarios_api_v1_admin_agents__agent_id__pruebas_get"];
+        put?: never;
+        /**
+         * Escribir Escenario
+         * @description El dueño escribe un escenario. Sus tools deben ser del agente.
+         */
+        post: operations["escribir_escenario_api_v1_admin_agents__agent_id__pruebas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/{case_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Borrar Escenario
+         * @description Borrado lógico: el escenario deja de salir y de correrse.
+         */
+        delete: operations["borrar_escenario_api_v1_admin_agents__agent_id__pruebas__case_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Editar Escenario
+         * @description Edita un escenario o lo aprueba (`estado = aprobado`).
+         */
+        patch: operations["editar_escenario_api_v1_admin_agents__agent_id__pruebas__case_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/corridas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crear Corrida
+         * @description Aprueba el estimado y deja la corrida en cola. Una a la vez por negocio, 5 por día.
+         */
+        post: operations["crear_corrida_api_v1_admin_agents__agent_id__pruebas_corridas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/corridas/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Informe
+         * @description El informe de la corrida: progreso, créditos, porcentaje y, por escenario, la conversación, la razón del juez y
+         *     el arreglo sugerido con su diff. Se puede sondear mientras corre.
+         */
+        get: operations["informe_api_v1_admin_agents__agent_id__pruebas_corridas__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/corridas/{run_id}/cancelar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancelar Corrida
+         * @description Cancela una corrida en cola o corriendo. Se cobra solo lo gastado.
+         */
+        post: operations["cancelar_corrida_api_v1_admin_agents__agent_id__pruebas_corridas__run_id__cancelar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/corridas/{run_id}/volver-a-probar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Volver A Probar
+         * @description Nueva corrida solo con los escenarios que fallaron, contra el borrador, con su propio estimado y aprobación.
+         */
+        post: operations["volver_a_probar_api_v1_admin_agents__agent_id__pruebas_corridas__run_id__volver_a_probar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/corridas/{run_id}/volver-a-probar/estimado": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Estimar Fallidas
+         * @description Cuánto cuesta repetir solo las pruebas que fallaron, con cada `k`. No escribe.
+         */
+        post: operations["estimar_fallidas_api_v1_admin_agents__agent_id__pruebas_corridas__run_id__volver_a_probar_estimado_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/estimado": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Estimar
+         * @description Cuánto cuesta correr los escenarios con cada `k` y cuánto sale de la cuota gratis. No escribe nada.
+         */
+        post: operations["estimar_api_v1_admin_agents__agent_id__pruebas_estimado_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/proponer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Proponer Escenarios
+         * @description La IA propone hasta 10 escenarios con la configuración del agente. Quedan en `borrador`.
+         */
+        post: operations["proponer_escenarios_api_v1_admin_agents__agent_id__pruebas_proponer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/resultados/{result_id}/aplicar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aplicar Arreglo
+         * @description Aplica el arreglo al BORRADOR del agente, con la confirmación explícita del dueño. Nunca publica.
+         */
+        post: operations["aplicar_arreglo_api_v1_admin_agents__agent_id__pruebas_resultados__result_id__aplicar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/resultados/{result_id}/arreglo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ver Arreglo
+         * @description El arreglo de un resultado con el diff contra el borrador de ahora. No escribe nada.
+         */
+        get: operations["ver_arreglo_api_v1_admin_agents__agent_id__pruebas_resultados__result_id__arreglo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/agents/{agent_id}/pruebas/resultados/{result_id}/juez-equivocado": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Juez Equivocado
+         * @description «Esto no es una falla»: el resultado sale del porcentaje y de volver a probar. Idempotente.
+         */
+        post: operations["juez_equivocado_api_v1_admin_agents__agent_id__pruebas_resultados__result_id__juez_equivocado_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/agents/{agent_id}/publish": {
         parameters: {
             query?: never;
@@ -5679,6 +5928,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform/tenants/{tenant_id}/pruebas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Leer Tope
+         * @description Tope de `k` de las pruebas del negocio. Solo el master.
+         */
+        get: operations["leer_tope_api_v1_admin_platform_tenants__tenant_id__pruebas_get"];
+        /**
+         * Fijar Tope
+         * @description Baja o sube el tope de `k` de UN negocio (auditado como `pruebas_k_maximo`); `null` lo devuelve al de
+         *     plataforma. Idempotente. Solo el master.
+         */
+        put: operations["fijar_tope_api_v1_admin_platform_tenants__tenant_id__pruebas_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform/tenants/{tenant_id}/purge": {
         parameters: {
             query?: never;
@@ -7323,6 +7597,70 @@ export interface paths {
          *     min), por IP y por identificador si viene (HU-SH-06).
          */
         post: operations["post_reset_password_api_v1_auth_reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feedback/catalogo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Catalogo
+         * @description Tipos, áreas y límites del formulario de reporte.
+         */
+        get: operations["get_catalogo_api_v1_feedback_catalogo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feedback/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Reports
+         * @description Mis reportes, del más nuevo al más viejo; el propietario puede ver todos los del negocio.
+         */
+        get: operations["list_reports_api_v1_feedback_reports_get"];
+        put?: never;
+        /**
+         * Post Report
+         * @description Envía un reporte de error, mejora o idea con evidencia. Idempotente por `Idempotency-Key`.
+         */
+        post: operations["post_feedback_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feedback/reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Report
+         * @description Detalle de un reporte con los enlaces firmados de su evidencia.
+         */
+        get: operations["get_report_api_v1_feedback_reports__report_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -9847,6 +10185,105 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/feedback/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bandeja
+         * @description Reportes de todos los negocios, del más reciente al más antiguo, paginados por `(created_at, id)`.
+         */
+        get: operations["bandeja_api_v1_platform_feedback_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/feedback/reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalle */
+        get: operations["detalle_api_v1_platform_feedback_reports__report_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/feedback/reports/{report_id}/aprobar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aprobar
+         * @description Aprueba y acredita `creditos` de regalo al negocio, en una sola transacción. El mismo master con el
+         *     mismo monto responde 200 sin volver a acreditar; cualquier otra repetición, 409 `reporte_ya_decidido`.
+         */
+        post: operations["aprobar_api_v1_platform_feedback_reports__report_id__aprobar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/feedback/reports/{report_id}/rechazar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rechazar
+         * @description Rechaza con un motivo visible al cliente. `duplicado_de` se valida contra cualquier negocio y el cliente
+         *     nunca ve a qué reporte apunta.
+         */
+        post: operations["rechazar_api_v1_platform_feedback_reports__report_id__rechazar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/feedback/reports/{report_id}/tomar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tomar
+         * @description `recibido → en_revision`. Repetirlo el mismo master responde 200; si lo tomó otro, 409.
+         */
+        post: operations["tomar_api_v1_platform_feedback_reports__report_id__tomar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/web-chat/{key}/config": {
         parameters: {
             query?: never;
@@ -11803,6 +12240,29 @@ export interface components {
         Body_mapear_importacion_api_v1_admin_agents__agent_id__importar_datos_mapear_post: {
             /** Archivo */
             archivo: string;
+        };
+        /** Body_post_feedback_report */
+        Body_post_feedback_report: {
+            /**
+             * Adjuntos
+             * @description Hasta 5: imágenes o PDF.
+             */
+            adjuntos?: string[] | null;
+            /**
+             * Area
+             * @description Clave de un área de `GET /feedback/catalogo`.
+             */
+            area: string;
+            /** Descripcion */
+            descripcion: string;
+            /**
+             * Tipo
+             * @description `error`, `mejora` o `idea`.
+             * @enum {string}
+             */
+            tipo: "error" | "mejora" | "idea";
+            /** Titulo */
+            titulo: string;
         };
         /** Body_subir_documento_api_v1_pack_pack_knowledge_agents__agent_id__documents_post */
         Body_subir_documento_api_v1_pack_pack_knowledge_agents__agent_id__documents_post: {
@@ -14174,9 +14634,10 @@ export interface components {
         };
         /**
          * CreditBalance
-         * @description Saldo del ciclo desglosado (ADR-0209 §2 y §5, HU-BILL-22): el crédito del mes del plan más lo
-         *     acumulado (sobrante de ciclos anteriores, en Premium y Empresarial) y las recargas. Se gasta en ese
-         *     orden: mes, acumulado (el que vence antes primero) y recargas. `over_balance` es lo consumido por
+         * @description Saldo del ciclo desglosado (ADR-0209 §2 y §5, HU-BILL-22; ADR-0213 §10): el crédito del mes del plan
+         *     más lo acumulado (sobrante de ciclos anteriores, en Premium y Empresarial), las bonificaciones
+         *     («Regalos»: créditos de regalo por reportes aprobados, no vencen) y las recargas. Se gasta en ese
+         *     orden: mes, acumulado (el que vence antes primero), regalos y recargas. `over_balance` es lo consumido por
          *     encima del saldo (colchón de las conversaciones abiertas, lo absorbe la plataforma). En créditos con
          *     décimas (1 crédito = COP 10).
          */
@@ -14188,6 +14649,11 @@ export interface components {
             accumulated: number;
             /** Accumulated Expires At */
             accumulated_expires_at?: string | null;
+            /**
+             * Bonuses
+             * @default 0
+             */
+            bonuses: number;
             /** Month */
             month: number;
             /**
@@ -14207,6 +14673,11 @@ export interface components {
              * @default 0
              */
             used_accumulated: number;
+            /**
+             * Used Bonuses
+             * @default 0
+             */
+            used_bonuses: number;
             /**
              * Used Month
              * @default 0
@@ -15120,6 +15591,133 @@ export interface components {
             /** Summary */
             summary: string;
         };
+        /** EscenarioDePrueba */
+        EscenarioDePrueba: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Criterios */
+            criterios: string[];
+            /** Datos Cliente */
+            datos_cliente: {
+                [key: string]: unknown;
+            };
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "borrador" | "aprobado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Objetivo Cliente */
+            objetivo_cliente: string;
+            /**
+             * Origen
+             * @enum {string}
+             */
+            origen: "ia" | "manual";
+            /** Titulo */
+            titulo: string;
+            /** Tools Esperadas */
+            tools_esperadas: string[];
+            /** Tools Prohibidas */
+            tools_prohibidas: string[];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** EscenarioDePruebaIn */
+        EscenarioDePruebaIn: {
+            /** Criterios */
+            criterios?: string[];
+            /**
+             * Datos Cliente
+             * @description Datos inventados que el cliente conoce.
+             */
+            datos_cliente?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Estado
+             * @default borrador
+             * @enum {string}
+             */
+            estado: "borrador" | "aprobado";
+            /**
+             * Objetivo Cliente
+             * @description Lo que el cliente simulado quiere lograr.
+             */
+            objetivo_cliente: string;
+            /** Titulo */
+            titulo: string;
+            /** Tools Esperadas */
+            tools_esperadas?: string[];
+            /** Tools Prohibidas */
+            tools_prohibidas?: string[];
+        };
+        /**
+         * EscenarioDePruebaPatch
+         * @description Solo los campos enviados cambian.
+         */
+        EscenarioDePruebaPatch: {
+            /** Criterios */
+            criterios?: string[] | null;
+            /** Datos Cliente */
+            datos_cliente?: {
+                [key: string]: unknown;
+            } | null;
+            /** Estado */
+            estado?: ("borrador" | "aprobado") | null;
+            /** Objetivo Cliente */
+            objetivo_cliente?: string | null;
+            /** Titulo */
+            titulo?: string | null;
+            /** Tools Esperadas */
+            tools_esperadas?: string[] | null;
+            /** Tools Prohibidas */
+            tools_prohibidas?: string[] | null;
+        };
+        /** EscenariosDePrueba */
+        EscenariosDePrueba: {
+            /** Escenarios */
+            escenarios: components["schemas"]["EscenarioDePrueba"][];
+            /**
+             * Tope
+             * @description Máximo de escenarios por agente.
+             */
+            tope: number;
+            ultima_corrida: components["schemas"]["ResumenDeCorridaDePrueba"] | null;
+        };
+        /** EscenariosPropuestos */
+        EscenariosPropuestos: {
+            /**
+             * Creditos
+             * @description Lo que costó pedir la propuesta; `null` si no se pudo medir.
+             */
+            creditos: number | null;
+            /**
+             * Descartados
+             * @description Propuestas que se descartaron: repetidas, sin título u objetivo.
+             */
+            descartados: number;
+            /**
+             * Escenarios
+             * @description Los guardados en `borrador`, hasta 10.
+             */
+            escenarios: components["schemas"]["EscenarioDePrueba"][];
+        };
         /** EsManualStep */
         EsManualStep: {
             /** Done */
@@ -15446,6 +16044,351 @@ export interface components {
              * Format: uuid
              */
             turn_id: string;
+        };
+        /** FeedbackAdjunto */
+        FeedbackAdjunto: {
+            /** Bytes */
+            bytes: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Mimetype */
+            mimetype: string;
+            /** Nombre Original */
+            nombre_original: string | null;
+            /**
+             * Url
+             * @description URL firmada de vida corta: no se guarda; se vuelve a pedir el detalle al abrirla.
+             */
+            url: string;
+            /**
+             * Url Expira En
+             * Format: date-time
+             * @description Cuándo deja de servir `url` (10 minutos después de emitida).
+             */
+            url_expira_en: string;
+        };
+        /** FeedbackAdjuntoMaster */
+        FeedbackAdjuntoMaster: {
+            /** Bytes */
+            bytes: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Mimetype */
+            mimetype: string;
+            /** Nombre Original */
+            nombre_original: string | null;
+            /** Orden */
+            orden: number;
+            /**
+             * Url
+             * @description URL firmada de corta duración (`URL_TTL_UI`).
+             */
+            url: string;
+        };
+        /** FeedbackAprobarIn */
+        FeedbackAprobarIn: {
+            /**
+             * Creditos
+             * @description Créditos de regalo para el negocio, entero > 0. Topes en ADR-0213 §4.
+             */
+            creditos: number;
+        };
+        /** FeedbackBandeja */
+        FeedbackBandeja: {
+            /** Items */
+            items: components["schemas"]["FeedbackBandejaItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** FeedbackBandejaItem */
+        FeedbackBandejaItem: {
+            /**
+             * Adjuntos
+             * @description Cuántos adjuntos trae el reporte.
+             */
+            adjuntos: number;
+            /** Area */
+            area: string;
+            autor: components["schemas"]["FeedbackPersona"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Creditos Otorgados */
+            creditos_otorgados: number | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "recibido" | "en_revision" | "aprobado" | "rechazado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** @description Quien lo tomó o lo decidió. */
+            revisor: components["schemas"]["FeedbackPersona"] | null;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Tenant Name */
+            tenant_name: string;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "error" | "mejora" | "idea";
+            /** Titulo */
+            titulo: string;
+            /** Tomado En */
+            tomado_en: string | null;
+        };
+        /** FeedbackCatalogo */
+        FeedbackCatalogo: {
+            /**
+             * Areas
+             * @description Secciones del panel más `otra`.
+             */
+            areas: components["schemas"]["FeedbackOpcion"][];
+            limites: components["schemas"]["FeedbackLimites"];
+            /** Tipos */
+            tipos: components["schemas"]["FeedbackOpcion"][];
+        };
+        /** FeedbackLimites */
+        FeedbackLimites: {
+            /** Max Adjuntos */
+            max_adjuntos: number;
+            /** Max Bytes Por Archivo */
+            max_bytes_por_archivo: number;
+            /** Max Bytes Total */
+            max_bytes_total: number;
+            /** Mimetypes */
+            mimetypes: string[];
+        };
+        /** FeedbackOpcion */
+        FeedbackOpcion: {
+            /** Clave */
+            clave: string;
+            /** Etiqueta */
+            etiqueta: string;
+        };
+        /** FeedbackPagina */
+        FeedbackPagina: {
+            /** Items */
+            items: components["schemas"]["FeedbackReporteResumen"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** FeedbackPersona */
+        FeedbackPersona: {
+            /** Email */
+            email: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nombre */
+            nombre: string | null;
+        };
+        /** FeedbackRechazarIn */
+        FeedbackRechazarIn: {
+            /**
+             * Duplicado De
+             * @description Obligatorio con `motivo_codigo = duplicado`.
+             */
+            duplicado_de?: string | null;
+            /**
+             * Motivo
+             * @description Visible al cliente.
+             */
+            motivo: string;
+            /**
+             * Motivo Codigo
+             * @enum {string}
+             */
+            motivo_codigo: "duplicado" | "no_reproducible" | "fuera_de_alcance" | "informacion_insuficiente" | "otro";
+            /**
+             * Nota Interna
+             * @description Solo para el equipo.
+             */
+            nota_interna?: string | null;
+        };
+        /** FeedbackReporte */
+        FeedbackReporte: {
+            /** Adjuntos */
+            adjuntos: components["schemas"]["FeedbackAdjunto"][];
+            /** Area */
+            area: string;
+            /**
+             * Autor Admin Id
+             * Format: uuid
+             */
+            autor_admin_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Creditos Otorgados
+             * @description Créditos de regalo, si se aprobó.
+             */
+            creditos_otorgados: number | null;
+            /** Decidido En */
+            decidido_en: string | null;
+            /** Descripcion */
+            descripcion: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "recibido" | "en_revision" | "aprobado" | "rechazado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Motivo
+             * @description Explicación del revisor para el cliente.
+             */
+            motivo: string | null;
+            /**
+             * Motivo Codigo
+             * @description Por qué se rechazó (`duplicado`, `no_reproducible`, …).
+             */
+            motivo_codigo: ("duplicado" | "no_reproducible" | "fuera_de_alcance" | "informacion_insuficiente" | "otro") | null;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "error" | "mejora" | "idea";
+            /** Titulo */
+            titulo: string;
+        };
+        /**
+         * FeedbackReporteMaster
+         * @description El reporte como lo ve el equipo: incluye `nota_interna`, el revisor y a qué reporte duplica.
+         */
+        FeedbackReporteMaster: {
+            /** Adjuntos */
+            adjuntos: components["schemas"]["FeedbackAdjuntoMaster"][];
+            /** Area */
+            area: string;
+            autor: components["schemas"]["FeedbackPersona"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Creditos Otorgados */
+            creditos_otorgados: number | null;
+            /** Decidido En */
+            decidido_en: string | null;
+            /** Descripcion */
+            descripcion: string;
+            /** Duplicado De */
+            duplicado_de: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "recibido" | "en_revision" | "aprobado" | "rechazado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Motivo */
+            motivo: string | null;
+            /** Motivo Codigo */
+            motivo_codigo: ("duplicado" | "no_reproducible" | "fuera_de_alcance" | "informacion_insuficiente" | "otro") | null;
+            /** Nota Interna */
+            nota_interna: string | null;
+            /** @description Quien lo tomó o lo decidió. */
+            revisor: components["schemas"]["FeedbackPersona"] | null;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Tenant Name */
+            tenant_name: string;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "error" | "mejora" | "idea";
+            /** Titulo */
+            titulo: string;
+            /** Tomado En */
+            tomado_en: string | null;
+        };
+        /** FeedbackReporteResumen */
+        FeedbackReporteResumen: {
+            /**
+             * Adjuntos Total
+             * @description Cuántos adjuntos tiene (la lista viene en el detalle).
+             */
+            adjuntos_total: number;
+            /** Area */
+            area: string;
+            /**
+             * Autor Admin Id
+             * Format: uuid
+             */
+            autor_admin_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Creditos Otorgados
+             * @description Créditos de regalo, si se aprobó.
+             */
+            creditos_otorgados: number | null;
+            /** Decidido En */
+            decidido_en: string | null;
+            /** Descripcion */
+            descripcion: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "recibido" | "en_revision" | "aprobado" | "rechazado";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Motivo
+             * @description Explicación del revisor para el cliente.
+             */
+            motivo: string | null;
+            /**
+             * Motivo Codigo
+             * @description Por qué se rechazó (`duplicado`, `no_reproducible`, …).
+             */
+            motivo_codigo: ("duplicado" | "no_reproducible" | "fuera_de_alcance" | "informacion_insuficiente" | "otro") | null;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "error" | "mejora" | "idea";
+            /** Titulo */
+            titulo: string;
         };
         /** FilaDeFoto */
         FilaDeFoto: {
@@ -16033,6 +16976,11 @@ export interface components {
             guardrail_fail_action: "escalate" | "neutral";
             /** Guardrail Max Retries */
             guardrail_max_retries: number;
+            /**
+             * Language
+             * @default es
+             */
+            language: string;
             /** Out Of Hours Default Message */
             out_of_hours_default_message: string;
             /** Out Of Hours Message */
@@ -17644,10 +18592,31 @@ export interface components {
         };
         /** MediaCatalogModel */
         MediaCatalogModel: {
+            /**
+             * Cost Unit
+             * @enum {string}
+             */
+            cost_unit: "minute" | "image";
+            /** Cost Usd */
+            cost_usd: number;
             /** Id */
             id: string;
             /** Label */
             label: string;
+            /**
+             * Legacy
+             * @default false
+             */
+            legacy: boolean;
+            /**
+             * Offered
+             * @default true
+             */
+            offered: boolean;
+            /** Quality */
+            quality: number;
+            /** Tier */
+            tier: string;
         };
         /** MediaCatalogProvider */
         MediaCatalogProvider: {
@@ -18600,7 +19569,7 @@ export interface components {
         NotificationTarget: {
             /**
              * Entity
-             * @description conversacion, escalacion, lead, cliente, pedido, pago, suscripcion, cobro, cita, conexion, mensaje_fallido, cobranza
+             * @description conversacion, escalacion, lead, cliente, pedido, pago, suscripcion, cobro, cita, conexion, mensaje_fallido, cobranza, feedback_reporte
              */
             entity: string;
             /** Filtro */
@@ -21151,6 +22120,487 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** PruebasAplicadoOut */
+        PruebasAplicadoOut: {
+            /**
+             * Arreglo Aplicado En
+             * Format: date-time
+             */
+            arreglo_aplicado_en: string;
+            /** Borrador Lock Version */
+            borrador_lock_version: number;
+            /**
+             * Cambios
+             * @description Vacío si el borrador ya lo tenía.
+             */
+            cambios: components["schemas"]["PruebasCambioOut"][];
+            /**
+             * Publicado
+             * @description Aplicar nunca publica: el agente sigue con su versión.
+             * @default false
+             * @constant
+             */
+            publicado: false;
+            /**
+             * Result Id
+             * Format: uuid
+             */
+            result_id: string;
+        };
+        /** PruebasAplicarIn */
+        PruebasAplicarIn: {
+            /**
+             * Confirmo
+             * @description Confirmación explícita del dueño: vio el cambio y quiere aplicarlo.
+             * @constant
+             */
+            confirmo: true;
+            /**
+             * Lock Version
+             * @description El `borrador_lock_version` que vio al mirar el cambio.
+             */
+            lock_version: number;
+        };
+        /** PruebasArregloOut */
+        PruebasArregloOut: {
+            /**
+             * Aplicable
+             * @description Si «Aplicar al borrador» puede escribirlo ahora.
+             */
+            aplicable: boolean;
+            /**
+             * Diff
+             * @description Lo que cambiaría en el borrador de AHORA; vacío si no aplica.
+             */
+            diff: components["schemas"]["PruebasCambioOut"][];
+            /**
+             * Motivo No Aplicable
+             * @description `tipo` (se edita a mano), `sin_borrador` o `ya_aplicado`.
+             */
+            motivo_no_aplicable?: string | null;
+            /** Porque */
+            porque: string;
+            /** Procedimiento */
+            procedimiento?: string | null;
+            /** @description Solo en `regla`. */
+            regla?: components["schemas"]["PruebasReglaOut"] | null;
+            /**
+             * Seccion
+             * @description Dónde se edita un `dato`.
+             */
+            seccion?: string | null;
+            /**
+             * Texto
+             * @description La respuesta o el dato que falta (`respuesta` y `dato`).
+             */
+            texto?: string | null;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "regla" | "respuesta" | "dato";
+        };
+        /** PruebasArregloVistaOut */
+        PruebasArregloVistaOut: {
+            /**
+             * Aplicable
+             * @description Si «Aplicar al borrador» puede escribirlo ahora.
+             */
+            aplicable: boolean;
+            /** Borrador Lock Version */
+            borrador_lock_version: number | null;
+            /**
+             * Diff
+             * @description Lo que cambiaría en el borrador de AHORA; vacío si no aplica.
+             */
+            diff: components["schemas"]["PruebasCambioOut"][];
+            /**
+             * Motivo No Aplicable
+             * @description `tipo` (se edita a mano), `sin_borrador` o `ya_aplicado`.
+             */
+            motivo_no_aplicable?: string | null;
+            /** Porque */
+            porque: string;
+            /** Procedimiento */
+            procedimiento?: string | null;
+            /** @description Solo en `regla`. */
+            regla?: components["schemas"]["PruebasReglaOut"] | null;
+            /**
+             * Seccion
+             * @description Dónde se edita un `dato`.
+             */
+            seccion?: string | null;
+            /**
+             * Texto
+             * @description La respuesta o el dato que falta (`respuesta` y `dato`).
+             */
+            texto?: string | null;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "regla" | "respuesta" | "dato";
+        };
+        /** PruebasCambioOut */
+        PruebasCambioOut: {
+            /**
+             * Antes
+             * @description Lo que había (`null` si es nuevo).
+             */
+            antes: unknown | null;
+            /**
+             * Despues
+             * @description Lo que quedará.
+             */
+            despues: unknown;
+            /**
+             * Ruta
+             * @description Dónde cambia el borrador, p. ej. `guardrails[2]`.
+             */
+            ruta: string;
+        };
+        /** PruebasCorridaCanceladaOut */
+        PruebasCorridaCanceladaOut: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /**
+             * Creditos Reales
+             * @description Lo gastado hasta ahora (puede crecer un poco: el intento abierto termina).
+             */
+            creditos_reales: number;
+            /** Estado */
+            estado: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Terminada En */
+            terminada_en: string | null;
+        };
+        /** PruebasCorridaIn */
+        PruebasCorridaIn: {
+            /**
+             * Case Ids
+             * @description Escenarios aprobados del agente. Máximo 20 distintos por corrida.
+             */
+            case_ids: string[];
+            /**
+             * Confirmo Creditos
+             * @description Créditos que el dueño aprobó: el `estimado` de este `k`. Si cambió, 409 `estimado_cambio`.
+             */
+            confirmo_creditos: number;
+            /**
+             * K
+             * @description Intentos por escenario: de 1 al tope del negocio (`k_fuera_de_rango` si no).
+             */
+            k: number;
+        };
+        /** PruebasCorridaOut */
+        PruebasCorridaOut: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Creditos De Cuota */
+            creditos_de_cuota: number;
+            /** Creditos Estimados */
+            creditos_estimados: number;
+            /** Escenarios */
+            escenarios: number;
+            /** Estado */
+            estado: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** K */
+            k: number;
+            /** Tope Creditos */
+            tope_creditos: number;
+        };
+        /** PruebasEscenarioInformeOut */
+        PruebasEscenarioInformeOut: {
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /** Intentos */
+            intentos: components["schemas"]["PruebasIntentoOut"][];
+            /** Titulo */
+            titulo: string;
+        };
+        /** PruebasEstimadoDeKOut */
+        PruebasEstimadoDeKOut: {
+            /**
+             * Alcanza
+             * @description Si `del_saldo` cabe en el saldo.
+             */
+            alcanza: boolean;
+            /**
+             * Costo Usd
+             * @description Costo real en USD. Solo lo ve el master.
+             */
+            costo_usd?: number | null;
+            /**
+             * De La Cuota
+             * @description Cuánto sale de la cuota gratis de pruebas y playground del ciclo.
+             */
+            de_la_cuota: number;
+            /**
+             * Del Saldo
+             * @description Cuánto sale del saldo: `estimado menos de_la_cuota`.
+             */
+            del_saldo: number;
+            /**
+             * Estimado
+             * @description Créditos que cuesta correr con este `k` (es el de k = 1 por `k`).
+             */
+            estimado: number;
+            /**
+             * K
+             * @description Intentos por escenario.
+             */
+            k: number;
+            /**
+             * Saldo Despues
+             * @description Saldo tras la corrida; `null` si el negocio no tiene tope.
+             */
+            saldo_despues: number | null;
+        };
+        /** PruebasEstimadoIn */
+        PruebasEstimadoIn: {
+            /**
+             * Case Ids
+             * @description Escenarios aprobados del agente. Máximo 20 distintos por corrida.
+             */
+            case_ids: string[];
+        };
+        /** PruebasEstimadoOut */
+        PruebasEstimadoOut: {
+            /** Cuota Gratis Restante */
+            cuota_gratis_restante: number;
+            /** Escenarios */
+            escenarios: number;
+            /**
+             * K Maximo
+             * @description Tope de `k` del negocio (el de plataforma o el que fijó el master).
+             */
+            k_maximo: number;
+            /** K Por Defecto */
+            k_por_defecto: number;
+            /** Nivel Ia */
+            nivel_ia: string;
+            /** Por K */
+            por_k: components["schemas"]["PruebasEstimadoDeKOut"][];
+            /**
+             * Saldo
+             * @description Créditos que le quedan al negocio en el ciclo; `null` si no hay tope.
+             */
+            saldo: number | null;
+        };
+        /** PruebasInformeOut */
+        PruebasInformeOut: {
+            /**
+             * Agent Id
+             * Format: uuid
+             */
+            agent_id: string;
+            /**
+             * Borrador Lock Version
+             * @description El que hay que mandar al aplicar un arreglo.
+             */
+            borrador_lock_version: number | null;
+            /** Creditos Estimados */
+            creditos_estimados: number;
+            /** Creditos Reales */
+            creditos_reales: number;
+            /**
+             * Creditos Reales De Cuota
+             * @description De lo gastado, lo que cubre la cuota gratis de pruebas.
+             */
+            creditos_reales_de_cuota: number;
+            /** Creditos Reales Del Saldo */
+            creditos_reales_del_saldo: number;
+            /** Escenarios */
+            escenarios: components["schemas"]["PruebasEscenarioInformeOut"][];
+            /** Estado */
+            estado: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Iniciada En */
+            iniciada_en: string | null;
+            /** K */
+            k: number;
+            progreso: components["schemas"]["PruebasProgresoOut"];
+            /**
+             * Reintento De
+             * @description La corrida de la que esta repite las fallidas.
+             */
+            reintento_de: string | null;
+            resumen: components["schemas"]["PruebasResumenOut"];
+            /** Terminada En */
+            terminada_en: string | null;
+            /** Tope Creditos */
+            tope_creditos: number;
+            /**
+             * Version Probada
+             * @description `borrador`.
+             */
+            version_probada: string | null;
+        };
+        /** PruebasIntentoOut */
+        PruebasIntentoOut: {
+            arreglo: components["schemas"]["PruebasArregloOut"] | null;
+            /** Arreglo Aplicado En */
+            arreglo_aplicado_en: string | null;
+            /** Criterio Incumplido */
+            criterio_incumplido: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "pasa" | "falla" | "no_se_pudo_probar";
+            /** Fin */
+            fin: string | null;
+            /** Intento */
+            intento: number;
+            /** Juez Equivocado */
+            juez_equivocado: boolean;
+            /** Razon */
+            razon: string | null;
+            /**
+             * Result Id
+             * Format: uuid
+             */
+            result_id: string;
+            /** Tools Llamadas */
+            tools_llamadas: string[];
+            /** Transcripcion */
+            transcripcion: components["schemas"]["PruebasTurnoOut"][];
+        };
+        /** PruebasJuezEquivocadoIn */
+        PruebasJuezEquivocadoIn: {
+            /**
+             * Juez Equivocado
+             * @description `false` revierte la marca.
+             * @default true
+             */
+            juez_equivocado: boolean;
+        };
+        /** PruebasJuezEquivocadoOut */
+        PruebasJuezEquivocadoOut: {
+            /** Estado */
+            estado: string;
+            /** Juez Equivocado */
+            juez_equivocado: boolean;
+            /**
+             * Result Id
+             * Format: uuid
+             */
+            result_id: string;
+        };
+        /** PruebasProgresoOut */
+        PruebasProgresoOut: {
+            /** Hechos */
+            hechos: number;
+            /** Total */
+            total: number;
+        };
+        /** PruebasReglaOut */
+        PruebasReglaOut: {
+            /** Action */
+            action: string;
+            /** Kind */
+            kind: string;
+            /** Name */
+            name: string;
+            /** Phrases */
+            phrases?: string[];
+            /** Tool */
+            tool?: string | null;
+            /** Value */
+            value?: number | null;
+        };
+        /** PruebasResumenOut */
+        PruebasResumenOut: {
+            /**
+             * Fallan
+             * @description Fallas vigentes: sin las marcadas `juez_equivocado`.
+             */
+            fallan: number;
+            /** Juez Equivocado */
+            juez_equivocado: number;
+            /** No Se Pudo Probar */
+            no_se_pudo_probar: number;
+            /** Pasan */
+            pasan: number;
+            /**
+             * Porcentaje
+             * @description Pasan sobre lo que se pudo juzgar; `null` si no hay nada que juzgar.
+             */
+            porcentaje: number | null;
+        };
+        /** PruebasTopeDeKIn */
+        PruebasTopeDeKIn: {
+            /**
+             * K Maximo
+             * @description Tope de `k` del negocio, de 1 a 10; `null` vuelve al de plataforma.
+             */
+            k_maximo: number | null;
+        };
+        /** PruebasTopeDeKOut */
+        PruebasTopeDeKOut: {
+            /**
+             * K Maximo
+             * @description Tope efectivo de `k` del negocio.
+             */
+            k_maximo: number;
+            /** K Maximo De Plataforma */
+            k_maximo_de_plataforma: number;
+            /**
+             * K Maximo Propio
+             * @description Lo que fijó el master; `null` si usa el de plataforma.
+             */
+            k_maximo_propio: number | null;
+        };
+        /** PruebasTurnoOut */
+        PruebasTurnoOut: {
+            /**
+             * Quien
+             * @enum {string}
+             */
+            quien: "cliente" | "agente";
+            /** Texto */
+            texto: string;
+        };
+        /** PruebasVolverIn */
+        PruebasVolverIn: {
+            /**
+             * Confirmo Creditos
+             * @description El `estimado` de ese `k` para las fallidas (409 `estimado_cambio` si cambió).
+             */
+            confirmo_creditos: number;
+            /**
+             * K
+             * @description Intentos por escenario: de 1 al tope del negocio.
+             */
+            k: number;
+        };
         /** PublishedConnection */
         PublishedConnection: {
             /**
@@ -22561,6 +24011,22 @@ export interface components {
             label: string;
             /** Seccion */
             seccion: string;
+        };
+        /** ResumenDeCorridaDePrueba */
+        ResumenDeCorridaDePrueba: {
+            /** Estado */
+            estado: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Iniciada En */
+            iniciada_en: string | null;
+            /** K */
+            k: number;
+            /** Terminada En */
+            terminada_en: string | null;
         };
         /** ResumenPorAgente */
         ResumenPorAgente: {
@@ -27346,6 +28812,715 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AgentPosibles"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_escenarios_api_v1_admin_agents__agent_id__pruebas_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EscenariosDePrueba"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    escribir_escenario_api_v1_admin_agents__agent_id__pruebas_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EscenarioDePruebaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EscenarioDePrueba"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    borrar_escenario_api_v1_admin_agents__agent_id__pruebas__case_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    editar_escenario_api_v1_admin_agents__agent_id__pruebas__case_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EscenarioDePruebaPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EscenarioDePrueba"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_corrida_api_v1_admin_agents__agent_id__pruebas_corridas_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PruebasCorridaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasCorridaOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente o escenario inexistente o de otro negocio (`not_found`, `escenario_no_encontrado`), o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `plan_limit_creditos` (`details = {metric, used, limit}`), `estimado_cambio` (`details.estimado` trae el vigente) o `corrida_en_curso`; no se creó la corrida. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `k_fuera_de_rango`, `demasiados_escenarios`, `sin_escenarios` o `escenario_no_aprobado`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `corridas_por_dia`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    informe_api_v1_admin_agents__agent_id__pruebas_corridas__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasInformeOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente, corrida o resultado inexistente o de otro negocio, o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancelar_corrida_api_v1_admin_agents__agent_id__pruebas_corridas__run_id__cancelar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasCorridaCanceladaOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente o escenario inexistente o de otro negocio (`not_found`, `escenario_no_encontrado`), o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `corrida_no_activa`: la corrida ya terminó. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `k_fuera_de_rango`, `demasiados_escenarios`, `sin_escenarios` o `escenario_no_aprobado`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    volver_a_probar_api_v1_admin_agents__agent_id__pruebas_corridas__run_id__volver_a_probar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PruebasVolverIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasCorridaOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente, corrida o resultado inexistente o de otro negocio, o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `corrida_en_curso` (la corrida de origen sigue activa: `details.estado`; u otra corrida del negocio: sin `details`), `estimado_cambio` o `plan_limit_creditos`; no se creó la corrida. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sin_fallidas` o `k_fuera_de_rango`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `corridas_por_dia`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    estimar_fallidas_api_v1_admin_agents__agent_id__pruebas_corridas__run_id__volver_a_probar_estimado_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasEstimadoOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente, corrida o resultado inexistente o de otro negocio, o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `corrida_en_curso`: la corrida todavía no termina. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sin_fallidas`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    estimar_api_v1_admin_agents__agent_id__pruebas_estimado_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PruebasEstimadoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasEstimadoOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente o escenario inexistente o de otro negocio (`not_found`, `escenario_no_encontrado`), o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `k_fuera_de_rango`, `demasiados_escenarios`, `sin_escenarios` o `escenario_no_aprobado`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    proponer_escenarios_api_v1_admin_agents__agent_id__pruebas_proponer_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EscenariosPropuestos"];
+                };
+            };
+            /** @description Tope del plan: `error.code = plan_limit_creditos`, `error.details = {metric, used, limit}`; no se escribió nada. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description `propuesta_invalida`: la IA respondió sin escenarios utilizables (ya se cobró la llamada). */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `ia_no_disponible`: el proveedor no respondió; no se cobró nada. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    aplicar_arreglo_api_v1_admin_agents__agent_id__pruebas_resultados__result_id__aplicar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                result_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PruebasAplicarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasAplicadoOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente, corrida o resultado inexistente o de otro negocio, o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `resultado_no_es_falla`, `sin_arreglo`, `arreglo_ya_aplicado`, `arreglo_no_aplicable` (`details = {tipo, seccion, texto}`: se edita a mano), `sin_borrador`, `agente_archivado` o `stale_lock_version` (`details.lock_version` trae el vigente). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `arreglo_invalido`: el cambio no pasa el contrato del borrador (`fields` por campo); o `validation_error` si falta `confirmo: true` o el `lock_version`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ver_arreglo_api_v1_admin_agents__agent_id__pruebas_resultados__result_id__arreglo_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                result_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasArregloVistaOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente, corrida o resultado inexistente o de otro negocio, o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `sin_arreglo`: el resultado no tiene un arreglo sugerido. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    juez_equivocado_api_v1_admin_agents__agent_id__pruebas_resultados__result_id__juez_equivocado_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                agent_id: string;
+                result_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PruebasJuezEquivocadoIn"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasJuezEquivocadoOut"];
+                };
+            };
+            /** @description Sin permiso de escritura en la sección `agents`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Agente, corrida o resultado inexistente o de otro negocio, o pruebas apagadas. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `resultado_no_es_falla`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -37854,6 +40029,78 @@ export interface operations {
             };
         };
     };
+    leer_tope_api_v1_admin_platform_tenants__tenant_id__pruebas_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasTopeDeKOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fijar_tope_api_v1_admin_platform_tenants__tenant_id__pruebas_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PruebasTopeDeKIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PruebasTopeDeKOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     purge_tenant_endpoint_api_v1_admin_platform_tenants__tenant_id__purge_post: {
         parameters: {
             query?: never;
@@ -41190,6 +43437,232 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_catalogo_api_v1_feedback_catalogo_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackCatalogo"];
+                };
+            };
+            /** @description Reportes apagados (`FEEDBACK_ENABLED`): ocultar la entrada del menú. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reports_api_v1_feedback_reports_get: {
+        parameters: {
+            query?: {
+                /** @description `negocio` solo para el propietario. */
+                alcance?: "mios" | "negocio";
+                cursor?: string | null;
+                estado?: ("recibido" | "en_revision" | "aprobado" | "rechazado") | null;
+                limit?: number;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackPagina"];
+                };
+            };
+            /** @description `cursor_invalido`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `alcance_no_permitido`: `alcance=negocio` es solo para el propietario. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Reportes apagados (`FEEDBACK_ENABLED`): ocultar la entrada del menú. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_feedback_report: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Una por envío del formulario; se repite solo en los reintentos de ese mismo envío. */
+                "Idempotency-Key": string;
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_post_feedback_report"];
+            };
+        };
+        responses: {
+            /** @description Replay: la `Idempotency-Key` ya se usó; devuelve el reporte original. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackReporte"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackReporte"];
+                };
+            };
+            /** @description `idempotency_key_requerida` o `idempotency_key_invalida`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Reportes apagados (`FEEDBACK_ENABLED`): ocultar la entrada del menú. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `idempotency_key_en_uso`: la clave es de un reporte de otro usuario. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `adjunto_muy_grande` (8 MB por archivo) o `adjuntos_muy_grandes` (25 MB en total). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `adjunto_invalido` (tipo o firma), `demasiados_adjuntos` (más de 5), `adjunto_repetido`, `tipo_invalido`, `area_invalida`, `titulo_invalido`, `descripcion_invalida` o `validation_error`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `demasiados_reportes` o `demasiados_reportes_del_negocio`, con `Retry-After`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `almacenamiento_no_disponible`, con `Retry-After`; no se guardó nada. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_report_api_v1_feedback_reports__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackReporte"];
+                };
+            };
+            /** @description `not_found`: no existe, es de otro usuario (sin ser propietario) o de otro negocio; o reportes apagados. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -47139,6 +49612,290 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OpcionesErrorOut"];
+                };
+            };
+        };
+    };
+    bandeja_api_v1_platform_feedback_reports_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                estado?: ("recibido" | "en_revision" | "aprobado" | "rechazado") | null;
+                limit?: number;
+                /** @description Solo los reportes de este negocio. */
+                tenant_id?: string | null;
+                tipo?: ("error" | "mejora" | "idea") | null;
+            };
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackBandeja"];
+                };
+            };
+            /** @description `cursor_invalido` */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `forbidden`: no actúa como master (o, al decidir, no es master estricto) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `not_found`: el reporte no existe o `FEEDBACK_ENABLED` está apagada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detalle_api_v1_platform_feedback_reports__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackReporteMaster"];
+                };
+            };
+            /** @description `forbidden`: no actúa como master (o, al decidir, no es master estricto) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `not_found`: el reporte no existe o `FEEDBACK_ENABLED` está apagada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    aprobar_api_v1_platform_feedback_reports__report_id__aprobar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackAprobarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackReporteMaster"];
+                };
+            };
+            /** @description `forbidden`: no actúa como master (o, al decidir, no es master estricto) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `not_found`: el reporte no existe o `FEEDBACK_ENABLED` está apagada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `reporte_ya_decidido` (`details.estado`) o `sin_ciclo_de_creditos` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `monto_invalido`, `tope_reporte_excedido` (`details.maximo`) o `tope_mensual_excedido` (`details.maximo`, `regalado`, `disponible`); `validation_error` si `creditos` no es un entero */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `abono_inconsistente`: no entró el abono y se deshizo la aprobación */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    rechazar_api_v1_platform_feedback_reports__report_id__rechazar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackRechazarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackReporteMaster"];
+                };
+            };
+            /** @description `forbidden`: no actúa como master (o, al decidir, no es master estricto) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `not_found`: el reporte no existe o `FEEDBACK_ENABLED` está apagada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `reporte_ya_decidido` (`details.estado`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `duplicado_sin_original`, `duplicado_invalido` o `duplicado_sin_motivo` */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    tomar_api_v1_platform_feedback_reports__report_id__tomar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Device-Id"?: string | null;
+                "X-Tenant-Id"?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackReporteMaster"];
+                };
+            };
+            /** @description `forbidden`: no actúa como master (o, al decidir, no es master estricto) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `not_found`: el reporte no existe o `FEEDBACK_ENABLED` está apagada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `reporte_ya_tomado` (`details.revisado_por`) o `reporte_ya_decidido` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

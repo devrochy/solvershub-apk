@@ -231,6 +231,8 @@ const CON_RECARGAS = {
       used_month: 12000,
       used_accumulated: 1000,
       used_top_ups: 0,
+      bonuses: 0,
+      used_bonuses: 0,
       over_balance: 0,
     },
     balance_percent: 65,

@@ -12,6 +12,8 @@ export interface DestinoNavegacion {
   cliente?: string;
   /** Filtro `clave:valor` con el que abrir la lista de Clientes (resumen de Ventas, HU-CRM-22). */
   filtro?: string;
+  /** Id de un reporte de cliente cuyo detalle se abre (SPEC-54, HU-FB-07). */
+  reporte?: string;
 }
 
 type Oyente = (destino: DestinoNavegacion) => void;

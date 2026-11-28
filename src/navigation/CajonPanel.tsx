@@ -6,6 +6,7 @@ import { shSpace } from "@core/theme/tokens";
 import { URL_DOCUMENTACION } from "@shared/panel-urls";
 import { Drawer, Icono, ListItem, NavGroup, useKit } from "@shared/ui";
 import { SessionContext } from "../modules/cobranza/session/session-context";
+import { useCatalogoFeedback } from "../modules/feedback";
 import { CuentaPanel } from "./CuentaPanel";
 import { ALTO_WORDMARK, ANCHO_WORDMARK, LOGO_PANEL } from "./marca-panel";
 import { entradaContiene, gruposDeMenu, type EntradaVisible } from "./menu-panel";
@@ -24,12 +25,20 @@ function esActiva(entrada: EntradaVisible, activo: DestinoPanel | null): boolean
  * con candado. Los grupos arrancan plegados y solo se abre el del destino
  * activo, al que se desplaza. Abajo, fija, la tarjeta de la cuenta.
  */
-export function CajonPanel({ onAbrirPerfil }: { onAbrirPerfil?: () => void }) {
+export function CajonPanel({
+  onAbrirPerfil,
+  onAbrirReportar,
+}: {
+  onAbrirPerfil?: () => void;
+  onAbrirReportar?: () => void;
+}) {
   const { c } = useKit();
   const { tema, alternarTema } = useTheme();
   const { sesion, perfil, refrescarPerfil, logout: logoutAdmin } = useAdminSession();
   const campo = useContext(SessionContext);
   const { abierto, cerrar, activo, gruposAbiertos, alternarGrupo, irA } = useMenuPanel();
+  // Reportes de clientes (SPEC-54): el catálogo responde 404 con la bandera apagada y la entrada no sale.
+  const feedback = useCatalogoFeedback();
 
   const esMaster = sesion?.role === "master";
   const permisos = sesion?.permissions;
@@ -71,6 +80,11 @@ export function CajonPanel({ onAbrirPerfil }: { onAbrirPerfil?: () => void }) {
   const abrirPerfil = () => {
     cerrar();
     onAbrirPerfil?.();
+  };
+
+  const abrirReportar = () => {
+    cerrar();
+    onAbrirReportar?.();
   };
 
   const cerrarSesion = () => {
@@ -174,6 +188,7 @@ export function CajonPanel({ onAbrirPerfil }: { onAbrirPerfil?: () => void }) {
             documentacionUrl={URL_DOCUMENTACION}
             onAlternarTema={alternarTema}
             onPerfil={abrirPerfil}
+            onReportar={feedback.estado === "listo" && onAbrirReportar ? abrirReportar : undefined}
             onCerrarSesion={cerrarSesion}
           />
         </View>

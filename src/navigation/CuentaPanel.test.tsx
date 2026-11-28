@@ -85,6 +85,23 @@ describe("CuentaPanel", () => {
     await waitFor(() => expect(queryByTestId("cajon-cuenta-submenu")).toBeNull());
   });
 
+  describe("Reportar un problema (SPEC-54)", () => {
+    it("sin `onReportar` (bandera apagada) no se muestra", async () => {
+      const { getByTestId, queryByTestId } = await renderCuenta();
+      await fireEvent.press(getByTestId("cajon-cuenta"));
+      expect(queryByTestId("cajon-reportar")).toBeNull();
+    });
+
+    it("con `onReportar` abre el formulario y pliega el submenú", async () => {
+      const onReportar = jest.fn();
+      const { getByTestId, queryByTestId } = await renderCuenta({ onReportar });
+      await fireEvent.press(getByTestId("cajon-cuenta"));
+      await fireEvent.press(getByTestId("cajon-reportar"));
+      expect(onReportar).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(queryByTestId("cajon-cuenta-submenu")).toBeNull());
+    });
+  });
+
   describe("Documentación", () => {
     const URL_WIKI = "https://panel.ejemplo.test/ayuda";
 

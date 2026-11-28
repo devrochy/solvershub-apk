@@ -13,6 +13,8 @@ export interface CuentaPanelProps {
   tema: Tema;
   /** Wiki del panel; sin URL el ítem «Documentación» no se muestra. */
   documentacionUrl?: string | null;
+  /** Reportes de clientes (SPEC-54); sin él (bandera apagada) «Reportar un problema» no se muestra. */
+  onReportar?: () => void;
   onAlternarTema(): void;
   onPerfil(): void;
   onCerrarSesion(): void;
@@ -20,7 +22,7 @@ export interface CuentaPanelProps {
 
 /**
  * Tarjeta de la cuenta fija al pie del cajón: avatar, nombre y correo. Al
- * tocarla despliega hacia arriba Perfil, Documentación, Tema oscuro y Cerrar sesión, como la
+ * tocarla despliega hacia arriba Perfil, Documentación, Reportar un problema, Tema oscuro y Cerrar sesión, como la
  * `UserCard` del sidebar del panel web.
  */
 export function CuentaPanel({
@@ -30,6 +32,7 @@ export function CuentaPanel({
   avatarUrl,
   tema,
   documentacionUrl,
+  onReportar,
   onAlternarTema,
   onPerfil,
   onCerrarSesion,
@@ -96,6 +99,19 @@ export function CuentaPanel({
               <Icono name="menu-book" size={20} color={c.text} />
               <Text style={[styles.itemTexto, { color: c.text }]}>Documentación</Text>
               <Icono name="open-in-new" size={16} color={c.textSoft} />
+            </Pressable>
+          ) : null}
+
+          {onReportar ? (
+            <Pressable
+              testID="cajon-reportar"
+              accessibilityRole="button"
+              android_ripple={{ color: ripple.superficie }}
+              style={styles.submenuItem}
+              onPress={() => ejecutar(onReportar)}
+            >
+              <Icono name="feedback" size={20} color={c.text} />
+              <Text style={[styles.itemTexto, { color: c.text }]}>Reportar un problema</Text>
             </Pressable>
           ) : null}
 

@@ -82,7 +82,8 @@ async function pedirTexto(
   return { texto: await res.text(), nombreArchivo: nombreDesdeCabecera(res) };
 }
 
-async function errorDeRespuesta(res: Response): Promise<AdminApiError> {
+/** Error normalizado de una respuesta no-ok (para los clientes que no usan `crearClienteAdmin`, p. ej. multipart). */
+export async function errorDeRespuesta(res: Response): Promise<AdminApiError> {
   let code = String(res.status);
   let message = "Ocurrió un error. Intenta de nuevo.";
   let fields: Record<string, string> | undefined;
