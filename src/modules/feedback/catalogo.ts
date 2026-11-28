@@ -67,8 +67,8 @@ export function etiquetaDeArea(catalogo: FeedbackCatalogo | null, area: string):
   return catalogo?.areas.find((a) => a.clave === area)?.etiqueta ?? area;
 }
 
-/** ¿Ve el filtro «Del negocio»? Mismo criterio que `es_owner_o_master` del backend. */
+/** ¿Ve el filtro «Del negocio»? Owner o master; el tester solo cuenta en test y, si no, el 403 cae a «Míos». */
 export function puedeVerDelNegocio(sesion: Pick<AdminSesion, "role" | "tenantRole"> | null): boolean {
   if (!sesion) return false;
-  return sesion.role === "master" || sesion.role === "tester" || sesion.tenantRole === "owner";
+  return sesion.role === "master" || sesion.tenantRole === "owner";
 }

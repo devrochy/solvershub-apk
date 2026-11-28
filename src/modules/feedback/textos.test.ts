@@ -32,7 +32,7 @@ describe("textos de reportes (HU-FB-07)", () => {
     });
   });
 
-  it("el filtro «Del negocio» es del owner (y master o tester)", () => {
+  it("el filtro «Del negocio» es del owner (y del master)", () => {
     expect(puedeVerDelNegocio({ role: "admin", tenantRole: "owner" })).toBe(true);
     expect(puedeVerDelNegocio({ role: "master", tenantRole: null })).toBe(true);
     expect(puedeVerDelNegocio({ role: "admin", tenantRole: "colaborador" })).toBe(false);
