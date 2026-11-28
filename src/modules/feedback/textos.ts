@@ -38,7 +38,7 @@ export function estadoEnPalabras(reporte: Pick<FeedbackResumen, "estado" | "cred
 }
 
 export const MOTIVOS: Record<string, string> = {
-  duplicado: "Ya lo había reportado alguien más",
+  duplicado: "Ya estaba reportado",
   no_reproducible: "No pudimos reproducirlo",
   fuera_de_alcance: "Fuera del alcance del producto",
   informacion_insuficiente: "Faltó información para revisarlo",

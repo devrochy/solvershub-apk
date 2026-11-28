@@ -69,7 +69,7 @@ describe("ReporteDetalleScreen (HU-FB-07)", () => {
     );
     await render(<ReporteDetalleScreen id="r-1" onBack={jest.fn()} />);
     expect(await screen.findByText("Ya lo estamos arreglando.")).toBeTruthy();
-    expect(screen.getByText("Ya lo había reportado alguien más")).toBeTruthy();
+    expect(screen.getByText("Ya estaba reportado")).toBeTruthy();
     expect(screen.getByTestId("reporte-detalle-duplicado")).toBeTruthy();
     expect(screen.getByTestId("reporte-detalle-imagen-0").props.source).toEqual({ uri: "https://s3.test/firmada" });
   });
